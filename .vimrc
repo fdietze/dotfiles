@@ -18,6 +18,9 @@ Bundle "megaannum/vimside"
 " Colorscheme
 Bundle "nanotech/jellybeans.vim"
 colorscheme jellybeans
+set term=ansi
+set t_Co=256
+syntax on
 
 
 let mapleader=","
@@ -26,8 +29,8 @@ let g:mapleader=","
 set mouse=a
 if has("gui_running")
   set guioptions=aci        " hide toolbars
-  set guifont=UbuntuMono\ 9
-  set lines=999 columns=999 " Maximize window.
+  set guifont=Monospace\ 8
+  set lines=24 columns=80 " Maximize window.
 endif
 
 
@@ -61,6 +64,7 @@ set showcmd                       " display incomplete commands
 set wildmenu                      " better command line completion
 set wildmode=list:longest,full
 set lazyredraw                    " performance: dont redraw while executing macros
+set autoread                      " read file when changed from outside
 
 
 
