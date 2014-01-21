@@ -25,6 +25,8 @@ syntax on
 
 let mapleader=","
 let g:mapleader=","
+:nnoremap <Tab> :bnext<CR>
+:nnoremap <S-Tab> :bprevious<CR>
 
 set mouse=a
 if has("gui_running")
