@@ -60,6 +60,7 @@ set expandtab                     " always uses spaces instead of tab characters
 set hidden                        " switch from unsaved buffers
 set shell=zsh
 set nobackup                      " do not keep a backup file, use versions instead
+set dir=~/tmp//
 set encoding=utf8
 set history=1000                  " keep 50 lines of command line history
 set showcmd                       " display incomplete commands
