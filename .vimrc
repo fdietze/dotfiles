@@ -1,6 +1,6 @@
 set nocompatible " Use Vim settings, rather than Vi settings
 
-filetype off                  " required! (by Vundle?)
+filetype off                  " required by Vundle
 set rtp+=~/.vim/bundle/vundle/
 call vundle#rc()
 
