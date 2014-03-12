@@ -150,7 +150,7 @@ Bundle 'tpope/vim-git'
 "Bundle 'airblade/vim-gitgutter'
 
 " Collaborative Editing
-Bundle 'FredKSchott/CoVim'
+"Bundle 'FredKSchott/CoVim'
 
 "color highlighting for CSS
 Bundle 'ap/vim-css-color'
@@ -237,7 +237,7 @@ set wildmode=list:longest,full
 set lazyredraw                    " performance: dont redraw while executing macros
 set autoread                      " read file when changed from outside
 set confirm                       " ask to save files when closing vim
-set clipboard=unnamedplus         " alias unnamed register to the + register, which is the X Window clipboard
+"set clipboard=unnamedplus         " alias unnamed register to the + register, which is the X Window clipboard
 
 
 " backup/undo/swap files
