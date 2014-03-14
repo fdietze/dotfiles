@@ -1,0 +1,23 @@
+background no
+out_to_console yes
+out_to_x no
+update_interval 2.0
+total_run_times 0
+use_spacer none
+#color1 121212
+#color1 efefef
+#color2 37baff
+#color3 101010
+#color4 909090
+
+TEXT
+^fg(\#909090) cpu ^fg(\#efefef)${cpu cpu0}% \
+^fg(\#37baff)| \
+^fg(\#909090) mem ^fg(\#efefef)${memfree} \
+^fg(\#37baff)| \
+^fg(\#909090) wifi ^fg(\#efefef)${wireless_essid wlp2s0} \
+^fg(\#37baff)| \
+^fg(\#909090) bat ^fg(\#efefef)${battery_percent}% \
+^fg(\#37baff)| \
+^fg(\#909090)${time %Y-%m-}^fg(\#efefef)${time %d %H:%M}
+
