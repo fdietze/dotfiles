@@ -78,7 +78,8 @@ function uniq_linebuffered() {
 
 pids+=($!)
 
-trayer --edge top --widthtype pixel --width 80 --heighttype pixel --height 22 --align right --tint 0x121212 --transparent true --alpha 0&
+# trayer tint color is the panel color +1 on each channel
+trayer --edge top --widthtype pixel --width 80 --heighttype pixel --height 22 --align right --tint 0x131313 --transparent true --alpha 0&
 
 pids+=($!)
 
