@@ -13,7 +13,7 @@ use_spacer none
 TEXT
 ^fg(\#909090) cpu ^fg(\#efefef)${cpu cpu0}% \
 ^fg(\#37baff)| \
-^fg(\#909090) mem ^fg(\#efefef)${memfree} \
+^fg(\#909090) mem ^fg(\#efefef)${memeasyfree} \
 ^fg(\#37baff)| \
 ^fg(\#909090) wifi ^fg(\#efefef)${wireless_essid wlp2s0} \
 ^fg(\#37baff)| \
