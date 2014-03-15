@@ -1,0 +1,5 @@
+alias y=yaourt
+alias ys="yaourt -S"
+alias yoghurt=yaourt
+source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.plugin.zsh
+
