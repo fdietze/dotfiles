@@ -10,7 +10,8 @@ fi
 # geometry has the format W H X Y
 x=${geometry[0]}
 y=${geometry[1]}
-panel_width=${geometry[2]}
+let panel_width=${geometry[2]}-80
+echo $panel_width
 panel_height=22
 
 font="-*-fixed-medium-*-*-*-14-*-*-*-*-*-*-*"
@@ -20,6 +21,7 @@ bgcolorsel='#37BAFF'
 fgcolorsel='#101010'
 
 hc pad $monitor $panel_height
+herbstclient emit_hook quit_panel
 
 function uniq_linebuffered() {
    awk '$0 != l { print ; l=$0 ; fflush(); }' "$@"
@@ -72,4 +74,15 @@ function uniq_linebuffered() {
      done
 } 2> /dev/null | dzen2 -w $panel_width -x $x -y $y -fn "$font" -h $panel_height \
               -e 'button3=' \
-              -ta l -bg "$bgcolor" -fg $fgcolor
+              -ta l -bg "$bgcolor" -fg $fgcolor &
+
+pids+=($!)
+
+trayer --edge top --widthtype pixel --width 80 --heighttype pixel --height 22 --align right --tint 0x121212 --transparent true --alpha 0&
+
+pids+=($!)
+
+
+herbstclient --wait '^(quit_panel|reload).*'
+kill -TERM "${pids[@]}" >/dev/null 2>&1
+exit 0

@@ -10,6 +10,8 @@ hc emit_hook reload
 
 xsetroot -solid '#5A8E3A'
 
+nitrogen --restore
+
 # remove all existing keybindings
 hc keyunbind --all
 
@@ -18,7 +20,7 @@ Mod=Mod1    # Use alt as the main modifier
 #Mod=Mod4   # Use the super key as the main modifier
 
 hc keybind $Mod-Shift-q quit
-hc keybind $Mod-Shift-r reload
+hc keybind $Mod-Shift-y reload
 hc keybind $Mod-m close
 hc keybind $Mod-Return spawn termite
 
@@ -45,17 +47,19 @@ hc keybind $Mod-Shift-e     shift right
 
 # splitting frames
 # create an empty frame at the specified direction
-hc keybind $Mod-h       split   top  0.5
-hc keybind $Mod-s       split   left   0.5
+hc keybind $Mod-g       split   top   0.5
+hc keybind $Mod-r       split   down  0.5
+hc keybind $Mod-n       split   left  0.5
+hc keybind $Mod-t       split   right 0.5
 # let the current frame explode into subframes
 hc keybind $Mod-Control-space split explode
 
 # resizing frames
 resizestep=0.05
-hc keybind $Mod-n               resize left +$resizestep
-hc keybind $Mod-r               resize down +$resizestep
-hc keybind $Mod-g               resize up +$resizestep
-hc keybind $Mod-t               resize right +$resizestep
+hc keybind $Mod-Shift-g         resize up +$resizestep
+hc keybind $Mod-Shift-r         resize down +$resizestep
+hc keybind $Mod-Shift-n         resize left +$resizestep
+hc keybind $Mod-Shift-t         resize right +$resizestep
 hc keybind $Mod-Control-Left    resize left +$resizestep
 hc keybind $Mod-Control-Down    resize down +$resizestep
 hc keybind $Mod-Control-Up      resize up +$resizestep
@@ -82,8 +86,8 @@ hc keybind $Mod-v  use_index -1 --skip-visible
 # layouting
 hc keybind $Mod-comma remove
 hc keybind $Mod-space cycle_layout 1
-hc keybind $Mod-f floating toggle
-hc keybind $Mod-q fullscreen toggle
+hc keybind $Mod-h floating toggle
+hc keybind $Mod-f fullscreen toggle
 #hc keybind $Mod-p pseudotile toggle
 
 # mouse
@@ -137,6 +141,9 @@ hc rule windowtype~'_NET_WM_WINDOW_TYPE_(DIALOG|UTILITY|SPLASH)' pseudotile=on
 hc rule windowtype='_NET_WM_WINDOW_TYPE_DIALOG' focus=on
 hc rule windowtype~'_NET_WM_WINDOW_TYPE_(NOTIFICATION|DOCK)' manage=off
 
+
+hc keybind $Mod-d spawn dmenu_run -z -i -fn 'Droid Sans Mono-13' -nb '#121212' -nf '#EFEFEF' -sb '#37BAFF' -sf '#101010'
+
 # unlock, just to be sure
 hc unlock
 
@@ -154,4 +161,3 @@ for monitor in $(herbstclient list_monitors | cut -d: -f1) ; do
     "$panel" $monitor &
 done
 
-hc keybind $Mod-d spawn dmenu_run -z -i -fn 'Droid Sans Mono-13' -nb '#121212' -nf '#EFEFEF' -sb '#37BAFF' -sf '#101010'
