@@ -4,20 +4,31 @@ out_to_x no
 update_interval 2.0
 total_run_times 0
 use_spacer none
-#color1 121212
-#color1 efefef
-#color2 37baff
-#color3 101010
-#color4 909090
+lua_load ~/.config/herbstluftwm/conkylua.lua
 
 TEXT
-^fg(\#909090) cpu ^fg(\#efefef)${cpu cpu0}% \
-^fg(\#37baff)| \
-^fg(\#909090) mem ^fg(\#efefef)${memeasyfree} \
-^fg(\#37baff)| \
-^fg(\#909090) wifi ^fg(\#efefef)${wireless_essid wlp2s0} \
-^fg(\#37baff)| \
-^fg(\#909090) bat ^fg(\#efefef)${battery_percent}% \
-^fg(\#37baff)| \
-^fg(\#909090)${time %Y-%m-}^fg(\#efefef)${time %d %H:%M}
+^fg(\#909090) cpu ^fg(\#efefef)${lua_parse format %3s ${cpu cpu0}}%\
+ ^fg(\#37baff)^ro(1x18)\
+^fg(\#909090) mem ^fg(\#efefef)${lua_parse format %7s ${memeasyfree}}\
+${if_existing /sys/class/net/enp0s20u2u1/operstate up}\
+ ^fg(\#37baff)^ro(1x18)\
+^fg(\#909090) down ^fg(\#efefef)${lua_parse format %7s ${downspeed enp0s20u2u1}}\
+ ^fg(\#37baff)^ro(1x18)\
+^fg(\#909090) up ^fg(\#efefef)${lua_parse format %7s ${upspeed enp0s20u2u1}}\
+${endif}\
+${if_existing /sys/class/net/wlp2s0/operstate up}\
+ ^fg(\#37baff)^ro(1x18)\
+^fg(\#909090) down ^fg(\#efefef)${lua_parse format %7s ${downspeed wlp2s0}}\
+ ^fg(\#37baff)^ro(1x18)\
+^fg(\#909090) up ^fg(\#efefef)${lua_parse format %7s ${upspeed wlp2s0}}\
+ ^fg(\#37baff)^ro(1x18)\
+^fg(\#909090) wifi ^fg(\#efefef)${wireless_essid wlp2s0}\
+${endif}\
+${if_empty ${battery_time}}\
+${else}\
+ ^fg(\#37baff)^ro(1x18)\
+^fg(\#909090) bat ^fg(\#efefef)${battery_time}\
+${endif}\
+ ^fg(\#37baff)^ro(1x18)\
+^fg(\#909090) ${time %Y-%m-}^fg(\#efefef)${time %d %H:%M} 
 
