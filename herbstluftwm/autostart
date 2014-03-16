@@ -47,10 +47,10 @@ hc keybind $Mod-Shift-e     shift right
 
 # splitting frames
 # create an empty frame at the specified direction
-hc keybind $Mod-g       split   top   0.5
-hc keybind $Mod-r       split   down  0.5
-hc keybind $Mod-n       split   left  0.5
-hc keybind $Mod-t       split   right 0.5
+hc keybind $Mod-g       chain , split   top    0.5 , focus up
+hc keybind $Mod-r       chain , split   bottom 0.5 , focus down
+hc keybind $Mod-n       chain , split   left   0.5 , focus left
+hc keybind $Mod-t       chain , split   right  0.5 , focus right
 # let the current frame explode into subframes
 hc keybind $Mod-Control-space split explode
 
@@ -75,7 +75,7 @@ for i in ${!tag_names[@]} ; do
     key="${tag_keys[$i]}"
     if ! [ -z "$key" ] ; then
         hc keybind "$Mod-$key" use_index "$i"
-        hc keybind "$Mod-Shift-$key" move_index "$i"
+        hc keybind "$Mod-Shift-$key" chain , move_index "$i" , use_index $i
     fi
 done
 
