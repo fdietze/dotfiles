@@ -9,7 +9,7 @@ allow_bold = true
 dynamic_title = true
 urgent_on_bell = true
 clickable_url = true
-font = Inconsolata 13
+font = Inconsolata-g 12
 scrollback_lines = 1000
 search_wrap = true
 #icon_name = terminal
@@ -36,7 +36,7 @@ cursor_shape = block
 #size_hints = false
 
 [colors]
-foreground = #dcdccc
+foreground = #EDFCFF
 foreground_bold = #ffffff
 #foreground_dim = #888888
 background = #121212
