@@ -10,11 +10,11 @@ TEXT
 ^fg(\#909090) cpu ^fg(\#efefef)${lua_parse format %3s ${cpu cpu0}}%\
  ^fg(\#37baff)^ro(1x18)\
 ^fg(\#909090) mem ^fg(\#efefef)${lua_parse format %7s ${memeasyfree}}\
-${if_existing /sys/class/net/enp0s20u2u1/operstate up}\
+${if_existing /sys/class/net/enp0s20u1u2/operstate up}\
  ^fg(\#37baff)^ro(1x18)\
-^fg(\#909090) down ^fg(\#efefef)${lua_parse format %7s ${downspeed enp0s20u2u1}}\
+^fg(\#909090) down ^fg(\#efefef)${lua_parse format %7s ${downspeed enp0s20u1u2}}\
  ^fg(\#37baff)^ro(1x18)\
-^fg(\#909090) up ^fg(\#efefef)${lua_parse format %7s ${upspeed enp0s20u2u1}}\
+^fg(\#909090) up ^fg(\#efefef)${lua_parse format %7s ${upspeed enp0s20u1u2}}\
 ${endif}\
 ${if_existing /sys/class/net/wlp2s0/operstate up}\
  ^fg(\#37baff)^ro(1x18)\
