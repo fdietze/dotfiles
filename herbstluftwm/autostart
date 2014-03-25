@@ -24,6 +24,10 @@ hc keybind $Mod-Shift-y reload
 hc keybind $Mod-q close
 hc keybind $Mod-Return spawn termite
 
+# set default layout to Horizontal
+hc set default_frame_layout 1
+herbstclient set_layout horizontal
+
 # basic movement
 # focusing clients
 hc keybind $Mod-Left  focus left
