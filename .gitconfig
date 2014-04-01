@@ -1,0 +1,15 @@
+[user]
+	email = felix@beerleader.net
+	name = Felix Dietze
+[core]
+	excludesfile = ~/.gitignore_global
+[push]
+	default = simple
+[branch]
+	autosetuprebase = always
+[alias]
+    co = checkout
+    ci = commit
+    st = status
+    br = branch
+	lg = log --graph --pretty=format:'%Cred%h %C(reset)%C(dim)%ad%Creset%Creset %s%C(yellow)%d %C(bold blue)<%an> %Cgreen(%cr)%Creset' --abbrev-commit --date=short
