@@ -12,4 +12,4 @@
     ci = commit
     st = status
     br = branch
-	lg = log --graph --pretty=format:'%Cred%h %C(reset)%C(dim)%ad%Creset%Creset %s%C(yellow)%d %C(bold blue)<%an> %Cgreen(%cr)%Creset' --abbrev-commit --date=short
+    lg = log --graph --pretty=format:'%Cred%h %C(reset)%C(dim)%ad%Creset %s%C(yellow)%d%C(reset) %C(blue)<%an> %Cgreen(%cr)%Creset' --abbrev-commit --date=short
