@@ -159,12 +159,22 @@ Bundle 'ap/vim-css-color'
 Bundle 'tpope/vim-markdown'
 
 " Colorscheme
-Bundle "nanotech/jellybeans.vim"
-set background=dark
-colorscheme jellybeans
+Bundle 'godlygeek/csapprox'
+"Bundle "nanotech/jellybeans.vim"
+"Bundle 'chriskempson/base16-vim'
+Bundle 'chriskempson/tomorrow-theme', {'rtp': 'vim/'}
+"set background=dark
+if filereadable($HOME."/.colors") && match(readfile($HOME."/.colors"),"light")
+    colorscheme Tomorrow-Night-Bright
+else
+    colorscheme Tomorrow
+endif
+
+"map <F3> :colorscheme Tomorrow-Night-Bright<CR>
+"map <F4> :colorscheme Tomorrow<CR>
 "set term=ansi
 syntax on
-set t_Co=256
+"set t_Co=256
 
 
 
@@ -200,7 +210,7 @@ map ℂ :tabnext<cr>
 set mouse=a
 if has("gui_running")
   set guioptions=aci        " hide toolbars
-  set guifont=Monospace\ 8
+  set guifont=Inconsolata\ 13
   set lines=24 columns=80 " Maximize window.
 endif
 
