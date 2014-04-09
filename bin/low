@@ -1,0 +1,7 @@
+#!/bin/bash
+
+xbacklight -set 20
+sudo asus-kbd-backlight off
+sudo rfkill block all
+light
+

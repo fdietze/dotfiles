@@ -1,0 +1,4 @@
+#!/bin/bash
+
+xbacklight -set 90
+dark
