@@ -7,10 +7,10 @@ visible_bell = false
 mouse_autohide = false
 allow_bold = true
 dynamic_title = true
-urgent_on_bell = true
+urgent_on_bell = false
 clickable_url = true
 font = Inconsolata-g 12
-scrollback_lines = 1000
+scrollback_lines = 10000
 search_wrap = true
 #icon_name = terminal
 #geometry = 640x480
@@ -36,32 +36,48 @@ cursor_shape = block
 #size_hints = false
 
 [colors]
-foreground = #EDFCFF
-foreground_bold = #ffffff
-#foreground_dim = #888888
-background = #121212
-#cursor = #dcdccc
 
 # if unset, will reverse foreground and background
-highlight = #2f2f2f
+#highlight = #000000
 
-# colors from color0 to color254 can be set
-color0 = #3f3f3f
-color1 = #705050
-color2 = #60b48a
-color3 = #dfaf8f
-color4 = #506070
-color5 = #dc8cc3
-color6 = #8cd0d3
-color7 = #dcdccc
-color8 = #709080
-color9 = #dca3a3
-color10 = #c3bf9f
-color11 = #f0dfaf
-color12 = #94bff3
-color13 = #ec93d3
-color14 = #93e0e3
-color15 = #ffffff
+#cursor =    #EEEEEE
+
+background =     #FFFFFF
+foreground =     #000000
+foreground_bold = #000000
+
+# black
+color0 =         #000000
+0olor8 =         #000000
+
+# red
+color1 =         #DA0065
+color9 =         #FF004A
+
+# green
+color2 =         #008A2F
+color10 =        #00B82D
+
+# yellow
+color3 =         #00AA53
+color11 =        #FFA940
+
+# blue
+color4 =         #0068A1
+color12 =        #00A4FF
+
+# magenta
+color5 =         #6A00B1
+color13 =        #9800FF
+
+# cyan 
+color6 =         #0094b7
+color14 =        #00B6FF
+
+# white
+color7 =         #ffffff
+folor15 =        #ffffff
+
 
 [hints]
 #font = Monospace 12

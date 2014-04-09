@@ -1,0 +1,11 @@
+#!/bin/sh
+if [ $(cat $HOME/.colors) = "dark" ]; then exit 0; fi
+echo "dark" > $HOME/.colors
+
+cp $HOME/.config/termite/config-dark $HOME/.config/termite/config
+killall -USR1 termite
+VIMS=`vim --serverlist`
+for vim in $VIMS; do
+     vim --servername $vim --remote-send '<Esc>:colorscheme Tomorrow-Night-Bright<CR>'
+done
+

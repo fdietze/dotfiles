@@ -1,0 +1,80 @@
+[options]
+resize_grip = false
+scroll_on_output = false
+scroll_on_keystroke = true
+audible_bell = false
+visible_bell = false
+mouse_autohide = false
+allow_bold = true
+dynamic_title = true
+urgent_on_bell = false
+clickable_url = true
+font = Inconsolata-g 12
+scrollback_lines = 10000
+search_wrap = true
+#icon_name = terminal
+#geometry = 640x480
+
+# 0.0: opaque, 1.0: transparent
+transparency = 0.0
+pseudo_transparency = false
+
+# "system", "on" or "off"
+cursor_blink = system
+
+# "block", "underline" or "ibeam"
+cursor_shape = block
+
+# $BROWSER is used by default
+#browser = firefox
+
+# word characters used for word selection
+# (default if unset: all graphic non-punctuation/space characters)
+#word_chars = -A-Za-z0-9,./?%&#:_=+@~
+
+# set size hints for the window
+#size_hints = false
+
+[colors]
+
+# if unset, will reverse foreground and background
+#highlight = #000000
+#cursor =    #EEEEEE
+
+background =     #000000
+foreground =     #e5e5e5
+foreground_bold =#FFFFFF
+
+# black
+color0 =         #000000
+color8 =         #666666
+
+# red
+color1 =         #ff4d8c
+color9 =         #ff66C5
+
+# green
+color2 =         #d3e344
+color10 =        #dbff4d
+
+# yellow
+color3 =         #ffb231
+color11 =        #ffd798
+
+# blue
+color4 =         #009fe8
+color12 =        #48c6ff
+
+# magenta
+color5  =        #DB82FF
+color13 =        #E5A4FF
+
+# cyan 
+color6 =         #00B2D8
+color14 =        #4DE2FF
+
+# white
+color7 =         #e5e5e5
+color15 =        #ffffff
+
+
