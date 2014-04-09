@@ -1,3 +1,7 @@
+source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.plugin.zsh
+. ~/bin/z.sh
+[ -r /etc/profile.d/cnf.sh ] && . /etc/profile.d/cnf.sh
+
 alias y=yaourt
 alias ys="yaourt -S"
 alias yoghurt=yaourt
@@ -5,7 +9,6 @@ alias yu="yaourt -Syua"
 alias yr="yaourt -Rs"
 alias yi="yaourt -Qi"
 alias yl="yaourt -Ql"
-source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.plugin.zsh
-. ~/bin/z.sh
-[ -r /etc/profile.d/cnf.sh ] && . /etc/profile.d/cnf.sh
+alias vim="vim --servername vim-\$\$"
+alias gparted="gksu gparted"
 
