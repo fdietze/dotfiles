@@ -22,6 +22,7 @@ Mod=Mod1    # Use alt as the main modifier
 hc keybind $Mod-Shift-q quit
 hc keybind $Mod-Shift-y reload
 hc keybind $Mod-q close
+hc keybind $Mod-k spawn xkill
 hc keybind $Mod-d spawn termite
 
 # set default layout to Horizontal
@@ -139,7 +140,7 @@ hc rule windowtype='_NET_WM_WINDOW_TYPE_DIALOG' focus=on
 hc rule windowtype~'_NET_WM_WINDOW_TYPE_(NOTIFICATION|DOCK)' manage=off
 
 
-hc keybind $Mod-d spawn xboomx 
+hc keybind $Mod-y spawn "xboomx"
 # unlock, just to be sure
 hc unlock
 
