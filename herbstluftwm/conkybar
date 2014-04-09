@@ -27,7 +27,7 @@ ${endif}\
 ${if_empty ${battery_time}}\
 ${else}\
  ^fg(\#37baff)^ro(1x18)\
-^fg(\#909090) bat ^fg(\#efefef)${battery_time}\
+^fg(\#909090) bat ${if_match ${battery_percent} <= 10}^fg(\#FF3F74)${else}^fg(\#efefef)${endif}${battery_time}\
 ${endif}\
  ^fg(\#37baff)^ro(1x18)\
 ^fg(\#909090) ${time %Y-%m-}^fg(\#efefef)${time %d %H:%M} 
