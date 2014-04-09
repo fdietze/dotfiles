@@ -131,10 +131,14 @@ Bundle 'henrik/vim-indexed-search'
 Bundle 'scrooloose/nerdtree'
 nnoremap <silent> <F2> :NERDTreeToggle<CR>
 
-" fuzzy autocompletion
+" fuzzy autocompletion, eclim
 Bundle 'Valloric/YouCompleteMe'
 let g:ycm_autoclose_preview_window_after_insertion = 1
 let g:EclimCompletionMethod = 'omnifunc'
+let g:EclimScalaSearchSingleResult = 'edit'
+"jump to definition
+nnoremap <leader><leader>  :ScalaSearch<CR>
+
 "let g:ycm_filetype_whitelist = { 'scala': 1 }
 
 " commenting
