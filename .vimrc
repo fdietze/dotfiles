@@ -183,8 +183,8 @@ let mapleader=","
 let g:mapleader=","
 
 " Switch buffers with tab
-:nnoremap <Tab> :bnext<CR>
-:nnoremap <S-Tab> :bprevious<CR>
+nnoremap <Tab> :bnext<CR>
+nnoremap <S-Tab> :bprevious<CR>
 
 " Smart way to move between windows, adjusted for neo!
 " in insert mode
@@ -206,6 +206,8 @@ imap ℂ <C-o>:tabnext<cr>
 map √ :tabprev<cr>
 map ℂ :tabnext<cr>
 
+" save files as root
+cmap w!! w !sudo tee % >/dev/null
 
 set mouse=a
 if has("gui_running")
@@ -223,6 +225,8 @@ set ruler                         " show the cursor position all the time
 set incsearch                     " do incremental searching
 set ignorecase                    " smart case sensitive search
 set smartcase                     "              "
+set hls                           " hightlight search results
+nnoremap <c-n> :nohlsearch<CR>
 set list
 set listchars=tab:⊳\ ,trail:·     " display whitespaces
 set scrolloff=10 sidescrolloff=10 " keep some lines before and after the cursor visible
@@ -248,6 +252,7 @@ set lazyredraw                    " performance: dont redraw while executing mac
 set autoread                      " read file when changed from outside
 set confirm                       " ask to save files when closing vim
 "set clipboard=unnamedplus         " alias unnamed register to the + register, which is the X Window clipboard
+cd %:p:h                          " cd to directory of current file
 
 
 " backup/undo/swap files
