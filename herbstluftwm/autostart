@@ -90,6 +90,8 @@ hc keybind $Mod-Shift-c chain ,  move_index  +1 --skip-visible , use_index +1
 hc keybind $Mod-v use_index -1 --skip-visible
 hc keybind $Mod-Shift-v chain ,  move_index  -1 --skip-visible , use_index -1
 
+hc keybind $Mod-x use_previous
+
 # layouting
 hc keybind $Mod-comma remove
 hc keybind $Mod-Shift-h cycle_layout 1
