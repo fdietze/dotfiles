@@ -8,7 +8,7 @@ echo "Invalid monitor $monitor"
     exit 1
 fi
 # geometry has the format W H X Y
-trayer_width=128
+trayer_width=175
 x=${geometry[0]}
 y=${geometry[1]}
 let panel_width=${geometry[2]}-$trayer_width
