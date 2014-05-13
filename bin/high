@@ -1,4 +1,5 @@
 #!/bin/bash
 
-xbacklight -set 90
+xbacklight -set 100
 dark
+sudo systemctl start btsync@felix.service

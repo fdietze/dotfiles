@@ -1,7 +1,8 @@
 #!/bin/bash
 
-xbacklight -set 20
+xbacklight -set 10
 sudo asus-kbd-backlight off
 sudo rfkill block all
+killall dropbox
 light
-
+sudo systemctl stop btsync@felix.service
