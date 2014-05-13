@@ -1,4 +1,5 @@
 export _JAVA_AWT_WM_NONREPARENTING=1
+JAVA_HOME=/opt/java7
 PATH=$HOME/bin:$PATH
 PATH=$HOME/local/play:$PATH
 
