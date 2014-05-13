@@ -138,6 +138,8 @@ hc rule windowtype~'_NET_WM_WINDOW_TYPE_(DIALOG|UTILITY|SPLASH)' pseudotile=on
 hc rule windowtype='_NET_WM_WINDOW_TYPE_DIALOG' focus=on
 hc rule windowtype~'_NET_WM_WINDOW_TYPE_(NOTIFICATION|DOCK)' manage=off
 
+hc rule class=Spotify  tag=9
+
 
 hc keybind $Mod-y spawn "xboomx"
 # unlock, just to be sure
