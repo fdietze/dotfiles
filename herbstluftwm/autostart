@@ -61,15 +61,11 @@ hc keybind $Mod-t       chain , split   right  0.5 , focus right
 hc keybind $Mod-Control-space split explode
 
 # resizing frames
-resizestep=0.05
+resizestep=0.02
 hc keybind $Mod-Shift-g         resize up +$resizestep
 hc keybind $Mod-Shift-r         resize down +$resizestep
 hc keybind $Mod-Shift-n         resize left +$resizestep
 hc keybind $Mod-Shift-t         resize right +$resizestep
-hc keybind $Mod-Control-Left    resize left +$resizestep
-hc keybind $Mod-Control-Down    resize down +$resizestep
-hc keybind $Mod-Control-Up      resize up +$resizestep
-hc keybind $Mod-Control-Right   resize right +$resizestep
 
 # tags
 tag_names=( {1..9} )
