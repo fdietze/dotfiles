@@ -1,0 +1,2 @@
+#!/bin/sh
+wine ~/.wine/drive_c/Program\ Files\ \(x86\)/Adobe/Photoshop\ 7.0/Photoshop.exe
