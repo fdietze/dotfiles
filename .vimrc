@@ -193,6 +193,11 @@ let g:mapleader=","
 nnoremap <Tab> :bnext<CR>
 nnoremap <S-Tab> :bprevious<CR>
 
+nnoremap <Leader>m :wa<CR>:make<CR><CR>:copen<CR>
+nnoremap <Leader>w :wa<CR>
+nnoremap <Leader>q :q<CR>
+nnoremap <Leader>x :x<CR>
+
 " Smart way to move between windows, adjusted for neo!
 " in insert mode
 imap ∫ <C-o><C-W>h
@@ -233,7 +238,7 @@ set incsearch                     " do incremental searching
 set ignorecase                    " smart case sensitive search
 set smartcase                     "              "
 set hls                           " hightlight search results
-nnoremap <c-n> :nohlsearch<CR>
+nnoremap <Leader>n :nohlsearch<CR>
 set list
 set listchars=tab:⊳\ ,trail:·     " display whitespaces
 set scrolloff=10 sidescrolloff=10 " keep some lines before and after the cursor visible
