@@ -1,14 +1,24 @@
+# zsh syntax highlighting
 source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.plugin.zsh
+
+# z (changing directories fast: https://github.com/rupa/z/)
 . ~/bin/z.sh
+
+# command not found
 [ -r /etc/profile.d/cnf.sh ] && . /etc/profile.d/cnf.sh
 
-alias y=yaourt
-alias ys="yaourt -S"
+alias y="yaourt"
 alias yoghurt=yaourt
-alias yu="yaourt -Syua"
-alias yr="yaourt -Rs"
-alias yi="yaourt -Qi"
-alias yl="yaourt -Ql"
-alias vim="vim --servername vim-\$\$"
-alias gparted="gksu gparted"
+alias ys="yaourt -S --asexplicit" # install and mark as explicitly installed
+alias yu="yaourt -Syua --devel" # update
+alias yr="yaourt -Rs" # remove package
+alias yi="yaourt -Qi" # package info
+alias yb="yaourt -Sb" # build package
+alias yo="yaourt -Qo" # package for command
+alias yl="yaourt -Ql" # list files for package
+alias ye="yaourt -Qe" # list installed packages
 
+alias vim="vim --servername vim-\$\$"
+alias vv="vim ~/.vimrc"
+alias f="locate"
+alias g="grep"
