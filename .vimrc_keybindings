@@ -1,0 +1,66 @@
+let mapleader=","
+let g:mapleader=","
+
+" smart home
+noremap <expr> <silent> <Home> col('.') == match(getline('.'),'\S')+1 ? '0' : '^'
+imap <silent> <Home> <C-O><Home>
+
+" disable arrow keys and home/end in insert mode, exit insert mode when pressed
+" inoremap  <Up>     <Esc>g<Up>
+" inoremap  <Down>   <Esc>g<Down>
+" inoremap  <Left>   <Esc>
+" inoremap  <Right>  <Esc>2<Right>
+" inoremap  <Home>   <Esc><Home>
+" inoremap  <End>    <Esc><End>
+
+" dont move cursor when exiting insert mode, strange behavior: inserting
+" characters in when pressing arrow keys
+" inoremap <Esc> <Esc><Right>
+
+" follow help links with j
+nnoremap j <c-]>
+
+" folding with + and -
+noremap + za
+noremap - zf
+
+" fast way to edit ~/.vimrc
+nnoremap <Leader>v :e ~/.vimrc<CR>
+
+" Switch buffers with tab
+nnoremap <Tab> :bnext<CR>
+nnoremap <S-Tab> :bprevious<CR>
+
+nnoremap <Leader>m :wa<CR>:make<CR><CR>:copen<CR>
+nnoremap <Leader>w :wa<CR>
+nnoremap <Leader>q :q<CR>
+nnoremap <Leader>x :x<CR>
+
+" Smart way to move between windows, adjusted for neo!
+" in insert mode
+imap ∫ <C-o><C-W>h
+imap ∀ <C-o><C-W>j
+imap Λ <C-o><C-W>k
+imap ∃ <C-o><C-W>l
+" and in other modes
+map ∫ <C-W>h
+map ∀ <C-W>j
+map Λ <C-W>k
+map ∃ <C-W>l
+
+" Smart way to move between tabs - in NEO! :D
+" in insert mode
+imap √ <C-o>:tabprev<cr>
+imap ℂ <C-o>:tabnext<cr>
+" in other modes
+map √ :tabprev<cr>
+map ℂ :tabnext<cr>
+
+nnoremap <silent> <F2> :NERDTreeToggle<CR>
+
+" eclim: jump to definition
+nnoremap <leader><Leader>  :ScalaSearch<CR>
+
+" clear search highlighting
+nnoremap <Space> :nohlsearch<CR>:echo<CR>
+

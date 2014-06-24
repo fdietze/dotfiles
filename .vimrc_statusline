@@ -1,0 +1,114 @@
+
+" always display statusline
+set laststatus=2
+
+" hide mode from last line
+set noshowmode
+
+Plugin 'itchyny/lightline.vim'
+
+let g:lightline = {
+      \ 'colorscheme': 'wombat',
+      \ 'active': {
+      \   'left': [ [ 'mode' ], [ 'gitbranch', 'bufferline' ]],
+      \   'right': [  ['singlecharscrollbar', 'scrollbar'], [ 'filetype' ] ]
+      \ },
+      \ 'inactive': {
+      \   'left': [ ['filename'] ],
+      \   'right': [  ['scrollbar'] ]
+      \ },
+      \ 'component' : {
+      \   'bufferline': '%{bufferline#refresh_status()}%{g:bufferline_status_info.before}%#TabLineSel#%{g:bufferline_status_info.current}%#LightLineLeft_active_1#%{g:bufferline_status_info.after}',
+      \   'scrollbar': '%{Update_scrollbar(20)}%{b:scrollbar_before}%{b:scrollbar_current}%{b:scrollbar_after}',
+      \   'singlecharscrollbar': '%{SingleCharScrollbar()}'
+      \ },
+      \ 'component_function': {
+      \   'gitbranch': 'BarGitBranch',
+      \   'filename' : 'BarFilename',
+      \ },
+      \ 'separator': { 'left': '', 'right': '' },
+      \ 'subseparator': { 'left': '|', 'right': '|' }
+      \ }
+
+func! Update_scrollbar(width)
+    let lines    = line('$')
+    let bufstart = line('w0')-1
+    let bufend   = line('w$')-1
+
+    if (bufend-bufstart) >= 1
+        let pagestart = bufstart * a:width / (lines-1)
+        let pageheight = min([a:width,(bufend - bufstart) * a:width / (lines-1) + 1])
+    else
+        let pagestart = 0
+        let pageheight = a:width
+    endif
+
+    if (pagestart+pageheight) > a:width
+        let pagestart -= pagestart+pageheight-a:width
+    endif
+
+
+    let b:scrollbar_before  = repeat(' ', pagestart)
+    let b:scrollbar_current = repeat('█', pageheight)
+    let b:scrollbar_after   = repeat(' ', a:width - pagestart - pageheight)
+
+    " echo 'start: '.pagestart.', height: '.pageheight.',after: '.(a:width - pagestart - pageheight)
+    "             \.'['.b:scrollbar_before.b:scrollbar_current.b:scrollbar_after.']'
+
+    return ''
+endfun
+
+func! SingleCharScrollbar()
+    let blocks   = ['█','▇','▆','▅','▄','▃','▂','▁',' ']
+    let lines    = line('$')
+    let cursor   = line('.')
+    let blocklen = len(blocks)-1
+
+    let display  = cursor*blocklen/lines
+    " echo 'lines: '.lines.', cursor: '.cursor.', display:'.display
+    return blocks[display]
+endfun
+
+" hi def link User1 GuiInactiveFull
+" hi def link User2 GuiAlternateActiveFull
+" hi def link User3 Cursorlinenr
+
+function! BarGitBranch()
+  return exists('*fugitive#head') ? fugitive#head() : ''
+endfunction
+
+function! BarModified()
+  if &filetype == "help"
+    return ""
+  elseif &modified
+    return "*"
+  elseif &modifiable
+    return ""
+  else
+    return ""
+  endif
+endfunction
+
+function! BarReadonly()
+  if &filetype == "help"
+    return ""
+  elseif &readonly
+    return "[ro]"
+  else
+    return ""
+  endif
+endfunction
+
+
+function! BarFilename()
+  return ('' != expand('%:t') ? expand('%:t') : '[No Name]') .
+       \ ('' != BarReadonly() ? BarReadonly() . ' ' : '') .
+       \ ('' != BarModified() ? BarModified() : '')
+endfunction
+
+Plugin 'bling/vim-bufferline'
+let g:bufferline_echo = 0
+let g:bufferline_active_buffer_left = ''
+let g:bufferline_active_buffer_right = ''
+let g:bufferline_show_bufnr = 0
+

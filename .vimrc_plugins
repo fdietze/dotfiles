@@ -1,0 +1,67 @@
+" sensible default settings
+Plugin 'tpope/vim-sensible'
+
+" file browser
+Plugin 'scrooloose/nerdtree'
+
+" enable dot-command for Plugins
+Plugin 'tpope/vim-repeat'
+
+" Lots of filetypes
+Plugin 'sheerun/vim-polyglot'
+
+" sublime-like multiple cursors
+Plugin 'terryma/vim-multiple-cursors'
+
+" rainbow parentheses
+"Plugin 'oblitum/rainbow'
+"au FileType c,cpp,objc,objcpp call rainbow#load()
+"let g:rainbow_active = 1
+
+" show 'Match x of y' when searching
+Plugin 'henrik/vim-indexed-search'
+
+" commenting
+Plugin 'tpope/vim-commentary'
+
+" surround text with quotes, parantheses, ...
+Plugin 'tpope/vim-surround'
+
+" align text
+Plugin 'godlygeek/tabular'
+
+" ctrl+A/X on dates and time
+Plugin 'tpope/vim-speeddating'
+
+" unix commands
+Plugin 'tpope/vim-eunuch'
+
+"automatically-close-brackets-magic
+Plugin 'Raimondi/delimitMate'
+
+" fuzzy file finding
+Plugin 'wincent/Command-T'
+
+" git support
+Plugin 'tpope/vim-fugitive'
+"Plugin 'gregsexton/gitv'
+"Plugin 'airblade/vim-gitgutter'
+
+" VCS change info on the left
+Plugin 'mhinz/vim-signify'
+
+" Collaborative Editing
+"Plugin 'FredKSchott/CoVim'
+
+"color highlighting (conflicts with css-colors of vim-polyglot)
+" Plugin 'gorodinskiy/vim-coloresque'
+
+" TODO:
+Plugin 'edsono/vim-matchit'
+
+" TODO:
+"Plugin 'nathanaelkane/vim-indent-guides'
+
+" hardmode, disabling arrow keys
+"Plugin 'wikitopian/hardmode'
+"autocmd VimEnter,BufNewFile,BufReadPost * silent! call HardMode()

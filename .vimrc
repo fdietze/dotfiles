@@ -1,3 +1,14 @@
+" TODO: exit insert mode on <Up>/<Down>, move inside wrapped lines
+" TODO: leave insert mode when losing focus?
+" TODO: remove stuff, thats already in vim-sensible
+" TODO: j{a-z} jump to mark
+" https://github.com/Shougo/unite.vim
+" http://chibicode.com/vimrc/
+" http://nvie.com/posts/how-i-boosted-my-vim/
+" TODO: Plugin 'vim-scripts/ShowMarks'
+" TODO: Plugin 'ervandew/supertab'
+"TODO: Plugin 'scrooloose/syntastic'
+
 set nocompatible " Use Vim settings, rather than Vi settings
 
 filetype off                  " required by Vundle
@@ -5,227 +16,20 @@ set rtp+=~/.vim/bundle/vundle/
 call vundle#rc()
 
 " let Vundle manage Vundle
-Bundle 'gmarik/vundle'
+Plugin 'gmarik/vundle'
 
-Bundle "Shougo/vimproc"
-"Bundle "Shougo/vimshell"
+source $HOME/.vimrc_plugins
+source $HOME/.vimrc_statusline
+source $HOME/.vimrc_keybindings
 
-
-" statusline
-Bundle 'itchyny/lightline.vim'
-set laststatus=2
-let g:lightline = {
-    \ 'colorscheme': 'jellybeans',
-    \ 'active': {
-    \   'left': [ [ 'mode' ],
-    \             [ 'fugitive', 'readonly', 'filename'] ]
-    \ },
-    \ 'component_function': {
-    \   'fugitive': 'MyFugitive',
-    \   'modified': 'MyModified',
-    \   'filename': 'MyFilename',
-    \   'readonly': 'MyReadonly',
-    \ },
-    \ 'separator': { 'left': '', 'right': '' },
-    \ 'subseparator': { 'left': '|', 'right': '|' }
-    \ }
-
-function! MyModified()
-    return &ft =~ 'help' ? '' : &modified ? '+' : &modifiable ? '' : '-'
-endfunction
-
-function! MyReadonly()
-    return &ft !~? 'help' && &readonly ? 'RO' : ''
-endfunction
-
-function! MyFugitive()
-    if !exists('*fugitive#head')
-        return ''
-    endif
-    return fugitive#head()
-endfunction
-
-function! MyFilename()
-  let fname = expand('%')
-  return fname == '__Tagbar__' ? g:lightline.fname :
-        \ fname =~ '__Gundo\|NERD_tree' ? '' :
-        \ &ft == 'unite' ? unite#get_status_string() :
-        \ &ft == 'vimshell' ? vimshell#get_status_string() :
-        \ ('' != fname ? fname : '[No Name]') .
-        \ ('' != MyGitModified() ? ' ' . MyGitModified() : '') .
-        \ ('' != MyModified() ? ' ' . MyModified() : '')
-"        \ ('' != MyReadonly() ? MyReadonly() . ' ' : '') .
-endfunction
-
-function! MyGitModified()
-    if !exists('b:git_modified')
-        let b:git_modified = ''
-    endif
-    return b:git_modified
-endfunction
-
-function! UpdateGitModified()
-    if !exists('*fugitive#head')
-        return
-    endif
-    let full_path = expand('%:p')
-    let git_dir = fugitive#extract_git_dir(full_path)
-    if empty(git_dir)
-        return
-    endif
-    let work_dir = fnamemodify(git_dir, ':h')
-    let status = system("git --git-dir=" . shellescape(git_dir) . " --work-tree="
-                \ . shellescape(work_dir) . " status --porcelain "
-                \ . shellescape(full_path))
-    if status == ''
-        let b:git_modified = ''
-    else
-        let b:git_modified = split(status)[0]
-    endif
-endfunction
-
-augroup git_modified
-    autocmd!
-    autocmd BufWritePost * call UpdateGitModified()
-    autocmd WinEnter * call UpdateGitModified()
-    autocmd WinLeave * call UpdateGitModified()
-augroup END
-
-augroup misc
-    autocmd!
-    autocmd BufReadPost *    " Return to last edit position when opening a file (I want this!)
-    \ if line("'\"") > 0 && line("'\"") <= line("$") |
-    \   exe "normal! g`\"" |
-    \ endif
-
-    autocmd BufEnter *.hh,*.cc,*.h,*.cpp let g:formatprg_args_expr_cpp = '"--mode=c"'
-
-    " apply autoformat and delete trailing empty line
-    autocmd BufWritePost *.hh,*.cc,*.h,*.cpp
-    \ exec 'Autoformat' |
-    \ call TrimEmptyLines()
-augroup END
-
-function! TrimEmptyLines()
-    let save_cursor = getpos(".")
-    :silent! %s#\($\n\s*\)\+\%$##
-    call setpos('.', save_cursor)
-endfunction
-
-let g:tagbar_status_func = 'TagbarStatusFunc'
-
-function! TagbarStatusFunc(current, sort, fname, ...) abort
-    let g:lightline.fname = a:fname
-  return lightline#statusline(0)
-endfunction
-
-
-
-
-" rainbow parentheses
-Bundle 'oblitum/rainbow'
-"au FileType c,cpp,objc,objcpp call rainbow#load()
-let g:rainbow_active = 1
-
-" show 'Match x of y' when searching
-Bundle 'henrik/vim-indexed-search'
-
-" file browser
-Bundle 'scrooloose/nerdtree'
-nnoremap <silent> <F2> :NERDTreeToggle<CR>
-
-" fuzzy autocompletion, eclim
-Bundle 'Valloric/YouCompleteMe'
-let g:ycm_autoclose_preview_window_after_insertion = 1
-let g:EclimCompletionMethod = 'omnifunc'
-let g:EclimScalaSearchSingleResult = 'edit'
-"jump to definition
-nnoremap <leader><leader>  :ScalaSearch<CR>
-
-"let g:ycm_filetype_whitelist = { 'scala': 1 }
-
-" commenting
-Bundle 'scrooloose/nerdcommenter'
-
-"automatically-close-brackets-magic
-Bundle 'Raimondi/delimitMate'
-
-" git support
-Bundle 'tpope/vim-fugitive'
-Bundle 'gregsexton/gitv'
-Bundle 'tpope/vim-git'
-"Bundle 'airblade/vim-gitgutter'
-
-" Collaborative Editing
-"Bundle 'FredKSchott/CoVim'
-
-"color highlighting for CSS
-Bundle 'ap/vim-css-color'
-
-"markdown filetype and syntax
-Bundle 'tpope/vim-markdown'
-
-" Colorscheme
-Bundle 'godlygeek/csapprox'
-"Bundle "nanotech/jellybeans.vim"
-"Bundle 'chriskempson/base16-vim'
-Bundle 'chriskempson/tomorrow-theme', {'rtp': 'vim/'}
-"set background=dark
-if filereadable($HOME."/.colors") && match(readfile($HOME."/.colors"),"light")
-    colorscheme Tomorrow-Night-Bright
-else
-    colorscheme Tomorrow
-endif
-
-"map <F3> :colorscheme Tomorrow-Night-Bright<CR>
-"map <F4> :colorscheme Tomorrow<CR>
-"set term=ansi
-syntax on
-"set t_Co=256
-
-
-
-
-let mapleader=","
-let g:mapleader=","
-
-" Switch buffers with tab
-nnoremap <Tab> :bnext<CR>
-nnoremap <S-Tab> :bprevious<CR>
-
-nnoremap <Leader>m :wa<CR>:make<CR><CR>:copen<CR>
-nnoremap <Leader>w :wa<CR>
-nnoremap <Leader>q :q<CR>
-nnoremap <Leader>x :x<CR>
-
-" Smart way to move between windows, adjusted for neo!
-" in insert mode
-imap ∫ <C-o><C-W>h
-imap ∀ <C-o><C-W>j
-imap Λ <C-o><C-W>k
-imap ∃ <C-o><C-W>l
-" and in other modes
-map ∫ <C-W>h
-map ∀ <C-W>j
-map Λ <C-W>k
-map ∃ <C-W>l
-
-" Smart way to move between tabs - in NEO! :D
-" in insert mode
-imap √ <C-o>:tabprev<cr>
-imap ℂ <C-o>:tabnext<cr>
-" in other modes
-map √ :tabprev<cr>
-map ℂ :tabnext<cr>
-
-" save files as root
-cmap w!! w !sudo tee % >/dev/null
 
 set mouse=a
 if has("gui_running")
   set guioptions=aci        " hide toolbars
-  set guifont=Inconsolata\ 13
-  set lines=24 columns=80 " Maximize window.
+  set guifont=Inconsolata\ 15
+  "set lines=24 columns=80 " Maximize window.
+  set guicursor+=a:blinkon0 "disible blinking
+  set guicursor+=i-ci:block-iCursor-blinkon0 "insert mode: block, no blinking, highlight with iCursor
 endif
 
 
@@ -238,10 +42,10 @@ set incsearch                     " do incremental searching
 set ignorecase                    " smart case sensitive search
 set smartcase                     "              "
 set hls                           " hightlight search results
-nnoremap <Leader>n :nohlsearch<CR>
 set list
 set listchars=tab:⊳\ ,trail:·     " display whitespaces
-set scrolloff=10 sidescrolloff=10 " keep some lines before and after the cursor visible
+set scrolloff=5 sidescrolloff=10  " keep some lines before and after the cursor visible
+set ttyfast
 
 " editing
 set backspace=indent,eol,start    " allow backspacing over everything in insert mode
@@ -287,44 +91,179 @@ if !isdirectory(expand(&directory))
     call mkdir(expand(&directory), "p")
 endif
 
+" save and load folds automatically
+au BufWinLeave * mkview
+au BufWinEnter * silent loadview
 
-" Only do this part when compiled with support for autocommands.
-if has("autocmd")
 
-  " Enable file type detection.
-  " Use the default filetype settings, so that mail gets 'tw' set to 72,
-  " 'cindent' is on in C files, etc.
-  " Also load indent files, to automatically do language-dependent indenting.
-  filetype plugin indent on
 
-  " Put these in an autocmd group, so that we can delete them easily.
-  augroup vimrcEx
-  au!
+" fuzzy autocompletion, eclim
+"Bundle 'Valloric/YouCompleteMe'
+let g:ycm_auto_trigger = 0
+let g:ycm_autoclose_preview_window_after_insertion = 1
+let g:EclimCompletionMethod = 'omnifunc'
+let g:EclimScalaSearchSingleResult = 'edit'
+":set completeopt=longest,menuone
+    
+" select items with ENTER
+":inoremap <expr> <CR> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
 
-  " For all text files set 'textwidth' to 78 characters.
-  autocmd FileType text setlocal textwidth=78
-  autocmd FileType make setlocal ts=8 sts=8 sw=8 noexpandtab
-  autocmd FileType scala setlocal ts=2 sts=2 sw=2 expandtab
+" Some convenient mappings
+" inoremap <expr> <Esc>      pumvisible() ? "\<C-e>" : "\<Esc>"
+" inoremap <expr> <CR>       pumvisible() ? "\<C-y>" : "\<CR>"
+" inoremap <expr> <Down>     pumvisible() ? "\<C-n>" : "\<Down>"
+" inoremap <expr> <Up>       pumvisible() ? "\<C-p>" : "\<Up>"
+" inoremap <expr> <C-d>      pumvisible() ? "\<PageDown>\<C-p>\<C-n>" : "\<C-d>"
+" inoremap <expr> <C-u>      pumvisible() ? "\<PageUp>\<C-p>\<C-n>" : "\<C-u>"
 
-  " filetype aliases
-  au BufNewFile,BufRead *.sbt set filetype=scala
+" TODO: noninvasive completion
+" <ESC> takes you out of insert mode
+" inoremap <expr> <Esc>   pumvisible() ? "\<C-y>\<Esc>" : "\<Esc>"
+" " <CR> accepts first, then sends the <CR>
+" inoremap <expr> <CR>    pumvisible() ? "\<C-y>\<CR>" : "\<CR>"
+" " <Down> and <Up> cycle like <Tab> and <S-Tab>
+" inoremap <expr> <Down>  pumvisible() ? "\<C-n>" : "\<Down>"
+" inoremap <expr> <Up>    pumvisible() ? "\<C-p>" : "\<Up>"
+" " Jump up and down the list
+" inoremap <expr> <C-d>   pumvisible() ? "\<PageDown>\<C-p>\<C-n>" : "\<C-d>"
+" inoremap <expr> <C-u>   pumvisible() ? "\<PageUp>\<C-p>\<C-n>" : "\<C-u>"
+" Automatically open and close the popup menu / preview window
+" au CursorMovedI,InsertLeave * if pumvisible() == 0|silent! pclose|endif
+" set completeopt=menu,preview,longest
 
-  " When editing a file, always jump to the last known cursor position.
-  " Don't do it when the position is invalid or when inside an event handler
-  " (happens when dropping a file on gvim).
-  " Also don't do it when the mark is in the first line, that is the default
-  " position when opening a file.
-  autocmd BufReadPost *
-    \ if line("'\"") > 1 && line("'\"") <= line("$") |
-    \   exe "normal! g`\"" |
-    \ endif
 
-  augroup END
+"let g:ycm_filetype_whitelist = { 'scala': 1 }
 
+
+" Colorscheme
+"Bundle 'godlygeek/csapprox'
+"Bundle 'vim-scripts/guicolorscheme.vim'
+" Bundle 'nanotech/jellybeans.vim'
+"Bundle 'chriskempson/base16-vim'
+Bundle 'chriskempson/tomorrow-theme', {'rtp': 'vim/'}
+"Bundle 'fdietze/goodday.vim'
+"Bundle 'gerw/vim-HiLinkTrace'
+"set background=dark
+if filereadable($HOME."/.colors") && match(readfile($HOME."/.colors"),"light")
+    colorscheme lucius
 else
+    colorscheme goodmorning
+endif
 
-  set autoindent " always set autoindenting on
+"map <F3> :colorscheme Tomorrow-Night-Bright<CR>
+"map <F4> :colorscheme Tomorrow<CR>
+"set term=ansi
+syntax on
+"set t_Co=256
 
-endif " has("autocmd")
+" leave insert mode quickly
+if ! has('gui_running')
+set ttimeoutlen=10
+augroup FastEscape
+  autocmd!
+  au InsertEnter * set timeoutlen=0
+  au InsertLeave * set timeoutlen=1000
+augroup END
+endif
 
+
+
+" highlight current word by when pressing h
+let g:highlighting = 0
+function! Highlighting()
+  if g:highlighting == 1 && @/ =~ '^\\<'.expand('<cword>').'\\>$'
+    let g:highlighting = 0
+    return ":silent nohlsearch\<CR>"
+  endif
+  let @/ = '\<'.expand('<cword>').'\>'
+  let g:highlighting = 1
+  return ":silent set hlsearch\<CR>"
+endfunction
+nnoremap <silent> <expr> h Highlighting()
+
+" highlight visually selected text by pressing h
+set guioptions+=a
+function! MakePattern(text)
+  let pat = escape(a:text, '\')
+  let pat = substitute(pat, '\_s\+$', '\\s\\*', '')
+  let pat = substitute(pat, '^\_s\+', '\\s\\*', '')
+  let pat = substitute(pat, '\_s\+',  '\\_s\\+', 'g')
+  return '\\V' . escape(pat, '\"')
+endfunction
+vnoremap <silent> h :<C-U>let @/="<C-R>=MakePattern(@*)<CR>"<CR>:set hls<CR>
+
+" Highlight all instances of word under cursor, when idle.
+" Useful when studying strange source code.
+" Type <Leader>h to toggle highlighting on/off.
+nnoremap <Leader>h :if AutoHighlightToggle()<Bar>set hls<Bar>endif<CR>
+function! AutoHighlightToggle()
+  let @/ = ''
+  if exists('#auto_highlight')
+    au! auto_highlight
+    augroup! auto_highlight
+    setl updatetime=4000
+    echo 'Highlight current word: off'
+    return 0
+  else
+    augroup auto_highlight
+      au!
+      au CursorHold * let @/ = '\V\<'.escape(expand('<cword>'), '\').'\>'
+    augroup end
+    setl updatetime=500
+    echo 'Highlight current word: ON'
+    return 1
+  endif
+endfunction
+
+
+" Enable file type detection.
+" Use the default filetype settings, so that mail gets 'tw' set to 72,
+" 'cindent' is on in C files, etc.
+" Also load indent files, to automatically do language-dependent indenting.
+filetype plugin indent on
+
+augroup misc
+  autocmd!
+  autocmd BufReadPost *    " Return to last edit position when opening a file (I want this!)
+              \ if line("'\"") > 0 && line("'\"") <= line("$") |
+              \   exe "normal! g`\"" |
+              \ endif
+
+  autocmd BufEnter *.hh,*.cc,*.h,*.cpp let g:formatprg_args_expr_cpp = '"--mode=c"'
+
+  " apply autoformat and delete trailing empty line
+  autocmd BufWritePost *.hh,*.cc,*.h,*.cpp,*.scala,*.sh
+              \ call TrimEmptyLines()
+augroup END
+
+function! TrimEmptyLines()
+  let save_cursor = getpos(".")
+  :silent! %s#\($\n\s*\)\+\%$##
+  call setpos('.', save_cursor)
+endfunction
+
+
+" Put these in an autocmd group, so that we can delete them easily.
+augroup vimrcEx
+au!
+
+" For all text files set 'textwidth' to 78 characters.
+autocmd FileType text setlocal textwidth=78
+autocmd FileType make setlocal ts=8 sts=8 sw=8 noexpandtab
+autocmd FileType scala setlocal ts=2 sts=2 sw=2 expandtab
+
+" filetype aliases
+au BufNewFile,BufRead *.sbt set filetype=scala
+
+" When editing a file, always jump to the last known cursor position.
+" Don't do it when the position is invalid or when inside an event handler
+" (happens when dropping a file on gvim).
+" Also don't do it when the mark is in the first line, that is the default
+" position when opening a file.
+autocmd BufReadPost *
+\ if line("'\"") > 1 && line("'\"") <= line("$") |
+\   exe "normal! g`\"" |
+\ endif
+
+augroup END
 
