@@ -11,16 +11,17 @@ let g:lightline = {
       \ 'colorscheme': 'wombat',
       \ 'active': {
       \   'left': [ [ 'mode' ], [ 'gitbranch', 'bufferline' ]],
-      \   'right': [  ['singlecharscrollbar', 'scrollbar'], [ 'filetype' ] ]
+      \   'right': [  ['scrollbarhighres'], [ 'filetype' ] ]
       \ },
       \ 'inactive': {
       \   'left': [ ['filename'] ],
-      \   'right': [  ['scrollbar'] ]
+      \   'right': [  ['scrollbarhighres'] ]
       \ },
       \ 'component' : {
       \   'bufferline': '%{bufferline#refresh_status()}%{g:bufferline_status_info.before}%#TabLineSel#%{g:bufferline_status_info.current}%#LightLineLeft_active_1#%{g:bufferline_status_info.after}',
-      \   'scrollbar': '%{Update_scrollbar(20)}%{b:scrollbar_before}%{b:scrollbar_current}%{b:scrollbar_after}',
-      \   'singlecharscrollbar': '%{SingleCharScrollbar()}'
+      \   'scrollbar': '%{Scrollbar(20)}',
+      \   'scrollbarhighres': '%{Scrollbar_Highres(20)}',
+      \   'scrollbarsinglechar': '%{Scrollbar_SingleChar()}'
       \ },
       \ 'component_function': {
       \   'gitbranch': 'BarGitBranch',
@@ -30,35 +31,93 @@ let g:lightline = {
       \ 'subseparator': { 'left': '|', 'right': '|' }
       \ }
 
-func! Update_scrollbar(width)
-    let lines    = line('$')
-    let bufstart = line('w0')-1
-    let bufend   = line('w$')-1
+func! Update_Scrollbar_Highres(charwidth)
+    let res        = 8
+    let blocksl    = [' ','▏','▎','▍','▌','▋','▊','▉']
+    let blocksr    = [' ',' ','▕','▕','▕','▐','▐','▐']
 
-    if (bufend-bufstart) >= 1
-        let pagestart = bufstart * a:width / (lines-1)
-        let pageheight = min([a:width,(bufend - bufstart) * a:width / (lines-1) + 1])
+    let width      = a:charwidth    * res
+    let lastline   = (line('$')  - 1) * res
+    let bufstart   = (line('w0') - 1) * res
+    let bufend     = (line('w$') - 1) * res
+    let winheight  = bufend - bufstart " winheight(winnr())*res
+
+    if lastline == 0
+        let pagestart  = 0
+        let pageheight = width
     else
-        let pagestart = 0
-        let pageheight = a:width
+        let pagestart  = bufstart  * width / lastline
+        let pageheight = min([width,winheight * width / lastline + 1])
+    endif
+    
+    if (pagestart+pageheight) > width " avoids numerical errors
+        let pagestart -= pagestart+pageheight-width
     endif
 
-    if (pagestart+pageheight) > a:width
-        let pagestart -= pagestart+pageheight-a:width
-    endif
+    let before     = pagestart
+    let pre        = ((res-(pagestart%res))%res)
+    let post       = ((pagestart+pageheight)%res)
+    let mid        = pageheight - pre - post
+    let after      = (width - pagestart - pageheight)
+    let beforeFull = (before - ((res - pre)%res))/res
+    let midFull    = mid/res
+    let afterFull  = (after-((res-post)%res))/res
+    
+    let b:scrollbar_before  = repeat(' ', beforeFull)
+    let b:scrollbar_current = (before%res+pre == 0 ? '' : blocksr[pre])
+                            \.repeat('█', midFull)
+                            \.(post+after%res == 0 ? '' : blocksl[post])
+    let b:scrollbar_after   = repeat(' ', afterFull)
 
 
-    let b:scrollbar_before  = repeat(' ', pagestart)
-    let b:scrollbar_current = repeat('█', pageheight)
-    let b:scrollbar_after   = repeat(' ', a:width - pagestart - pageheight)
-
-    " echo 'start: '.pagestart.', height: '.pageheight.',after: '.(a:width - pagestart - pageheight)
+    " echo 'pagestart: '.pagestart.', pageheight: '.pageheight.' = '.(pagestart+pageheight).', last: '.lastline
+    "             \.' | '.before.': '.beforeFull.'+(['.(before%res).'+'.pre.']+'.(midFull).'+['.post.'+'.(after%res).'])+'.afterFull.' :'.after
+    "             \.' | sum:'.(pre+mid+post).', '.(before+pre+post+mid+after).', '.(beforeFull+(before%res)+pre+mid+post+(after%res)+afterFull).' / '.(width)
     "             \.'['.b:scrollbar_before.b:scrollbar_current.b:scrollbar_after.']'
 
     return ''
 endfun
 
-func! SingleCharScrollbar()
+func! Scrollbar_Highres(charwidth)
+    call Update_Scrollbar_Highres(a:charwidth)
+    return ''.b:scrollbar_before.b:scrollbar_current.b:scrollbar_after
+endfun
+
+func! Update_Scrollbar(charwidth)
+    let lastline   = (line('$')  - 1)
+    let bufstart   = (line('w0') - 1)
+    let bufend     = (line('w$') - 1)
+    let winheight  = bufend - bufstart " winheight(winnr())*res
+
+    if lastline == 0
+        let pagestart  = 0
+        let pageheight = a:charwidth
+    else
+        let pagestart = bufstart * a:charwidth / lastline
+        let pageheight = min([a:charwidth,winheight * a:charwidth / lastline + 1])
+    endif
+
+    if (pagestart+pageheight) > a:charwidth " avoids numerical errors
+        let pagestart -= pagestart+pageheight-a:charwidth
+    endif
+
+    let b:scrollbar_before  = repeat(' ', pagestart)
+    let b:scrollbar_current = repeat('█', pageheight)
+    let b:scrollbar_after   = repeat(' ', a:charwidth - pagestart - pageheight)
+
+    " echo 'start: '.pagestart.', height: '.pageheight.',after: '.(a:charwidth - pagestart - pageheight)
+    "             \.'['.b:scrollbar_before.b:scrollbar_current.b:scrollbar_after.']'
+
+    return ''
+endfun
+
+func! Scrollbar(charwidth)
+    call Update_Scrollbar(a:charwidth)
+    return ''.b:scrollbar_before.b:scrollbar_current.b:scrollbar_after
+endfun
+
+
+func! Scrollbar_SingleChar()
     let blocks   = ['█','▇','▆','▅','▄','▃','▂','▁',' ']
     let lines    = line('$')
     let cursor   = line('.')
