@@ -91,11 +91,6 @@ if !isdirectory(expand(&directory))
     call mkdir(expand(&directory), "p")
 endif
 
-" save and load folds automatically
-au BufWinLeave * mkview
-au BufWinEnter * silent loadview
-
-
 
 " fuzzy autocompletion, eclim
 "Bundle 'Valloric/YouCompleteMe'
@@ -224,10 +219,6 @@ filetype plugin indent on
 
 augroup misc
   autocmd!
-  autocmd BufReadPost *    " Return to last edit position when opening a file (I want this!)
-              \ if line("'\"") > 0 && line("'\"") <= line("$") |
-              \   exe "normal! g`\"" |
-              \ endif
 
   autocmd BufEnter *.hh,*.cc,*.h,*.cpp let g:formatprg_args_expr_cpp = '"--mode=c"'
 
@@ -254,16 +245,6 @@ autocmd FileType scala setlocal ts=2 sts=2 sw=2 expandtab
 
 " filetype aliases
 au BufNewFile,BufRead *.sbt set filetype=scala
-
-" When editing a file, always jump to the last known cursor position.
-" Don't do it when the position is invalid or when inside an event handler
-" (happens when dropping a file on gvim).
-" Also don't do it when the mark is in the first line, that is the default
-" position when opening a file.
-autocmd BufReadPost *
-\ if line("'\"") > 1 && line("'\"") <= line("$") |
-\   exe "normal! g`\"" |
-\ endif
 
 augroup END
 
