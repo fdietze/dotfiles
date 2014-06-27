@@ -22,6 +22,9 @@ source $HOME/.vimrc_plugins
 source $HOME/.vimrc_statusline
 source $HOME/.vimrc_keybindings
 
+" Enable file type detection.
+filetype plugin indent on
+
 " gui settings
 set mouse=a
 if has("gui_running")
@@ -95,7 +98,7 @@ let g:ycm_autoclose_preview_window_after_insertion = 1
 let g:EclimCompletionMethod = 'omnifunc'
 let g:EclimScalaSearchSingleResult = 'edit'
 ":set completeopt=longest,menuone
-    
+
 " select items with ENTER
 ":inoremap <expr> <CR> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
 
@@ -144,31 +147,23 @@ endif
 syntax on
 "set t_Co=256
 
-" leave insert mode quickly
-if ! has('gui_running')
-set ttimeoutlen=10
-augroup FastEscape
-  autocmd!
-  au InsertEnter * set timeoutlen=0
-  au InsertLeave * set timeoutlen=1000
-augroup END
-endif
 
 
 
-" highlight current word by when pressing h
+
+" highlight current word
 let g:highlighting = 0
 function! HighlightCurrentWord()
-  if g:highlighting == 1 " && @/ =~ '^\\<'.expand('<cword>').'\\>$'
-    let g:highlighting = 0
-    return ":silent nohlsearch\<CR>"
-  endif
-  let @/ = '\<'.expand('<cword>').'\>'
-  let g:highlighting = 1
-  return ":silent set hlsearch\<CR>"
+    if g:highlighting == 1 " && @/ =~ '^\\<'.expand('<cword>').'\\>$'
+        let g:highlighting = 0
+        return ":silent nohlsearch\<CR>"
+    endif
+    let @/ = '\<'.expand('<cword>').'\>'
+    let g:highlighting = 1
+    return ":silent set hlsearch\<CR>"
 endfunction
 
-" highlight visually selected text by pressing h
+" highlight visually selected text
 function! HighlightSelection()
   let pat = escape(@*, '\')
   let pat = substitute(pat, '\_s\+$', '\\s\\*', '')
@@ -179,62 +174,60 @@ function! HighlightSelection()
   let g:highlighting = 1
 endfunction
 
-" Highlight all instances of word under cursor, when idle.
-" Useful when studying strange source code.
+" Highlight all instances of word under cursor when idle
 function! AutoHighlightToggle()
-  let @/ = ''
-  if exists('#auto_highlight')
-    au! auto_highlight
-    augroup! auto_highlight
-    setl updatetime=4000
-    echo 'Highlight current word: off'
-    return 0
-  else
-    augroup auto_highlight
-      au!
-      au CursorHold * let @/ = '\V\<'.escape(expand('<cword>'), '\').'\>'
-    augroup end
-    setl updatetime=500
-    echo 'Highlight current word: ON'
-    return 1
-  endif
+    let @/ = ''
+    if exists('#auto_highlight')
+        au! auto_highlight
+        augroup! auto_highlight
+        setl updatetime=4000
+        echo 'Highlight current word: off'
+        return 0
+    else
+        augroup auto_highlight
+            au!
+            au CursorHold * let @/ = '\V\<'.escape(expand('<cword>'), '\').'\>'
+        augroup END
+        setl updatetime=200
+        echo 'Highlight current word: ON'
+        return 1
+    endif
 endfunction
 
 
-" Enable file type detection.
-" Use the default filetype settings, so that mail gets 'tw' set to 72,
-" 'cindent' is on in C files, etc.
-" Also load indent files, to automatically do language-dependent indenting.
-filetype plugin indent on
+function! StripTrailingSpaces()
+    let _s=@/ " backup search string
+    let save_cursor = getpos(".") " backup cursor
+    " :silent! %s#\($\n\s*\)\+\%$##
+    %s/\s\+$//e
+    let @/=_s " restore search string
+    call setpos('.', save_cursor) " restore cursor
+endfunction
+
 
 augroup misc
-  autocmd!
+    autocmd!
 
-  autocmd BufEnter *.hh,*.cc,*.h,*.cpp let g:formatprg_args_expr_cpp = '"--mode=c"'
+    autocmd FileType text setlocal textwidth=78
+    autocmd FileType make setlocal ts=8 sts=8 sw=8 noexpandtab
 
-  " apply autoformat and delete trailing empty line
-  " autocmd BufWritePost *.hh,*.cc,*.h,*.cpp,*.scala,*.sh
-  "             \ call TrimEmptyLines()
+    " filetype aliases
+    au BufNewFile,BufRead *.sbt set filetype=scala
+
+    " apply autoformat and delete trailing empty line
+    autocmd BufWritePost *.hh,*.cc,*.h,*.cpp,*.scala,*.sh,*.vimrc*
+                \ call StripTrailingSpaces()
+
+    autocmd BufEnter *.hh,*.cc,*.h,*.cpp let g:formatprg_args_expr_cpp = '"--mode=c"'
 augroup END
 
-" function! TrimEmptyLines()
-"   let save_cursor = getpos(".")
-"   :silent! %s#\($\n\s*\)\+\%$##
-"   call setpos('.', save_cursor)
-" endfunction
 
-
-" Put these in an autocmd group, so that we can delete them easily.
-augroup vimrcEx
-au!
-
-" For all text files set 'textwidth' to 78 characters.
-autocmd FileType text setlocal textwidth=78
-autocmd FileType make setlocal ts=8 sts=8 sw=8 noexpandtab
-autocmd FileType scala setlocal ts=2 sts=2 sw=2 expandtab
-
-" filetype aliases
-au BufNewFile,BufRead *.sbt set filetype=scala
-
-augroup END
-
+" leave insert mode quickly
+if ! has('gui_running')
+    set ttimeoutlen=10
+    augroup FastEscape
+        autocmd!
+        au InsertEnter * set timeoutlen=0
+        au InsertLeave * set timeoutlen=1000
+    augroup END
+endif
