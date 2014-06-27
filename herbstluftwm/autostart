@@ -26,9 +26,9 @@ hc keybind $Mod-k spawn xkill
 hc keybind $Mod-d spawn termite
 hc keybind $Mod-Shift-p spawn xrandr --output eDP1  --auto --primary --output VGA1 --off
 
-# set default layout to Horizontal
-hc set default_frame_layout 1
-herbstclient set_layout horizontal
+# set default layout to grid
+hc set default_frame_layout 3
+herbstclient set_layout grid
 
 # basic movement
 # focusing clients
