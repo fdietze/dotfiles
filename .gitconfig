@@ -1,16 +1,35 @@
 [user]
 	email = felix@beerleader.net
 	name = Felix Dietze
+
 [core]
 	excludesfile = ~/.gitignore_global
+
 [push]
 	default = simple
+
 [branch]
 	autosetuprebase = always
+
 [alias]
     co = checkout
     ci = commit
+    cim = commit -m
     st = status
     br = branch
     lg = log --graph --pretty=format:'%Cred%h %C(reset)%C(dim)%ad%Creset %s%C(yellow)%d%C(reset) %C(blue)<%an> %Cgreen(%ar)%Creset' --abbrev-commit --date=short
     df = diff --word-diff=color --minimal --irreversible-delete --find-copies-harder -C --ignore-space-at-eol --ignore-space-change --ignore-all-space --inter-hunk-context=3
+
+[color]
+    branch = auto
+    diff = auto
+    status = auto
+
+[color "diff"]
+    old = red
+    new = green
+
+[color "status"]
+    added = yellow
+    changed = green
+    untracked = cyan
