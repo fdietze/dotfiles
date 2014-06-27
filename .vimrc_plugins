@@ -3,6 +3,8 @@ Plugin 'tpope/vim-sensible'
 
 " restore cursor position and folding
 Plugin 'vim-scripts/restore_view.vim'
+set viewoptions=cursor,folds,slash,unix
+" let g:skipview_files = ['*\.vim']
 
 " file browser
 Plugin 'scrooloose/nerdtree'

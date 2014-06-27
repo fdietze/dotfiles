@@ -22,7 +22,7 @@ source $HOME/.vimrc_plugins
 source $HOME/.vimrc_statusline
 source $HOME/.vimrc_keybindings
 
-
+" gui settings
 set mouse=a
 if has("gui_running")
   set guioptions=aci        " hide toolbars
@@ -31,8 +31,6 @@ if has("gui_running")
   set guicursor+=a:blinkon0 "disible blinking
   set guicursor+=i-ci:block-iCursor-blinkon0 "insert mode: block, no blinking, highlight with iCursor
 endif
-
-
 
 " display
 set cursorline                    " highlight current line
@@ -45,7 +43,7 @@ set hls                           " hightlight search results
 set list
 set listchars=tab:⊳\ ,trail:·     " display whitespaces
 set scrolloff=5 sidescrolloff=10  " keep some lines before and after the cursor visible
-set ttyfast
+" set ttyfast
 
 " editing
 set backspace=indent,eol,start    " allow backspacing over everything in insert mode
@@ -54,7 +52,6 @@ set shiftwidth=4                  " size of an "indent"
 set softtabstop=4                 " a combination of spaces and tabs are used to simulate tab stops at a width
 set smarttab                      " make "tab" insert indents instead of tabs at the beginning of a line
 set expandtab                     " always uses spaces instead of tab characters
-
 
 " behavior
 set hidden                        " switch from unsaved buffers
@@ -67,9 +64,8 @@ set wildmode=list:longest,full
 set lazyredraw                    " performance: dont redraw while executing macros
 set autoread                      " read file when changed from outside
 set confirm                       " ask to save files when closing vim
-"set clipboard=unnamedplus         " alias unnamed register to the + register, which is the X Window clipboard
+" set clipboard=unnamedplus         " alias unnamed register to the + register, which is the X Window clipboard
 cd %:p:h                          " cd to directory of current file
-
 
 " backup/undo/swap files
 set swapfile
@@ -145,9 +141,6 @@ else
     colorscheme goodmorning
 endif
 
-"map <F3> :colorscheme Tomorrow-Night-Bright<CR>
-"map <F4> :colorscheme Tomorrow<CR>
-"set term=ansi
 syntax on
 "set t_Co=256
 
@@ -165,8 +158,8 @@ endif
 
 " highlight current word by when pressing h
 let g:highlighting = 0
-function! Highlighting()
-  if g:highlighting == 1 && @/ =~ '^\\<'.expand('<cword>').'\\>$'
+function! HighlightCurrentWord()
+  if g:highlighting == 1 " && @/ =~ '^\\<'.expand('<cword>').'\\>$'
     let g:highlighting = 0
     return ":silent nohlsearch\<CR>"
   endif
@@ -174,23 +167,20 @@ function! Highlighting()
   let g:highlighting = 1
   return ":silent set hlsearch\<CR>"
 endfunction
-nnoremap <silent> <expr> h Highlighting()
 
 " highlight visually selected text by pressing h
-set guioptions+=a
-function! MakePattern(text)
-  let pat = escape(a:text, '\')
+function! HighlightSelection()
+  let pat = escape(@*, '\')
   let pat = substitute(pat, '\_s\+$', '\\s\\*', '')
   let pat = substitute(pat, '^\_s\+', '\\s\\*', '')
   let pat = substitute(pat, '\_s\+',  '\\_s\\+', 'g')
-  return '\\V' . escape(pat, '\"')
+  let pat = "\\V" . escape(pat, '\"')
+  let @/=pat
+  let g:highlighting = 1
 endfunction
-vnoremap <silent> h :<C-U>let @/="<C-R>=MakePattern(@*)<CR>"<CR>:set hls<CR>
 
 " Highlight all instances of word under cursor, when idle.
 " Useful when studying strange source code.
-" Type <Leader>h to toggle highlighting on/off.
-nnoremap <Leader>h :if AutoHighlightToggle()<Bar>set hls<Bar>endif<CR>
 function! AutoHighlightToggle()
   let @/ = ''
   if exists('#auto_highlight')
@@ -223,15 +213,15 @@ augroup misc
   autocmd BufEnter *.hh,*.cc,*.h,*.cpp let g:formatprg_args_expr_cpp = '"--mode=c"'
 
   " apply autoformat and delete trailing empty line
-  autocmd BufWritePost *.hh,*.cc,*.h,*.cpp,*.scala,*.sh
-              \ call TrimEmptyLines()
+  " autocmd BufWritePost *.hh,*.cc,*.h,*.cpp,*.scala,*.sh
+  "             \ call TrimEmptyLines()
 augroup END
 
-function! TrimEmptyLines()
-  let save_cursor = getpos(".")
-  :silent! %s#\($\n\s*\)\+\%$##
-  call setpos('.', save_cursor)
-endfunction
+" function! TrimEmptyLines()
+"   let save_cursor = getpos(".")
+"   :silent! %s#\($\n\s*\)\+\%$##
+"   call setpos('.', save_cursor)
+" endfunction
 
 
 " Put these in an autocmd group, so that we can delete them easily.
