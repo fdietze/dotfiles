@@ -11,6 +11,6 @@ herbstclient set window_border_normal_color '#CCC'
 
 VIMS=`vim --serverlist`
 for vim in $VIMS; do
-     vim --servername $vim --remote-send '<Esc>:colorscheme Tomorrow<CR>'
+     vim --servername $vim --remote-send '<Esc>:colorscheme goodmorning<CR>'
 done
 
