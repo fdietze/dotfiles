@@ -26,9 +26,9 @@ hc keybind $Mod-k spawn xkill
 hc keybind $Mod-d spawn termite
 hc keybind $Mod-Shift-p spawn xrandr --output eDP1  --auto --primary --output VGA1 --off
 
-# set default layout to grid
-hc set default_frame_layout 3
-herbstclient set_layout grid
+# set default layout to Horizontal
+hc set default_frame_layout 1
+herbstclient set_layout horizontal
 
 # basic movement
 # focusing clients
@@ -148,9 +148,9 @@ hc unlock
 herbstclient set tree_style '╾│ ├└╼─┐'
 
 # do multi monitor setup here, e.g.:
-# hc set_monitors 1280x1024+0+0 1280x1024+1280+0
-# or simply:
-# hc detect_monitors
+hc set_monitors 1280x1024+0+0 1280x1024+1280+0
+or simply:
+hc detect_monitors
 
 # find the panel
 panel=~/.config/herbstluftwm/panel.sh
