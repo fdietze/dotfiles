@@ -9,7 +9,7 @@ allow_bold = true
 dynamic_title = true
 urgent_on_bell = false
 clickable_url = true
-font = Inconsolata-g 12
+font = Inconsolata 15
 scrollback_lines = 10000
 search_wrap = true
 #icon_name = terminal
@@ -20,7 +20,7 @@ transparency = 0.0
 pseudo_transparency = false
 
 # "system", "on" or "off"
-cursor_blink = system
+cursor_blink = off
 
 # "block", "underline" or "ibeam"
 cursor_shape = block
@@ -41,7 +41,7 @@ cursor_shape = block
 #highlight = #000000
 #cursor =    #EEEEEE
 
-background =     #000000
+#background =     #000000
 foreground =     #e5e5e5
 foreground_bold =#FFFFFF
 

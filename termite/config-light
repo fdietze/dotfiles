@@ -9,7 +9,8 @@ allow_bold = true
 dynamic_title = true
 urgent_on_bell = false
 clickable_url = true
-font = Inconsolata-g 14
+#font = ProFontWindows 16
+font = Inconsolata 16
 scrollback_lines = 10000
 search_wrap = true
 #icon_name = terminal
@@ -20,7 +21,7 @@ transparency = 0.0
 pseudo_transparency = false
 
 # "system", "on" or "off"
-cursor_blink = system
+cursor_blink = off
 
 # "block", "underline" or "ibeam"
 cursor_shape = block
