@@ -119,9 +119,12 @@ hc set frame_border_width 0
 hc set frame_border_inner_width 0
 hc set frame_gap 0
 hc set frame_padding 0
-hc set window_border_width 1
-hc set window_border_normal_color '#7F7F7F'
-hc set window_border_active_color '#37BAFF'
+# hc set window_border_width 2
+# hc set window_border_normal_color '#7F7F7F'
+# hc set window_border_active_color '#37BAFF'
+hc set window_border_width 3
+hc set window_border_active_color '#FF0060'
+hc set window_border_normal_color '#CCCCCC'
 # add overlapping window borders
 hc set window_gap 0
 hc set frame_padding 0
@@ -158,4 +161,8 @@ for monitor in $(herbstclient list_monitors | cut -d: -f1) ; do
     # start it on each monitor
     "$panel" $monitor &
 done
+
+# set dark terminal and vim colors
+rm .colors
+dark
 

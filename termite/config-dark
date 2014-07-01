@@ -9,7 +9,7 @@ allow_bold = true
 dynamic_title = true
 urgent_on_bell = false
 clickable_url = true
-font = Inconsolata 15
+font = Inconsolata 16
 scrollback_lines = 10000
 search_wrap = true
 #icon_name = terminal
@@ -38,43 +38,37 @@ cursor_shape = block
 [colors]
 
 # if unset, will reverse foreground and background
-#highlight = #000000
-#cursor =    #EEEEEE
+#highlight = #707070
 
-#background =     #000000
-foreground =     #e5e5e5
-foreground_bold =#FFFFFF
+# colorscheme: base16-chalk
+foreground      = #d0d0d0
+foreground_bold = #eeeeee
+#cursor          = #d0d0d0
+background      = #151515
+# 16 color space
+color0  = #151515
+color1  = #fb9fb1
+color2  = #acc267
+color3  = #ddb26f
+color4  = #6fc2ef
+color5  = #e1a3ee
+color6  = #12cfc0
+color7  = #d0d0d0
+color8  = #505050
+color9  = #fb9fb1
+color10 = #acc267
+color11 = #ddb26f
+color12 = #6fc2ef
+color13 = #e1a3ee
+color14 = #12cfc0
+color15 = #f5f5f5
 
-# black
-color0 =         #000000
-color8 =         #666666
+# 256 color space
+color16 = #eda987
+color17 = #deaf8f
+color18 = #202020
+color19 = #303030
+color20 = #b0b0b0
+color21 = #e0e0e0
 
-# red
-color1 =         #ff4d8c
-color9 =         #ff66C5
-
-# green
-color2 =         #d3e344
-color10 =        #dbff4d
-
-# yellow
-color3 =         #ffb231
-color11 =        #ffd798
-
-# blue
-color4 =         #009fe8
-color12 =        #48c6ff
-
-# magenta
-color5  =        #DB82FF
-color13 =        #E5A4FF
-
-# cyan 
-color6 =         #00B2D8
-color14 =        #4DE2FF
-
-# white
-color7 =         #e5e5e5
-color15 =        #ffffff
-
-
+# vim: ft=dosini cms=#%s

@@ -60,11 +60,19 @@ Plugin 'mhinz/vim-signify'
 " Collaborative Editing
 "Plugin 'FredKSchott/CoVim'
 
-"color highlighting (conflicts with css-colors of vim-polyglot)
-" Plugin 'gorodinskiy/vim-coloresque'
+
+" graphical editor for colorschemes
+Plugin 'vim-scripts/ColorSchemeEditor'
+
+" colorschemes
+Plugin 'chriskempson/base16-vim'
+let base16colorspace=256  " Access colors present in 256 colorspace
 
 " TODO:
 Plugin 'edsono/vim-matchit'
+
+" identify highlighting group under cursor
+Plugin 'gerw/vim-HiLinkTrace'
 
 " TODO:
 "Plugin 'nathanaelkane/vim-indent-guides'

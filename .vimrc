@@ -98,11 +98,12 @@ endif
 "Bundle 'chriskempson/base16-vim'
 Bundle 'chriskempson/tomorrow-theme', {'rtp': 'vim/'}
 "Bundle 'fdietze/goodday.vim'
-"Bundle 'gerw/vim-HiLinkTrace'
 "set background=dark
 if filereadable($HOME."/.colors") && match(readfile($HOME."/.colors"),"light")
-    colorscheme lucius
+    set background=dark
+    colorscheme base16-chalk
 else
+    set background=light
     colorscheme goodmorning
 endif
 
@@ -175,6 +176,8 @@ augroup misc
 
     " filetype aliases
     au BufNewFile,BufRead *.sbt set filetype=scala
+    au BufNewFile,BufRead *.gdb set filetype=sh
+    au BufNewFile,BufRead *.jad set filetype=java
 
     " apply autoformat and delete trailing empty line
     autocmd BufWritePost *.hh,*.cc,*.h,*.cpp,*.scala,*.sh,*.vimrc*
