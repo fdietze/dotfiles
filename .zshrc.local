@@ -23,15 +23,23 @@ alias ye="yaourt -Qe --date" # list installed packages
 
 alias vim="vim --servername vim-\$\$"
 alias vv="vim ~/.vimrc"
-alias f="locate -i"
+alias vvp="vim ~/.vimrc_plugins"
+alias vvk="vim ~/.vimrc_keybindings"
+alias vvs="vim ~/.vimrc_statusline"
+alias lo="locate -i"
 alias ff="find . -iname"
 alias g="grep"
 alias gi="grep -i"
 alias gg="grep -irn"
 alias md="mkdir -p"
 alias lt="ls -lt"
+alias watch="watch -c -d"
 
 alias v='fasd -e vim -f' # quick opening files with vim
 alias m='fasd -e vlc -f' # quick opening files with vlc
 alias o='a -e xdg-open' # quick opening files with xdg-open
 alias hd='hexdump -C'
+
+alias wa='tungsten'
+
+alias hc='herbstclient'
