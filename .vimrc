@@ -116,11 +116,11 @@ syntax on
 " highlight current word
 let g:highlighting = 0
 function! HighlightCurrentWord()
-    if g:highlighting == 1 " && @/ =~ '^\\<'.expand('<cword>').'\\>$'
+    if g:highlighting == 1 && @/ =~ '^\\C\\<'.expand('<cword>').'\\>$'
         let g:highlighting = 0
         return ":silent nohlsearch\<CR>"
     endif
-    let @/ = '\<'.expand('<cword>').'\>'
+    let @/ = '\C\<'.expand('<cword>').'\>'
     let g:highlighting = 1
     return ":silent set hlsearch\<CR>"
 endfunction
