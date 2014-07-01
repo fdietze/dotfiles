@@ -1,9 +1,9 @@
 " sensible default settings
 Plugin 'tpope/vim-sensible'
 
-" restore cursor position and folding
+" restore cursor position and folds
 Plugin 'vim-scripts/restore_view.vim'
-set viewoptions=cursor,folds,slash,unix
+" set viewoptions=cursor,folds,slash,unix
 " let g:skipview_files = ['*\.vim']
 
 " file browser
