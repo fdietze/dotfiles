@@ -41,8 +41,11 @@ Plugin 'tpope/vim-speeddating'
 " unix commands
 Plugin 'tpope/vim-eunuch'
 
-"automatically-close-brackets-magic
+" automatically-close-brackets-magic
 Plugin 'Raimondi/delimitMate'
+
+" Interactive command execution
+Plugin 'Shougo/vimproc.vim'
 
 " fuzzy file finding
 " Plugin 'wincent/Command-T'
@@ -59,6 +62,7 @@ Plugin 'mhinz/vim-signify'
 
 " Collaborative Editing
 "Plugin 'FredKSchott/CoVim'
+"Plugin 'emgram769/vim-multiuser'
 
 
 " graphical editor for colorschemes
