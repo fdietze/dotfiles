@@ -55,6 +55,10 @@ imap <silent> <Home> <C-O><Home>
 nnoremap <Tab> :bnext<CR>
 nnoremap <S-Tab> :bprevious<CR>
 
+" Unite
+nnoremap <Leader>e :<C-u>Unite -start-insert file_rec/async:!<CR>
+nnoremap <Leader>a :<C-u>Unite -start-insert buffer<CR>
+
 " clear search highlighting
 nnoremap <Space> :nohlsearch<CR>:echo<CR>
 

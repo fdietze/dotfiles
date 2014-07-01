@@ -45,7 +45,9 @@ Plugin 'tpope/vim-eunuch'
 Plugin 'Raimondi/delimitMate'
 
 " fuzzy file finding
-Plugin 'wincent/Command-T'
+" Plugin 'wincent/Command-T'
+Plugin 'Shougo/unite.vim'
+call unite#filters#matcher_default#use(['matcher_fuzzy'])
 
 " git support
 Plugin 'tpope/vim-fugitive'
