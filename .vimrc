@@ -91,44 +91,6 @@ if !isdirectory(expand(&directory))
 endif
 
 
-" fuzzy autocompletion, eclim
-"Bundle 'Valloric/YouCompleteMe'
-let g:ycm_auto_trigger = 0
-let g:ycm_autoclose_preview_window_after_insertion = 1
-let g:EclimCompletionMethod = 'omnifunc'
-let g:EclimScalaSearchSingleResult = 'edit'
-":set completeopt=longest,menuone
-
-" select items with ENTER
-":inoremap <expr> <CR> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
-
-" Some convenient mappings
-" inoremap <expr> <Esc>      pumvisible() ? "\<C-e>" : "\<Esc>"
-" inoremap <expr> <CR>       pumvisible() ? "\<C-y>" : "\<CR>"
-" inoremap <expr> <Down>     pumvisible() ? "\<C-n>" : "\<Down>"
-" inoremap <expr> <Up>       pumvisible() ? "\<C-p>" : "\<Up>"
-" inoremap <expr> <C-d>      pumvisible() ? "\<PageDown>\<C-p>\<C-n>" : "\<C-d>"
-" inoremap <expr> <C-u>      pumvisible() ? "\<PageUp>\<C-p>\<C-n>" : "\<C-u>"
-
-" TODO: noninvasive completion
-" <ESC> takes you out of insert mode
-" inoremap <expr> <Esc>   pumvisible() ? "\<C-y>\<Esc>" : "\<Esc>"
-" " <CR> accepts first, then sends the <CR>
-" inoremap <expr> <CR>    pumvisible() ? "\<C-y>\<CR>" : "\<CR>"
-" " <Down> and <Up> cycle like <Tab> and <S-Tab>
-" inoremap <expr> <Down>  pumvisible() ? "\<C-n>" : "\<Down>"
-" inoremap <expr> <Up>    pumvisible() ? "\<C-p>" : "\<Up>"
-" " Jump up and down the list
-" inoremap <expr> <C-d>   pumvisible() ? "\<PageDown>\<C-p>\<C-n>" : "\<C-d>"
-" inoremap <expr> <C-u>   pumvisible() ? "\<PageUp>\<C-p>\<C-n>" : "\<C-u>"
-" Automatically open and close the popup menu / preview window
-" au CursorMovedI,InsertLeave * if pumvisible() == 0|silent! pclose|endif
-" set completeopt=menu,preview,longest
-
-
-"let g:ycm_filetype_whitelist = { 'scala': 1 }
-
-
 " Colorscheme
 "Bundle 'godlygeek/csapprox'
 "Bundle 'vim-scripts/guicolorscheme.vim'

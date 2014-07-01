@@ -1,8 +1,9 @@
 let mapleader=","
 let g:mapleader=","
 
-" in NEO keyboard Layout we can remap HJKL, because there are arrow keys in
-" the middle of the keyboard already
+" in NEO keyboard (http://neo-layout.org/) Layout we can remap HJKL,
+" because there are arrow keys in the middle of the keyboard already.
+" additionally we have ÜÖÄß
 
 " H: Highlight current word, selection, autohighlight
 nnoremap <silent> <expr> h HighlightCurrentWord()
@@ -58,11 +59,17 @@ nnoremap <S-Tab> :bprevious<CR>
 nnoremap <Space> :nohlsearch<CR>:echo<CR>
 
 
-" fast way to edit ~/.vimrc
+" fast way to edit ~/.vimrc*
 nnoremap <Leader>v :e ~/.vimrc<CR>
+nnoremap <Leader>vp :e ~/.vimrc_plugins<CR>
+nnoremap <Leader>vk :e ~/.vimrc_keybindings<CR>
+nnoremap <Leader>vs :e ~/.vimrc_statusline<CR>
+
+" save and quit
 nnoremap <Leader>w :wa<CR>
 nnoremap <Leader>q :q<CR>
 nnoremap <Leader>x :x<CR>
+
 " save all and make
 nnoremap <Leader>m :wa<CR>:make<CR><CR>:copen<CR>
 
@@ -82,5 +89,21 @@ nnoremap <leader>j  :ScalaSearch<CR>
 " characters in when pressing arrow keys
 " inoremap <Esc> <Esc><Right>
 
+" imap <C-Space> <C-X>
 
+" ne new line when selecting with ENTER
+inoremap <expr> <CR>    pumvisible() ? "\<C-y>" : "\<CR>"
 
+" TODO: noninvasive completion
+" <ESC> takes you out of insert mode
+" inoremap <expr> <Esc>   pumvisible() ? "\<C-y>\<Esc>" : "\<Esc>"
+" <CR> accepts first, then sends the <CR>
+" <Down> and <Up> cycle like <Tab> and <S-Tab>
+" inoremap <expr> <Up>    pumvisible() ? "\<C-e>\<Up>" : "\<Up>"
+" inoremap <expr> <Down>  pumvisible() ? "\<C-x>\<Down>" : "\<Down>"
+" Jump up and down the list
+" inoremap <expr> <C-d>   pumvisible() ? "\<PageDown>\<C-p>\<C-n>" : "\<C-d>"
+" inoremap <expr> <C-u>   pumvisible() ? "\<PageUp>\<C-p>\<C-n>" : "\<C-u>"
+" Automatically open and close the popup menu / preview window
+" au CursorMovedI,InsertLeave * if pumvisible() == 0|silent! pclose|endif
+" set completeopt=menu,preview,longest
