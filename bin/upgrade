@@ -1,14 +1,17 @@
 #!/bin/bash
 
 yaourt -Syyua --devel --noconfirm && \
-yaourt -Rscn $(yaourt -Qtdq)
-yaourt -Sc --noconfirm && \
+# yaourt -Rscn $(yaourt -Qtdq)
+#yaourt -Sc --noconfirm && \
+sudo pkgfile -u
+paccache -r && \
+paccache -ruk0 && \
 sudo pacman-optimize && \
 echo "updating mlocate database..." && \
 sudo updatedb
 
 
-sudo btrfs filesystem defragment /
+# sudo btrfs filesystem defragment /
 sync
 
 exit 0
