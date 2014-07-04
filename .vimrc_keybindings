@@ -20,6 +20,10 @@ nnoremap j <c-]>
 " L: Open File Manager
 nnoremap <silent> l :NERDTreeToggle<CR>
 
+" ß: replay q macro
+:nnoremap ß @q
+
+
 " Smart way to move between windows, adjusted for NEO
 " in insert mode
 imap ∫ <C-o><C-W>h
