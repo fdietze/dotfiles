@@ -45,3 +45,6 @@ alias hd='hexdump -C'
 alias wa='tungsten'
 
 alias hc='herbstclient'
+alias nm="nmcli" # NetworkManager
+alias won="nmcli nm wifi on"
+alias woff="nmcli nm wifi off"
