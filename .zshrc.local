@@ -10,6 +10,8 @@ eval "$(fasd --init auto)"
 # command not found
 [ -r /etc/profile.d/cnf.sh ] && . /etc/profile.d/cnf.sh
 
+eval $(dircolors ~/.dir_colors)
+
 alias y="yaourt"
 alias yoghurt=yaourt
 alias ys="yaourt -S --asexplicit" # install and mark as explicitly installed

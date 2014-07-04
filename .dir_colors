@@ -1,0 +1,325 @@
+# Configuration file for dircolors, a utility to help you set the
+# LS_COLORS environment variable used by GNU ls with the --color option.
+# Copyright (C) 1996-2013 Free Software Foundation, Inc.
+# Copying and distribution of this file, with or without modification,
+# are permitted provided the copyright notice and this notice are preserved.
+# The keywords COLOR, OPTIONS, and EIGHTBIT (honored by the
+# slackware version of dircolors) are recognized but ignored.
+# Below, there should be one TERM entry for each termtype that is colorizable
+TERM Eterm
+TERM ansi
+TERM color-xterm
+TERM con132x25
+TERM con132x30
+TERM con132x43
+TERM con132x60
+TERM con80x25
+TERM con80x28
+TERM con80x30
+TERM con80x43
+TERM con80x50
+TERM con80x60
+TERM cons25
+TERM console
+TERM cygwin
+TERM dtterm
+TERM eterm-color
+TERM gnome
+TERM gnome-256color
+TERM jfbterm
+TERM konsole
+TERM kterm
+TERM linux
+TERM linux-c
+TERM mach-color
+TERM mlterm
+TERM putty
+TERM putty-256color
+TERM rxvt
+TERM rxvt-256color
+TERM rxvt-cygwin
+TERM rxvt-cygwin-native
+TERM rxvt-unicode
+TERM rxvt-unicode-256color
+TERM rxvt-unicode256
+TERM screen
+TERM screen-256color
+TERM screen-256color-bce
+TERM screen-bce
+TERM screen-w
+TERM screen.Eterm
+TERM screen.rxvt
+TERM screen.linux
+TERM st
+TERM st-256color
+TERM terminator
+TERM vt100
+TERM xterm
+TERM xterm-16color
+TERM xterm-256color
+TERM xterm-88color
+TERM xterm-color
+TERM xterm-debian
+TERM xterm-termite
+
+# Below are the color init strings for the basic file types. A color init
+# string consists of one or more of the following numeric codes:
+# Attribute codes:
+# 00=none 01=bold 04=underscore 05=blink 07=reverse 08=concealed
+# Text color codes:
+# 30=black 31=red 32=green 33=yellow 34=blue 35=magenta 36=cyan 37=white
+# Background color codes:
+# 40=black 41=red 42=green 43=yellow 44=blue 45=magenta 46=cyan 47=white
+NORMAL 00 # no color code at all
+FILE 00 # regular file: use no color at all
+RESET 0 # reset to "normal" color
+DIR 01;33 # directory
+LINK 00;36 # symbolic link. (If you set this to 'target' instead of a
+ # numerical value, the color is as for the file pointed to.)
+MULTIHARDLINK 00 # regular file with more than one link
+FIFO 00;36 # pipe
+SOCK 00;36 # socket
+DOOR 00;36 # door
+BLK 00;36 # block device driver
+CHR 00;36 # character device driver
+ORPHAN 40;31 # symlink to nonexistent file, or non-stat'able file
+MISSING 40;31 # symlink to nonexistent file, or non-stat'able file
+SETUID 40;31;01 # file that is setuid (u+s)
+SETGID 40;31;01 # file that is setgid (g+s)
+CAPABILITY 40;31;01 # file with capability
+STICKY_OTHER_WRITABLE 03;33 # dir that is sticky and other-writable (+t,o+w)
+OTHER_WRITABLE 40;31;01 # dir that is other-writable (o+w) and not sticky
+STICKY 01;29 # dir with the sticky bit set (+t) and not other-writable
+
+
+# executables
+EXEC 01;29
+.app 01;29
+.bat 01;29
+.btm 01;29
+.cmd 01;29
+.com 01;29
+.csh 01;29
+.exe 01;29
+.reg 01;29
+.sh 01;29
+
+# source
+.c 00;34
+.C 00;34
+.cc 00;34
+.coffee 00;34
+.cpp 00;34
+.csh 00;34
+.css 00;34
+.cxx 00;34
+.dot 00;34
+.el 00;34
+.erb 00;34
+.gdb 00;34
+.go 00;34
+.h 00;34
+.haml 00;34
+.hh 00;34
+.hs 00;34
+.htm 00;34
+.HTM 00;34
+.html 00;34
+.HTML 00;34
+.java 00;34
+.js 00;34
+.less 00;34
+*makefile 00;34
+*Makefile 00;34
+.man 00;34
+.objc 00;34
+.php 00;34
+.pl 00;34
+.pm 00;34
+.pod 00;34
+.py 00;34
+.rb 00;34
+.rdf 00;34
+.sass 00;34
+.scala 00;34
+.scss 00;34
+.sh 00;34
+.shtml 00;34
+.tex 00;34
+.vim 00;34
+.xml 00;34
+.zsh 00;34
+
+# archives or compressed
+.7z 00;33
+.ace 00;33
+.alz 00;33
+.apk 00;33
+.arc 00;33
+.arj 00;33
+.bin 00;33
+.bz 00;33
+.bz2 00;33
+.cab 00;33
+.cpio 00;33
+.deb 00;33
+.dmg 00;33
+.dz 00;33
+.ear 00;33
+.gem 00;33
+.gz 00;33
+.iso 00;33
+.jar 00;33
+.lha 00;33
+.lrz 00;33
+.lz 00;33
+.lz4 00;33
+.lzh 00;33
+.lzma 00;33
+.lzo 00;33
+.msi 00;33
+.rar 00;33
+.rpm 00;33
+.rz 00;33
+.sar 00;33
+.t7z 00;33
+.tar 00;33
+.taz 00;33
+.tbz 00;33
+.tbz2 00;33
+.tgz 00;33
+.tlz 00;33
+.tx 00;33
+.txz 00;33
+.tz 00;33
+.tzo 00;33
+.war 00;33
+.xpi 00;33
+.xz 00;33
+.z 00;33
+.Z 00;33
+.zip 00;33
+.ZIP 00;33
+.zoo 00;33
+
+# image formats
+.bmp 00;32
+.gif 00;32
+.jpeg 00;32
+.JPEG 00;32
+.jpg 00;32
+.JPG 00;32
+.pbm 00;32
+.pgm 00;32
+.png 00;32
+.ppm 00;32
+.svg 00;32
+.svgz 00;32
+.tga 00;32
+.tif 00;32
+.tiff 00;32
+.xbm 00;32
+.xpm 00;32
+
+# video formats
+.anx 00;35
+.asf 00;35
+.avi 00;35
+.axv 00;35
+.cgm 00;35
+.dl 00;35
+.emf 00;35
+.flc 00;35
+.fli 00;35
+.flv 00;35
+.gl 00;35
+.m2v 00;35
+.m4v 00;35
+.mkv 00;35
+.mng 00;35
+.mov 00;35
+.mp4 00;35
+.mp4v 00;35
+.mpeg 00;35
+.MPEG 00;35
+.mpg 00;35
+.MPG 00;35
+.nuv 00;35
+.ogm 00;35
+.ogv 00;35
+.ogx 00;35
+.pcx 00;35
+.qt 00;35
+.rm 00;35
+.rmvb 00;35
+.swf 00;35
+.vob 00;35
+.webm 00;35
+.wmv 00;35
+.xcf 00;35
+.xwd 00;35
+.yuv 00;35
+
+# audio formats
+.aac 00;35
+.au 00;35
+.axa 00;35
+.flac 00;35
+.m3u 00;35
+.mid 00;35
+.midi 00;35
+.mka 00;35
+.mp3 00;35
+.mpa 00;35
+.mpc 00;35
+.mpeg 00;35
+.mpg 00;35
+.oga 00;35
+.ogg 00;35
+.ra 00;35
+.spx 00;35
+.wav 00;35
+.xspf 00;35
+
+# documents
+.doc 00;36
+.docx 00;36
+.md 00;36
+.mkd 00;36
+.odb 00;36
+.odf 00;36
+.odg 00;36
+.odp 00;36
+.ods 00;36
+.odt 00;36
+.org 00;36
+.pdf 00;36
+.ppt 00;36
+.pptx 00;36
+.psd 00;36
+.rst 00;36
+.rtf 00;36
+.txt 00;36
+.xls 00;36
+.xlsx 00;36
+
+# unimportant
+*~ 01;30
+*# 01;30
+.bak 01;30
+.BAK 01;30
+.dist 01;30
+.DIST 01;30
+.log 01;30
+.off 01;30
+.OFF 01;30
+.old 01;30
+.OLD 01;30
+.org_archive 01;30
+.orig 01;30
+.ORIG 01;30
+.swo 01;30
+.swp 01;30
+.tmp 01;30
+
+# vi:syntax=dircolors
