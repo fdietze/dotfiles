@@ -21,7 +21,11 @@ nnoremap j <c-]>
 nnoremap <silent> l :NERDTreeToggle<CR>
 
 " ß: replay q macro
-:nnoremap ß @q
+nnoremap ß @q
+
+nnoremap ö :update<CR>
+nnoremap ä :q<CR>
+nnoremap ü :bd<CR>
 
 
 " Smart way to move between windows, adjusted for NEO
@@ -74,9 +78,9 @@ nnoremap <Leader>vk :e ~/.vimrc_keybindings<CR>
 nnoremap <Leader>vs :e ~/.vimrc_statusline<CR>
 
 " save and quit
-nnoremap <Leader>w :wa<CR>
-nnoremap <Leader>q :q<CR>
-nnoremap <Leader>x :x<CR>
+" nnoremap <Leader>w :wa<CR>
+" nnoremap <Leader>q :q<CR>
+" nnoremap <Leader>x :x<CR>
 
 " save all and make
 nnoremap <Leader>m :wa<CR>:make<CR><CR>:copen<CR>
