@@ -76,7 +76,7 @@ Plugin 'vim-scripts/ColorSchemeEditor'
 Plugin 'chriskempson/base16-vim'
 let base16colorspace=256  " Access colors present in 256 colorspace
 
-" TODO:
+" % matches not only parantheses, but also HTML-Tags and more
 Plugin 'edsono/vim-matchit'
 
 " identify highlighting group under cursor
