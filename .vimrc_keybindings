@@ -51,31 +51,31 @@ map ℂ :tabnext<cr>
 " NEO navigation for QWERTY
 "         Arrow   Home End Del Backsp PageUpDown  Enter / Esc
 " AltGr + edsf    a    g   r   w      q     t     v       y
-noremap € <Up>
-noremap! € <Up>
-noremap ð <Down>
-noremap! ð <Down>
-noremap ſ <Left>
-noremap! ſ <Left>
-noremap đ <Right>
-noremap! đ <Right>
-noremap æ <Home>
-noremap! æ <Home>
-noremap ŋ <End>
-noremap! ŋ <End>
-noremap ¶ <Del>
-noremap! ¶ <Del>
-noremap ł <Backspace>
-noremap! ł <Backspace>
-noremap @ <PageUp>
-noremap! @ <PageUp>
-noremap ŧ <PageDown>
-noremap! ŧ <PageDown>
-noremap „ <CR>
-noremap „ <CR>
-noremap! „ <CR>
-noremap » <Esc>
-noremap! » <Esc>
+noremap    €   <Up>
+noremap!   €   <Up>
+noremap    ð   <Down>
+noremap!   ð   <Down>
+noremap    ſ   <Left>
+noremap!   ſ   <Left>
+noremap    đ   <Right>
+noremap!   đ   <Right>
+noremap    æ   <Home>
+noremap!   æ   <Home>
+noremap    ŋ   <End>
+noremap!   ŋ   <End>
+noremap    ¶   <Del>
+noremap!   ¶   <Del>
+noremap    ł   <Backspace>
+noremap!   ł   <Backspace>
+noremap    @   <PageUp>
+noremap!   @   <PageUp>
+noremap    ŧ   <PageDown>
+noremap!   ŧ   <PageDown>
+noremap    „   <CR>
+noremap    „   <CR>
+noremap!   „   <CR>
+noremap    »   <Esc>
+noremap!   »   <Esc>
 
 
 
