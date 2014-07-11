@@ -37,48 +37,49 @@ cursor_shape = block
 #size_hints = false
 
 [colors]
+#{
 
 # if unset, will reverse foreground and background
-#highlight = #000000
+#highlight      = #000000
 
-#cursor =    #EEEEEE
-
-background =     #FFFFFF
-foreground =     #000000
+#cursor         = #EEEEEE
+background      = #FFFFFF
+foreground      = #000000
 foreground_bold = #000000
 
 # black
-color0 =         #000000
-0olor8 =         #000000
+color0          = #000000
+color8          = #000000
 
 # red
-color1 =         #DA0065
-color9 =         #FF004A
+color1          = #FF59B2
+color9          = #FF0088
 
 # green
-color2 =         #008A2F
-color10 =        #00B82D
+color2          = #34B750
+color10         = #00AF2B
 
 # yellow
-color3 =         #00AA53
-color11 =        #FFA940
+color3          = #FF9C59
+color11         = #ff6600
 
 # blue
-color4 =         #0068A1
-color12 =        #00A4FF
+color4          = #5199E6
+color12         = #006fe6
 
 # magenta
-color5 =         #6A00B1
-color13 =        #9800FF
+color5          = #A759FF
+color13         = #7700FF
 
-# cyan 
-color6 =         #0094b7
-color14 =        #00B6FF
+# cyan
+color6          = #00C8FF
+color14         = #00C3FF
 
 # white
-color7 =         #ffffff
-folor15 =        #ffffff
+color7          = #ffffff
+color15         = #ffffff
 
+#}
 
 [hints]
 #font = Monospace 12
