@@ -52,27 +52,27 @@ color0          = #000000
 color8          = #000000
 
 # red
-color1          = #FF59B2
+color1          = #DF0076
 color9          = #FF0088
 
 # green
-color2          = #34B750
-color10         = #00AF2B
+color2          = #00AF2B
+color10         = #00C120
 
 # yellow
-color3          = #FF9C59
-color11         = #ff6600
+color3          = #ff6600
+color11         = #FF9400
 
 # blue
-color4          = #5199E6
-color12         = #006fe6
+color4          = #006fe6
+color12         = #2183FF
 
 # magenta
-color5          = #A759FF
-color13         = #7700FF
+color5          = #7700FF
+color13         = #9C2CFF
 
 # cyan
-color6          = #00C8FF
+color6          = #00B7E9
 color14         = #00C3FF
 
 # white
