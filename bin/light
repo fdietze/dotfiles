@@ -6,11 +6,14 @@ cp $HOME/.config/termite/config-light $HOME/.config/termite/config
 killall -USR1 termite
 
 herbstclient set window_border_width 3
-herbstclient set window_border_active_color '#FF0060'
-herbstclient set window_border_normal_color '#CCC'
+herbstclient set frame_border_width  3
+herbstclient set frame_border_active_color  '#00AF2B'
+herbstclient set window_border_active_color '#00AF2B'
+herbstclient set frame_border_normal_color  '#EEEEEE'
+herbstclient set window_border_normal_color '#EEEEEE'
 
 VIMS=`vim --serverlist`
 for vim in $VIMS; do
-     vim --servername $vim --remote-send '<Esc>:colorscheme goodmorning<CR>'
+    vim --servername $vim --remote-send '<Esc>:colorscheme goodmorning<CR>:set background=light<CR>'
 done
 
