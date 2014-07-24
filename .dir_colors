@@ -150,6 +150,7 @@ EXEC 01;29
 .scss 01;34
 .sh 01;34
 .shtml 01;34
+.sql 01;34
 .tex 01;34
 .vim 01;34
 .xml 01;34
@@ -209,6 +210,7 @@ EXEC 01;29
 
 # image formats
 .bmp 01;32
+.eps 01;32
 .gif 01;32
 .jpeg 01;32
 .JPEG 01;32
