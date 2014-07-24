@@ -38,8 +38,11 @@ alias md="mkdir -p"
 alias ls="ls --group-directories-first --color=auto -h"
 alias lt="ls -lt"
 alias l="ls -l"
+alias t="tree"
 alias watch="watch -c -d"
 alias hd="hexdump -C"
+alias m="make"
+alias mc="make clean"
 
 alias v="fasd -e vim -f" # quick opening files with vim
 alias oo="a -e xdg-open" # quick opening files with xdg-open
@@ -50,3 +53,5 @@ alias hc="herbstclient"
 alias nm="nmcli" # NetworkManager
 alias won="nmcli nm wifi on"
 alias woff="nmcli nm wifi off"
+alias gdf="git df"
+alias rn="ranger"
