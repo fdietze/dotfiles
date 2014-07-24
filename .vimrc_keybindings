@@ -115,6 +115,12 @@ nnoremap <Leader>m :wa<CR>:make<CR><CR>:copen<CR>
 " eclim: jump to definition
 nnoremap <leader>j  :ScalaSearch<CR>
 
+noremap <silent> <c-u> :call smooth_scroll#up(&scroll, 0, 2)<CR>
+noremap <silent> <c-d> :call smooth_scroll#down(&scroll, 0, 2)<CR>
+noremap <silent> <c-b> :call smooth_scroll#up(&scroll*2, 0, 4)<CR>
+noremap <silent> <c-f> :call smooth_scroll#down(&scroll*2, 0, 4)<CR>
+noremap <silent> <PageUp> :call smooth_scroll#up(&scroll*2, 0, 4)<CR>
+noremap <silent> <PageDown> :call smooth_scroll#down(&scroll*2, 0, 4)<CR>
 
 " disable arrow keys and home/end in insert mode, exit insert mode when pressed
 " inoremap  <Up>     <Esc>g<Up>

@@ -84,6 +84,8 @@ Plugin 'gerw/vim-HiLinkTrace'
 
 " TODO:
 "Plugin 'nathanaelkane/vim-indent-guides'
+" redraw some intermediate steps when using PageUp/Down
+Plugin 'terryma/vim-smooth-scroll'
 
 " hardmode, disabling arrow keys
 "Plugin 'wikitopian/hardmode'
