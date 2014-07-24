@@ -6,7 +6,8 @@ yaourt -Syyua --devel --noconfirm && \
 sudo pkgfile -u
 paccache -r && \
 paccache -ruk0 && \
-sudo pacman-optimize && \
+sudo pacman-optimize
+
 echo "updating mlocate database..." && \
 sudo updatedb
 
