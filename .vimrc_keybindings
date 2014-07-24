@@ -67,11 +67,10 @@ noremap    ¶   <Del>
 noremap!   ¶   <Del>
 noremap    ł   <Backspace>
 noremap!   ł   <Backspace>
-noremap    @   <PageUp>
-noremap!   @   <PageUp>
+" noremap    @   <PageUp>
+" noremap!   @   <PageUp>
 noremap    ŧ   <PageDown>
 noremap!   ŧ   <PageDown>
-noremap    „   <CR>
 noremap    „   <CR>
 noremap!   „   <CR>
 noremap    »   <Esc>
