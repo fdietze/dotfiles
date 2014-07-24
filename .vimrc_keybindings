@@ -122,6 +122,12 @@ noremap <silent> <c-f> :call smooth_scroll#down(&scroll*2, 0, 4)<CR>
 noremap <silent> <PageUp> :call smooth_scroll#up(&scroll*2, 0, 4)<CR>
 noremap <silent> <PageDown> :call smooth_scroll#down(&scroll*2, 0, 4)<CR>
 
+" navigate up and down through soft wrapped lines
+noremap <Up> g<Up>
+noremap <Down> g<Down>
+inoremap <Up> <C-o>g<Up>
+inoremap <Down> <C-o>g<Down>
+
 " disable arrow keys and home/end in insert mode, exit insert mode when pressed
 " inoremap  <Up>     <Esc>g<Up>
 " inoremap  <Down>   <Esc>g<Down>
