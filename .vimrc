@@ -43,9 +43,13 @@ set incsearch                     " do incremental searching
 set ignorecase                    " smart case sensitive search
 set smartcase                     "              "
 set hls                           " hightlight search results
-set list
 set listchars=tab:⊳\ ,trail:·     " display whitespaces
 set scrolloff=5 sidescrolloff=10  " keep some lines before and after the cursor visible
+set wrap                          " break long lines
+set linebreak                     " break only at word boundary
+set nolist
+set breakindent
+set breakindentopt=shift:2
 " set ttyfast
 
 " editing
