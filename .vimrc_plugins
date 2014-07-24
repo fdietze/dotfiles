@@ -12,8 +12,26 @@ Plugin 'scrooloose/nerdtree'
 " enable dot-command for Plugins
 Plugin 'tpope/vim-repeat'
 
+" distraction-free writing
+Plugin 'junegunn/goyo.vim'
+
+" hardmode, disabling arrow keys
+"Plugin 'wikitopian/hardmode'
+"autocmd VimEnter,BufNewFile,BufReadPost * silent! call HardMode()
+" Plugin 'kbarrette/mediummode'
+" Plugin 'takac/vim-hardtime'
+" let g:hardtime_allow_different_key = 1
+" let g:hardtime_maxcount = 2
+
 " Lots of filetypes
 Plugin 'sheerun/vim-polyglot'
+Plugin 'gre/play2vim'
+" Plugin 'gorodinskiy/vim-coloresque'
+" TODO: https://github.com/msanders/snipmate.vim
+" TODO: https://github.com/othree/html5.vim
+
+" TODO: decompile java .class files on the fly
+Plugin 'vim-scripts/JavaDecompiler.vim'
 
 " sublime-like multiple cursors
 Plugin 'terryma/vim-multiple-cursors'
@@ -60,7 +78,7 @@ Plugin 'tpope/vim-fugitive'
 " VCS change info on the left
 Plugin 'mhinz/vim-signify'
 let g:signify_sign_add               = '+'
-let g:signify_sign_change            = '⌇'
+let g:signify_sign_change            = '⌇' " '︴⌇⌇┇
 let g:signify_sign_delete            = '✕'
 let g:signify_sign_delete_first_line = '⌅'
 
@@ -82,11 +100,13 @@ Plugin 'edsono/vim-matchit'
 " identify highlighting group under cursor
 Plugin 'gerw/vim-HiLinkTrace'
 
-" TODO:
-"Plugin 'nathanaelkane/vim-indent-guides'
+" TODO: Plugin 'nathanaelkane/vim-indent-guides'
+
+Plugin 'fidian/hexmode'
+
+Plugin 'vim-scripts/LanguageTool'
+let g:languagetool_jar=$HOME."/local/LanguageTool-2.6/languagetool-commandline.jar"
+
 " redraw some intermediate steps when using PageUp/Down
 Plugin 'terryma/vim-smooth-scroll'
 
-" hardmode, disabling arrow keys
-"Plugin 'wikitopian/hardmode'
-"autocmd VimEnter,BufNewFile,BufReadPost * silent! call HardMode()
