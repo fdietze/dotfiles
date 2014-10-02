@@ -1,0 +1,44 @@
+alias y="yaourt"
+alias yoghurt="yaourt"
+alias ys="yaourt -S --asexplicit" # install and mark as explicitly installed
+alias yu="yaourt -Syua --devel" # update
+alias yr="yaourt -Rs" # remove package
+alias yi="yaourt -Qi" # package info
+alias yb="yaourt -Sb" # build package
+alias yo="yaourt -Qo" # package for command
+alias yl="yaourt -Ql" # list files for package
+alias ye="yaourt -Qe --date" # list installed packages
+
+alias vv="vim ~/.vimrc"
+alias vvp="vim ~/.vimrc_plugins"
+alias vvk="vim ~/.vimrc_keybindings"
+alias vvs="vim ~/.vimrc_statusline"
+
+alias lo="locate -i"
+# alias ff="find . -iname"
+alias ff="ag -i -g"
+alias g="grep"
+alias gi="grep -i"
+alias gg="grep -irn"
+alias agg="ag -S -z -f"
+alias md="mkdir -p"
+alias ls="ls --group-directories-first --color=auto -h"
+alias lt="ls -lt"
+alias l="ls -l"
+alias t="tree"
+alias watch="watch -c -d"
+alias hd="hexdump -C"
+alias m="make"
+alias mc="make clean"
+alias c="qalc"
+
+alias v="fasd -e vim -f" # quick opening files with vim
+
+alias wa="tungsten" # WolframAlpha client
+alias hc="herbstclient"
+alias won="nmcli radio wifi on; wscan"
+alias woff="nmcli radio wifi off"
+alias wscan="nmcli dev wifi rescan > /dev/null 2>&1"
+alias wlist="nmcli dev wifi list"
+alias wcon="nmcli dev wifi connect"
+alias rn="ranger"

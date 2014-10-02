@@ -12,46 +12,5 @@ eval "$(fasd --init auto)"
 
 eval $(dircolors ~/.dir_colors)
 
-alias y="yaourt"
-alias yoghurt="yaourt"
-alias ys="yaourt -S --asexplicit" # install and mark as explicitly installed
-alias yu="yaourt -Syua --devel" # update
-alias yr="yaourt -Rs" # remove package
-alias yi="yaourt -Qi" # package info
-alias yb="yaourt -Sb" # build package
-alias yo="yaourt -Qo" # package for command
-alias yl="yaourt -Ql" # list files for package
-alias ye="yaourt -Qe --date" # list installed packages
 
-alias vim="vim --servername vim-\$\$"
-alias vv="vim ~/.vimrc"
-alias vvp="vim ~/.vimrc_plugins"
-alias vvk="vim ~/.vimrc_keybindings"
-alias vvs="vim ~/.vimrc_statusline"
-
-alias lo="locate -i"
-alias ff="find . -iname"
-alias g="grep"
-alias gi="grep -i"
-alias gg="grep -irn"
-alias md="mkdir -p"
-alias ls="ls --group-directories-first --color=auto -h"
-alias lt="ls -lt"
-alias l="ls -l"
-alias t="tree"
-alias watch="watch -c -d"
-alias hd="hexdump -C"
-alias m="make"
-alias mc="make clean"
-
-alias v="fasd -e vim -f" # quick opening files with vim
-alias oo="a -e xdg-open" # quick opening files with xdg-open
-o() { xdg-open $1 > /dev/null 2>&1; }
-
-alias wa="tungsten" # WolframAlpha client
-alias hc="herbstclient"
-alias nm="nmcli" # NetworkManager
-alias won="nmcli nm wifi on"
-alias woff="nmcli nm wifi off"
-alias gdf="git df"
-alias rn="ranger"
+source ~/.sh_aliases
