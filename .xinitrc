@@ -25,7 +25,5 @@ bluetooth-applet &
 dropboxd &
 
 
-export DE="mate"
-
 exec dbus-launch herbstluftwm --locked
 

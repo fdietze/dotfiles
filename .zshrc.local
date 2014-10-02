@@ -12,5 +12,8 @@ eval "$(fasd --init auto)"
 
 eval $(dircolors ~/.dir_colors)
 
+# export PAGER=vimpager
+# alias less=$PAGER
+# alias zless=$PAGER
 
 source ~/.sh_aliases
