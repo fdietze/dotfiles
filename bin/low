@@ -1,8 +1,13 @@
 #!/bin/bash
 
-xbacklight -set 10
+xbacklight -set 10 -time 0
 sudo asus-kbd-backlight off
+nmcli radio wifi off
 sudo rfkill block all
-killall dropbox
+
 light
+
+killall dropbox
 sudo systemctl stop btsync@felix.service
+
+sudo cpupower frequency-set -u 800Mhz

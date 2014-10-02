@@ -2,4 +2,8 @@
 
 xbacklight -set 100
 dark
+
+sudo cpupower frequency-set -u 2500Mhz
+
 sudo systemctl start btsync@felix.service
+dropboxd &
