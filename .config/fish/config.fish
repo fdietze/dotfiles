@@ -43,7 +43,7 @@ set -x LESS_TERMCAP_mb (printf "\33[01;34m") # begin blinking
 set -x LESS_TERMCAP_md (printf "\33[01;34m") # begin bold
 set -x LESS_TERMCAP_me (printf "\33[0m")     # end mode
 set -x LESS_TERMCAP_se (printf "\33[0m")     # end standout-mode
-set -x LESS_TERMCAP_so (printf "\33[30;46m") # begin standout-mode - info box
+set -x LESS_TERMCAP_so (printf "\33[44;1;37m") # begin standout-mode - info box
 set -x LESS_TERMCAP_ue (printf "\33[0m")     # end underline
 set -x LESS_TERMCAP_us (printf "\33[01;35m") # begin underline
 
