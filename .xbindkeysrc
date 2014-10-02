@@ -39,17 +39,32 @@
     m:0x0 + c:237
     XF86KbdBrightnessDown 
 
-"sudo asus-kbd-backlight 100"
+"sudo asus-kbd-backlight max"
     m:0x0 + c:238
     XF86KbdBrightnessUp 
 
-#"autocolors"
-    #m:0x0 + c:232
-    #XF86MonBrightnessDown 
+"xbacklight - 15 -time 200"
+    m:0x0 + c:232
+    XF86MonBrightnessDown 
 
-#"autocolors"
-    #m:0x0 + c:233
-    #XF86MonBrightnessUp 
+"xbacklight + 15 -time 200"
+    m:0x0 + c:233
+    XF86MonBrightnessUp 
 
+"touchpad-toggle.sh"
+    m:0x0 + c:199
+        XF86TouchpadToggle
+
+"pulseaudio-ctl mute"
+    m:0x0 + c:121
+    XF86AudioMute
+
+"pulseaudio-ctl down"
+    m:0x0 + c:122
+    XF86AudioLowerVolume
+
+"pulseaudio-ctl up"
+    m:0x0 + c:123
+    XF86AudioRaiseVolume
 #
 # End of xbindkeys configuration
