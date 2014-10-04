@@ -1,20 +1,52 @@
+" using plugin manager vim-plug
+" auto-install if not found
+if empty(glob('~/.vim/autoload/plug.vim'))
+  !mkdir -p ~/.vim/autoload
+  !curl -fLo ~/.vim/autoload/plug.vim
+    \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+endif
+
+syntax on
+call plug#begin('~/.vim/bundle')
+
+
+
 " sensible default settings
-Plugin 'tpope/vim-sensible'
+Plug 'tpope/vim-sensible'
+
+" statusline
+Plug 'itchyny/lightline.vim'
+Plug 'bling/vim-bufferline'
+
+" Start screen with recently opened files
+Plug 'mhinz/vim-startify'
+
+" fuzzy autocompletion, eclim
+Plug 'Valloric/YouCompleteMe', { 'do': './install.sh' }
 
 " restore cursor position and folds
-Plugin 'vim-scripts/restore_view.vim'
-" set viewoptions=cursor,folds,slash,unix
-" let g:skipview_files = ['*\.vim']
+Plug 'vim-scripts/restore_view.vim'
 
 " file browser
-Plugin 'scrooloose/nerdtree'
+Plug 'scrooloose/nerdtree'
 
 " enable dot-command for Plugins
-Plugin 'tpope/vim-repeat'
+Plug 'tpope/vim-repeat'
 
 " distraction-free writing
-Plugin 'junegunn/goyo.vim'
+Plug 'junegunn/goyo.vim'
 
+" Toggle fullscreen for one window
+Plug 'ZoomWin'
+
+" redraw some intermediate steps when using PageUp/Down
+Plug 'terryma/vim-smooth-scroll'
+
+" enlarge focused window a bit
+Plug 'roman/golden-ratio'
+
+" draw a sublime like minimap
+" Plug 'severin-lemaignan/vim-minimap'
 " hardmode, disabling arrow keys
 "Plugin 'wikitopian/hardmode'
 "autocmd VimEnter,BufNewFile,BufReadPost * silent! call HardMode()
@@ -24,17 +56,18 @@ Plugin 'junegunn/goyo.vim'
 " let g:hardtime_maxcount = 2
 
 " Lots of filetypes
-Plugin 'sheerun/vim-polyglot'
-Plugin 'gre/play2vim'
+Plug 'sheerun/vim-polyglot'
+Plug 'gre/play2vim'
+Plug 'dag/vim-fish'
 " Plugin 'gorodinskiy/vim-coloresque'
 " TODO: https://github.com/msanders/snipmate.vim
 " TODO: https://github.com/othree/html5.vim
 
 " TODO: decompile java .class files on the fly
-Plugin 'vim-scripts/JavaDecompiler.vim'
+Plug 'vim-scripts/JavaDecompiler.vim'
 
 " sublime-like multiple cursors
-Plugin 'terryma/vim-multiple-cursors'
+Plug 'terryma/vim-multiple-cursors'
 
 " rainbow parentheses
 "Plugin 'oblitum/rainbow'
@@ -42,45 +75,45 @@ Plugin 'terryma/vim-multiple-cursors'
 "let g:rainbow_active = 1
 
 " show 'Match x of y' when searching
-Plugin 'henrik/vim-indexed-search'
+Plug 'henrik/vim-indexed-search'
 
 " commenting
-Plugin 'tpope/vim-commentary'
+Plug 'tpope/vim-commentary'
 
 " surround text with quotes, parantheses, ...
-Plugin 'tpope/vim-surround'
+Plug 'tpope/vim-surround'
 
 " align text
-Plugin 'godlygeek/tabular'
+Plug 'godlygeek/tabular'
+" TODO: Plugin 'junegunn/vim-easy-align'
 
 " ctrl+A/X on dates and time
-Plugin 'tpope/vim-speeddating'
+Plug 'tpope/vim-speeddating'
 
 " unix commands
-Plugin 'tpope/vim-eunuch'
+Plug 'tpope/vim-eunuch'
 
 " automatically-close-brackets-magic
-Plugin 'Raimondi/delimitMate'
+Plug 'Raimondi/delimitMate'
+
+" most recently used files and dirs
+Plug 'Shougo/neomru.vim'
 
 " Interactive command execution
-Plugin 'Shougo/vimproc.vim'
+Plug 'Shougo/vimproc.vim'
 
 " fuzzy file finding
-" Plugin 'wincent/Command-T'
-Plugin 'Shougo/unite.vim'
-call unite#filters#matcher_default#use(['matcher_fuzzy'])
+Plug 'Shougo/unite.vim'
+Plug 'wincent/command-t', { 'do': 'cd ruby/command-t; ruby extconf.rb; make'}
+
 
 " git support
-Plugin 'tpope/vim-fugitive'
+Plug 'tpope/vim-fugitive'
 "Plugin 'gregsexton/gitv'
 "Plugin 'airblade/vim-gitgutter'
 
 " VCS change info on the left
-Plugin 'mhinz/vim-signify'
-let g:signify_sign_add               = '+'
-let g:signify_sign_change            = '⌇' " '︴⌇⌇┇
-let g:signify_sign_delete            = '✕'
-let g:signify_sign_delete_first_line = '⌅'
+Plug 'mhinz/vim-signify'
 
 " Collaborative Editing
 "Plugin 'FredKSchott/CoVim'
@@ -88,25 +121,95 @@ let g:signify_sign_delete_first_line = '⌅'
 
 
 " graphical editor for colorschemes
-Plugin 'vim-scripts/ColorSchemeEditor'
+" Plug 'vim-scripts/ColorSchemeEditor'
 
 " colorschemes
-Plugin 'chriskempson/base16-vim'
-let base16colorspace=256  " Access colors present in 256 colorspace
+" Bundle 'godlygeek/csapprox'
+" Bundle 'vim-scripts/guicolorscheme.vim'
+" Bundle 'nanotech/jellybeans.vim'
+Plug 'chriskempson/base16-vim'
+" Bundle 'chriskempson/tomorrow-theme', {'rtp': 'vim/'}
+" Bundle 'fdietze/goodday.vim'
+" Plug 'tomasr/molokai'
+" Plug 'sickill/vim-monokai'
 
 " % matches not only parantheses, but also HTML-Tags and more
-Plugin 'edsono/vim-matchit'
+Plug 'edsono/vim-matchit'
 
 " identify highlighting group under cursor
-Plugin 'gerw/vim-HiLinkTrace'
+Plug 'gerw/vim-HiLinkTrace'
 
 " TODO: Plugin 'nathanaelkane/vim-indent-guides'
 
-Plugin 'fidian/hexmode'
+Plug 'fidian/hexmode'
 
-Plugin 'vim-scripts/LanguageTool'
+Plug 'vim-scripts/LanguageTool'
+
+
+
+call plug#end()
+
+
+
+" plugin configuration
+
+
+" Colorschemes
+let base16colorspace=256  " Access colors present in 256 colorspace
+let g:rehash256 = 1 " molokai
+
+
+" YouCompleteMe
+let g:ycm_auto_trigger = 1
+let g:ycm_min_num_of_chars_for_completion = 5
+
+" dont display detail window about current completion
+set completeopt=menuone,longest
+" let g:ycm_autoclose_preview_window_after_insertion = 1
+
+
+" Eclim
+let g:EclimCompletionMethod = 'omnifunc'
+let g:EclimScalaSearchSingleResult = 'edit'
+let g:EclimMakeLCD = 0
+
+
+" restore-vim
+set viewoptions=cursor,folds,slash,unix
+" let g:skipview_files = ['*\.vim']
+
+
+" DelimitMate
+let delimitMate_expand_cr = 1
+let delimitMate_balance_matchpairs = 1
+
+
+" Unite
+" call unite#filters#matcher_default#use(['matcher_fuzzy'])
+call unite#custom#source('file_rec', 'white_globs', ['*.scala','*.conf','*.js','*.sbt'])
+call unite#custom#source('file_rec', 'ignore_globs', ['target/'])
+
+" CommandT
+let g:CommandTFileScanner = 'git'
+" let g:CommandTCancelMap=['<Esc>', '<C-c>', '<Backspace>']
+
+
+" Use ag for search
+if executable('ag')
+  let g:unite_source_grep_command = 'ag'
+  let g:unite_source_grep_default_opts = '--nogroup --nocolor --column'
+  let g:unite_source_grep_recursive_opt = ''
+  let g:unite_source_rec_async_command= 'ag --nocolor --nogroup --hidden -g ""'
+endif
+
+
+" Signify
+let g:signify_sign_add               = '+'
+let g:signify_sign_change            = '⌇' " '︴⌇⌇┇
+let g:signify_sign_delete            = '✕'
+let g:signify_sign_delete_first_line = '⌅'
+
+
+" Languagetool
 let g:languagetool_jar=$HOME."/local/LanguageTool-2.6/languagetool-commandline.jar"
-
-" redraw some intermediate steps when using PageUp/Down
-Plugin 'terryma/vim-smooth-scroll'
 

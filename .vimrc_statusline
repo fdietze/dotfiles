@@ -5,8 +5,6 @@ set laststatus=2
 " hide mode from last line
 set noshowmode
 
-Plugin 'itchyny/lightline.vim'
-
 let g:lightline = {
       \ 'colorscheme': 'wombat',
       \ 'active': {
@@ -165,7 +163,6 @@ function! BarFilename()
        \ ('' != BarModified() ? BarModified() : '')
 endfunction
 
-Plugin 'bling/vim-bufferline'
 let g:bufferline_echo = 0
 let g:bufferline_active_buffer_left = ''
 let g:bufferline_active_buffer_right = ''

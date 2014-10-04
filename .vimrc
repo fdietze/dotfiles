@@ -11,19 +11,27 @@
 
 set nocompatible " Use Vim settings, rather than Vi settings
 
-filetype off                  " required by Vundle
-set rtp+=~/.vim/bundle/vundle/
-call vundle#rc()
-
-" let Vundle manage Vundle
-Plugin 'gmarik/vundle'
+set wildignore=*.o,*.obj,*.class,target/**
 
 source $HOME/.vimrc_plugins
 source $HOME/.vimrc_statusline
 source $HOME/.vimrc_keybindings
 
 " Enable file type detection.
-filetype plugin indent on
+" filetype plugin indent on
+
+" Colorscheme
+if filereadable($HOME."/.colors") && match(readfile($HOME."/.colors"),"light")
+    set background=dark
+    colorscheme base16-monokai
+else
+    set background=light
+    colorscheme goodmorning
+endif
+
+"set t_Co=256
+
+
 
 " gui settings
 set mouse=a
@@ -36,6 +44,7 @@ if has("gui_running")
 endif
 
 " display
+syntax on
 set cursorline                    " highlight current line
 set number                        " enable line numbers
 set ruler                         " show the cursor position all the time
@@ -50,7 +59,6 @@ set linebreak                     " break only at word boundary
 set nolist
 set breakindent
 set breakindentopt=shift:2
-" set ttyfast
 
 " editing
 set backspace=indent,eol,start    " allow backspacing over everything in insert mode
@@ -63,12 +71,13 @@ set expandtab                     " always uses spaces instead of tab characters
 " behavior
 set hidden                        " switch from unsaved buffers
 set shell=/bin/bash
-set encoding=utf8
-set history=1000                  " keep 50 lines of command line history
+set encoding=utf-8
+set history=1000                  " keep x lines of command line history
 set showcmd                       " display incomplete commands
 set wildmenu                      " better command line completion
 set wildmode=list:longest,full
 set lazyredraw                    " performance: dont redraw while executing macros
+set ttyfast                       " allow vim to write more characters to screen
 set autoread                      " read file when changed from outside
 set confirm                       " ask to save files when closing vim
 " set clipboard=unnamedplus         " alias unnamed register to the + register, which is the X Window clipboard
@@ -93,27 +102,6 @@ endif
 if !isdirectory(expand(&directory))
     call mkdir(expand(&directory), "p")
 endif
-
-
-" Colorscheme
-"Bundle 'godlygeek/csapprox'
-"Bundle 'vim-scripts/guicolorscheme.vim'
-" Bundle 'nanotech/jellybeans.vim'
-"Bundle 'chriskempson/base16-vim'
-Bundle 'chriskempson/tomorrow-theme', {'rtp': 'vim/'}
-"Bundle 'fdietze/goodday.vim'
-"set background=dark
-if filereadable($HOME."/.colors") && match(readfile($HOME."/.colors"),"light")
-    set background=dark
-    colorscheme base16-chalk
-else
-    set background=light
-    colorscheme goodmorning
-endif
-
-syntax on
-"set t_Co=256
-
 
 
 

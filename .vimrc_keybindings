@@ -1,3 +1,37 @@
+let g:keys = ['x','v','l','c','w','k','h','g','f','q','u','i','a','e','o','s','n','r','t','d','y','p','z','b','m',',','.','j','X','V','L','C','W','K','H','G','F','Q','U','I','A','E','O','S','N','R','T','D','Y','P','Z','B','M','J','"', ':', '[', ']', '(', ')', '{', '}', '<Space>', '<Right>', '<Left>', '<Up>', '<Down>', '<Home>', '<End>']
+" TODO: '
+" TODO: Ctrl+key
+" TODO: f + key
+" TODO: disables delimitMate
+let g:keyCounts = {}
+let g:keyHistory = []
+let g:keyHistorySize = 5
+
+for key in g:keys
+    let g:keyCounts[key] = 0
+    let esckey = substitute(key, "<", "<lt>", "g")
+    " execute 'noremap <expr> ' . key . ' HitCommand(''' . key . ''',''' . esckey . ''')'
+    " execute 'noremap! <expr> ' . key . ' HitCommand(''' . key . ''',''' . esckey . ''')'
+endfor
+
+fun! HitCommand(key,esckey)
+    " echo 'char: '. a:key
+    let g:keyCounts[a:esckey] += 1
+    let g:keyHistory = g:keyHistory + [a:esckey]
+    let g:keyHistory = reverse(reverse(g:keyHistory)[:g:keyHistorySize])
+    " echo a:key .': '. g:keyCounts[a:esckey]
+    " echo sort(items(g:keyCounts),"CountCompare")[0:5]
+    echo '('.join(g:keyHistory,"").')'
+    " echo g:keyHistory
+    return a:key
+endfun
+
+fun! CountCompare(c1, c2)
+    return a:c2[1] - a:c1[1]
+endfun
+
+" TODO: Q (ex-mode)
+
 let mapleader=","
 let g:mapleader=","
 
@@ -5,25 +39,25 @@ let g:mapleader=","
 " because there are arrow keys in the middle of the keyboard already.
 " additionally we have ÜÖÄß
 
-" H: Highlight current word, selection, autohighlight
+" h: Highlight current word, selection, autohighlight
 nnoremap <silent> <expr> h HighlightCurrentWord()
 vnoremap <silent> h :<C-U>call HighlightSelection()<CR>:set hlsearch<CR>
 " toggle automatic highlighting on/off.
 nnoremap <Leader>h :if AutoHighlightToggle()<Bar>set hls<Bar>endif<CR>
 
-" J: Follow help links
-nnoremap j <c-]>
+" j: Jump to definition (using eclim)
+nnoremap  j :ScalaSearch<CR>
 
-" K:
+" k:
 " (nothing yet)
 
-" L: Open File Manager
+" l: Open File Manager
 nnoremap <silent> l :NERDTreeToggle<CR>
 
 " ß: replay q macro
 nnoremap ß @q
 
-nnoremap ö :update<CR>
+nnoremap ö :w<CR>
 nnoremap ä :q<CR>
 nnoremap ü :bd<CR>
 
@@ -82,20 +116,33 @@ noremap!   »   <Esc>
 noremap + za
 noremap - zf
 
+" navigate up and down through soft wrapped lines
+noremap <Up> g<Up>
+inoremap <Up> <C-o>g<Up>
+noremap <Down> g<Down>
+inoremap <Down> <C-o>g<Down>
+noremap <End> g<End>
+inoremap <End> <C-o>g<End>
+
 " smart home
-noremap <expr> <silent> <Home> col('.') == match(getline('.'),'\S')+1 ? '0' : '^'
-imap <silent> <Home> <C-O><Home>
+noremap <expr> <silent> <Home> col('.') == match(getline('.'),'\S')+1 ? 'g0' : 'g^'
+imap <silent> <Home> <C-O>g<Home>
+
+nnoremap A g<End>a
+nnoremap I g<Home>i
+
 
 " Switch buffers with tab
-nnoremap <Tab> :bnext<CR>
-nnoremap <S-Tab> :bprevious<CR>
+nnoremap <silent> <Tab> :bnext<CR>
+nnoremap <silent> <S-Tab> :bprevious<CR>
 
 " Unite
-nnoremap <Leader>e :<C-u>Unite -start-insert file_rec/async:!<CR>
-nnoremap <Leader>a :<C-u>Unite -start-insert buffer<CR>
+" nnoremap <Leader>e :<C-u>Unite -no-split -start-insert file_rec<CR>
+nnoremap <Leader>e :<C-u>CommandT<CR>
+nnoremap <Leader>a :<C-u>Unite -no-split -start-insert buffer tab file_mru<CR>
 
-" clear search highlighting
-nnoremap <Space> :nohlsearch<CR>:echo<CR>
+" clear search highlighting and locations
+nnoremap <silent> <Space> :nohlsearch<CR>:LocationListClear<CR>:lclose<CR>
 
 
 " fast way to edit ~/.vimrc*
@@ -112,21 +159,22 @@ nnoremap <Leader>vs :e ~/.vimrc_statusline<CR>
 " save all and make
 nnoremap <Leader>m :wa<CR>:make<CR><CR>:copen<CR>
 
-" eclim: jump to definition
-nnoremap <leader>j  :ScalaSearch<CR>
+" jump to tag (for example in help files)
+nnoremap <leader>j <C-]>
 
+" toggle distration free writing
+nnoremap <silent> <leader>d :Goyo<CR>
+
+" Toggle fullscreen for current window (Plugin ZoomWin)
+noremap <silent> <c-f> :ZoomWin<CR>
+
+" smooth scrolling (Plugin vim-smooth-scroll)
 noremap <silent> <c-u> :call smooth_scroll#up(&scroll, 0, 2)<CR>
 noremap <silent> <c-d> :call smooth_scroll#down(&scroll, 0, 2)<CR>
-noremap <silent> <c-b> :call smooth_scroll#up(&scroll*2, 0, 4)<CR>
-noremap <silent> <c-f> :call smooth_scroll#down(&scroll*2, 0, 4)<CR>
+" noremap <silent> <c-b> :call smooth_scroll#up(&scroll*2, 0, 4)<CR>
+" noremap <silent> <c-f> :call smooth_scroll#down(&scroll*2, 0, 4)<CR>
 noremap <silent> <PageUp> :call smooth_scroll#up(&scroll*2, 0, 4)<CR>
 noremap <silent> <PageDown> :call smooth_scroll#down(&scroll*2, 0, 4)<CR>
-
-" navigate up and down through soft wrapped lines
-noremap <Up> g<Up>
-noremap <Down> g<Down>
-inoremap <Up> <C-o>g<Up>
-inoremap <Down> <C-o>g<Down>
 
 " disable arrow keys and home/end in insert mode, exit insert mode when pressed
 " inoremap  <Up>     <Esc>g<Up>
@@ -142,8 +190,8 @@ inoremap <Down> <C-o>g<Down>
 
 " imap <C-Space> <C-X>
 
-" ne new line when selecting with ENTER
-inoremap <expr> <CR>    pumvisible() ? "\<C-y>" : "\<CR>"
+" no new line when selecting with ENTER
+" inoremap <expr> <CR>    pumvisible() ? "\<C-y><CR>" : "\<CR>"
 
 " TODO: noninvasive completion
 " <ESC> takes you out of insert mode
