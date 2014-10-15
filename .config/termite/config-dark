@@ -39,35 +39,31 @@ cursor_shape = block
 
 # if unset, will reverse foreground and background
 #highlight = #707070
+background = #181818
+foreground = #e6e6e6
 
-foreground      = #f8f8f8
-foreground_bold = #f8f8f8
-cursor          = #f8f8f8
-background      = #272727
-
-# 16 color space
-color0  = #272822
-color1  = #f92672
-color2  = #a6e22e
-color3  = #f4bf75
-color4  = #66d9ef
-color5  = #ae81ff
-color6  = #a1efe4
-color7  = #f8f8f2
-color8  = #75715e
-color9  = #f92672
-color10 = #a6e22e
-color11 = #f4bf75
-color12 = #66d9ef
-color13 = #ae81ff
-color14 = #a1efe4
-color15 = #f9f8f5
+color0  = #181818
+color8  = #465457
+color1  = #f82f93
+color9  = #fa5baa
+color2  = #8DE833
+color10 = #aafa5b
+color3  = #f8932f
+color11 = #faaa5b
+color4  = #2f93f8
+color12 = #5baafa
+color5  = #932ff8
+color13 = #aa5bfa
+color6  = #2ff893
+color14 = #5bfaaa
+color7  = #dadada
+color15 = #ffffff
 
 # 256 color space
 color16 = #fd971f
 color17 = #cc6633
-color18 = #383830
-color19 = #49483e
-color20 = #a59f85
+color18 = #232526
+color19 = #2F3233
+color20 = #4CCFFF
 
 # vim: ft=dosini cms=#%s
