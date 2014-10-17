@@ -4,6 +4,7 @@
 
 [core]
 	excludesfile = ~/.gitignore_global
+    compression = 9
 
 [push]
 	default = simple
