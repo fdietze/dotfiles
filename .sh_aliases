@@ -32,8 +32,6 @@ alias m="make"
 alias mc="make clean"
 alias c="qalc"
 
-alias v="fasd -e vim -f" # quick opening files with vim
-
 alias wa="tungsten" # WolframAlpha client
 alias hc="herbstclient"
 alias won="nmcli radio wifi on; wscan"
