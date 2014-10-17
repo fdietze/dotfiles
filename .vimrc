@@ -59,6 +59,7 @@ set linebreak                     " break only at word boundary
 set nolist
 set breakindent
 set breakindentopt=shift:2
+set display=lastline,uhex         " if last line does not fit on screen, display it anyways
 
 " editing
 set backspace=indent,eol,start    " allow backspacing over everything in insert mode
@@ -67,6 +68,7 @@ set shiftwidth=4                  " size of an "indent"
 set softtabstop=4                 " a combination of spaces and tabs are used to simulate tab stops at a width
 set smarttab                      " make "tab" insert indents instead of tabs at the beginning of a line
 set expandtab                     " always uses spaces instead of tab characters
+set virtualedit=block,onemore
 
 " behavior
 set hidden                        " switch from unsaved buffers
@@ -82,6 +84,8 @@ set autoread                      " read file when changed from outside
 set confirm                       " ask to save files when closing vim
 " set clipboard=unnamedplus         " alias unnamed register to the + register, which is the X Window clipboard
 cd %:p:h                          " cd to directory of current file
+set exrc                          " source .vimrc from directories
+set secure                        " secure local vimrc execution
 
 " backup/undo/swap files
 set swapfile
