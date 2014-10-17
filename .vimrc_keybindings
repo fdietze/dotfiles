@@ -116,6 +116,9 @@ noremap!   »   <Esc>
 noremap + za
 noremap - zf
 
+" make Y behave like D and C
+map Y y$
+
 " navigate up and down through soft wrapped lines
 noremap <Up> g<Up>
 inoremap <Up> <C-o>g<Up>
