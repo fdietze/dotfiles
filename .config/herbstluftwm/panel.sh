@@ -27,11 +27,11 @@ herbstclient emit_hook quit_panel
 function uniq_linebuffered() {
    awk '$0 != l { print ; l=$0 ; fflush(); }' "$@"
 }
- 
+
 {
    conky -c ~/.config/herbstluftwm/conkybar | while read -r; do
       echo -e "conky $REPLY";
-     
+
   done > >(uniq_linebuffered)  &
    childpid=$!
    herbstclient --idle
@@ -39,7 +39,7 @@ function uniq_linebuffered() {
 } | {
    TAGS=( $(herbstclient tag_status $monitor) )
       conky=""
-      separator="^fg($bgcolorsel)^ro(1x18)^fg()"
+      separator="^fg($bgcolorsel)^r(1x16)^fg()"
       while true; do
           for i in "${TAGS[@]}"; do
               echo -n "^ca(1,herbstclient use ${i:1})"
@@ -59,7 +59,7 @@ function uniq_linebuffered() {
           echo -n " $separator "
           echo -n `herbstclient attr clients.focus.title`
           conky_text_only=$(echo -n "$conky" | sed 's.\^[^(]*([^)]*)..g')
-          widthf=$(echo "(`echo "$conky_text_only" | wc -m`-1)*$charwidth" | bc -l)
+          widthf=$(echo "(`echo "$conky_text_only" | wc -m`-1)*$charwidth+25" | bc -l)
           width=$( printf "%.0f" $widthf )
           echo -n "^p(_RIGHT)^p(-$width)$conky"
           echo
