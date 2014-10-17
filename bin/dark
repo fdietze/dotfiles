@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 if [ $(cat $HOME/.colors) = "dark" ]; then exit 0; fi
 echo "dark" > $HOME/.colors
 
