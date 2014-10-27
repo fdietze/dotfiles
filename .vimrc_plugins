@@ -68,6 +68,9 @@ Plug 'vim-scripts/JavaDecompiler.vim'
 " sublime-like multiple cursors
 Plug 'terryma/vim-multiple-cursors'
 
+" expand selections
+Plug 'terryma/vim-expand-region'
+
 " rainbow parentheses
 "Plugin 'oblitum/rainbow'
 "au FileType c,cpp,objc,objcpp call rainbow#load()

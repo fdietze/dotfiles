@@ -113,8 +113,8 @@ noremap!   »   <Esc>
 
 
 " folding with + and -
-noremap + za
-noremap - zf
+" noremap + za
+" noremap - zf
 
 " make Y behave like D and C
 map Y y$
@@ -178,6 +178,10 @@ noremap <silent> <c-d> :call smooth_scroll#down(&scroll, 0, 2)<CR>
 " noremap <silent> <c-f> :call smooth_scroll#down(&scroll*2, 0, 4)<CR>
 noremap <silent> <PageUp> :call smooth_scroll#up(&scroll*2, 0, 4)<CR>
 noremap <silent> <PageDown> :call smooth_scroll#down(&scroll*2, 0, 4)<CR>
+
+" ExpandRegion
+map + <Plug>(expand_region_expand)
+map - <Plug>(expand_region_shrink)
 
 " disable arrow keys and home/end in insert mode, exit insert mode when pressed
 " inoremap  <Up>     <Esc>g<Up>
