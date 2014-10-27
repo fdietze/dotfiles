@@ -175,11 +175,23 @@ augroup misc
     au BufNewFile,BufRead *.gdb set filetype=sh
     au BufNewFile,BufRead *.jad set filetype=java
 
-    " apply autoformat and delete trailing empty line
+    " on save, apply autoformat and delete trailing empty line
     autocmd BufWritePost *.hh,*.cc,*.h,*.cpp,*.scala,*.sh,*.vimrc*
                 \ call StripTrailingSpaces()
 
     autocmd BufEnter *.hh,*.cc,*.h,*.cpp let g:formatprg_args_expr_cpp = '"--mode=c"'
+       
+    " return to last edit position when opening a file.
+    " except for git commits: Enter insert mode instead.
+    autocmd BufReadPost *
+    \ if line("'\"") > 0 && line("'\"") <= line("$") |
+    \   if &filetype == 'gitcommit' |
+    \       startinsert |
+    \   else |
+    \      exe "normal! g`\"" |
+    \    endif |
+    \ endif
+
 augroup END
 
 
