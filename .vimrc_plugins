@@ -46,13 +46,9 @@ Plug 'roman/golden-ratio'
 
 " draw a sublime like minimap
 " Plug 'severin-lemaignan/vim-minimap'
-" hardmode, disabling arrow keys
-"Plugin 'wikitopian/hardmode'
-"autocmd VimEnter,BufNewFile,BufReadPost * silent! call HardMode()
-" Plugin 'kbarrette/mediummode'
-" Plugin 'takac/vim-hardtime'
-" let g:hardtime_allow_different_key = 1
-" let g:hardtime_maxcount = 2
+
+" restrict repetitive pressing of movement keys (especially arrows)
+Plug 'takac/vim-hardtime'
 
 " Lots of filetypes
 Plug 'sheerun/vim-polyglot'
@@ -214,4 +210,12 @@ let g:signify_sign_delete_first_line = '⌅'
 
 " Languagetool
 let g:languagetool_jar=$HOME."/local/LanguageTool-2.6/languagetool-commandline.jar"
+
+" Hardtime
+let g:hardtime_allow_different_key = 1
+let g:hardtime_maxcount = 3
+let g:hardtime_default_on = 1
+let g:list_of_normal_keys = ["<UP>", "<DOWN>", "<LEFT>", "<RIGHT>", "x"]
+let g:list_of_visual_keys = ["<UP>", "<DOWN>", "<LEFT>", "<RIGHT>"]
+let g:list_of_insert_keys = ["<UP>", "<DOWN>", "<LEFT>", "<RIGHT>", "<Del>", "<Backspace>"]
 
