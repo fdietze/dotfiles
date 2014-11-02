@@ -120,20 +120,22 @@ noremap!   »   <Esc>
 " make Y behave like D and C, yanking till end of line
 map Y y$
 
-" navigate up and down through soft wrapped lines
-noremap <Up> g<Up>
-inoremap <Up> <C-o>g<Up>
-noremap <Down> g<Down>
-inoremap <Down> <C-o>g<Down>
-noremap <End> g<End>
-inoremap <End> <C-o>g<End>
+" navigate through soft wrapped lines
+" noremap <Up> g<Up>
+" inoremap <Up> <C-o>g<Up>
+" noremap <Down> g<Down>
+" inoremap <Down> <C-o>g<Down>
+" noremap <End> g<End>
+" inoremap <End> <C-o>g<End>
+" nnoremap A g<End>a
+" nnoremap I g<Home>i
+" noremap <expr> <silent> <Home> col('.') == match(getline('.'),'\S')+1 ? 'g0' : 'g^'
+" imap <silent> <Home> <C-O>g<Home>
 
 " smart home
-noremap <expr> <silent> <Home> col('.') == match(getline('.'),'\S')+1 ? 'g0' : 'g^'
-imap <silent> <Home> <C-O>g<Home>
+noremap <expr> <silent> <Home> col('.') == match(getline('.'),'\S')+1 ? '0' : '^'
+imap <silent> <Home> <C-O><Home>
 
-nnoremap A g<End>a
-nnoremap I g<Home>i
 " disable home and end in insert mode
 inoremap <Home> <NOP>
 inoremap <End> <NOP>
