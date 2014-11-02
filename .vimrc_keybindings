@@ -1,34 +1,34 @@
-let g:keys = ['x','v','l','c','w','k','h','g','f','q','u','i','a','e','o','s','n','r','t','d','y','p','z','b','m',',','.','j','X','V','L','C','W','K','H','G','F','Q','U','I','A','E','O','S','N','R','T','D','Y','P','Z','B','M','J','"', ':', '[', ']', '(', ')', '{', '}', '<Space>', '<Right>', '<Left>', '<Up>', '<Down>', '<Home>', '<End>']
-" TODO: '
-" TODO: Ctrl+key
-" TODO: f + key
-" TODO: disables delimitMate
-let g:keyCounts = {}
-let g:keyHistory = []
-let g:keyHistorySize = 5
+" let g:keys = ['x','v','l','c','w','k','h','g','f','q','u','i','a','e','o','s','n','r','t','d','y','p','z','b','m',',','.','j','X','V','L','C','W','K','H','G','F','Q','U','I','A','E','O','S','N','R','T','D','Y','P','Z','B','M','J','"', ':', '[', ']', '(', ')', '{', '}', '<Space>', '<Right>', '<Left>', '<Up>', '<Down>', '<Home>', '<End>']
+" " TODO: '
+" " TODO: Ctrl+key
+" " TODO: f + key
+" " TODO: disables delimitMate
+" let g:keyCounts = {}
+" let g:keyHistory = []
+" let g:keyHistorySize = 5
 
-for key in g:keys
-    let g:keyCounts[key] = 0
-    let esckey = substitute(key, "<", "<lt>", "g")
-    " execute 'noremap <expr> ' . key . ' HitCommand(''' . key . ''',''' . esckey . ''')'
-    " execute 'noremap! <expr> ' . key . ' HitCommand(''' . key . ''',''' . esckey . ''')'
-endfor
+" for key in g:keys
+"     let g:keyCounts[key] = 0
+"     let esckey = substitute(key, "<", "<lt>", "g")
+"     " execute 'noremap <expr> ' . key . ' HitCommand(''' . key . ''',''' . esckey . ''')'
+"     " execute 'noremap! <expr> ' . key . ' HitCommand(''' . key . ''',''' . esckey . ''')'
+" endfor
 
-fun! HitCommand(key,esckey)
-    " echo 'char: '. a:key
-    let g:keyCounts[a:esckey] += 1
-    let g:keyHistory = g:keyHistory + [a:esckey]
-    let g:keyHistory = reverse(reverse(g:keyHistory)[:g:keyHistorySize])
-    " echo a:key .': '. g:keyCounts[a:esckey]
-    " echo sort(items(g:keyCounts),"CountCompare")[0:5]
-    echo '('.join(g:keyHistory,"").')'
-    " echo g:keyHistory
-    return a:key
-endfun
+" fun! HitCommand(key,esckey)
+"     " echo 'char: '. a:key
+"     let g:keyCounts[a:esckey] += 1
+"     let g:keyHistory = g:keyHistory + [a:esckey]
+"     let g:keyHistory = reverse(reverse(g:keyHistory)[:g:keyHistorySize])
+"     " echo a:key .': '. g:keyCounts[a:esckey]
+"     " echo sort(items(g:keyCounts),"CountCompare")[0:5]
+"     echo '('.join(g:keyHistory,"").')'
+"     " echo g:keyHistory
+"     return a:key
+" endfun
 
-fun! CountCompare(c1, c2)
-    return a:c2[1] - a:c1[1]
-endfun
+" fun! CountCompare(c1, c2)
+"     return a:c2[1] - a:c1[1]
+" endfun
 
 " TODO: Q (ex-mode)
 
