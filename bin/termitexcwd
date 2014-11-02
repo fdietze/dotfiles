@@ -1,1 +1,2 @@
-termite -d `xcwd`
+#!/bin/bash
+termite -d `xcwd` -e fish
