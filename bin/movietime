@@ -1,0 +1,6 @@
+#!/bin/bash
+
+xrandr --output HDMI1  --auto --primary --output VGA1 --off --output eDP1 --off
+herbstclient reload
+pacmd set-sink-mute 0 0
+stayawake
