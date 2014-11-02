@@ -8,8 +8,10 @@ hc() {
 
 hc emit_hook reload
 
+# black background
 xsetroot -solid '#000000'
 
+# set X wallpaper
 nitrogen --restore
 
 # remove all existing keybindings
@@ -24,8 +26,8 @@ hc keybind $Mod-Shift-y reload
 hc keybind $Mod-q close
 hc keybind $Mod-k spawn xkill
 hc keybind $Mod-d spawn termitexcwd
-hc keybind $Mod-Shift-p spawn xrandr --output eDP1  --auto --primary --output VGA1 --off
-
+hc keybind $Mod-Shift-p spawn xrandr --output eDP1  --auto --primary --output VGA1 --off --output HDMI1 --off
+hc keybind $Mod-Shift-z spawn movietime
 # set default layout to grid
 hc set default_frame_layout 3
 herbstclient set_layout grid
