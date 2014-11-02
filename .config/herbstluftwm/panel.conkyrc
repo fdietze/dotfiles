@@ -1,0 +1,23 @@
+update_interval 3
+
+# out_to_x no
+out_to_console yes
+
+background no # fork to background
+
+text_buffer_size 2048
+
+lua_load ~/.config/herbstluftwm/panel.conkyrc.lua
+
+cpu_avg_samples 1
+net_avg_samples 1
+
+# the & character is used to separate left and right aligned text
+TEXT
+${lua_parse hctags}${lua_parse sep}${lua_parse hctitle}\
+&  \
+${lua_parse cpu 4 15}${lua_parse sep}\
+${lua_parse mem}${lua_parse sep}\
+${lua_parse net}\
+${if_empty ${battery_time}}${else}${lua_parse bat}${lua_parse sep}${endif}\
+${lua_parse date}

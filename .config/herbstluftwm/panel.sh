@@ -1,4 +1,10 @@
 #!/bin/bash
+font="-*-Droid Sans Mono-*-*-*-*-13-*-*-*-*-*-*-*"
+panel_height=20
+trayer_width=100
+bgcolor=0x121212
+conkyrc=~/.config/herbstluftwm/panel.conkyrc
+
 
 hc() { "${herbstclient_command[@]:-herbstclient}" "$@" ;}
 monitor=${1:-0}
@@ -7,82 +13,54 @@ if [ -z "$geometry" ] ;then
 echo "Invalid monitor $monitor"
     exit 1
 fi
-# geometry has the format W H X Y
-trayer_width=175
+# geometry has the format X Y W H
+let panel_width=${geometry[2]}-$trayer_width
 x=${geometry[0]}
 y=${geometry[1]}
-let panel_width=${geometry[2]}-$trayer_width
-panel_height=22
 
-font="-*-Droid Sans Mono-*-*-*-*-13-*-*-*-*-*-*-*"
-charwidth=8.3
-bgcolor='#121212'
-fgcolor='#efefef'
-bgcolorsel='#37BAFF'
-fgcolorsel='#101010'
+
+onetime_conky() { conky -c $conkyrc -i 3 -u 0 | tail -1 ;}
+continous_conky() { conky -c $conkyrc ;}
+hcevent_conky() { herbstclient --idle | while read; do onetime_conky; done ;}
+uniq_linebuffered() { awk '$0 != l { print ; l=$0 ; fflush(); }' ;}
+strip_dzen() { sed 's.\^[^(]*([^)]*)..g' ;}
+width() { textwidth "$font" "$(echo "$@" | strip_dzen )" ;}
+split_align() {
+    # split conky line at IFS character
+    # and produce dzen code to align first part left and second part right
+    while read -r line; do
+        IFS='&' read -ra PART <<< "$line"
+        printf '%s\n' "$(jobs -pr)${PART[0]}^p(_RIGHT)^p(-$(width "${PART[1]} "))${PART[1]}"
+    done
+}
+dzen_bar() {
+    dzen2 -ta l -fn "$font" \
+        -x $x -y $y -w $panel_width -h $panel_height
+}
 
 hc pad $monitor $panel_height
 herbstclient emit_hook quit_panel
 
-function uniq_linebuffered() {
-   awk '$0 != l { print ; l=$0 ; fflush(); }' "$@"
-}
 
-{
-   conky -c ~/.config/herbstluftwm/conkybar | while read -r; do
-      echo -e "conky $REPLY";
 
-  done > >(uniq_linebuffered)  &
-   childpid=$!
-   herbstclient --idle
-   kill $childpid
-} | {
-   TAGS=( $(herbstclient tag_status $monitor) )
-      conky=""
-      separator="^fg($bgcolorsel)^r(1x16)^fg()"
-      while true; do
-          for i in "${TAGS[@]}"; do
-              echo -n "^ca(1,herbstclient use ${i:1})"
-              case ${i:0:1} in
-                  '#')
-                      echo -n "^bg($bgcolorsel) ^fg($fgcolorsel)${i:1}^fg($fgcolor) ^bg($bgcolor)"
-                      ;;
-                  ':')
-                      echo -n "^fg(#CCCCCC) ${i:1} "
-                      ;;
-                  *)
-                      echo -n "^fg(#444444) ${i:1} "
-                      ;;
-              esac
-              echo -n "^ca()"
-          done
-          echo -n " $separator "
-          echo -n `herbstclient attr clients.focus.title`
-          conky_text_only=$(echo -n "$conky" | sed 's.\^[^(]*([^)]*)..g')
-          widthf=$(echo "(`echo "$conky_text_only" | wc -m`-1)*$charwidth+25" | bc -l)
-          width=$( printf "%.0f" $widthf )
-          echo -n "^p(_RIGHT)^p(-$width)$conky"
-          echo
-          read line || break
-          cmd=( $line )
-          case "$cmd[0]" in
-              tag*)
-                  TAGS=( $(herbstclient tag_status $monitor) )
-                  ;;
-              conky*)
-                  conky=$(echo -n "$line"|sed 's/^conky //')
-                  ;;
-          esac
-      done
-} 2> /dev/null | dzen2 -w $panel_width -x $x -y $y -fn "$font" -h $panel_height \
-              -e 'button3=' \
-              -ta l -bg "$bgcolor" -fg $fgcolor &
+# render once on start, in conky intervals and on every herbstclient event
+# TODO: capture pid of hcevent_conky and add to pids to kill later
+cat <(onetime_conky ; hcevent_conky & continous_conky) | uniq_linebuffered | split_align | dzen_bar &
 pids+=($!)
 
-# trayer tint color is the panel color +1 on each channel
-trayer --edge top --widthtype pixel --width $trayer_width --heighttype pixel --height 22 --align right --tint 0x131313 --transparent true --alpha 0&
+trayer --edge top --widthtype pixel --width $trayer_width --heighttype pixel --height $panel_height --align right --tint $bgcolor --transparent true --alpha 0 &
 pids+=($!)
 
+
+
+
+# kill background processes on termination signals
+trap '[ -n "$(jobs -pr)" ] && kill $(jobs -pr)' INT QUIT TERM EXIT
+
+# block until reload or quit event is triggered
 herbstclient --wait '^(quit_panel|reload).*'
+
+# and kill captured and background processes
 kill -TERM "${pids[@]}" >/dev/null 2>&1
+kill -TERM $(jobs -pr) >/dev/null 2>&1
 exit 0
