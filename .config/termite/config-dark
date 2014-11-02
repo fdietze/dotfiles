@@ -36,26 +36,42 @@ cursor_shape = block
 #size_hints = false
 
 [colors]
+# http://terminal.sexy/#GBgY5ubmGBgY-C-TheEq-IofL5P4m1bmNt2J2traRlRX-luqqvpb-qpbW6r6qlv6W_qq____
+# special
+foreground      = #e6e6e6
+foreground_bold = #e6e6e6
+# cursor          = #e6e6e6
+background      = #181818
 
-# if unset, will reverse foreground and background
-#highlight = #707070
-background = #181818
-foreground = #e6e6e6
-
+# black
 color0  = #181818
 color8  = #465457
+
+# red
 color1  = #f82f93
 color9  = #fa5baa
-color2  = #8DE833
+
+# green
+color2  = #85e12a
 color10 = #aafa5b
-color3  = #f8932f
+
+# yellow
+color3  = #f88a1f
 color11 = #faaa5b
+
+# blue
 color4  = #2f93f8
 color12 = #5baafa
-color5  = #932ff8
+
+# magenta
+color5  = #9b56e6
 color13 = #aa5bfa
-color6  = #2ff893
+
+# cyan
+color6  = #36dd89
 color14 = #5bfaaa
+
+# white
 color7  = #dadada
 color15 = #ffffff
 

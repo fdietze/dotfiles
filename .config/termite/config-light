@@ -72,8 +72,8 @@ color5          = #7700FF
 color13         = #9C2CFF
 
 # cyan
-color6          = #00B7E9
-color14         = #00C3FF
+color6          = #00C8FF
+color14         = #00A8FF
 
 # white
 color7          = #ffffff
@@ -90,4 +90,4 @@ color15         = #ffffff
 #border_width = 0.5
 #roundness = 2.0
 
-# vim: ft=dosini
+# vim: ft=dosini cms=#%s
