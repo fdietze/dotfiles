@@ -58,7 +58,7 @@ Plug 'dag/vim-fish'
 " TODO: https://github.com/msanders/snipmate.vim
 " TODO: https://github.com/othree/html5.vim
 
-" TODO: decompile java .class files on the fly
+" decompile java .class files on the fly
 Plug 'vim-scripts/JavaDecompiler.vim'
 
 " sublime-like multiple cursors

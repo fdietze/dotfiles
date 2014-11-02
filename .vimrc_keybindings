@@ -35,9 +35,9 @@
 let mapleader="\<space>"
 let g:mapleader="\<space>"
 
-" in NEO keyboard (http://neo-layout.org/) Layout we can remap HJKL,
+" in NEO keyboard (http://neo-layout.org/) Layout we can remap hjkl,
 " because there are arrow keys in the middle of the keyboard already.
-" additionally we have ÜÖÄß
+" additionally we have üöäß
 
 " h: Highlight current word, selection, autohighlight
 nnoremap <silent> <expr> h HighlightCurrentWord()
@@ -116,7 +116,7 @@ noremap!   »   <Esc>
 " noremap + za
 " noremap - zf
 
-" make Y behave like D and C
+" make Y behave like D and C, yanking till end of line
 map Y y$
 
 " navigate up and down through soft wrapped lines
@@ -164,7 +164,7 @@ nnoremap <Leader>m :wa<CR>:make<CR><CR>:copen<CR>
 " jump to tag (for example in help files)
 nnoremap <leader>j <C-]>
 
-" toggle distration free writing
+" toggle distraction free writing
 nnoremap <silent> <leader>d :Goyo<CR>
 
 " Toggle fullscreen for current window (Plugin ZoomWin)
