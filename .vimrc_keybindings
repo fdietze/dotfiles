@@ -32,8 +32,8 @@
 
 " TODO: Q (ex-mode)
 
-let mapleader=","
-let g:mapleader=","
+let mapleader="\<space>"
+let g:mapleader="\<space>"
 
 " in NEO keyboard (http://neo-layout.org/) Layout we can remap HJKL,
 " because there are arrow keys in the middle of the keyboard already.
@@ -145,8 +145,7 @@ nnoremap <Leader>e :<C-u>CommandT<CR>
 nnoremap <Leader>a :<C-u>Unite -no-split -start-insert buffer tab file_mru<CR>
 
 " clear search highlighting and locations
-nnoremap <silent> <Space> :nohlsearch<CR>:LocationListClear<CR>:lclose<CR>
-
+nnoremap <silent> <Leader><Leader> :nohlsearch<CR>:LocationListClear<CR>:lclose<CR>
 
 " fast way to edit ~/.vimrc*
 nnoremap <Leader>v :e ~/.vimrc<CR>
