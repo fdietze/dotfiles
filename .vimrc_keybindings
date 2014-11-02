@@ -57,9 +57,10 @@ nnoremap <silent> l :NERDTreeToggle<CR>
 " ß: replay q macro
 nnoremap ß @q
 
-nnoremap ö :w<CR>
+nnoremap ö :update<CR>
 nnoremap ä :q<CR>
 nnoremap ü :bd<CR>
+
 
 
 " Smart way to move between windows, adjusted for NEO
@@ -76,11 +77,11 @@ map ∃ <C-W>l
 
 " Smart way to move between tabs, adjusted for NEO
 " in insert mode
-imap √ <C-o>:tabprev<cr>
-imap ℂ <C-o>:tabnext<cr>
+" imap √ <C-o>:tabprev<cr>
+" imap ℂ <C-o>:tabnext<cr>
 " in other modes
-map √ :tabprev<cr>
-map ℂ :tabnext<cr>
+" map √ :tabprev<cr>
+" map ℂ :tabnext<cr>
 
 " NEO navigation for QWERTY
 "         Arrow   Home End Del Backsp PageUpDown  Enter / Esc
@@ -133,6 +134,9 @@ imap <silent> <Home> <C-O>g<Home>
 
 nnoremap A g<End>a
 nnoremap I g<Home>i
+" disable home and end in insert mode
+inoremap <Home> <NOP>
+inoremap <End> <NOP>
 
 
 " Switch buffers with tab
@@ -148,15 +152,10 @@ nnoremap <Leader>a :<C-u>Unite -no-split -start-insert buffer tab file_mru<CR>
 nnoremap <silent> <Leader><Leader> :nohlsearch<CR>:LocationListClear<CR>:lclose<CR>
 
 " fast way to edit ~/.vimrc*
-nnoremap <Leader>v :e ~/.vimrc<CR>
+nnoremap <Leader>vv :e ~/.vimrc<CR>
 nnoremap <Leader>vp :e ~/.vimrc_plugins<CR>
 nnoremap <Leader>vk :e ~/.vimrc_keybindings<CR>
 nnoremap <Leader>vs :e ~/.vimrc_statusline<CR>
-
-" save and quit
-" nnoremap <Leader>w :wa<CR>
-" nnoremap <Leader>q :q<CR>
-" nnoremap <Leader>x :x<CR>
 
 " save all and make
 nnoremap <Leader>m :wa<CR>:make<CR><CR>:copen<CR>

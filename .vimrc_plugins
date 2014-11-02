@@ -54,9 +54,9 @@ Plug 'takac/vim-hardtime'
 Plug 'sheerun/vim-polyglot'
 Plug 'gre/play2vim'
 Plug 'dag/vim-fish'
+Plug 'othree/html5.vim'
 " Plugin 'gorodinskiy/vim-coloresque'
 " TODO: https://github.com/msanders/snipmate.vim
-" TODO: https://github.com/othree/html5.vim
 
 " decompile java .class files on the fly
 Plug 'vim-scripts/JavaDecompiler.vim'
