@@ -1,0 +1,4 @@
+#!/bin/bash
+# interactively select a line from stdin and execute command
+# example usage: find /var/log/Xorg* | s less
+percol --prompt-bottom --result-bottom-up --reverse | while read -r line; do $@ "$line"; done
