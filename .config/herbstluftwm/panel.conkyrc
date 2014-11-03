@@ -21,3 +21,4 @@ ${lua_parse mem}${lua_parse sep}\
 ${lua_parse net}\
 ${if_empty ${battery_time}}${else}${lua_parse bat}${lua_parse sep}${endif}\
 ${lua_parse date}
+

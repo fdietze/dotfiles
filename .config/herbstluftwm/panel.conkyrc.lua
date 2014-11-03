@@ -102,7 +102,13 @@ function conky_net()
                 str = str .. conky_prefix("eth ") .. iface_speed(iface)
             else -- wifi device
                 if( essid ~= "off/any" ) then 
-                    str = str .. conky_prefix(icon("wireless1.xbm") .." ".. essid) .. iface_speed(iface)
+                    local qual = tonumber(conky("wireless_link_qual_perc " .. iface))
+                    
+                    if     qual <= 33 then str = str .. conky_prefix(icon("wireless10.xbm"))
+                    elseif qual <= 66 then str = str .. conky_prefix(icon("wireless9.xbm"))
+                    else                   str = str .. conky_prefix(icon("wireless8.xbm")) end
+
+                    str = str .. " ".. essid .. iface_speed(iface)
                 end
             end
         end
