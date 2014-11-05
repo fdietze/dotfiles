@@ -41,6 +41,10 @@ function bg(c)
 
 end
 
+function scroll(content, commandup, commanddown)
+    return "^ca(4,"..commandup..")^ca(5,"..commanddown..")"..content.."^ca()^ca()"
+end
+
 function click(content, command)
     return "^ca(1,"..command..")"..content.."^ca()"
 end
@@ -76,7 +80,7 @@ function conky_hctags()
         else                          addtag(tagname, s.bgcolor, s.fgcolorinact) end
 
     end
-    return tags
+    return tags .. bg(s.bgcolor)
 end
 
 function conky_cpu(cpucount, height)
@@ -128,7 +132,21 @@ function conky_net()
             end
         end
     end
-    return str
+    return click(str, "nmcli_dmenu")
+end
+
+function conky_vol(height)
+    -- TODO: mouse scrolling
+    local vol = tonumber(exec("pacmd list-sinks | grep front-left | grep -Eo \"[0-9]{1,3}%\" | head -1 | cut -d \"%\" -f 1"))
+    if trim(exec("pacmd list-sinks | grep \"muted: \" | cut -d \":\" -f 2")) == "yes" then
+        vol = "mut"
+    else
+        vol = conky_format("%3s", vol)
+    end
+    return click(scroll(conky_prefix("vol").." "..vol,
+        "pulseaudio-ctl up; herbstclient emit_hook panel_refresh",
+        "pulseaudio-ctl down; herbstclient emit_hook panel_refresh"),
+        "pavucontrol")
 end
 
 function conky_date()
@@ -147,6 +165,13 @@ function exec(command)
     local output = file:read('*all')
     file:close()
     return output
+end
+
+function readfile(filename)
+    local file = io.open(filename, "rb")
+    local content = file:read("*all")
+    file:close()
+    return content
 end
 
 function hc(command)

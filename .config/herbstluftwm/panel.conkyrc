@@ -10,16 +10,17 @@ text_buffer_size 2048
 lua_load ~/.config/herbstluftwm/panel.conkyrc.lua
 lua_startup_hook conky_init
 
-cpu_avg_samples 1
-net_avg_samples 1
+cpu_avg_samples 3
+net_avg_samples 3
 
 # the & character is used to separate left and right aligned text
 TEXT
-${lua_parse hctags}${lua_parse sep}${lua_parse hctitle}\
+${lua_parse hctags} ${lua_parse hctitle}\
 &  \
 ${lua_parse cpu 4 15}${lua_parse sep}\
 ${lua_parse mem}${lua_parse sep}\
 ${lua_parse net}\
 ${if_empty ${battery_time}}${else}${lua_parse bat}${lua_parse sep}${endif}\
+${lua_parse vol 15}${lua_parse sep}\
 ${lua_parse date}
 
