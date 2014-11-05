@@ -1,8 +1,8 @@
 #!/bin/bash
 
+yaourt -Sc --noconfirm && \
 yaourt -Syyua --devel --noconfirm && \
 # yaourt -Rscn $(yaourt -Qtdq)
-#yaourt -Sc --noconfirm && \
 sudo pkgfile -u
 paccache -r && \
 paccache -ruk0 && \
