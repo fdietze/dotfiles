@@ -37,6 +37,7 @@ cursor_shape = block
 #size_hints = false
 
 [colors]
+# http://terminal.sexy/#____AAAAAAAA3wB2AK8r_2YAAG_mdwD_AMj_____AAAA_wCIAMEg_5QAIYP_nCz_AKj_____
 #{
 
 # if unset, will reverse foreground and background
