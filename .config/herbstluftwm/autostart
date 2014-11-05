@@ -8,17 +8,12 @@ hc() {
 
 hc emit_hook reload
 
-# black background
-xsetroot -solid '#000000'
-
-# set X wallpaper
-# nitrogen --restore
 
 # remove all existing keybindings
 hc keyunbind --all
 
 # keybindings
-Mod=Mod1    # Use alt as the main modifier
+Mod=Mod1    # Use left alt as the main modifier
 #Mod=Mod4   # Use the super key as the main modifier
 
 hc keybind $Mod-Shift-q quit
@@ -146,6 +141,9 @@ hc set smart_frame_surroundings 1
 
 # set dark terminal and vim colors if not set
 if [ ! -f ~/.colors ]; then
+    # black background
+    xsetroot -solid '#000000'
+
     dark
 fi
 
