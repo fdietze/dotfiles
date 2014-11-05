@@ -120,6 +120,16 @@ noremap!   »   <Esc>
 " make Y behave like D and C, yanking till end of line
 map Y y$
 
+" don't lose selection when indenting
+vnoremap < <gv
+vnoremap > >gv
+
+" toggle local spell checking
+nnoremap <leader>s :setlocal spell! spell?<CR>
+" insert best suggestion for last misspelled word
+imap <c-s> <c-g>u<Esc>[s1z=`]a<c-g>u
+nmap <c-s> 1z=
+
 " navigate through soft wrapped lines
 " noremap <Up> g<Up>
 " inoremap <Up> <C-o>g<Up>
