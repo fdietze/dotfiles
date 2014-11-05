@@ -5,5 +5,6 @@ dark
 
 sudo cpupower frequency-set -u 2500Mhz
 
-sudo systemctl start btsync@felix.service
-dropboxd &
+# sudo systemctl start btsync@felix.service
+sudo systemctl start dropbox@felix.service
+# dropboxd &

@@ -21,10 +21,11 @@ xmodmap -e 'keycode 19='
 # reset colorscheme
 rm ~/.colors
 
-pasystray &
-nm-applet &
-bluetooth-applet &
-dropboxd &
+# pasystray &
+/usr/bin/start-pulseaudio-x11
+# nm-applet &
+# bluetooth-applet &
+# dropboxd &
 
 
 exec dbus-launch herbstluftwm --locked
