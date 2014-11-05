@@ -18,6 +18,8 @@ xmodmap -e 'keycode 17='
 xmodmap -e 'keycode 18='
 xmodmap -e 'keycode 19='
 
+# reset colorscheme
+rm ~/.colors
 
 pasystray &
 nm-applet &

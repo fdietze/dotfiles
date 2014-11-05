@@ -1,8 +1,14 @@
 #!/bin/bash
 font="-*-Droid Sans Mono-*-*-*-*-13-*-*-*-*-*-*-*"
-panel_height=20
-trayer_width=100
-bgcolor=0x121212
+panel_height=21
+trayer_width=60
+if grep -q "dark" ~/.colors
+then
+    bgcolor=121212
+else
+    bgcolor=FFFFFF
+fi
+
 conkyrc=~/.config/herbstluftwm/panel.conkyrc
 
 
@@ -19,7 +25,7 @@ x=${geometry[0]}
 y=${geometry[1]}
 
 
-onetime_conky() { conky -c $conkyrc -i 3 -u 0 | tail -1 ;}
+onetime_conky() { conky -c $conkyrc -i 2 -u 0 | tail -1 ;}
 continous_conky() { conky -c $conkyrc ;}
 hcevent_conky() { herbstclient --idle | while read; do onetime_conky; done ;}
 uniq_linebuffered() { awk '$0 != l { print ; l=$0 ; fflush(); }' ;}
@@ -34,7 +40,7 @@ split_align() {
     done
 }
 dzen_bar() {
-    dzen2 -ta l -fn "$font" \
+    dzen2 -ta l -fn "$font" -bg "#$bgcolor" \
         -x $x -y $y -w $panel_width -h $panel_height
 }
 
@@ -44,11 +50,11 @@ herbstclient emit_hook quit_panel
 
 
 # render once on start, in conky intervals and on every herbstclient event
-# TODO: capture pid of hcevent_conky and add to pids to kill later
+# TODO: capture pid of hcevent_conky and add to pids to kill later instead of killall herbstclient
 cat <(onetime_conky ; hcevent_conky & continous_conky) | uniq_linebuffered | split_align | dzen_bar &
 pids+=($!)
 
-trayer --edge top --widthtype pixel --width $trayer_width --heighttype pixel --height $panel_height --align right --tint $bgcolor --transparent true --alpha 0 &
+trayer --edge top --widthtype pixel --width $trayer_width --heighttype pixel --height $panel_height --align right --tint 0x$bgcolor --transparent true --alpha 0 &
 pids+=($!)
 
 
@@ -59,8 +65,8 @@ trap '[ -n "$(jobs -pr)" ] && kill $(jobs -pr)' INT QUIT TERM EXIT
 
 # block until reload or quit event is triggered
 herbstclient --wait '^(quit_panel|reload).*'
-
+killall herbstclient
 # and kill captured and background processes
 kill -TERM "${pids[@]}" >/dev/null 2>&1
-kill -TERM $(jobs -pr) >/dev/null 2>&1
+# kill -TERM $(jobs -pr) >/dev/null 2>&1
 exit 0

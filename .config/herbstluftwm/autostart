@@ -12,7 +12,7 @@ hc emit_hook reload
 xsetroot -solid '#000000'
 
 # set X wallpaper
-nitrogen --restore
+# nitrogen --restore
 
 # remove all existing keybindings
 hc keyunbind --all
@@ -140,9 +140,10 @@ hc set smart_frame_surroundings 1
 # hc set window_border_normal_color '#343434'
 # hc set window_border_active_color '#37BAFF'
 
-# set dark terminal and vim colors
-rm -f .colors
-dark
+# set dark terminal and vim colors if not set
+if [ ! -f ~/.colors ]; then
+    dark
+fi
 
 
 
