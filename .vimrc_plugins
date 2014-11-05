@@ -73,7 +73,10 @@ Plug 'terryma/vim-expand-region'
 "let g:rainbow_active = 1
 
 " show 'Match x of y' when searching
-Plug 'henrik/vim-indexed-search'
+" Plug 'henrik/vim-indexed-search'
+
+" highlight all matches in incremental search
+Plug 'haya14busa/incsearch.vim'
 
 " commenting
 Plug 'tpope/vim-commentary'

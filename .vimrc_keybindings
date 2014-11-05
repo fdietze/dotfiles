@@ -193,6 +193,10 @@ noremap <silent> <PageDown> :call smooth_scroll#down(&scroll*2, 0, 4)<CR>
 map + <Plug>(expand_region_expand)
 map - <Plug>(expand_region_shrink)
 
+" incsearch plugin
+map /  <Plug>(incsearch-forward)
+map ?  <Plug>(incsearch-backward)
+
 " disable arrow keys and home/end in insert mode, exit insert mode when pressed
 " inoremap  <Up>     <Esc>g<Up>
 " inoremap  <Down>   <Esc>g<Down>
