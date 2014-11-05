@@ -30,11 +30,15 @@ hc keybind $Mod-y spawn xboomx
 hc keybind $Mod-Shift-d spawn nmcli_dmenu
 hc keybind $Mod-Shift-p spawn xrandr --output eDP1  --auto --primary --output VGA1 --off --output HDMI1 --off
 hc keybind $Mod-Shift-z spawn movietime
-hc keybind $Mod-Ctrl-g spawn pulseaudio-ctl up
-hc keybind $Mod-Ctrl-r spawn pulseaudio-ctl down
-hc keybind $Mod-Ctrl-m spawn pulseaudio-ctl mute
-hc keybind $Mod-Ctrl-h spawn xbacklight +5 -steps 1 -time 0
-hc keybind $Mod-Ctrl-n spawn xbacklight -5 -steps 1 -time 0
+
+# adjust volume
+hc keybind $Mod-Ctrl-h chain , spawn pulseaudio-ctl up   , emit_hook panel_refresh
+hc keybind $Mod-Ctrl-n chain , spawn pulseaudio-ctl down , emit_hook panel_refresh
+hc keybind $Mod-Ctrl-m chain , spawn pulseaudio-ctl mute , emit_hook panel_refresh
+
+# adjust screen brightness
+hc keybind $Mod-Ctrl-g spawn xbacklight +5 -steps 1 -time 0
+hc keybind $Mod-Ctrl-r spawn xbacklight -5 -steps 1 -time 0
 # set default layout to grid
 hc set default_frame_layout 3
 herbstclient set_layout grid
