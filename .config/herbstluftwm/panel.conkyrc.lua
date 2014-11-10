@@ -136,17 +136,16 @@ function conky_net()
 end
 
 function conky_vol(height)
-    -- TODO: mouse scrolling
     local vol = tonumber(exec("pacmd list-sinks | grep front-left | grep -Eo \"[0-9]{1,3}%\" | head -1 | cut -d \"%\" -f 1"))
     if trim(exec("pacmd list-sinks | grep \"muted: \" | cut -d \":\" -f 2")) == "yes" then
         vol = "mut"
     else
         vol = conky_format("%3s", vol)
     end
-    return click(scroll(conky_prefix("vol").." "..vol,
-        "pulseaudio-ctl up; herbstclient emit_hook panel_refresh",
-        "pulseaudio-ctl down; herbstclient emit_hook panel_refresh"),
-        "pavucontrol")
+    return scroll(click(conky_prefix("vol"),"pavucontrol").." "..click(vol,
+            "pulseaudio-ctl mute; herbstclient emit_hook panel_refresh"),
+        "pulseaudio-ctl up;   herbstclient emit_hook panel_refresh",
+        "pulseaudio-ctl down; herbstclient emit_hook panel_refresh")
 end
 
 function conky_date()
