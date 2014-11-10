@@ -1,11 +1,13 @@
 #!/bin/bash
-font="-*-Droid Sans Mono-*-*-*-*-13-*-*-*-*-*-*-*"
-panel_height=21
 trayer_width=60
 if grep -q "dark" ~/.colors
-then
+then # dark
+    font="-*-Droid Sans Mono-*-*-*-*-13-*-*-*-*-*-*-*"
+    panel_height=21
     bgcolor=121212
-else
+else # light
+    font="-*-Droid Sans Mono-*-*-*-*-15-*-*-*-*-*-*-*"
+    panel_height=21
     bgcolor=FFFFFF
 fi
 

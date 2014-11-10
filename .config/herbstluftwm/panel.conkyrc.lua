@@ -2,7 +2,7 @@ local lfs = require "lfs"
 
 function conky_init()
     if trim(readfile("/home/felix/.colors")) == "dark" then
-        s = {
+        s = { -- dark
             bgcolor      = "121212",
             fgcolor      = "EFEFEF",
             fgcolorinact = "444444",
@@ -13,7 +13,7 @@ function conky_init()
             charwidth    = 8
         }
     else
-        s = {
+        s = { -- light
             bgcolor      = "FFFFFF",
             fgcolor      = "000000",
             fgcolorinact = "AAAAAA",
@@ -21,7 +21,7 @@ function conky_init()
             fgcolorbad   = "FF3F74",
             bgcolorsel   = "00D7FF",
             fgcolorsel   = "000000",
-            charwidth    = 8
+            charwidth    = 9
         }
     end
 end
