@@ -34,6 +34,15 @@ hc keybind $Mod-Ctrl-m chain , spawn pulseaudio-ctl mute , emit_hook panel_refre
 # adjust screen brightness
 hc keybind $Mod-Ctrl-g spawn xbacklight +5 -steps 1 -time 0
 hc keybind $Mod-Ctrl-r spawn xbacklight -5 -steps 1 -time 0
+
+# control media players with yxcvb (üöäpz on NEO)
+hc keybind $Mod-udiaeresis spawn playerctl previous
+hc keybind $Mod-odiaeresis spawn playerctl play
+hc keybind $Mod-adiaeresis spawn playerctl play-pause
+hc keybind $Mod-p          spawn playerctl stop
+hc keybind $Mod-z          spawn playerctl next
+
+
 # set default layout to grid
 hc set default_frame_layout 3
 herbstclient set_layout grid
