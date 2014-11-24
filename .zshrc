@@ -40,3 +40,5 @@ export LESS_TERMCAP_us=$(printf "\33[01;35m")   # begin underline
 
 # load custom aliases
 source ~/.sh_aliases
+
+o() { xdg-open $1 > /dev/null 2>&1; }
