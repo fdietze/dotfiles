@@ -35,6 +35,10 @@ hc keybind $Mod-Ctrl-m chain , spawn pulseaudio-ctl mute , emit_hook panel_refre
 hc keybind $Mod-Ctrl-g spawn xbacklight +5 -steps 1 -time 0
 hc keybind $Mod-Ctrl-r spawn xbacklight -5 -steps 1 -time 0
 
+# adjust keyboard backlight brightness
+hc keybind $Mod-Ctrl-f spawn sudo asus-kbd-backlight up
+hc keybind $Mod-Ctrl-t spawn sudo asus-kbd-backlight down
+
 # control media players with yxcvb (üöäpz on NEO)
 hc keybind $Mod-udiaeresis spawn playerctl previous
 hc keybind $Mod-odiaeresis spawn playerctl play
