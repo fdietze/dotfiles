@@ -53,7 +53,7 @@ herbstclient emit_hook quit_panel
 
 # render once on start, in conky intervals and on every herbstclient event
 # TODO: capture pid of hcevent_conky and add to pids to kill later instead of killall herbstclient
-cat <(onetime_conky ; hcevent_conky & continous_conky) | uniq_linebuffered | split_align | dzen_bar &
+cat <(hcevent_conky & continous_conky & onetime_conky) | uniq_linebuffered | split_align | dzen_bar &
 pids+=($!)
 
 trayer --edge top --widthtype pixel --width $trayer_width --heighttype pixel --height $panel_height --align right --tint 0x$bgcolor --transparent true --alpha 0 &
