@@ -157,7 +157,7 @@ if [ ! -f ~/.colors ]; then
     # black background
     xsetroot -solid '#000000'
 
-    dark
+    dark nopanel
 fi
 
 

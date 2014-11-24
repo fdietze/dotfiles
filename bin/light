@@ -21,11 +21,14 @@ done
 
 
 
-herbstclient emit_hook quit_panel
-sleep 1
-panel=~/.config/herbstluftwm/panel.sh
-for monitor in $(herbstclient list_monitors | cut -d: -f1) ; do
-    # start it on each monitor
-    "$panel" $monitor &
-done
-
+if [ ! "$1" = "nopanel" ]; then
+    echo "restarting panel..."
+    herbstclient emit_hook quit_panel
+    sleep 1
+    panel=~/.config/herbstluftwm/panel.sh
+    for monitor in $(herbstclient list_monitors | cut -d: -f1) ; do
+        # start it on each monitor
+        echo $panel $monitor
+        "$panel" $monitor &
+    done
+fi
