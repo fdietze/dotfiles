@@ -1,0 +1,5 @@
+#!/bin/bash
+git status
+git stash save --keep-index --include-untracked
+$@
+git stash pop
