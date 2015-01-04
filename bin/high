@@ -1,10 +1,8 @@
 #!/bin/bash
 
 xbacklight -set 100
-dark
 
 sudo cpupower frequency-set -u 2500Mhz
 
-# sudo systemctl start btsync@felix.service
-sudo systemctl start dropbox@felix.service
-# dropboxd &
+systemctl --user start btsync
+systemctl --user start dropbox
