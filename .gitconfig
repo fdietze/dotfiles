@@ -19,6 +19,7 @@
     br = branch
     lg = log --graph --pretty=format:'%Cred%h %C(reset)%C(dim)%ad%Creset %s%C(yellow)%d%C(reset) %C(blue)<%an> %Cgreen(%ar)%Creset' --abbrev-commit --date=short
     df = diff --word-diff=color --minimal --irreversible-delete --find-copies-harder -C --ignore-space-at-eol --ignore-space-change --ignore-all-space --inter-hunk-context=3
+	unstage = reset HEAD
 
 [color]
     branch = auto
