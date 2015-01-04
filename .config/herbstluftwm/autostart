@@ -25,6 +25,7 @@ hc keybind $Mod-y spawn xboomx
 hc keybind $Mod-Shift-d spawn nmcli_dmenu
 hc keybind $Mod-Shift-p spawn xrandr --output eDP1  --auto --primary --output VGA1 --off --output HDMI1 --off
 hc keybind $Mod-Shift-z spawn movietime
+hc keybind Print spawn scrot
 
 # adjust volume
 hc keybind $Mod-Ctrl-h chain , spawn pulseaudio-ctl up   , emit_hook panel_refresh
@@ -39,12 +40,19 @@ hc keybind $Mod-Ctrl-r spawn xbacklight -5 -steps 1 -time 0
 hc keybind $Mod-Ctrl-f spawn sudo asus-kbd-backlight up
 hc keybind $Mod-Ctrl-t spawn sudo asus-kbd-backlight down
 
+# lock screen
+hc keybind $Mod-u spawn lock
+
 # control media players with yxcvb (üöäpz on NEO)
 hc keybind $Mod-udiaeresis spawn playerctl previous
 hc keybind $Mod-odiaeresis spawn playerctl play
 hc keybind $Mod-adiaeresis spawn playerctl play-pause
 hc keybind $Mod-p          spawn playerctl stop
 hc keybind $Mod-z          spawn playerctl next
+
+# enable and disable wifi
+hc keybind $Mod-Ctrl-q spawn nmcli radio wifi on
+hc keybind $Mod-Ctrl-d spawn nmcli radio wifi off
 
 
 # set default layout to grid
