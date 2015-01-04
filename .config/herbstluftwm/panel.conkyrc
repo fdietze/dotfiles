@@ -16,7 +16,7 @@ net_avg_samples 1
 # the & character is used to separate left and right aligned text
 TEXT
 ${lua_parse hctags} ${lua_parse hctitle}\
-&  \
+∫  \
 ${lua_parse cpu 4 15}${lua_parse sep}\
 ${lua_parse mem}${lua_parse sep}\
 ${lua_parse net}\

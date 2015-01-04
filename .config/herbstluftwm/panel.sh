@@ -37,7 +37,7 @@ split_align() {
     # split conky line at IFS character
     # and produce dzen code to align first part left and second part right
     while read -r line; do
-        IFS='&' read -ra PART <<< "$line"
+        IFS='∫' read -ra PART <<< "$line"
         printf '%s\n' "$(jobs -pr)${PART[0]}^p(_RIGHT)^p(-$(width "${PART[1]} "))${PART[1]}"
     done
 }
