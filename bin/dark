@@ -5,8 +5,9 @@ echo "dark" > $HOME/.colors
 cp $HOME/.config/termite/config-dark $HOME/.config/termite/config
 killall -USR1 termite
 
+cp $HOME/.xboomx/config-dark $HOME/.xboomx/config
 
-nitrogen --set-zoom ~/downloads/wallpapers/3d_bars-1920x1080.jpg
+nitrogen --set-zoom-fill ~/downloads/wallpapers/3d_bars-1920x1080.jpg
 
 herbstclient set window_border_width 2
 herbstclient set frame_border_width  2
@@ -17,8 +18,9 @@ herbstclient set window_border_normal_color '#7F7F7F'
 
 VIMS=`vim --serverlist`
 for vim in $VIMS; do
-    vim --servername $vim --remote-send '<Esc>:colorscheme base16-chalk<CR>:set background=dark<CR>'
+    vim --servername $vim --remote-send '<Esc>:set background=dark<CR>:colorscheme base16-chalk<CR>'
 done
+
 
 
 if [ ! "$1" = "nopanel" ]; then
