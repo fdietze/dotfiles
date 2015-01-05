@@ -1,8 +1,6 @@
 #!/bin/bash
-brightness=$(cat /sys/devices/pci0000:00/0000:00:02.0/backlight/acpi_video0/brightness)
-echo $brightness
-if (( $brightness <= 40 )); then
-    light
+if ~/bin/daytime; then
+    ~/bin/light
 else
-    dark
+    ~/bin/dark
 fi
