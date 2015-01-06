@@ -54,6 +54,8 @@ nmap gu :action ShowUsages<CR>
 nmap gU :action FindUsages<CR>
 nmap gq :action QuickJavaDoc<CR>
 nmap <space>p :action ParameterInfo<CR>
+nmap <space>n :action GotoNextError<CR>
+nmap <space>a :action GotoAction<CR>
 
 " editing / refactoring
 nmap gcc :action CommentByLineComment<CR>
