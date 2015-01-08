@@ -186,6 +186,7 @@ augroup misc
     autocmd BufReadPost *
     \ if line("'\"") > 0 && line("'\"") <= line("$") |
     \   if &filetype == 'gitcommit' |
+    \       setlocal spell |
     \       startinsert |
     \   else |
     \      exe "normal! g`\"" |
