@@ -32,7 +32,8 @@ alias m="make"
 alias mc="make clean"
 alias c="qalc"
 o() { xdg-open $1 > /dev/null 2>&1; }
-alias of='o "$(fzf -x)"'
+alias of='o "$(fzf)"'
+f() {$@ "$(fzf)"}
 
 alias wa="tungsten" # WolframAlpha client
 alias hc="herbstclient"
