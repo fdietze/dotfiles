@@ -13,7 +13,17 @@ DISABLE_AUTO_UPDATE="true"
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git archlinux cp history-substring-search systemd web-search heroku sbt scala)
+plugins=(
+git
+cp
+history-substring-search
+systemd
+web-search
+heroku
+sbt
+scala
+per-directory-history
+)
 source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.plugin.zsh
 
 source $ZSH/oh-my-zsh.sh
