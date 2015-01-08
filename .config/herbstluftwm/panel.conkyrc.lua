@@ -62,7 +62,9 @@ function conky_prefix(prefix)
 end
 
 function conky_hctitle()
-    return fg(s.fgcolor)..trim(hc("attr clients.focus.title"))
+    local title = trim(hc("attr clients.focus.title"))
+    title = title:gsub("%$","$$")
+    return fg(s.fgcolor)..title
 end
 
 function conky_hctags()
