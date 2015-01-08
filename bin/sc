@@ -6,4 +6,4 @@ gitlog() {
     git log --pretty=format:'%h %ad %s%d <%an> %ar' --abbrev-commit --date=short
 }
 
-gitlog | percol --prompt-bottom --result-bottom-up | cut -f1 | while read -r hash description; do $@ "$hash"; done
+gitlog | fzf | cut -f1 | while read -r hash description; do $@ "$hash"; done
