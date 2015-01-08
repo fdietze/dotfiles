@@ -15,6 +15,7 @@
 [alias]
     co = checkout
     ci = commit
+    amend = commit --amend
     st = status
     br = branch
     lg = log --graph --pretty=format:'%Cred%h %C(reset)%C(dim)%ad%Creset %s%C(yellow)%d%C(reset) %C(blue)<%an> %Cgreen(%ar)%Creset' --abbrev-commit --date=short
