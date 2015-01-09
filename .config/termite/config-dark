@@ -9,7 +9,7 @@ allow_bold = true
 dynamic_title = true
 urgent_on_bell = false
 clickable_url = true
-font = Inconsolata 9
+font = Inconsolata 8
 scrollback_lines = 10000
 search_wrap = true
 #icon_name = terminal
@@ -36,7 +36,7 @@ cursor_shape = block
 #size_hints = false
 
 [colors]
-# http://terminal.sexy/#GBgY5ubmGBgY-C-TheEq-IofL5P4m1bmNt2J2traRlRX-luqqvpb-qpbW6r6qlv6W_qq____
+# http://terminal.sexy/#GBgY5ubmGBgY-EafgOBR-J8rL5P4oGDmQt2P2traRlRX-luqqvpb-qpbW6r6qlv6W_qq____
 # special
 foreground      = #e6e6e6
 foreground_bold = #e6e6e6
@@ -48,15 +48,15 @@ color0  = #181818
 color8  = #465457
 
 # red
-color1  = #f82f93
+color1  = #f8469f
 color9  = #fa5baa
 
 # green
-color2  = #85e12a
+color2  = #80e051
 color10 = #aafa5b
 
 # yellow
-color3  = #f88a1f
+color3  = #f89f2b
 color11 = #faaa5b
 
 # blue
@@ -64,11 +64,11 @@ color4  = #2f93f8
 color12 = #5baafa
 
 # magenta
-color5  = #9b56e6
+color5  = #a060e6
 color13 = #aa5bfa
 
 # cyan
-color6  = #36dd89
+color6  = #42dd8f
 color14 = #5bfaaa
 
 # white
