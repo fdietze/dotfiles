@@ -11,7 +11,7 @@ set relativenumber                " relative line numbers
 set scrolloff=5 sidescrolloff=10  " keep some lines before and after the cursor visible
 
 " edit ideavim config
-nnoremap <space>vv :e ~/.ideavimrc<CR>
+nnoremap <space>V :e ~/.ideavimrc<CR>
 
 " simple closing and saving (helpful in NEO keyboard layout)
 noremap ö :w<CR>
@@ -28,7 +28,8 @@ inoremap  <Home>   <Esc><Home>
 inoremap  <End>    <Esc><End>
 
 " clear search highlighting
-nnoremap <silent> <Space><space> :nohls<Bar>echo<CR>
+" nnoremap <silent> <Space><space> :nohls<Bar>echo<CR>
+nnoremap <esc> :nohls<return><esc>
 
 " don't lose selection when indenting
 vnoremap < <gv
@@ -54,7 +55,8 @@ nmap gu :action ShowUsages<CR>
 nmap gU :action FindUsages<CR>
 nmap gq :action QuickJavaDoc<CR>
 nmap <space>p :action ParameterInfo<CR>
-nmap <space>n :action GotoNextError<CR>
+" nmap <space>n :action GotoNextError<CR>
+nmap <space>n :action NextOccurence<CR>
 nmap <space>a :action GotoAction<CR>
 
 " editing / refactoring
@@ -66,10 +68,9 @@ nmap <space>v :action IntroduceVariable<CR>
 nmap <space>i :action Inline<CR>
 nmap <space>o :action OptimizeImports<CR>
 nmap <space>g :action Generate<CR>
+nmap + :action EditorSelectWord<CR>
 
 nmap <space>t :action Run<CR>
-
-
 
 
 
