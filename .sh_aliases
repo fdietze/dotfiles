@@ -33,7 +33,9 @@ alias mc="make clean"
 alias c="qalc"
 o() { xdg-open $1 > /dev/null 2>&1; }
 alias of='o "$(fzf)"'
-f() {$@ "$(fzf)"}
+f() { $@ "$(fzf)"; }
+ft() { $@ "$(ls -tr1 --group-directories-first | fzf --no-sort)"; } # least modified files
+
 
 alias wa="tungsten" # WolframAlpha client
 alias hc="herbstclient"
@@ -45,3 +47,6 @@ alias wcon="nmcli dev wifi connect"
 alias rn="ranger"
 alias scala="scala -Dscala.color"
 alias defrag="sudo btrfs filesystem defragment -r -v -f -clzo"
+
+
+# vim: ft=sh
