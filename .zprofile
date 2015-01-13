@@ -2,8 +2,6 @@
 
 export PATH=$HOME/bin:$PATH
 
-source ~/.sh_aliases
-
 # color wrappers for common commands
 export PATH=$(cope_path):$PATH
 

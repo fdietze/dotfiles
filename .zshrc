@@ -29,6 +29,8 @@ source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.pl
 source $ZSH/oh-my-zsh.sh
 # User configuration
 
+source ~/.sh_aliases
+
 # set prompt theme
 source ~/.oh-my-zsh/themes/slim.zsh-theme
 
