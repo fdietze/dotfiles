@@ -37,7 +37,7 @@ endif
 set mouse=a
 if has("gui_running")
   set guioptions=aci        " hide toolbars
-  set guifont=Inconsolata\ 16
+  set guifont=Inconsolata\ 8
   "set lines=24 columns=80 " Maximize window.
   set guicursor+=a:blinkon0 "disible blinking
   set guicursor+=i-ci:block-iCursor-blinkon0 "insert mode: block, no blinking, highlight with iCursor
