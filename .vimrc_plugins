@@ -9,28 +9,85 @@ endif
 call plug#begin('~/.vim/bundle')
 
 
+""""""""""""""""""""""""""""""""""""""""
+" non-intrusive plugins which work without configuration
 
-" sensible default settings
+" defaults everyone can agree on
 Plug 'tpope/vim-sensible'
-
-" statusline
-Plug 'itchyny/lightline.vim'
-Plug 'bling/vim-bufferline'
 
 " Start screen with recently opened files
 Plug 'mhinz/vim-startify'
 
+" enable dot-command for Plugs
+Plug 'tpope/vim-repeat'
+
+" enlarge focused window a bit
+Plug 'roman/golden-ratio'
+
+" VCS change info on the left
+Plug 'mhinz/vim-signify'
+
+" matches not only parantheses, but also HTML-Tags and more
+Plug 'edsono/vim-matchit'
+
 " fuzzy autocompletion, eclim
 Plug 'Valloric/YouCompleteMe', { 'do': './install.sh' }
 
-" restore cursor position and folds
-" Plug 'vim-scripts/restore_view.vim'
+
+
+""""""""""""""""""""""""""""""""""""""""
+" helpful tools providing new shortcuts
+
+" commenting
+Plug 'tpope/vim-commentary'
+
+" surround text with quotes, parantheses, ...
+Plug 'tpope/vim-surround'
+
+" ctrl+A/X on dates and time
+Plug 'tpope/vim-speeddating'
+
+" sublime-like multiple cursors
+Plug 'terryma/vim-multiple-cursors'
+
+" expand selections
+Plug 'terryma/vim-expand-region'
+
+" TODO: adjust for NEO
+Plug 'tpope/vim-unimpaired'
+
+" snippet engine
+Plug 'SirVer/ultisnips'
+
+" Snippets for the snippet engine
+Plug 'honza/vim-snippets'
+
+
+""""""""""""""""""""""""""""""""""""""""
+" helpful tools providing functions and commands
+" which need to be called/activated/mapped explicitly
+
+" git support
+Plug 'tpope/vim-fugitive'
+" Plug 'gregsexton/gitv'
+" Plug 'airblade/vim-gitgutter'
+
+" align text
+Plug 'godlygeek/tabular'
+" TODO: check out Plug 'junegunn/vim-easy-align'
+
+" unix commands
+Plug 'tpope/vim-eunuch'
+
+" show 'Match x of y' when searching
+" Plug 'henrik/vim-indexed-search'
+
+" highlight all matches in incremental search
+" (conflicts with vim-indexed-search)
+Plug 'haya14busa/incsearch.vim'
 
 " file browser
-Plug 'scrooloose/nerdtree'
-
-" enable dot-command for Plugins
-Plug 'tpope/vim-repeat'
+" Plug 'scrooloose/nerdtree'
 
 " distraction-free writing
 Plug 'junegunn/goyo.vim'
@@ -39,119 +96,118 @@ Plug 'junegunn/goyo.vim'
 Plug 'ZoomWin'
 
 " redraw some intermediate steps when using PageUp/Down
+" https://stackoverflow.com/questions/4064651/what-is-the-best-way-to-do-smooth-scrolling-in-vim
 Plug 'terryma/vim-smooth-scroll'
 
-" enlarge focused window a bit
-Plug 'roman/golden-ratio'
+" identify highlighting group under cursor
+Plug 'gerw/vim-HiLinkTrace'
+
+" color parantheses depending on their depth
+" Plug 'luochen1990/rainbow'
+
+" HEX-Editor in vim
+Plug 'fidian/hexmode'
+
+
+""""""""""""""""""""""""""""""""""""""""
+" file type plugins
+
+" Scala programming language
+Plug 'derekwyatt/vim-scala'
+
+" decompile java .class files on the fly
+Plug 'vim-scripts/JavaDecompiler.vim'
+
+" Lots of filetypes
+" Plug 'sheerun/vim-polyglot'
+
+" play web framework
+Plug 'gre/play2vim'
+
+" fish shell
+" Plug 'dag/vim-fish'
+
+" HTML
+Plug 'othree/html5.vim'
+
+" colors in formats like css
+" Plug 'gorodinskiy/vim-coloresque'
+
+" Rust programming language by Mozilla
+Plug 'wting/rust.vim'
+
+
+
+
+
+""""""""""""""""""""""""""""""""""""""""
+" statusline
+
+Plug 'itchyny/lightline.vim'
+Plug 'bling/vim-bufferline'
+
+
+
+""""""""""""""""""""""""""""""""""""""""
+" colorschemes
+
+Plug 'chriskempson/base16-vim'
+" Plug 'godlygeek/csapprox'
+" Plug 'vim-scripts/guicolorscheme.vim'
+" Plug 'nanotech/jellybeans.vim'
+" Plug 'chriskempson/tomorrow-theme', {'rtp': 'vim/'}
+" Plug 'fdietze/goodday.vim'
+" Plug 'tomasr/molokai'
+" Plug 'sickill/vim-monokai'
+" Plug 'noahfrederick/vim-noctu'
+" Plug 'noahfrederick/vim-hemisu'
+
+
+""""""""""""""""""""""""""""""""""""""""
+" experimental
 
 " draw a sublime like minimap
 " Plug 'severin-lemaignan/vim-minimap'
 
 " restrict repetitive pressing of movement keys (especially arrows)
-Plug 'takac/vim-hardtime'
+" Plug 'takac/vim-hardtime'
 
-" Lots of filetypes
-Plug 'sheerun/vim-polyglot'
-Plug 'gre/play2vim'
-Plug 'dag/vim-fish'
-Plug 'othree/html5.vim'
-" Plugin 'gorodinskiy/vim-coloresque'
-" TODO: https://github.com/msanders/snipmate.vim
-
-" decompile java .class files on the fly
-Plug 'vim-scripts/JavaDecompiler.vim'
-
-" sublime-like multiple cursors
-Plug 'terryma/vim-multiple-cursors'
-
-" expand selections
-Plug 'terryma/vim-expand-region'
-
-" rainbow parentheses
-"Plugin 'oblitum/rainbow'
-"au FileType c,cpp,objc,objcpp call rainbow#load()
-"let g:rainbow_active = 1
-
-" show 'Match x of y' when searching
-" Plug 'henrik/vim-indexed-search'
-
-" highlight all matches in incremental search
-Plug 'haya14busa/incsearch.vim'
-
-" commenting
-Plug 'tpope/vim-commentary'
-
-" surround text with quotes, parantheses, ...
-Plug 'tpope/vim-surround'
-
-" align text
-Plug 'godlygeek/tabular'
-" TODO: Plugin 'junegunn/vim-easy-align'
-
-" ctrl+A/X on dates and time
-Plug 'tpope/vim-speeddating'
-
-" unix commands
-Plug 'tpope/vim-eunuch'
+" auto completion for the Rust language
+" Plug 'ebfe/vim-racer'
 
 " automatically-close-brackets-magic
-Plug 'Raimondi/delimitMate'
+" Plug 'Raimondi/delimitMate'
 
 " most recently used files and dirs
-Plug 'Shougo/neomru.vim'
+" Plug 'Shougo/neomru.vim'
 
 " Interactive command execution
-Plug 'Shougo/vimproc.vim'
+" Plug 'Shougo/vimproc.vim'
 
 " fuzzy file finding
-Plug 'Shougo/unite.vim'
+" Plug 'Shougo/unite.vim'
 Plug 'wincent/command-t', { 'do': 'cd ruby/command-t; ruby extconf.rb; make'}
-
-
-" git support
-Plug 'tpope/vim-fugitive'
-"Plugin 'gregsexton/gitv'
-"Plugin 'airblade/vim-gitgutter'
-
-" VCS change info on the left
-Plug 'mhinz/vim-signify'
+" TODO: fzf
 
 " Collaborative Editing
-"Plugin 'FredKSchott/CoVim'
-"Plugin 'emgram769/vim-multiuser'
-
+" Plug 'FredKSchott/CoVim'
+" Plug 'emgram769/vim-multiuser'
 
 " graphical editor for colorschemes
 " Plug 'vim-scripts/ColorSchemeEditor'
 
-" colorschemes
-" Bundle 'godlygeek/csapprox'
-" Bundle 'vim-scripts/guicolorscheme.vim'
-" Bundle 'nanotech/jellybeans.vim'
-Plug 'chriskempson/base16-vim'
-" Bundle 'chriskempson/tomorrow-theme', {'rtp': 'vim/'}
-" Bundle 'fdietze/goodday.vim'
-" Plug 'tomasr/molokai'
-" Plug 'sickill/vim-monokai'
-
-" % matches not only parantheses, but also HTML-Tags and more
-Plug 'edsono/vim-matchit'
-
-" identify highlighting group under cursor
-Plug 'gerw/vim-HiLinkTrace'
-
-" TODO: Plugin 'nathanaelkane/vim-indent-guides'
-
-Plug 'fidian/hexmode'
+" TODO: Plug 'nathanaelkane/vim-indent-guides'
+" TODO: syntastic
+" TODO: Plug 'vim-scripts/ShowMarks'
+" TODO: Plug 'ervandew/supertab'
+"TODO: Plug 'scrooloose/syntastic'
 
 Plug 'vim-scripts/LanguageTool'
-
-
 
 call plug#end()
 
 
-
+""""""""""""""""""""""""""""""""
 " plugin configuration
 
 
@@ -163,32 +219,33 @@ let g:rehash256 = 1 " molokai
 " YouCompleteMe
 let g:ycm_auto_trigger = 1
 let g:ycm_min_num_of_chars_for_completion = 5
+let g:ycm_key_list_previous_completion = ['<S-TAB>']
+let g:ycm_key_list_select_completion = ['<TAB>']
+
 
 " dont display detail window about current completion
-set completeopt=menuone,longest
+" set completeopt=menuone,longest
 " let g:ycm_autoclose_preview_window_after_insertion = 1
 
 
 " Eclim
-let g:EclimCompletionMethod = 'omnifunc'
-let g:EclimScalaSearchSingleResult = 'edit'
-let g:EclimMakeLCD = 0
+" let g:EclimCompletionMethod = 'omnifunc'
+" let g:EclimScalaSearchSingleResult = 'edit'
+" let g:EclimMakeLCD = 0
 
 
 " restore-vim
-set viewoptions=cursor,folds,slash,unix
 " let g:skipview_files = ['*\.vim']
 
 
 " DelimitMate
-let delimitMate_expand_cr = 1
-let delimitMate_balance_matchpairs = 1
-
+" let delimitMate_expand_cr = 1
+" let delimitMate_balance_matchpairs = 1
 
 " Unite
 " call unite#filters#matcher_default#use(['matcher_fuzzy'])
-call unite#custom#source('file_rec', 'white_globs', ['*.scala','*.conf','*.js','*.sbt'])
-call unite#custom#source('file_rec', 'ignore_globs', ['target/'])
+" call unite#custom#source('file_rec', 'white_globs', ['*.scala','*.conf','*.js','*.sbt'])
+" call unite#custom#source('file_rec', 'ignore_globs', ['target/'])
 
 " CommandT
 let g:CommandTFileScanner = 'git'
@@ -196,12 +253,12 @@ let g:CommandTFileScanner = 'git'
 
 
 " Use ag for search
-if executable('ag')
-  let g:unite_source_grep_command = 'ag'
-  let g:unite_source_grep_default_opts = '--nogroup --nocolor --column'
-  let g:unite_source_grep_recursive_opt = ''
-  let g:unite_source_rec_async_command= 'ag --nocolor --nogroup --hidden -g ""'
-endif
+" if executable('ag')
+"   let g:unite_source_grep_command = 'ag'
+"   let g:unite_source_grep_default_opts = '--nogroup --nocolor --column'
+"   let g:unite_source_grep_recursive_opt = ''
+"   let g:unite_source_rec_async_command= 'ag --nocolor --nogroup --hidden -g ""'
+" endif
 
 
 " Signify
@@ -215,10 +272,28 @@ let g:signify_sign_delete_first_line = '⌅'
 let g:languagetool_jar=$HOME."/local/LanguageTool-2.6/languagetool-commandline.jar"
 
 " Hardtime
-let g:hardtime_allow_different_key = 1
-let g:hardtime_maxcount = 3
-let g:hardtime_default_on = 1
-let g:list_of_normal_keys = ["<UP>", "<DOWN>", "<LEFT>", "<RIGHT>", "x"]
-let g:list_of_visual_keys = ["<UP>", "<DOWN>", "<LEFT>", "<RIGHT>"]
-let g:list_of_insert_keys = ["<UP>", "<DOWN>", "<LEFT>", "<RIGHT>", "<Del>", "<Backspace>"]
+" let g:hardtime_allow_different_key = 1
+" let g:hardtime_maxcount = 5
+" let g:hardtime_default_on = 1
+" let g:list_of_normal_keys = ["<UP>", "<DOWN>", "<LEFT>", "<RIGHT>", "x"]
+" let g:list_of_visual_keys = ["<UP>", "<DOWN>", "<LEFT>", "<RIGHT>"]
+" let g:list_of_insert_keys = ["<LEFT>", "<RIGHT>", "<Del>", "<Backspace>"]
 
+" racer
+" set hidden
+" let g:racer_cmd = "racer"
+" let $RUST_SRC_PATH="/home/felix/projects/rust/src"
+
+
+" rainbow
+" let g:rainbow_active = 1
+
+
+" ultisnips
+" Trigger configuration. Do not use <tab> if you use https://github.com/Valloric/YouCompleteMe.
+let g:UltiSnipsExpandTrigger="<c-e>"
+let g:UltiSnipsJumpForwardTrigger="<c-b>"
+let g:UltiSnipsJumpBackwardTrigger="<c-z>"
+
+" If you want :UltiSnipsEdit to split your window.
+" let g:UltiSnipsEditSplit="vertical"

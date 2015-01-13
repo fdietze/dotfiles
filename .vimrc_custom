@@ -1,0 +1,89 @@
+" highlight current word
+let g:highlighting = 0
+function! HighlightCurrentWord()
+    if g:highlighting == 1 && @/ =~ '^\\C\\<'.expand('<cword>').'\\>$'
+        let g:highlighting = 0
+        return ":silent nohlsearch\<CR>"
+    endif
+    let @/ = '\C\<'.expand('<cword>').'\>'
+    let g:highlighting = 1
+    return ":silent set hlsearch\<CR>"
+endfunction
+
+" highlight visually selected text
+function! HighlightSelection()
+  let pat = escape(@*, '\')
+  let pat = substitute(pat, '\_s\+$', '\\s\\*', '')
+  let pat = substitute(pat, '^\_s\+', '\\s\\*', '')
+  let pat = substitute(pat, '\_s\+',  '\\_s\\+', 'g')
+  let pat = "\\V" . escape(pat, '\"')
+  let @/=pat
+  let g:highlighting = 1
+endfunction
+
+" Highlight all instances of word under cursor when idle
+function! AutoHighlightToggle()
+    let @/ = ''
+    if exists('#auto_highlight')
+        au! auto_highlight
+        augroup! auto_highlight
+        setl updatetime=4000
+        echo 'Highlight current word: off'
+        return 0
+    else
+        augroup auto_highlight
+            au!
+            au CursorHold * let @/ = '\V\<'.escape(expand('<cword>'), '\').'\>'
+        augroup END
+        setl updatetime=200
+        echo 'Highlight current word: ON'
+        return 1
+    endif
+endfunction
+
+
+function! StripTrailingSpaces()
+    let _s=@/ " backup search string
+    let save_cursor = getpos(".") " backup cursor
+    " :silent! %s#\($\n\s*\)\+\%$##
+    %s/\s\+$//e
+    let @/=_s " restore search string
+    call setpos('.', save_cursor) " restore cursor
+endfunction
+
+
+
+" try to capture and analyze keystrokes
+"
+" let g:keys = ['x','v','l','c','w','k','h','g','f','q','u','i','a','e','o','s','n','r','t','d','y','p','z','b','m',',','.','j','X','V','L','C','W','K','H','G','F','Q','U','I','A','E','O','S','N','R','T','D','Y','P','Z','B','M','J','"', ':', '[', ']', '(', ')', '{', '}', '<Space>', '<Right>', '<Left>', '<Up>', '<Down>', '<Home>', '<End>']
+" " TODO: '
+" " TODO: Ctrl+key
+" " TODO: f + key
+" " TODO: disables delimitMate
+" let g:keyCounts = {}
+" let g:keyHistory = []
+" let g:keyHistorySize = 5
+
+" for key in g:keys
+"     let g:keyCounts[key] = 0
+"     let esckey = substitute(key, "<", "<lt>", "g")
+"     " execute 'noremap <expr> ' . key . ' HitCommand(''' . key . ''',''' . esckey . ''')'
+"     " execute 'noremap! <expr> ' . key . ' HitCommand(''' . key . ''',''' . esckey . ''')'
+" endfor
+
+" fun! HitCommand(key,esckey)
+"     " echo 'char: '. a:key
+"     let g:keyCounts[a:esckey] += 1
+"     let g:keyHistory = g:keyHistory + [a:esckey]
+"     let g:keyHistory = reverse(reverse(g:keyHistory)[:g:keyHistorySize])
+"     " echo a:key .': '. g:keyCounts[a:esckey]
+"     " echo sort(items(g:keyCounts),"CountCompare")[0:5]
+"     echo '('.join(g:keyHistory,"").')'
+"     " echo g:keyHistory
+"     return a:key
+" endfun
+
+" fun! CountCompare(c1, c2)
+"     return a:c2[1] - a:c1[1]
+" endfun
+

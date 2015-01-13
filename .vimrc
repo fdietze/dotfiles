@@ -1,24 +1,29 @@
 " TODO: exit insert mode on <Up>/<Down>, move inside wrapped lines
 " TODO: leave insert mode when losing focus?
 " TODO: remove stuff, thats already in vim-sensible
-" TODO: j{a-z} jump to mark
-" https://github.com/Shougo/unite.vim
 " http://chibicode.com/vimrc/
 " http://nvie.com/posts/how-i-boosted-my-vim/
-" TODO: Plugin 'vim-scripts/ShowMarks'
-" TODO: Plugin 'ervandew/supertab'
-"TODO: Plugin 'scrooloose/syntastic'
 
-set nocompatible " Use Vim settings, rather than Vi settings
 
-set wildignore=*.o,*.obj,*.class,target/**
+" Use Vim settings, rather than Vi settings
+set nocompatible 
+
+" allow UTF-8 characters in vimrc
+scriptencoding utf-8 
+
+" clear all keymappings
+mapclear
+
 
 source $HOME/.vimrc_plugins
+source $HOME/.vimrc_custom
 source $HOME/.vimrc_statusline
 source $HOME/.vimrc_keybindings
 
+
 " Enable file type detection.
 filetype plugin indent on
+
 
 " Colorscheme
 if filereadable($HOME."/.colors") && match(readfile($HOME."/.colors"),"light")
@@ -28,9 +33,6 @@ else
     set background=light
     colorscheme goodmorning
 endif
-
-"set t_Co=256
-
 
 
 " gui settings
@@ -53,12 +55,12 @@ set incsearch                     " do incremental searching
 set ignorecase                    " smart case sensitive search
 set smartcase                     "              "
 set hls                           " hightlight search results
-set listchars=tab:⊳\ ,trail:·     " display whitespaces
 set scrolloff=5 sidescrolloff=10  " keep some lines before and after the cursor visible
 set wrap                          " break long lines
 set linebreak                     " break only at word boundary
-set nolist
-set breakindent
+set listchars=tab:⊳\ ,trail:·     " display whitespaces
+set list
+set breakindent                   " indent wrapped lines
 set breakindentopt=shift:2
 set display=lastline,uhex         " if last line does not fit on screen, display it anyways
 
@@ -84,10 +86,11 @@ set lazyredraw                    " performance: dont redraw while executing mac
 set ttyfast                       " allow vim to write more characters to screen
 set autoread                      " read file when changed from outside
 set confirm                       " ask to save files when closing vim
-" set clipboard=unnamedplus         " alias unnamed register to the + register, which is the X Window clipboard
 cd %:p:h                          " cd to directory of current file
 set exrc                          " source .vimrc from directories
 set secure                        " secure local vimrc execution
+set wildignore=*.o,*.obj,*.class,target/**
+set viewoptions=cursor,folds,slash,unix
 
 " backup/undo/swap files
 set swapfile
@@ -110,92 +113,34 @@ if !isdirectory(expand(&directory))
 endif
 
 
-
-
-" highlight current word
-let g:highlighting = 0
-function! HighlightCurrentWord()
-    if g:highlighting == 1 && @/ =~ '^\\C\\<'.expand('<cword>').'\\>$'
-        let g:highlighting = 0
-        return ":silent nohlsearch\<CR>"
-    endif
-    let @/ = '\C\<'.expand('<cword>').'\>'
-    let g:highlighting = 1
-    return ":silent set hlsearch\<CR>"
-endfunction
-
-" highlight visually selected text
-function! HighlightSelection()
-  let pat = escape(@*, '\')
-  let pat = substitute(pat, '\_s\+$', '\\s\\*', '')
-  let pat = substitute(pat, '^\_s\+', '\\s\\*', '')
-  let pat = substitute(pat, '\_s\+',  '\\_s\\+', 'g')
-  let pat = "\\V" . escape(pat, '\"')
-  let @/=pat
-  let g:highlighting = 1
-endfunction
-
-" Highlight all instances of word under cursor when idle
-function! AutoHighlightToggle()
-    let @/ = ''
-    if exists('#auto_highlight')
-        au! auto_highlight
-        augroup! auto_highlight
-        setl updatetime=4000
-        echo 'Highlight current word: off'
-        return 0
-    else
-        augroup auto_highlight
-            au!
-            au CursorHold * let @/ = '\V\<'.escape(expand('<cword>'), '\').'\>'
-        augroup END
-        setl updatetime=200
-        echo 'Highlight current word: ON'
-        return 1
-    endif
-endfunction
-
-
-function! StripTrailingSpaces()
-    let _s=@/ " backup search string
-    let save_cursor = getpos(".") " backup cursor
-    " :silent! %s#\($\n\s*\)\+\%$##
-    %s/\s\+$//e
-    let @/=_s " restore search string
-    call setpos('.', save_cursor) " restore cursor
-endfunction
-
-
-augroup misc
-    autocmd!
-
-    autocmd FileType text setlocal textwidth=78
-    autocmd FileType make setlocal ts=8 sts=8 sw=8 noexpandtab
-
-    " filetype aliases
-    au BufNewFile,BufRead *.sbt set filetype=scala
-    au BufNewFile,BufRead *.gdb set filetype=sh
-    au BufNewFile,BufRead *.jad set filetype=java
-
-    " on save, apply autoformat and delete trailing empty line
-    autocmd BufWritePost *.hh,*.cc,*.h,*.cpp,*.scala,*.sh,*.vimrc*
-                \ call StripTrailingSpaces()
-
-    autocmd BufEnter *.hh,*.cc,*.h,*.cpp let g:formatprg_args_expr_cpp = '"--mode=c"'
-
-    " return to last edit position when opening a file.
-    " except for git commits: Enter insert mode instead.
-    autocmd BufReadPost *
-    \ if line("'\"") > 0 && line("'\"") <= line("$") |
-    \   if &filetype == 'gitcommit' |
-    \       setlocal spell |
-    \       startinsert |
-    \   else |
-    \      exe "normal! g`\"" |
-    \    endif |
-    \ endif
-
+" define a group `vimrc` and initialize.
+augroup vimrc
+  autocmd!
 augroup END
+
+" break text automatically
+autocmd vimrc FileType text setlocal textwidth=78
+
+" filetype aliases
+autocmd vimrc BufNewFile,BufRead *.sbt set filetype=scala
+autocmd vimrc BufNewFile,BufRead *.gdb set filetype=sh
+autocmd vimrc BufNewFile,BufRead *.jad set filetype=java
+
+" on save, delete trailing spaces
+autocmd vimrc BufWritePost *.hh,*.cc,*.h,*.cpp,*.scala,*.sh,*.vimrc*
+            \ call StripTrailingSpaces()
+
+" return to last edit position when opening a file.
+" except for git commits: Enter insert mode instead.
+autocmd vimrc BufReadPost *
+\ if line("'\"") > 0 && line("'\"") <= line("$") |
+\   if &filetype == 'gitcommit' |
+\       setlocal spell |
+\       startinsert |
+\   else |
+\      exe "normal! g`\"" |
+\    endif |
+\ endif
 
 
 " leave insert mode quickly
@@ -203,7 +148,9 @@ if ! has('gui_running')
     set ttimeoutlen=10
     augroup FastEscape
         autocmd!
-        au InsertEnter * set timeoutlen=0
-        au InsertLeave * set timeoutlen=1000
     augroup END
+
+    autocmd FastEscape InsertEnter * set timeoutlen=0
+    autocmd FastEscape InsertLeave * set timeoutlen=1000
 endif
+
