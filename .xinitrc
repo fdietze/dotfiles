@@ -3,6 +3,9 @@
 # disable touch while typing
 # syndaemon -t -k -i 2 & 
 
+# set up keyboard layouts and toggle shortcut
+setxkbmap -layout de,de -variant neo,basic -option -option grp:menu_toggle
+
 # initialize keybindings
 xbindkeys
 
