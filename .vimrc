@@ -18,7 +18,7 @@ source $HOME/.vimrc_statusline
 source $HOME/.vimrc_keybindings
 
 " Enable file type detection.
-" filetype plugin indent on
+filetype plugin indent on
 
 " Colorscheme
 if filereadable($HOME."/.colors") && match(readfile($HOME."/.colors"),"light")
@@ -47,6 +47,7 @@ endif
 syntax on
 set cursorline                    " highlight current line
 set number                        " enable line numbers
+set relativenumber                " show relative numbers for all lines but the current one
 set ruler                         " show the cursor position all the time
 set incsearch                     " do incremental searching
 set ignorecase                    " smart case sensitive search
@@ -62,6 +63,7 @@ set breakindentopt=shift:2
 set display=lastline,uhex         " if last line does not fit on screen, display it anyways
 
 " editing
+set gdefault                      " substitute all occurrences in line per default
 set backspace=indent,eol,start    " allow backspacing over everything in insert mode
 set tabstop=4                     " size of a hard tabstop
 set shiftwidth=4                  " size of an "indent"
@@ -180,7 +182,7 @@ augroup misc
                 \ call StripTrailingSpaces()
 
     autocmd BufEnter *.hh,*.cc,*.h,*.cpp let g:formatprg_args_expr_cpp = '"--mode=c"'
-       
+
     " return to last edit position when opening a file.
     " except for git commits: Enter insert mode instead.
     autocmd BufReadPost *
