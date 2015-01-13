@@ -6,7 +6,7 @@ then # dark
     panel_height=21
     bgcolor=121212
 else # light
-    font="-*-Droid Sans Mono-*-*-*-*-15-*-*-*-*-*-*-*"
+    font="-*-Droid Sans Mono-*-*-*-*-14-*-*-*-*-*-*-*"
     panel_height=21
     bgcolor=FFFFFF
 fi
