@@ -54,7 +54,6 @@ hc keybind $Mod-z          spawn playerctl next
 hc keybind $Mod-Ctrl-q spawn nmcli radio wifi on
 hc keybind $Mod-Ctrl-d spawn nmcli radio wifi off
 
-
 # set default layout to grid
 hc set default_frame_layout 3
 herbstclient set_layout grid
@@ -133,8 +132,6 @@ hc mousebind $Mod-Button3 resize
 
 # focus
 hc keybind $Mod-BackSpace   cycle_monitor
-hc keybind $Mod-Tab         cycle_all +1
-hc keybind $Mod-Shift-Tab   cycle_all -1
 #hc keybind $Mod-c cycle
 hc keybind $Mod-b jumpto urgent
 
@@ -165,7 +162,11 @@ if [ ! -f ~/.colors ]; then
     # black background
     xsetroot -solid '#000000'
 
-    dark nopanel
+    if daytime; then
+        light nopanel
+    else
+        dark nopanel
+    fi
 fi
 
 
