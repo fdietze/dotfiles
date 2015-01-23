@@ -31,6 +31,9 @@ source $ZSH/oh-my-zsh.sh
 
 source ~/.sh_aliases
 
+# renaming utils
+autoload -U zmv
+
 # set prompt theme
 source ~/.oh-my-zsh/themes/slim.zsh-theme
 
