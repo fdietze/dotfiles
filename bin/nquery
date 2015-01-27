@@ -1,0 +1,5 @@
+#!/bin/bash
+curl -H "Content-Type: application/json" \
+    -d "{'statements':[{'statement':'$*'}]}" \
+    http://localhost:7474/db/data/transaction/commit
+echo
