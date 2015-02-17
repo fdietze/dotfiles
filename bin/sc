@@ -3,7 +3,7 @@
 # example usage: sg git checkout
 
 gitlog() {
-    git log --pretty=format:'%h %ad %s%d <%an> %ar' --abbrev-commit --date=short
+    git log --pretty=format:'%h %ad %s%d <%an> %ar' --abbrev-commit --date=short --reverse
 }
 
-gitlog | fzf | cut -f1 | while read -r hash description; do $@ "$hash"; done
+gitlog | fzf --no-sort | cut -f1 | while read -r hash description; do $@ "$hash"; done
