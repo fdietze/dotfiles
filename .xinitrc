@@ -33,5 +33,8 @@ rm ~/.colors
 # hide mouse after some seconds
 unclutter -idle 3 -jitter 5 -noevents -root &
 
+# change color temperature depending on sun position
+systemctl --user start redshift 
+
 exec dbus-launch herbstluftwm --locked
 
