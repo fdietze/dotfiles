@@ -107,6 +107,8 @@ for i in ${!tag_names[@]} ; do
     if ! [ -z "$key" ] ; then
         hc keybind "$Mod-F$key" use_index "$i"
         hc keybind "$Mod-Shift-F$key" chain , move_index "$i" , use_index $i
+        hc keybind "$Mod-$key" use_index "$i"
+        hc keybind "$Mod-Shift-$key" chain , move_index "$i" , use_index $i
     fi
 done
 

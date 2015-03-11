@@ -10,16 +10,16 @@ setxkbmap -layout de,de -variant neo,basic -option -option grp:menu_toggle
 xbindkeys
 
 # disable number keys to get used to the ones of NEO
-xmodmap -e 'keycode 10='
-xmodmap -e 'keycode 11='
-xmodmap -e 'keycode 12='
-xmodmap -e 'keycode 13='
-xmodmap -e 'keycode 14='
-xmodmap -e 'keycode 15='
-xmodmap -e 'keycode 16='
-xmodmap -e 'keycode 17='
-xmodmap -e 'keycode 18='
-xmodmap -e 'keycode 19='
+# xmodmap -e 'keycode 10='
+# xmodmap -e 'keycode 11='
+# xmodmap -e 'keycode 12='
+# xmodmap -e 'keycode 13='
+# xmodmap -e 'keycode 14='
+# xmodmap -e 'keycode 15='
+# xmodmap -e 'keycode 16='
+# xmodmap -e 'keycode 17='
+# xmodmap -e 'keycode 18='
+# xmodmap -e 'keycode 19='
 
 # reset colorscheme
 rm ~/.colors
