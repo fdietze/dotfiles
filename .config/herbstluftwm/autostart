@@ -19,6 +19,7 @@ Mod=Mod1    # Use left alt as the main modifier
 hc keybind $Mod-Shift-q quit
 hc keybind $Mod-Shift-y reload
 hc keybind $Mod-q close
+hc keybind $Mod-x close
 hc keybind $Mod-k spawn xkill
 hc keybind $Mod-d spawn termitexcwd
 hc keybind $Mod-y spawn xboomx
@@ -115,7 +116,7 @@ hc keybind $Mod-Shift-c chain ,  move_index  +1 --skip-visible , use_index +1
 hc keybind $Mod-v use_index -1 --skip-visible
 hc keybind $Mod-Shift-v chain ,  move_index  -1 --skip-visible , use_index -1
 
-hc keybind $Mod-x use_previous
+hc keybind $Mod-w use_previous
 
 # layouting
 hc keybind $Mod-comma remove
