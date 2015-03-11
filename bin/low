@@ -7,7 +7,6 @@ sudo rfkill block all
 
 light
 
-killall dropbox
 systemctl --user stop btsync
 systemctl --user stop dropbox
 
