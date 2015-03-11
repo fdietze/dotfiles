@@ -107,8 +107,9 @@ nmap <silent> <leader>da m`:silent +g/\m^\s*$/d<CR>``:noh<CR>
 
 " Unite / Fuzzy file finding
 " nnoremap <Leader>e :<C-u>Unite -no-split -start-insert file_rec<CR>
-nnoremap <Leader>e :<C-u>CommandT<CR>
 " nnoremap <Leader>a :<C-u>Unite -no-split -start-insert buffer tab file_mru<CR>
+" nnoremap <Leader>e :<C-u>CommandT<CR>
+nmap <leader>e :CtrlP<CR>
 
 " clear search highlighting and locations
 nnoremap <silent> <Leader><Leader> :nohlsearch<CR>:LocationListClear<CR>:lclose<CR>

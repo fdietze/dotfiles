@@ -189,7 +189,8 @@ Plug 'chriskempson/base16-vim'
 
 " fuzzy file finding
 " Plug 'Shougo/unite.vim'
-Plug 'wincent/command-t', { 'do': 'cd ruby/command-t; ruby extconf.rb; make'}
+" Plug 'wincent/command-t', { 'do': 'cd ruby/command-t; ruby extconf.rb; make'}
+Plug 'kien/ctrlp.vim'
 " TODO: fzf
 
 " Collaborative Editing
@@ -251,9 +252,11 @@ let g:ycm_key_list_select_completion = ['<TAB>']
 " call unite#custom#source('file_rec', 'ignore_globs', ['target/'])
 
 " CommandT
-let g:CommandTFileScanner = 'git'
+" let g:CommandTFileScanner = 'git'
 " let g:CommandTCancelMap=['<Esc>', '<C-c>', '<Backspace>']
-
+let g:ctrlp_user_command = 'ag %s -l --nocolor -g ""'
+let g:ctrlp_working_path_mode = 'r'
+let g:ctrlp_reuse_window = 'startify'
 
 " Use ag for search
 " if executable('ag')
