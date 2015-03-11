@@ -114,8 +114,8 @@ nmap <silent> <leader>da m`:silent +g/\m^\s*$/d<CR>``:noh<CR>
 " nnoremap <Leader>e :<C-u>CommandT<CR>
 nmap <leader>e :CtrlP<CR>
 
-" clear search highlighting and locations
-nnoremap <silent> <Leader><Leader> :nohlsearch<CR>:LocationListClear<CR>:lclose<CR>
+" clear search highlighting
+nnoremap <silent> <Leader><Leader> :nohlsearch<CR>
 " nnoremap <Esc> :nohlsearch<CR><Esc>
 
 " toggle distraction free writing
