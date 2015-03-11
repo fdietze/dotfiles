@@ -16,11 +16,13 @@ nnoremap <Leader>th :if AutoHighlightToggle()<Bar>set hls<Bar>endif<CR>
 " j: jump to mark
 nnoremap j `
 
-" k: (nothing yet)
-nnoremap <silent> k <Nop>
+" k: previous buffer
+nnoremap <silent> k :bprev<CR>
+vnoremap <silent> k :bprev<CR>
 
-" l: (nothing yet)
-nnoremap <silent> l <Nop>
+" l: next buffer
+nnoremap <silent> l :bnext<CR>
+vnoremap <silent> l :bnext<CR>
 
 nnoremap ö :Autoformat<CR>:update<CR>
 nnoremap ä :q<CR>
@@ -83,10 +85,10 @@ noremap <expr> <silent> <Home> col('.') == match(getline('.'),'\S')+1 ? '0' : '^
 imap <silent> <Home> <C-O><Home>
 
 " Switch buffers with tab
-nnoremap <silent> <Tab> :bnext<CR>
-nnoremap <silent> <S-Tab> :bprevious<CR>
-vnoremap <silent> <Tab> :bnext<CR>
-vnoremap <silent> <S-Tab> :bprevious<CR>
+" nnoremap <silent> <Tab> :bnext<CR>
+" nnoremap <silent> <S-Tab> :bprevious<CR>
+" vnoremap <silent> <Tab> :bnext<CR>
+" vnoremap <silent> <S-Tab> :bprevious<CR>
 
 " jump to tag (for example in help files)
 nnoremap <leader>j <C-]>
