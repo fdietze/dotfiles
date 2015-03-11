@@ -139,6 +139,9 @@ Plug 'othree/html5.vim'
 " Rust programming language by Mozilla
 Plug 'wting/rust.vim'
 
+" LaTeX
+Plug 'LaTeX-Box-Team/LaTeX-Box'
+
 
 
 
