@@ -22,7 +22,7 @@ nnoremap <silent> k <Nop>
 " l: (nothing yet)
 nnoremap <silent> l <Nop>
 
-nnoremap ö :update<CR>
+nnoremap ö :Autoformat<CR>:update<CR>
 nnoremap ä :q<CR>
 nnoremap ü :bd<CR>
 

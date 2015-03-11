@@ -108,6 +108,9 @@ Plug 'gerw/vim-HiLinkTrace'
 " HEX-Editor in vim
 Plug 'fidian/hexmode'
 
+" reformat source code
+Plug 'Chiel92/vim-autoformat'
+
 
 """"""""""""""""""""""""""""""""""""""""
 " file type plugins
