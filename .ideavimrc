@@ -14,7 +14,7 @@ set scrolloff=5 sidescrolloff=10  " keep some lines before and after the cursor 
 nnoremap <space>V :e ~/.ideavimrc<CR>
 
 " simple closing and saving (helpful in NEO keyboard layout)
-noremap ö :w<CR>
+nnoremap ö :action ReformatCode<CR>:w<CR>
 nnoremap ä :action Exit<CR>
 nnoremap ü :q<CR>
 nnoremap <space>ü :action CloseAllEditorsButActive<CR>
