@@ -1,5 +1,6 @@
 #!/bin/bash
-curl -H "Content-Type: application/json" \
-    -d "{'statements':[{'statement':'$*'}]}" \
-    http://localhost:7474/db/data/transaction/commit
-echo
+JSON=$(curl --silent -H "Content-Type: application/json" \
+    -d "{\"statements\":[{\"statement\":\"$*\",\"resultDataContents\":[\"graph\",\"row\"]}]}" \
+    http://localhost:7474/db/data/transaction/commit)
+
+echo $JSON | underscore print --color --outfmt json
