@@ -36,6 +36,24 @@ o() { xdg-open $1 > /dev/null 2>&1; }
 alias of='o "$(fzf)"'
 f() { $@ "$(fzf)"; }
 ft() { $@ "$(ls -tr1 --group-directories-first | fzf --no-sort)"; } # least modified files
+# cd into a temporary directory
+cdt () {
+    local t
+    t=$(mktemp -d)
+    echo "$t"
+    builtin cd "$t"
+}
+# smart cd function, allows switching to /etc when running 'cd /etc/fstab'
+cd() {
+    if (( ${#argv} == 1 )) && [[ -f ${1} ]]; then
+        [[ ! -e ${1:h} ]] && return 1
+        print "Correcting ${1} to ${1:h}"
+        builtin cd ${1:h}
+    else
+        builtin cd "$@"
+    fi
+}
+
 alias mcp='noglob zmv -C -W'
 alias mln='noglob zmv -L -W'
 alias mmv='noglob zmv -W'
