@@ -30,6 +30,8 @@ rm ~/.colors
 # bluetooth-applet &
 # dropboxd &
 
+# hide mouse after some seconds
+unclutter -idle 3 -jitter 5 -noevents -root &
 
 exec dbus-launch herbstluftwm --locked
 
