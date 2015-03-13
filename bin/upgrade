@@ -1,16 +1,19 @@
-#!/bin/bash
+#!/bin/bash -e
 
-yaourt -Sc --noconfirm && \
-yaourt -Syyua --devel --noconfirm && \
-# yaourt -Rscn $(yaourt -Qtdq)
+echo "upgrading installed packages..."
+yaourt -Syyua --devel --noconfirm
+
+echo "cleaning package cache..."
+sudo pkgcacheclean
+
+echo "update package search database..."
 sudo pkgfile -u
-paccache -r && \
-paccache -ruk0 && \
+
+echo "optimize pacman database..."
 sudo pacman-optimize
 
-echo "updating mlocate database..." && \
+echo "updating mlocate database..."
 sudo updatedb
-
 
 # sudo btrfs filesystem defragment /
 sync
