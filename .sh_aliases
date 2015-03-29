@@ -57,6 +57,8 @@ cd() {
 alias mcp='noglob zmv -C -W'
 alias mln='noglob zmv -L -W'
 alias mmv='noglob zmv -W'
+alias sx='startx'
+alias xkodi='/usr/bin/xinit /usr/bin/dbus-launch --exit-with-session /usr/bin/kodi-standalone -- :0 -nolisten tcp vt1'
 
 
 alias wa="tungsten" # WolframAlpha client
