@@ -82,6 +82,8 @@ alias gp="git push"
 alias gl="git lg"
 alias gst="git status"
 
+alias em="emacs -nw"
+
 alias commandhistory="cat ~/.zsh_history| cut -d ';' -f 2 | grep -P \"^[\w\\-]+([^\w/=@]|$)\" -o | grep -P \"^[\w\\-]+\" -o"
 alias listaliases="alias | cut -d '=' -f 1"
 
