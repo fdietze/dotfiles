@@ -140,7 +140,7 @@ hc keybind $Mod-b jumpto urgent
 
 
 
-hc set always_show_frame 1
+hc set always_show_frame 0
 hc set frame_border_inner_width 0
 hc set window_border_inner_width 0
 hc set frame_bg_transparent 1
