@@ -79,4 +79,13 @@ alias gp="git push"
 alias gl="git lg"
 alias gst="git status"
 
+alias commandhistory="cat ~/.zsh_history| cut -d ';' -f 2 | grep -P \"^[\w\\-]+([^\w/=@]|$)\" -o | grep -P \"^[\w\\-]+\" -o"
+alias listaliases="alias | cut -d '=' -f 1"
+
+alias mostusedcommands="commandhistory | sort | uniq -c | sort -n"
+alias mostusedaliases="commandhistory | grep -Fx \"\$(listaliases)\" | sort | uniq -c | sort -n"
+alias mostusednotaliases="commandhistory | grep -Fxv \"\$(listaliases)\" | sort | uniq -c | sort -n"
+
+alias leastusedaliases="{commandhistory | grep -Fx \"\$(listaliases)\" | sort | uniq -c | sort -nr; listaliases | grep -Fvx \"\$(commandhistory)\" | sed 's/^.*/      0 &/'}"
+
 # vim: ft=sh
