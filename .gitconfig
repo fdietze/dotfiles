@@ -15,6 +15,9 @@
 [alias]
     co = checkout
     ci = commit
+    ca = commit -a
+    cm = commit -m
+    cam = commit -a -m
     amend = commit --amend
     st = status
     br = branch
