@@ -19,8 +19,6 @@ alias fucking="sudo"
 alias lo="locate -i"
 # alias ff="find . -iname"
 alias ff="ag -i -g"
-alias g="grep"
-alias gi="grep -i"
 alias gg="grep -irn"
 alias agg="ag -S -f"
 alias md="mkdir -p"
@@ -84,5 +82,10 @@ alias scala="scala -Dscala.color"
 alias defrag="sudo btrfs filesystem defragment -r -v -f -clzo"
 alias jsb="underscore print --color --outfmt json" # beautify json
 
+alias g="git"
+alias gu="git up"
+alias gp="git push"
+alias gl="git lg"
+alias gst="git status"
 
 # vim: ft=sh
