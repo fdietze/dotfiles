@@ -59,6 +59,7 @@ alias mln='noglob zmv -L -W'
 alias mmv='noglob zmv -W'
 alias sx='startx'
 alias xkodi='/usr/bin/xinit /usr/bin/dbus-launch --exit-with-session /usr/bin/kodi-standalone -- :0 -nolisten tcp vt1'
+alias speakerup='amixer -c 0 sset Speaker 100%'
 
 
 alias wa="tungsten" # WolframAlpha client
