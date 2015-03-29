@@ -14,6 +14,8 @@ alias vvp="vim ~/.vimrc_plugins"
 alias vvk="vim ~/.vimrc_keybindings"
 alias vvs="vim ~/.vimrc_statusline"
 
+alias sd="sudo"
+alias fucking="sudo"
 alias lo="locate -i"
 # alias ff="find . -iname"
 alias ff="ag -i -g"
