@@ -1,5 +1,5 @@
 export EDITOR=vim
-export BROWSER=chromium
+export BROWSER=qutebrowser
 export DE=mate
 
 # fix java apps in tiling window managers
