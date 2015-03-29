@@ -24,6 +24,7 @@ function conky_init()
             charwidth    = 9
         }
     end
+    s.cpucount = exec("grep 'physical id' /proc/cpuinfo | wc -l")
 end
 
 function conky(var)
@@ -85,30 +86,39 @@ function conky_hctags()
     return tags .. bg(s.bgcolor)
 end
 
-function conky_cpu(cpucount, height)
+function conky_cpu(height)
     local str = conky_prefix("cpu ")
     -- bar for each cpu
-    for cpu = 0,(cpucount-1) do
+    for cpu = 0,(s.cpucount-1) do
         local cpuload = conky("cpu cpu"..cpu.."")
         str = str .. conky_vbar(cpuload, 100, height)
     end
     return str
 end
 
-function conky_mem()
-    return conky_prefix("mem ")..conky_format("%7s", conky("memeasyfree"))
+function conky_mem(height)
+    local swapperc = tonumber(conky("swapperc"))
+    local str = conky_prefix("mem ")
+    str = str..conky_vbar(conky("memperc"),100, height)
+
+    if(swapperc ~= nil and swapperc > 0) then
+        str = str ..fg(s.fgcolorbad)..conky_vbar(conky("swapperc"),100, height)
+    end
+
+    return str
 end
 
-function conky_bat()
+function conky_bat(height)
     local col = fg(s.fgcolor)
     local batpc = conky("battery_percent")
-    if(batpc ~= nil and tonumber(batpc) <= 10) then
+    if(batpc ~= nil and tonumber(batpc) <= 5) then
         col = fg(s.fgcolorbad)
     end
-    return conky_prefix("bat ")..col..conky_format("%11s", conky("battery_time"))
+    return conky_prefix("bat ")..col..conky_vbar(conky("battery_percent"),100, height)..conky_format("%11s", conky("battery_time"))
+
 end
 
-function conky_net()
+function conky_net(height)
     function iface_speed(iface)
         return " "..conky_format("%7s", trim(conky("upspeedf "..iface))).."K"..icon("uparrow3.xbm")
         .." "..conky_format("%7s", trim(conky("downspeedf "..iface))).."K"..icon("downarrow3.xbm")
@@ -120,16 +130,16 @@ function conky_net()
         if iface ~= "lo" then
             local essid = conky("wireless_essid "..iface)
             if( essid == nil or essid == "" ) then -- ethernet device
-                str = str .. conky_prefix("eth ") .. iface_speed(iface)
+                str = str ..conky_prefix(iface).. iface_speed(iface)
             else -- wifi device
                 if( essid ~= "off/any" ) then 
-                    local qual = tonumber(conky("wireless_link_qual_perc " .. iface))
+                    -- local qual = tonumber(conky("wireless_link_qual_perc " .. iface))
                     
-                    if     qual <= 33 then str = str .. conky_prefix(icon("wireless10.xbm"))
-                    elseif qual <= 66 then str = str .. conky_prefix(icon("wireless9.xbm"))
-                    else                   str = str .. conky_prefix(icon("wireless8.xbm")) end
+                    -- if     qual <= 33 then str = str .. conky_prefix(icon("wireless10.xbm"))
+                    -- elseif qual <= 66 then str = str .. conky_prefix(icon("wireless9.xbm"))
+                    -- else                   str = str .. conky_prefix(icon("wireless8.xbm")) end
 
-                    str = str .. " ".. essid .. iface_speed(iface)
+                    str = str..conky_prefix(iface).." "..conky_vbar(conky("wireless_link_qual_perc "..iface), 100, height) .. " ".. essid .. iface_speed(iface)
                 end
             end
         end
@@ -140,9 +150,10 @@ end
 function conky_vol(height)
     local vol = tonumber(exec("pacmd list-sinks | grep front-left | grep -Eo \"[0-9]{1,3}%\" | head -1 | cut -d \"%\" -f 1"))
     if trim(exec("pacmd list-sinks | grep \"muted: \" | cut -d \":\" -f 2")) == "yes" then
-        vol = "mut"
+        vol = "m"
     else
-        vol = conky_format("%3s", vol)
+        -- vol = conky_format("%3s", vol)
+        vol = conky_vbar(vol, 100, height)
     end
     return scroll(click(conky_prefix("vol"),"pavucontrol").." "..click(vol,
             "pulseaudio-ctl mute; herbstclient emit_hook panel_refresh"),
@@ -176,7 +187,7 @@ function readfile(filename)
 end
 
 function hc(command)
-    return exec("herbstclient "..command)
+    return exec("herbstclient "..command.." 2> /dev/null")
 end
 
 function trim(s)

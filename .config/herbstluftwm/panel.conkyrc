@@ -13,14 +13,15 @@ lua_startup_hook conky_init
 cpu_avg_samples 1
 net_avg_samples 1
 
-# the & character is used to separate left and right aligned text
+#TODO: exctract height in varible, and pass it from outside
+# the ∫ character is used to separate left and right aligned text
 TEXT
 ${lua_parse hctags} ${lua_parse hctitle}\
 ∫  \
-${lua_parse cpu 4 15}${lua_parse sep}\
-${lua_parse mem}${lua_parse sep}\
-${lua_parse net}\
-${if_empty ${battery_time}}${else}${lua_parse bat}${lua_parse sep}${endif}\
+${lua_parse cpu 15}${lua_parse sep}\
+${lua_parse mem 15}${lua_parse sep}\
+${lua_parse net 15}\
+${if_empty ${battery_time}}${else}${lua_parse bat 15}${lua_parse sep}${endif}\
 ${lua_parse vol 15}${lua_parse sep}\
 ${lua_parse date}
 
