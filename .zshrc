@@ -34,6 +34,17 @@ source ~/.sh_aliases
 # renaming utils
 autoload -U zmv
 
+# interactive move
+imv() {
+  local src dst
+  for src; do
+    [[ -e $src ]] || { print -u2 "$src does not exist"; continue }
+    dst=$src
+    vared dst
+    [[ $src != $dst ]] && mkdir -p $dst:h && mv -n $src $dst
+  done
+}
+
 # set prompt theme
 source ~/.oh-my-zsh/themes/slim.zsh-theme
 
