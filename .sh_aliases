@@ -27,7 +27,7 @@ alias lt="ls -ltr"
 alias l="ls -l"
 alias t="tree"
 alias ta="tree -a"
-alias watch="watch -c -d"
+alias watch="watch -c -d COPE=1 " # force cope colors, and leave one space to trigger alias expansion in command
 alias hd="hexdump -C"
 alias m="make"
 alias mc="make clean"
