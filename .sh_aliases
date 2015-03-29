@@ -62,6 +62,8 @@ alias xkodi='/usr/bin/xinit /usr/bin/dbus-launch --exit-with-session /usr/bin/ko
 
 
 alias wa="tungsten" # WolframAlpha client
+alias w="wikicurses"
+alias aw="w -w \"https://wiki.archlinux.org/api.php\""
 alias hc="herbstclient"
 alias won="nmcli radio wifi on; wscan"
 alias woff="nmcli radio wifi off"
