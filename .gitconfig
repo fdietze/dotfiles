@@ -21,7 +21,8 @@
     amend = commit --amend
     st = status
     br = branch
-    lg = log --graph --pretty=format:'%Cred%h %C(reset)%C(dim)%ad%Creset %s%C(yellow)%d%C(reset) %C(blue)<%an> %Cgreen(%ar)%Creset' --abbrev-commit --date=short
+    # %x08 cuts seconds and timezone away
+    lg = log --pretty=format:'%Cred%h %C(reset)%C(dim)%ad%x08%x08%x08%x08%x08%x08%x08%x08%x08%Creset %s%C(yellow)%d%C(reset) %C(blue)<%an> %Cgreen(%ar)%Creset' --abbrev-commit --date=iso --graph --date-order
     df  = diff --color-words='[A-Z][a-z]*|[a-z]+|[^[:space:]]' --irreversible-delete --find-copies-harder -C --ignore-space-at-eol --ignore-space-change --ignore-all-space --inter-hunk-context=2
     dfs = diff --color-words='[A-Z][a-z]*|[a-z]+|[^[:space:]]' --irreversible-delete --find-copies-harder -C --ignore-space-at-eol --ignore-space-change --ignore-all-space --inter-hunk-context=2 --staged
 	unstage = reset HEAD
