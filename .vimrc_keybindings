@@ -24,7 +24,7 @@ vnoremap <silent> k :bprev<CR>
 nnoremap <silent> l :bnext<CR>
 vnoremap <silent> l :bnext<CR>
 
-nnoremap ö :Autoformat<CR>:update<CR>
+nnoremap ö :update<CR>
 nnoremap ä :q<CR>
 nnoremap ü :bd<CR>
 
@@ -107,6 +107,9 @@ nmap <silent> <leader>l <Plug>unimpairedBlankUp
 nmap <silent> <leader>a <Plug>unimpairedBlankDown
 nmap <silent> <leader>dl m`:silent -g/\m^\s*$/d<CR>``:noh<CR>
 nmap <silent> <leader>da m`:silent +g/\m^\s*$/d<CR>``:noh<CR>
+
+" Autoformat
+nmap <leader>f :Autoformat<CR>
 
 " Unite / Fuzzy file finding
 " nnoremap <Leader>e :<C-u>Unite -no-split -start-insert file_rec<CR>

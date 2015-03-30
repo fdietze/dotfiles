@@ -127,8 +127,11 @@ autocmd vimrc BufNewFile,BufRead *.gdb set filetype=sh
 autocmd vimrc BufNewFile,BufRead *.jad set filetype=java
 
 " on save, delete trailing spaces
-autocmd vimrc BufWritePost *.hh,*.cc,*.h,*.cpp,*.scala,*.sh,*.vimrc*
-            \ call StripTrailingSpaces()
+autocmd vimrc FileType vim,html,css,scss,javascript,sh
+            \ autocmd BufWritePre * call StripTrailingSpaces()
+
+autocmd vimrc FileType vim,html,css,scss,javascript,sh
+            \ autocmd BufWritePre * Autoformat
 
 " return to last edit position when opening a file.
 " except for git commits: Enter insert mode instead.
