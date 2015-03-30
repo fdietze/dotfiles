@@ -107,7 +107,7 @@ onstage() {
     $@
     rc=$?
     git stash pop
-    exit $rc
+    return $rc
 }
 
 nquery() {
