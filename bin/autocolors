@@ -1,6 +1,0 @@
-#!/bin/bash
-if ~/bin/daytime; then
-    ~/bin/light
-else
-    ~/bin/dark
-fi

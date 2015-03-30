@@ -1,1 +1,0 @@
-LD_PRELOAD=/usr/lib/libv4l/v4l1compat.so zbarcam --raw /dev/video0

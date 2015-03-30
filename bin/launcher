@@ -1,0 +1,11 @@
+#!/bin/bash
+if [ $(cat $HOME/.colors) = "dark" ]; then
+    style='-fn "Droid Sans Mono-14" -nb "#121212" -nf "#EFEFEF" -sb "#37BAFF" -sf "#101010"'
+else
+    style='-fn "Droid Sans Mono-14" -nb "#FFFFFF" -nf "#000000" -sb "#00D7FF" -sf "#101010"'
+fi
+
+command=$(bash -c "yeganesh -x -- -i $style")
+
+# launch interactive bash, to expand aliases
+exec bash -i -c "$command"

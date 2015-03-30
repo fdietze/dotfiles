@@ -1,0 +1,11 @@
+#!/bin/bash
+# sflock -c ' ' -f "-*-Droid Sans Mono-*-*-*-*-16-*-*-*-*-*-*-*"
+# sflock -c ' ' -h -f "-*-Droid Sans Mono-*-*-*-*-20-*-*-*-*-*-*-*"
+i3lock -c 333333 -n -e &
+# slock &
+# LOCKPID=$!
+# nohup sh -c "while [ -e /proc/$LOCKPID ]
+# do
+#     sleep 1
+# done
+# ~/bin/autocolors" &

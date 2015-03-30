@@ -2,7 +2,7 @@
 trayer_width=60
 if grep -q "dark" ~/.colors
 then # dark
-    font="-*-Droid Sans Mono-*-*-*-*-13-*-*-*-*-*-*-*"
+    font="-*-Droid Sans Mono-*-*-*-*-14-*-*-*-*-*-*-*"
     panel_height=21
     bgcolor=121212
 else # light
@@ -18,7 +18,7 @@ hc() { "${herbstclient_command[@]:-herbstclient}" "$@" ;}
 monitor=${1:-0}
 geometry=( $(herbstclient monitor_rect "$monitor") )
 if [ -z "$geometry" ] ;then
-echo "Invalid monitor $monitor"
+    echo "Invalid monitor $monitor"
     exit 1
 fi
 # geometry has the format X Y W H

@@ -51,7 +51,7 @@
     m:0x0 + c:233
     XF86MonBrightnessUp 
 
-"touchpad-toggle.sh"
+"touchpadtoggle"
     m:0x0 + c:199
         XF86TouchpadToggle
 

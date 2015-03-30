@@ -1,9 +1,0 @@
-#!/bin/bash
-# interactively select a commit from git repo and execute command
-# example usage: sg git checkout
-
-gitlog() {
-    git log --pretty=format:'%h %ad %s%d <%an> %ar' --abbrev-commit --date=short
-}
-
-gitlog | fzf --no-sort | cut -f1 | while read -r hash description; do $@ "$hash"; done

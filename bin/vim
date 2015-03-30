@@ -1,3 +1,0 @@
-#!/bin/bash
-/usr/bin/vim --servername vim-$$ "$@" # -w ~/vimlogs/$(date +"'%Y-%m-%d %H-%M-%S.log'")"
-

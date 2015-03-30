@@ -1,8 +1,0 @@
-#!/bin/bash
-
-xbacklight -set 100
-
-sudo cpupower frequency-set -u 2500Mhz
-
-systemctl --user start btsync
-systemctl --user start dropbox

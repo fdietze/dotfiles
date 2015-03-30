@@ -1,1 +1,0 @@
-sudo modprobe -a vboxnetadp vboxnetflt vboxpci virtio_net

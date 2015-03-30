@@ -1,50 +1,51 @@
-alias y="yaourt"
-alias yoghurt="yaourt"
-alias ys="yaourt -S --asexplicit" # install and mark as explicitly installed
-alias yu="yaourt -Syua --devel" # update
-alias yr="yaourt -Rs" # remove package
-alias yi="yaourt -Qi" # package info
-alias yb="yaourt -Sb" # build package
-alias yo="yaourt -Qo" # package for command
-alias yl="yaourt -Ql" # list files for package
-alias ye="yaourt -Qe --date" # list installed packages
+alias zz='dark; zsh'
 
-alias vv="vim ~/.vimrc"
-alias vvp="vim ~/.vimrc_plugins"
-alias vvk="vim ~/.vimrc_keybindings"
-alias vvs="vim ~/.vimrc_statusline"
+alias y='yaourt'
+alias yoghurt='yaourt'
+alias ys='yaourt -S --asexplicit' # install and mark as explicitly installed
+alias yu='yaourt -Syua --devel' # update
+alias yr='yaourt -Rs' # remove package
+alias yi='yaourt -Qi' # package info
+alias yb='yaourt -Sb' # build package
+alias yo='yaourt -Qo' # package for command
+alias yl='yaourt -Ql' # list files for package
+alias ye='yaourt -Qe --date' # list installed packages
 
-alias sd="sudo"
-alias fucking="sudo"
-alias lo="locate -i"
-# alias ff="find . -iname"
-alias ff="ag -i -g"
-alias gg="grep -irn"
-alias agg="ag -S -f"
-alias md="mkdir -p"
-alias ls="ls --group-directories-first --color=auto -h"
-alias lt="ls -ltr"
-alias l="ls -l"
-alias t="tree"
-alias ta="tree -a"
-alias watch="watch -c -d COPE=1 " # force cope colors, and leave one space to trigger alias expansion in command
-alias hd="hexdump -C"
-alias m="make"
-alias mc="make clean"
-alias c="qalc"
-o() { xdg-open $1 > /dev/null 2>&1; }
+alias vv='vim ~/.vimrc'
+alias vvp='vim ~/.vimrc_plugins'
+alias vvk='vim ~/.vimrc_keybindings'
+alias vvs='vim ~/.vimrc_statusline'
+
+alias sd='sudo'
+alias fucking='sudo'
+alias lo='locate -i'
+alias ff='ag -i -g'
+alias gg='grep -irn'
+alias agg='ag -S -f'
+alias md='mkdir -p'
+alias ls='ls --group-directories-first --color=auto -h'
+alias lt='ls -ltr'
+alias l='ls -l'
+alias t='tree'
+alias ta='tree -a'
+alias watch='watch -c -d COPE=1 ' # force cope colors, and leave one space to trigger alias expansion in command
+alias hd='hexdump -C'
+alias m='make'
+alias mc='make clean'
+alias c='qalc'
+o() { xdg-open $@ > /dev/null 2>&1; }
 alias of='o "$(fzf)"'
 f() { $@ "$(fzf)"; }
 ft() { $@ "$(ls -tr1 --group-directories-first | fzf --no-sort)"; } # least modified files
-# cd into a temporary directory
 cdt () {
+    # cd into a temporary directory
     local t
     t=$(mktemp -d)
     echo "$t"
     builtin cd "$t"
 }
-# smart cd function, allows switching to /etc when running 'cd /etc/fstab'
 cd() {
+    # smart cd function, allows switching to /etc when running 'cd /etc/fstab'
     if (( ${#argv} == 1 )) && [[ -f ${1} ]]; then
         [[ ! -e ${1:h} ]] && return 1
         print "Correcting ${1} to ${1:h}"
@@ -62,35 +63,165 @@ alias xkodi='/usr/bin/xinit /usr/bin/dbus-launch --exit-with-session /usr/bin/ko
 alias speakerup='amixer -c 0 sset Speaker 100%'
 
 
-alias wa="tungsten" # WolframAlpha client
-alias w="wikicurses"
-alias aw="w -w \"https://wiki.archlinux.org/api.php\""
-alias hc="herbstclient"
-alias won="nmcli radio wifi on; wscan"
-alias woff="nmcli radio wifi off"
-alias wscan="nmcli dev wifi rescan > /dev/null 2>&1; true"
-alias wlist="nmcli dev wifi list"
-alias wcon="nmcli dev wifi connect"
-alias rn="ranger"
-alias scala="scala -Dscala.color"
-alias defrag="sudo btrfs filesystem defragment -r -v -f -clzo"
-alias jsb="underscore print --color --outfmt json" # beautify json
+alias wa='tungsten' # WolframAlpha client
+alias w='wikicurses'
+alias aw='w -w "https://wiki.archlinux.org/api.php"'
+alias hc='herbstclient'
+alias won='nmcli radio wifi on; wscan'
+alias woff='nmcli radio wifi off'
+alias wscan='nmcli dev wifi rescan > /dev/null 2>&1; true'
+alias wlist='nmcli dev wifi list'
+alias wcon='nmcli dev wifi connect'
+alias rn='ranger'
+alias scala='scala -Dscala.color'
+alias defrag='sudo btrfs filesystem defragment -r -v -f -clzo'
+alias jsb='underscore print --color --outfmt json' # beautify json
+alias gparted='gksu gparted'
+alias kp='keepass-dmenu --database ~/.keepass/passwords2.kdbx --fn "Droid Sans Mono-14" --nb "#FFFFFF" --nf "#000000" --sb "#00D7FF" --sf "#101010"'
 
-alias g="git"
-alias gu="git up"
-alias gp="git push"
-alias gl="git lg"
-alias gst="git status"
+alias vbmods='sudo modprobe -a vboxnetadp vboxnetflt vboxpci virtio_net vboxdrv'
+alias vim="/usr/bin/vim --servername vim-$$"
+alias skype='PULSE_LATENCY_MSEC=30 /usr/bin/skype'
+s() {
+    # interactively select a line from stdin and execute command
+    # example usage: find /var/log/Xorg* | s less
+    # if no stdin is given, match on all files in current dir
+    fzf | while read -r line; do $@ "$line"; done
+}
+gsc() {
+    # interactively select a commit from git repo and execute command
+    # example usage: gsc git checkout
+    gitlog() {
+        git log --pretty=format:'%h %ad%x08%x08%x08%x08%x08%x08%x08%x08%x08 %s%d <%an> %ar' --abbrev-commit --date=iso
+    }
 
-alias em="emacs -nw"
+    gitlog | fzf --no-sort | cut -f1 | while read -r hash description; do $@ "$hash"; done
+}
 
-alias commandhistory="cat ~/.zsh_history| cut -d ';' -f 2 | grep -P \"^[\w\\-]+([^\w/=@]|$)\" -o | grep -P \"^[\w\\-]+\" -o"
-alias listaliases="alias | cut -d '=' -f 1"
+onstage() {
+    # execute commands only on the staged changes of a git repository
+    # changes which are not staged are stashed and restored after the command
+    # example usage: $ onstage sbt test
+    git status
+    git stash save --keep-index --include-untracked
+    $@
+    rc=$?
+    git stash pop
+    exit $rc
+}
 
-alias mostusedcommands="commandhistory | sort | uniq -c | sort -n"
-alias mostusedaliases="commandhistory | grep -Fx \"\$(listaliases)\" | sort | uniq -c | sort -n"
-alias mostusednotaliases="commandhistory | grep -Fxv \"\$(listaliases)\" | sort | uniq -c | sort -n"
+nquery() {
+    JSON=$(curl --silent -H "Content-Type: application/json" \
+        -d "{\"statements\":[{\"statement\":\"$*\",\"resultDataContents\":[\"graph\",\"row\"]}]}" \
+        http://localhost:7474/db/data/transaction/commit)
 
-alias leastusedaliases="{commandhistory | grep -Fx \"\$(listaliases)\" | sort | uniq -c | sort -nr; listaliases | grep -Fvx \"\$(commandhistory)\" | sed 's/^.*/      0 &/'}"
+    echo $JSON | underscore print --color --outfmt json
+}
+
+alias nclean='nquery "MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE n,r"'
+
+alias gm='xdg-open https://mail.google.com'
+alias fb='xdg-open https://facebook.com/messages'
+
+
+
+alias qrscan='LD_PRELOAD=/usr/lib/libv4l/v4l1compat.so zbarcam --raw /dev/video0'
+alias photoshop='wine ~/.wine/drive_c/Program\ Files\ \(x86\)/Adobe/Photoshop\ 7.0/Photoshop.exe'
+
+alias g='git'
+alias gu='git up'
+alias gp='git push'
+alias gl='git lg'
+alias gst='git status'
+
+alias em='emacs -nw'
+
+alias commandhistory='history | sed "s/^ *[0-9]* *//" | grep -P "^[\w\\-]+([^\w/=@]|$)" -o | grep -P "^[\w\\-]+" -o'
+alias listaliases='alias | sed "s/^alias //" | cut -d "=" -f 1'
+
+alias mostusedcommands='commandhistory | sort | uniq -c | sort -n'
+alias mostusedaliases='commandhistory | grep -Fx "$(listaliases)" | sort | uniq -c | sort -n'
+alias mostusednotaliases='commandhistory | grep -Fxv "$(listaliases)" | sort | uniq -c | sort -n'
+
+alias leastusedaliases='{commandhistory | grep -Fx "$(listaliases)" | sort | uniq -c | sort -nr; listaliases | grep -Fvx "$(commandhistory)" | sed "s/^.*/      0 &/"}'
+
+autocolors() {
+    if daytime
+    then ~/bin/light
+    else ~/bin/dark
+    fi
+}
+
+daytime(){
+    # detect if its light or dark outside
+    sundata=$(sunwait sun 50.77N 6.08W -p | head -13 | tail -1)
+    sunrise=$(echo $sundata | sed -r 's/.*rises ([0-9]+) .*/\1/')
+    sunset=$(echo $sundata | sed -r 's/.*sets ([0-9]+) .*/\1/')
+    time=$(date +"%H%M")
+    if [ $time -ge $sunrise ] && [ $time -le $sunset ]; then
+        return 0 # day
+    else
+        return 1 # night
+    fi
+}
+
+low() {
+    # save energy
+    xbacklight -set 10 -time 0
+    sudo asus-kbd-backlight off
+    nmcli radio wifi off
+    sudo rfkill block all
+
+    light
+
+    systemctl --user stop btsync
+    systemctl --user stop dropbox
+    killall owncloud
+    systemctl --user stop pulseaudio
+
+    sudo cpupower frequency-set --max 800Mhz
+}
+
+high() {
+    xbacklight -set 100
+
+    sudo cpupower frequency-set --max $(sudo cat /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq)
+
+    systemctl --user start btsync
+    systemctl --user start pulseaudio
+}
+
+stayawake() {
+    # disable screensaver
+    xset s noblank
+    xset s off
+    xset -dpms
+}
+
+movietime() {
+    xrandr --output HDMI1  --auto --primary --output VGA1 --off --output eDP1 --off
+    herbstclient reload
+    pacmd set-sink-mute 0 0
+    stayawake
+    xsetroot -solid '#ffffff'
+    systemctl --user stop redshift.service
+}
+
+pacmandisowned() {
+    tmp=${TMPDIR-/tmp}/pacmandisowned-$UID-$$
+    db=$tmp/db
+    fs=$tmp/fs
+
+    mkdir "$tmp"
+    trap 'rm -rf "$tmp"' EXIT
+
+    pacman -Qlq | sort -u > "$db"
+
+    find /etc /opt /usr ! -name lost+found \( -type d -printf '%p/\n' -o -print \) | sort > "$fs"
+
+    comm -23 "$fs" "$db"
+}
+
+alias disablewifipm='sudo iwconfig wlp2s0 power off'
 
 # vim: ft=sh

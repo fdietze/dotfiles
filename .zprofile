@@ -1,7 +1,5 @@
 [[ -e ~/.profile ]] && emulate sh -c 'source ~/.profile'
 
-export PATH=$HOME/bin:$PATH
-
 # color wrappers for common commands
 export PATH=$(cope_path):$PATH
 
