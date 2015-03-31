@@ -136,16 +136,6 @@ alias gst='git status'
 
 alias em='emacs -nw'
 
-alias commandhistory='history | sed "s/^ *[0-9]* *//" | grep -P "^[\w\\-]+([^\w/=@]|$)" -o | grep -P "^[\w\\-]+" -o'
-alias listaliases='alias | sed "s/^alias //" | cut -d "=" -f 1'
-alias listfunctions='print -l ${(ok)functions}' # only works in zsh, bash: compgen -A function
-alias listselfdefined='(listaliases; listfunctions)'
-
-alias mostusedcommands='commandhistory | sort | uniq -c | sort -n'
-alias mostusedaliases='commandhistory | grep -Fx "$(listselfdefined)" | sort | uniq -c | sort -n'
-alias mostusednotaliases='commandhistory | grep -Fxv "$(listselfdefined)" | sort | uniq -c | sort -n'
-
-alias leastusedaliases='{commandhistory | grep -Fx "$(listselfdefined)" | sort | uniq -c | sort -nr; listselfdefined | grep -Fvx "$(commandhistory)" | sed "s/^.*/      0 &/"}'
 
 autocolors() {
     if daytime
@@ -209,20 +199,6 @@ movietime() {
     systemctl --user stop redshift.service
 }
 
-pacmandisowned() {
-    tmp=${TMPDIR-/tmp}/pacmandisowned-$UID-$$
-    db=$tmp/db
-    fs=$tmp/fs
-
-    mkdir "$tmp"
-    trap 'rm -rf "$tmp"' EXIT
-
-    pacman -Qlq | sort -u > "$db"
-
-    find /etc /opt /usr ! -name lost+found \( -type d -printf '%p/\n' -o -print \) | sort > "$fs"
-
-    comm -23 "$fs" "$db"
-}
 
 alias disablewifipm='sudo iwconfig wlp2s0 power off'
 

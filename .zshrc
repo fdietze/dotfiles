@@ -29,6 +29,11 @@ source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.pl
 source $ZSH/oh-my-zsh.sh
 # User configuration
 
+source ~/projects/dottr/pan.zsh
+fry ncserve
+fry pacman-disowned
+fry alias-usage-analysis
+
 source ~/.sh_aliases
 
 # renaming utils
