@@ -169,7 +169,7 @@ if [ ! -f ~/.colors ]; then
     # black background
     xsetroot -solid '#000000'
 
-    if daytime; then
+    if bash -i -c daytime; then
         light nopanel
     else
         dark nopanel
