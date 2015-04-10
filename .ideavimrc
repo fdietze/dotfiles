@@ -1,10 +1,9 @@
-" TODO next tab
 " TODO commenting selection
 
 set gdefault                      " substitute all occurrences in line per default
 set history=1000                  " keep x lines of command line history
-set hlsearch                      " highlight all search occurrences
-set ignorecase                    " ignore case in search patterns 
+set hlsearch                      " highlight search occurrences
+set ignorecase                    " ignore case in search patterns
 set smartcase                     " no ignore case when pattern is uppercase
 set number                        " line numbers
 set relativenumber                " relative line numbers
@@ -28,8 +27,7 @@ inoremap  <Home>   <Esc><Home>
 inoremap  <End>    <Esc><End>
 
 " clear search highlighting
-" nnoremap <silent> <Space><space> :nohls<Bar>echo<CR>
-nnoremap <esc> :nohls<return><esc>
+nnoremap <esc> <esc>:nohls<return><esc>
 
 " don't lose selection when indenting
 vnoremap < <gv
@@ -41,26 +39,34 @@ nnoremap Y y$
 " replay q macro (helpful in NEO keyboard layout)
 nmap ß @q
 
+" jump to mark
+nmap j `
+
 
 " change font size
 nmap zi :action EditorIncreaseFontSize<CR>
 nmap zo :action EditorDecreaseFontSize<CR>
 
 " code navigation
+nmap l :action NextTab<CR>
+nmap L :action PreviousTab<CR>
 nmap <space>e :action GotoFile<CR>
 nmap <C-o> :action Back<CR>
 nmap <C-i> :action Forward<CR>
 nmap gD :action GotoImplementation<CR>
-nmap gu :action ShowUsages<CR>
-nmap gU :action FindUsages<CR>
+nmap <space>u :action ShowUsages<CR>
+nmap <space>U :action FindUsages<CR>
 nmap gq :action QuickJavaDoc<CR>
-nmap <space>p :action ParameterInfo<CR>
+nmap <C-p> :action ParameterInfo<CR>
+imap <C-p> <C-o>:action ParameterInfo<CR>
 " nmap <space>n :action GotoNextError<CR>
 nmap <space>n :action NextOccurence<CR>
 nmap <space>a :action GotoAction<CR>
+nmap <space>f :action ActivateProjectToolWindow<CR>
 
 " editing / refactoring
 nmap gcc :action CommentByLineComment<CR>
+vmap gcc :action CommentByLineComment<CR>
 nmap <space>r :action RenameElement<CR>
 nmap <space>m :action ExtractMethod<CR>
 vnoremap <space>m :action ExtractMethod<CR>
