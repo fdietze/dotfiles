@@ -31,30 +31,29 @@ if [ "$DISPLAY" ]; then
     fi
 
     nitrogen --set-zoom-fill ~/downloads/wallpapers/2443.jpg
-fi
-
-
-# set colors of console (without X)
-if [ "$TERM" = "linux" ]; then
-    setfont ter-p28b
-    /bin/echo -e "
-    \e]P0ffffff
-    \e]P1df0076
-    \e]P200af2b
-    \e]P3ff6600
-    \e]P4006fe6
-    \e]P57700ff
-    \e]P600c8ff
-    \e]P7000000
-    \e]P8000000
-    \e]P9ff0088
-    \e]PA00c120
-    \e]PBff9400
-    \e]PC2183ff
-    \e]PD9c2cff
-    \e]PE00a8ff
-    \e]PF000000
-    "
-    # get rid of artifacts
-    clear
+else
+    # set colors of console (without X)
+    if [ "$TERM" = "linux" ]; then
+        setfont ter-p28b
+        /bin/echo -e "
+        \e]P0ffffff
+        \e]P1df0076
+        \e]P200af2b
+        \e]P3ff6600
+        \e]P4006fe6
+        \e]P57700ff
+        \e]P600c8ff
+        \e]P7000000
+        \e]P8000000
+        \e]P9ff0088
+        \e]PA00c120
+        \e]PBff9400
+        \e]PC2183ff
+        \e]PD9c2cff
+        \e]PE00a8ff
+        \e]PF000000
+        "
+        # get rid of artifacts
+        clear
+    fi
 fi

@@ -31,30 +31,31 @@ if [ "$DISPLAY" ]; then
     fi
 
     nitrogen --set-zoom-fill ~/downloads/wallpapers/3-d-cube-constellation-wallpaper-1920x1080.jpg
+else
+    # set colors of console (without X)
+    if [ "$TERM" = "linux" ]; then
+        setfont ter-p28b
+        /bin/echo -e "
+        \e]P0181818
+        \e]P1f8469f
+        \e]P280e051
+        \e]P3f89f2b
+        \e]P42f93f8
+        \e]P5a060e6
+        \e]P642dd8f
+        \e]P7dadada
+        \e]P8465457
+        \e]P9fa5baa
+        \e]PAaafa5b
+        \e]PBfaaa5b
+        \e]PC5baafa
+        \e]PDaa5bfa
+        \e]PE5bfaaa
+        \e]PFffffff
+        "
+        # get rid of artifacts
+        clear
+    fi
 fi
 
 
-# set colors of console (without X)
-if [ "$TERM" = "linux" ]; then
-    setfont ter-p28b
-    /bin/echo -e "
-    \e]P0181818
-    \e]P1f8469f
-    \e]P280e051
-    \e]P3f89f2b
-    \e]P42f93f8
-    \e]P5a060e6
-    \e]P642dd8f
-    \e]P7dadada
-    \e]P8465457
-    \e]P9fa5baa
-    \e]PAaafa5b
-    \e]PBfaaa5b
-    \e]PC5baafa
-    \e]PDaa5bfa
-    \e]PE5bfaaa
-    \e]PFffffff
-    "
-    # get rid of artifacts
-    clear
-fi
