@@ -66,7 +66,7 @@ alias scala='scala -Dscala.color -deprecation'
 alias defrag='sudo btrfs filesystem defragment -r -v -f -clzo'
 alias jsb='underscore print --color --outfmt json' # beautify json
 alias gparted='gksu gparted'
-alias kp='keepass-dmenu --database ~/.keepass/passwords2.kdbx --fn "Droid Sans Mono-14" --nb "#FFFFFF" --nf "#000000" --sb "#00D7FF" --sf "#101010"'
+alias kp='keepass-dmenu --database ~/.keepass/passwords.kdbx --fn "Droid Sans Mono-14" --nb "#FFFFFF" --nf "#000000" --sb "#00D7FF" --sf "#101010"'
 
 alias vbmods='sudo modprobe -a vboxnetadp vboxnetflt vboxpci virtio_net vboxdrv'
 alias skype='PULSE_LATENCY_MSEC=30 /usr/bin/skype'
