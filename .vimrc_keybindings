@@ -16,13 +16,13 @@ nnoremap <Leader>th :if AutoHighlightToggle()<Bar>set hls<Bar>endif<CR>
 " j: jump to mark
 nnoremap j `
 
-" k: previous buffer
-nnoremap <silent> k :bprev<CR>
-vnoremap <silent> k :bprev<CR>
+" k: (notehing yet)
 
 " l: next buffer
 nnoremap <silent> l :bnext<CR>
 vnoremap <silent> l :bnext<CR>
+nnoremap <silent> L :bprev<CR>
+vnoremap <silent> L :bprev<CR>
 
 nnoremap ö :update<CR>
 nnoremap ä :q<CR>
