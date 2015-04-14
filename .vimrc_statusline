@@ -30,9 +30,12 @@ let g:lightline = {
       \ }
 
 func! Update_Scrollbar_Highres(charwidth)
-    let res        = 8
-    let blocksl    = [' ','▏','▎','▍','▌','▋','▊','▉']
-    let blocksr    = [' ',' ','▕','▕','▕','▐','▐','▐']
+    " let res        = 8
+    " let blocksl    = [' ','▏','▎','▍','▌','▋','▊','▉']
+    " let blocksr    = [' ',' ','▕','▕','▕','▐','▐','▐']
+    let res        = 2
+    let blocksl    = [' ','▌']
+    let blocksr    = [' ','▐']
 
     let width      = a:charwidth    * res
     let lastline   = (line('$')  - 1) * res
@@ -47,7 +50,7 @@ func! Update_Scrollbar_Highres(charwidth)
         let pagestart  = bufstart  * width / lastline
         let pageheight = min([width,winheight * width / lastline + 1])
     endif
-    
+
     if (pagestart+pageheight) > width " avoids numerical errors
         let pagestart -= pagestart+pageheight-width
     endif
@@ -60,7 +63,7 @@ func! Update_Scrollbar_Highres(charwidth)
     let beforeFull = (before - ((res - pre)%res))/res
     let midFull    = mid/res
     let afterFull  = (after-((res-post)%res))/res
-    
+
     let b:scrollbar_before  = repeat(' ', beforeFull)
     let b:scrollbar_current = (before%res+pre == 0 ? '' : blocksr[pre])
                             \.repeat('█', midFull)
