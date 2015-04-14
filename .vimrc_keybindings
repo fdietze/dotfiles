@@ -102,8 +102,9 @@ nnoremap <leader>ts :setlocal spell! spell?<CR>
 inoremap <c-s> <c-g>u<Esc>[s1z=`]a<c-g>u
 nnoremap <c-s> 1z=
 
-" insert semicolon at end of line
+" insert chars at end of line
 nnoremap <leader>; m`A;<esc>``
+nnoremap <leader>, m`A,<esc>``
 
 " insert empty lines on NEO up/down arrow
 nmap <silent> <leader>l <Plug>unimpairedBlankUp
