@@ -33,6 +33,7 @@ source ~/projects/dottr/pan.zsh
 fry ncserve
 fry pacman-disowned
 fry alias-usage-analysis
+fry daytime
 
 source ~/.sh_aliases
 

@@ -137,25 +137,15 @@ alias gst='git status'
 alias em='emacs -nw'
 
 
+# alias daytime='daytime 50.77N 6.08W'
+
 autocolors() {
-    if daytime
-    then ~/bin/light
-    else ~/bin/dark
+    if daytime 50.77N 6.08W
+    then ~/bin/light $@
+    else ~/bin/dark $@
     fi
 }
 
-daytime(){
-    # detect if its light or dark outside
-    sundata=$(sunwait sun 50.77N 6.08W -p | head -13 | tail -1)
-    sunrise=$(echo $sundata | sed -r 's/.*rises ([0-9]+) .*/\1/')
-    sunset=$(echo $sundata | sed -r 's/.*sets ([0-9]+) .*/\1/')
-    time=$(date +"%H%M")
-    if [ $time -ge $sunrise ] && [ $time -le $sunset ]; then
-        return 0 # day
-    else
-        return 1 # night
-    fi
-}
 
 low() {
     # save energy

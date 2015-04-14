@@ -166,14 +166,8 @@ hc set smart_frame_surroundings 1
 
 # set dark terminal and vim colors if not set
 if [ ! -f ~/.colors ]; then
-    # black background
-    xsetroot -solid '#000000'
-
-    if bash -i -c daytime; then
-        light nopanel
-    else
-        dark nopanel
-    fi
+    xsetroot -solid '#000000' # black background
+    zsh -i -c "autocolors nopanel"
 fi
 
 

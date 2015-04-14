@@ -7,5 +7,5 @@ fi
 
 command=$(bash -c "yeganesh -x -- -i $style")
 
-# launch interactive bash, to expand aliases
-exec bash -i -c "$command"
+# launch interactive zsh, to expand aliases
+exec zsh -i -c "$command"
