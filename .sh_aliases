@@ -17,6 +17,7 @@ alias vvk='vim ~/.vimrc_keybindings'
 alias vvs='vim ~/.vimrc_statusline'
 alias vim="vim --servername vim-$$"
 alias vag="search-select-edit"
+alias vimt='vim $(date +"%Y-%m-%d")'
 
 alias sd='sudo'
 alias fucking='sudo'
