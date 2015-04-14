@@ -44,8 +44,9 @@ nmap j `
 
 
 " change font size
-nmap zi :action EditorIncreaseFontSize<CR>
-nmap zo :action EditorDecreaseFontSize<CR>
+nmap + :action EditorIncreaseFontSize<CR>
+nmap - :action EditorDecreaseFontSize<CR>
+nmap <space>= :action EditorResetFontSize<CR>
 
 " code navigation
 nmap l :action NextTab<CR>
@@ -74,7 +75,6 @@ nmap <space>v :action IntroduceVariable<CR>
 nmap <space>i :action Inline<CR>
 nmap <space>o :action OptimizeImports<CR>
 nmap <space>g :action Generate<CR>
-nmap + :action EditorSelectWord<CR>
 
 nmap <space>t :action Run<CR>
 
