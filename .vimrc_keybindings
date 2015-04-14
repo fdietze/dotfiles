@@ -25,8 +25,11 @@ nnoremap <silent> L :bprev<CR>
 vnoremap <silent> L :bprev<CR>
 
 nnoremap ö :update<CR>
+vnoremap ö <esc>:update<CR>gv
 nnoremap ä :q<CR>
+vnoremap ä <esc>:q<CR>
 nnoremap ü :bd<CR>
+vnoremap ü <esc>:bd<CR>
 
 " ß: replay q macro
 nnoremap ß @q
