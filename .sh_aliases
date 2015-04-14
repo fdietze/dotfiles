@@ -15,6 +15,8 @@ alias vv='vim ~/.vimrc'
 alias vvp='vim ~/.vimrc_plugins'
 alias vvk='vim ~/.vimrc_keybindings'
 alias vvs='vim ~/.vimrc_statusline'
+alias vim="vim --servername vim-$$"
+alias vag="search-select-edit"
 
 alias sd='sudo'
 alias fucking='sudo'
@@ -33,27 +35,14 @@ alias hd='hexdump -C'
 alias m='make'
 alias mc='make clean'
 alias c='qalc'
+alias imv='interactive-mv'
 o() { xdg-open $@ > /dev/null 2>&1; }
 alias of='o "$(fzf)"'
 f() { $@ "$(fzf)"; }
 ft() { $@ "$(ls -tr1 --group-directories-first | fzf --no-sort)"; } # least modified files
-cdt () {
-    # cd into a temporary directory
-    local t
-    t=$(mktemp -d)
-    echo "$t"
-    builtin cd "$t"
-}
-cd() {
-    # smart cd function, allows switching to /etc when running 'cd /etc/fstab'
-    if (( ${#argv} == 1 )) && [[ -f ${1} ]]; then
-        [[ ! -e ${1:h} ]] && return 1
-        print "Correcting ${1} to ${1:h}"
-        builtin cd ${1:h}
-    else
-        builtin cd "$@"
-    fi
-}
+alias cdt='cd-tmp'
+alias cdg='cd-git-root'
+alias mkcd='mkdir-cd'
 
 alias mcp='noglob zmv -C -W'
 alias mln='noglob zmv -L -W'
@@ -80,7 +69,6 @@ alias gparted='gksu gparted'
 alias kp='keepass-dmenu --database ~/.keepass/passwords2.kdbx --fn "Droid Sans Mono-14" --nb "#FFFFFF" --nf "#000000" --sb "#00D7FF" --sf "#101010"'
 
 alias vbmods='sudo modprobe -a vboxnetadp vboxnetflt vboxpci virtio_net vboxdrv'
-alias vim="/usr/bin/vim --servername vim-$$"
 alias skype='PULSE_LATENCY_MSEC=30 /usr/bin/skype'
 s() {
     # interactively select a line from stdin and execute command
@@ -88,37 +76,13 @@ s() {
     # if no stdin is given, match on all files in current dir
     fzf | while read -r line; do $@ "$line"; done
 }
-gsc() {
-    # interactively select a commit from git repo and execute command
-    # example usage: gsc git checkout
-    gitlog() {
-        git log --pretty=format:'%h %ad%x08%x08%x08%x08%x08%x08%x08%x08%x08 %s%d <%an> %ar' --abbrev-commit --date=iso
-    }
+alias gsc='git-select-commit'
+alias onstage='git-onstage'
 
-    gitlog | fzf --no-sort | cut -f1 | while read -r hash description; do $@ "$hash"; done
-}
-
-onstage() {
-    # execute commands only on the staged changes of a git repository
-    # changes which are not staged are stashed and restored after the command
-    # example usage: $ onstage sbt test
-    git status
-    git stash save --keep-index --include-untracked
-    $@
-    rc=$?
-    git stash pop
-    return $rc
-}
-
-nquery() {
-    JSON=$(curl --silent -H "Content-Type: application/json" \
-        -d "{\"statements\":[{\"statement\":\"$*\",\"resultDataContents\":[\"graph\",\"row\"]}]}" \
-        http://localhost:7474/db/data/transaction/commit)
-
-    echo $JSON | underscore print --color --outfmt json
-}
-
-alias nclean='nquery "MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE n,r"'
+alias nstart='termite -e "$HOME/downloads/neo4j-community-2.2.0/bin/neo4j console"'
+alias nquery='neo4j-query'
+alias nclear='neo4j-clear'
+alias nall='neo4j-all'
 
 alias gm='xdg-open https://mail.google.com'
 alias fb='xdg-open https://facebook.com/messages'

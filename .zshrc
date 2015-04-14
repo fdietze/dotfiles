@@ -33,22 +33,23 @@ source ~/projects/dottr/pan.zsh
 fry ncserve
 fry pacman-disowned
 fry alias-usage-analysis
+fry print-expanded-alias
+fry vim-open-files-at-lines
+fry search-select-edit
+fry git-select-commit
+fry git-onstage
 fry daytime
+fry interactive-mv
+fry cd-tmp
+fry cd-git-root
+fry neo4j-query
+NEO4J_QUERY_JSON_FORMATTER="underscore print --color --outfmt json"
 
 source ~/.sh_aliases
 
 # renaming utils
 autoload -U zmv
 
-# interactive move
-imv() {
-  local src dst
-  for src; do
-    [[ -e $src ]] || { print -u2 "$src does not exist"; continue }
-    dst=$src
-    vared dst
-    [[ $src != $dst ]] && mkdir -p $dst:h && mv -n $src $dst
-  done
 }
 
 # set prompt theme
