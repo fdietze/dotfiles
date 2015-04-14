@@ -19,7 +19,6 @@ alias vim="vim --servername vim-$$"
 alias vag="search-select-edit"
 alias vimt='vim $(date +"%Y-%m-%d")'
 
-alias sd='sudo'
 alias fucking='sudo'
 alias lo='locate -i'
 alias ff='ag -i -g'
@@ -67,6 +66,7 @@ alias scala='scala -Dscala.color -deprecation'
 alias defrag='sudo btrfs filesystem defragment -r -v -f -clzo'
 alias jsb='underscore print --color --outfmt json' # beautify json
 alias gparted='gksu gparted'
+alias iotop='sudo iotop'
 alias kp='keepass-dmenu --database ~/.keepass/passwords.kdbx --fn "Droid Sans Mono-14" --nb "#FFFFFF" --nf "#000000" --sb "#00D7FF" --sf "#101010"'
 
 alias vbmods='sudo modprobe -a vboxnetadp vboxnetflt vboxpci virtio_net vboxdrv'
