@@ -36,6 +36,8 @@ hc keybind $Mod-Ctrl-m chain , spawn pulseaudio-ctl mute , emit_hook panel_refre
 # adjust screen brightness
 hc keybind $Mod-Ctrl-g spawn xbacklight +5 -steps 1 -time 0
 hc keybind $Mod-Ctrl-r spawn xbacklight -5 -steps 1 -time 0
+hc keybind $Mod-Ctrl-Shift-g spawn xbacklight +1 -steps 1 -time 0
+hc keybind $Mod-Ctrl-Shift-r spawn xbacklight -1 -steps 1 -time 0
 
 # switch color scheme
 hc keybind $Mod-Ctrl-k spawn light
