@@ -111,6 +111,9 @@ Plug 'fidian/hexmode'
 " reformat source code
 Plug 'Chiel92/vim-autoformat'
 
+" toggle true/false etc
+Plug 'AndrewRadev/switch.vim'
+
 
 """"""""""""""""""""""""""""""""""""""""
 " file type plugins
@@ -306,3 +309,47 @@ let g:UltiSnipsJumpBackwardTrigger="<c-z>"
 
 " If you want :UltiSnipsEdit to split your window.
 " let g:UltiSnipsEditSplit="vertical"
+
+
+" switch.vim
+let g:switch_custom_definitions =
+    \ [
+    \   ['on', 'off'],
+    \   ['==', '!='],
+    \   ['_', '-'],
+    \   [' < ', ' > '],
+    \   ['<=', '>='],
+    \   [' + ', ' - '],
+    \   ['-=', '+='],
+    \   ['and', 'or'],
+    \   ['if', 'unless'],
+    \   ['YES', 'NO'],
+    \   ['yes', 'no'],
+    \   ['first', 'last'],
+    \   ['else', 'else if'],
+    \   ['max', 'min'],
+    \   ['px', '%', 'em'],
+    \   ['left', 'right'],
+    \   ['top', 'bottom'],
+    \   ['margin', 'padding'],
+    \   ['height', 'width'],
+    \   ['absolute', 'relative'],
+    \   ['horizontal', 'vertical'],
+    \   ['show', 'hide'],
+    \   ['visible', 'hidden'],
+    \   ['add', 'remove'],
+    \   ['up', 'down'],
+    \   ['before', 'after'],
+    \   ['slow', 'fast'],
+    \   ['small', 'large'],
+    \   ['even', 'odd'],
+    \   ['inside', 'outside'],
+    \   {'"\([^"]*\)"': '''\1''', '''\([^'']*\)''': '"\1"'},
+    \   {
+    \     '\<\(\l\)\(\l\+\(\u\l\+\)\+\)\>': '\=toupper(submatch(1)) . submatch(2)',
+    \     '\<\(\u\l\+\)\(\u\l\+\)\+\>': "\\=tolower(substitute(submatch(0), '\\(\\l\\)\\(\\u\\)', '\\1_\\2', 'g'))",
+    \     '\<\(\l\+\)\(_\l\+\)\+\>': '\U\0',
+    \     '\<\(\u\+\)\(_\u\+\)\+\>': "\\=tolower(substitute(submatch(0), '_', '-', 'g'))",
+    \     '\<\(\l\+\)\(-\l\+\)\+\>': "\\=substitute(submatch(0), '-\\(\\l\\)', '\\u\\1', 'g')",
+    \   }
+    \ ]
