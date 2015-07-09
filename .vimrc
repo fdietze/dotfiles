@@ -73,6 +73,7 @@ set softtabstop=4                 " a combination of spaces and tabs are used to
 set smarttab                      " make "tab" insert indents instead of tabs at the beginning of a line
 set expandtab                     " always uses spaces instead of tab characters
 set virtualedit=block,onemore
+set nostartofline                 " keep column position when switching buffers
 
 " behavior
 set hidden                        " switch from unsaved buffers
