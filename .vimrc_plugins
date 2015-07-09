@@ -1,9 +1,9 @@
 " using plugin manager vim-plug
 " auto-install if not found
 if empty(glob('~/.vim/autoload/plug.vim'))
-  !mkdir -p ~/.vim/autoload
-  !curl -fLo ~/.vim/autoload/plug.vim
-    \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+    !mkdir -p ~/.vim/autoload
+    !curl -fLo ~/.vim/autoload/plug.vim
+                \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 endif
 
 call plug#begin('~/.vim/bundle')
@@ -24,14 +24,25 @@ Plug 'tpope/vim-repeat'
 " enlarge focused window a bit
 Plug 'roman/golden-ratio'
 
-" VCS change info on the left
-Plug 'mhinz/vim-signify'
+" VCS change info per line
+Plug 'airblade/vim-gitgutter' " only git
+" Plug 'mhinz/vim-signify' " git, mercurial, darcs, bazaar, subversion, cvs, rcs, fossil, accurev, perforce
 
 " matches not only parantheses, but also HTML-Tags and more
 Plug 'edsono/vim-matchit'
 
 " fuzzy autocompletion, eclim
 Plug 'Valloric/YouCompleteMe', { 'do': './install.sh' }
+
+" display and navigate marks
+Plug 'kshenoy/vim-signature'
+
+" show 'Match x of y' when searching
+" Plug 'henrik/vim-indexed-search' " conflicts with incsearch
+
+" highlight all matches in incremental search
+" (conflicts with vim-indexed-search)
+Plug 'haya14busa/incsearch.vim'
 
 
 
@@ -50,34 +61,30 @@ Plug 'tpope/vim-speeddating'
 " sublime-like multiple cursors
 Plug 'terryma/vim-multiple-cursors'
 
-" expand selections
-Plug 'terryma/vim-expand-region'
-
-" TODO: adjust for NEO
-Plug 'tpope/vim-unimpaired'
-
-" snippet engine
-Plug 'SirVer/ultisnips'
-
-" Snippets for the snippet engine
-Plug 'honza/vim-snippets'
+" snippets
+Plug 'SirVer/ultisnips' " snippet engine
+Plug 'honza/vim-snippets' " Snippets for the snippet engine
 
 " more text objects
-Plug 'kana/vim-textobj-user'
+Plug 'kana/vim-textobj-user' " framework for custom text objects
 Plug 'kana/vim-textobj-indent' "ai ii
 
-" display and navigate marks
-Plug 'kshenoy/vim-signature'
+" toggle true/false etc
+Plug 'AndrewRadev/switch.vim'
+
 
 
 """"""""""""""""""""""""""""""""""""""""
 " helpful tools providing functions and commands
 " which need to be called/activated/mapped explicitly
 
+" fuzzy file finding
+Plug 'kien/ctrlp.vim'
+" TODO: fzf ?
+
 " git support
 Plug 'tpope/vim-fugitive'
 " Plug 'gregsexton/gitv'
-" Plug 'airblade/vim-gitgutter'
 
 " align text
 Plug 'godlygeek/tabular'
@@ -86,21 +93,11 @@ Plug 'godlygeek/tabular'
 " unix commands
 Plug 'tpope/vim-eunuch'
 
-" show 'Match x of y' when searching
-" Plug 'henrik/vim-indexed-search'
-
-" highlight all matches in incremental search
-" (conflicts with vim-indexed-search)
-Plug 'haya14busa/incsearch.vim'
-
-" file browser
-" Plug 'scrooloose/nerdtree'
-
 " distraction-free writing
 Plug 'junegunn/goyo.vim'
 
 " Toggle fullscreen for one window
-Plug 'ZoomWin'
+" Plug 'ZoomWin'
 
 " redraw some intermediate steps when using PageUp/Down
 " https://stackoverflow.com/questions/4064651/what-is-the-best-way-to-do-smooth-scrolling-in-vim
@@ -118,8 +115,8 @@ Plug 'fidian/hexmode'
 " reformat source code
 Plug 'Chiel92/vim-autoformat'
 
-" toggle true/false etc
-Plug 'AndrewRadev/switch.vim'
+
+
 
 
 """"""""""""""""""""""""""""""""""""""""
@@ -143,15 +140,19 @@ Plug 'gre/play2vim'
 " HTML
 Plug 'othree/html5.vim'
 
+" New JavaScript Standard Ecmascript 6
+" Plug 'isRuslan/vim-es6'
+Plug 'othree/yajs.vim'
+
 " colors in formats like css
-" Plug 'gorodinskiy/vim-coloresque'
+" Plug 'gorodinskiy/vim-coloresque' " Conflicts with vim-scala: word movements
+" jump over dots, outdated repository...
 
 " Rust programming language by Mozilla
 Plug 'wting/rust.vim'
 
 " LaTeX
 Plug 'LaTeX-Box-Team/LaTeX-Box'
-
 
 
 
@@ -182,11 +183,12 @@ Plug 'chriskempson/base16-vim'
 """"""""""""""""""""""""""""""""""""""""
 " experimental
 
+Plug 'scrooloose/syntastic'
+
+Plug 'vim-scripts/LanguageTool'
+
 " draw a sublime like minimap
 " Plug 'severin-lemaignan/vim-minimap'
-
-" restrict repetitive pressing of movement keys (especially arrows)
-" Plug 'takac/vim-hardtime'
 
 " auto completion for the Rust language
 " Plug 'ebfe/vim-racer'
@@ -194,17 +196,8 @@ Plug 'chriskempson/base16-vim'
 " automatically-close-brackets-magic
 " Plug 'Raimondi/delimitMate'
 
-" most recently used files and dirs
-" Plug 'Shougo/neomru.vim'
-
 " Interactive command execution
 " Plug 'Shougo/vimproc.vim'
-
-" fuzzy file finding
-" Plug 'Shougo/unite.vim'
-" Plug 'wincent/command-t', { 'do': 'cd ruby/command-t; ruby extconf.rb; make'}
-Plug 'kien/ctrlp.vim'
-" TODO: fzf
 
 " Collaborative Editing
 " Plug 'FredKSchott/CoVim'
@@ -214,12 +207,8 @@ Plug 'kien/ctrlp.vim'
 " Plug 'vim-scripts/ColorSchemeEditor'
 
 " TODO: Plug 'nathanaelkane/vim-indent-guides'
-" TODO: syntastic
-" TODO: Plug 'vim-scripts/ShowMarks'
 " TODO: Plug 'ervandew/supertab'
-"TODO: Plug 'scrooloose/syntastic'
 
-Plug 'vim-scripts/LanguageTool'
 
 call plug#end()
 
@@ -239,7 +228,6 @@ let g:ycm_min_num_of_chars_for_completion = 5
 let g:ycm_key_list_previous_completion = ['<S-TAB>']
 let g:ycm_key_list_select_completion = ['<TAB>']
 
-
 " dont display detail window about current completion
 " set completeopt=menuone,longest
 " let g:ycm_autoclose_preview_window_after_insertion = 1
@@ -251,62 +239,30 @@ let g:ycm_key_list_select_completion = ['<TAB>']
 " let g:EclimMakeLCD = 0
 
 
-" restore-vim
-" let g:skipview_files = ['*\.vim']
-
-
-" DelimitMate
-" let delimitMate_expand_cr = 1
-" let delimitMate_balance_matchpairs = 1
-
-" Unite
-" call unite#filters#matcher_default#use(['matcher_fuzzy'])
-" call unite#custom#source('file_rec', 'white_globs', ['*.scala','*.conf','*.js','*.sbt'])
-" call unite#custom#source('file_rec', 'ignore_globs', ['target/'])
-
-" CommandT
-" let g:CommandTFileScanner = 'git'
-" let g:CommandTCancelMap=['<Esc>', '<C-c>', '<Backspace>']
+" CtrlP fuzzy file finding
 let g:ctrlp_user_command = 'ag %s -l --nocolor -g ""'
 let g:ctrlp_working_path_mode = 'r'
 let g:ctrlp_reuse_window = 'startify'
 
-" Use ag for search
-" if executable('ag')
-"   let g:unite_source_grep_command = 'ag'
-"   let g:unite_source_grep_default_opts = '--nogroup --nocolor --column'
-"   let g:unite_source_grep_recursive_opt = ''
-"   let g:unite_source_rec_async_command= 'ag --nocolor --nogroup --hidden -g ""'
-" endif
-
-
-" Signify
+" gitgutter and signify
+" let g:gitgutter_diff_args = '--ignore-space-at-eol --ignore-space-change --ignore-all-space' " ignore whitespace in diff
+let g:gitgutter_sign_added = '+'
+let g:gitgutter_sign_modified = '⌇'
+let g:gitgutter_sign_removed = '✕'
+let g:gitgutter_sign_removed_first_line = '⌅'
+let g:gitgutter_sign_modified_removed = '⌇✕'
 let g:signify_sign_add               = '+'
 let g:signify_sign_change            = '⌇' " '︴⌇⌇┇
 let g:signify_sign_delete            = '✕'
 let g:signify_sign_delete_first_line = '⌅'
 
-
 " Languagetool
 let g:languagetool_jar=$HOME."/local/LanguageTool-2.6/languagetool-commandline.jar"
-
-" Hardtime
-" let g:hardtime_allow_different_key = 1
-" let g:hardtime_maxcount = 5
-" let g:hardtime_default_on = 1
-" let g:list_of_normal_keys = ["<UP>", "<DOWN>", "<LEFT>", "<RIGHT>", "x"]
-" let g:list_of_visual_keys = ["<UP>", "<DOWN>", "<LEFT>", "<RIGHT>"]
-" let g:list_of_insert_keys = ["<LEFT>", "<RIGHT>", "<Del>", "<Backspace>"]
 
 " racer
 " set hidden
 " let g:racer_cmd = "racer"
 " let $RUST_SRC_PATH="/home/felix/projects/rust/src"
-
-
-" rainbow
-" let g:rainbow_active = 1
-
 
 " ultisnips
 " Trigger configuration. Do not use <tab> if you use https://github.com/Valloric/YouCompleteMe.
@@ -316,6 +272,20 @@ let g:UltiSnipsJumpBackwardTrigger="<c-z>"
 
 " If you want :UltiSnipsEdit to split your window.
 " let g:UltiSnipsEditSplit="vertical"
+
+
+" Syntastic
+let g:syntastic_enable_signs  = 1
+let g:syntastic_always_populate_loc_list = 1
+let g:syntastic_check_on_wq = 0
+
+" styntastic java stuff
+let g:syntastic_java_checkers = ['javac', 'checkstyle']
+let g:syntastic_java_checkstyle_classpath = '/usr/share/java/checkstyle-5.7.jar'
+let g:syntastic_java_checkstyle_conf = '/usr/share/checkstyle/sun_checks.xml'
+
+" syntastic javascript
+let g:syntastic_jslint_checkers=['jshint']
 
 
 " switch.vim
@@ -360,3 +330,6 @@ let g:switch_custom_definitions =
     \     '\<\(\l\+\)\(-\l\+\)\+\>': "\\=substitute(submatch(0), '-\\(\\l\\)', '\\u\\1', 'g')",
     \   }
     \ ]
+" \   {'\([^-0-9]\)\(\d\+\)': '\1-\2', '-\(\d\+\)': '\1'},
+" \   {'+\(.\+\)': '-\1', '-\(.\+\)': '+\1'},
+

@@ -119,6 +119,11 @@ nmap <leader>f :Autoformat<CR>
 " nnoremap <Leader>e :<C-u>Unite -no-split -start-insert file_rec<CR>
 " nnoremap <Leader>a :<C-u>Unite -no-split -start-insert buffer tab file_mru<CR>
 " nnoremap <Leader>e :<C-u>CommandT<CR>
+" Gitgutter
+let g:gitgutter_map_keys = 0 " no default mappings
+nmap <leader>gs <Plug>GitGutterStageHunk
+nmap <leader>gr <Plug>GitGutterRevertHunk
+
 nmap <leader>e :CtrlP<CR>
 
 " clear search highlighting
