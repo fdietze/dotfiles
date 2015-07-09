@@ -62,6 +62,9 @@ Plug 'SirVer/ultisnips'
 " Snippets for the snippet engine
 Plug 'honza/vim-snippets'
 
+" more text objects
+Plug 'kana/vim-textobj-user'
+Plug 'kana/vim-textobj-indent' "ai ii
 
 " display and navigate marks
 Plug 'kshenoy/vim-signature'
