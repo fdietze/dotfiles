@@ -102,9 +102,10 @@ nnoremap <leader>ts :setlocal spell! spell?<CR>
 inoremap <c-s> <c-g>u<Esc>[s1z=`]a<c-g>u
 nnoremap <c-s> 1z=
 
-" insert chars at end of line
-nnoremap <leader>; m`A;<esc>``
-nnoremap <leader>, m`A,<esc>``
+" toggle chars at end of line
+nnoremap <silent> <Leader>; :call ToggleEndChar(';')<CR>
+nnoremap <silent> <Leader>, :call ToggleEndChar(',')<CR>\
+    silent! call repeat#set("ToggleEndChar(',')<CR>", -1)
 
 " insert empty lines on NEO up/down arrow
 nmap <silent> <leader>l <Plug>unimpairedBlankUp

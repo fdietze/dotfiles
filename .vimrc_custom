@@ -51,7 +51,12 @@ function! StripTrailingSpaces()
     call setpos('.', save_cursor) " restore cursor
 endfunction
 
-
+" from: http://stackoverflow.com/questions/18157501/toggle-semicolon-or-other-character-at-end-of-line
+function! ToggleEndChar(charToMatch)
+    let save_cursor = getpos(".") " backup cursor
+    s/\v(.)$/\=submatch(1)==a:charToMatch ? '' : submatch(1).a:charToMatch
+    call setpos('.', save_cursor) " restore cursor
+endfunction
 
 " try to capture and analyze keystrokes
 "
