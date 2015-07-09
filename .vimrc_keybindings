@@ -66,6 +66,7 @@ map Y y$
 " don't lose selection when indenting
 vnoremap < <gv
 vnoremap > >gv
+vnoremap = =gv
 
 " fast way to edit ~/.vimrc*
 nnoremap <Leader>vv :e ~/.vimrc<CR>
@@ -116,20 +117,25 @@ nmap <silent> <leader>da m`:silent +g/\m^\s*$/d<CR>``:noh<CR>
 " Autoformat
 nmap <leader>f :Autoformat<CR>
 
-" Unite / Fuzzy file finding
-" nnoremap <Leader>e :<C-u>Unite -no-split -start-insert file_rec<CR>
-" nnoremap <Leader>a :<C-u>Unite -no-split -start-insert buffer tab file_mru<CR>
-" nnoremap <Leader>e :<C-u>CommandT<CR>
 " Gitgutter
 let g:gitgutter_map_keys = 0 " no default mappings
 nmap <leader>gs <Plug>GitGutterStageHunk
 nmap <leader>gr <Plug>GitGutterRevertHunk
 
+" don't overwrite register when pasting over selection
+vnoremap p pgvy
+
+" delete/edit whole word backwards
+nnoremap db xdb
+nnoremap cb xcb
+
+" Fuzzy file finding
 nmap <leader>e :CtrlP<CR>
+nmap <leader>a :CtrlPBuffer<CR>
 
 " clear search highlighting
 nnoremap <silent> <Leader><Leader> :nohlsearch<CR>
-" nnoremap <Esc> :nohlsearch<CR><Esc>
+nnoremap <silent> <Leader>/ :nohlsearch<CR>
 
 " toggle distraction free writing
 nnoremap <silent> <leader>tg :Goyo<CR>
