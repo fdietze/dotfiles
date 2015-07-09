@@ -63,6 +63,10 @@ Plug 'SirVer/ultisnips'
 Plug 'honza/vim-snippets'
 
 
+" display and navigate marks
+Plug 'kshenoy/vim-signature'
+
+
 """"""""""""""""""""""""""""""""""""""""
 " helpful tools providing functions and commands
 " which need to be called/activated/mapped explicitly
