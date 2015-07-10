@@ -61,4 +61,9 @@ source ~/.oh-my-zsh/themes/slim.zsh-theme
 # command not found for Arch
 [ -r /etc/profile.d/cnf.sh ] && . /etc/profile.d/cnf.sh
 
+# vimpager instead of less
+export PAGER=/usr/bin/vimpager
+alias less=$PAGER
+alias zless=$PAGER
+
 

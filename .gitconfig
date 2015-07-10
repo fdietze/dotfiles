@@ -5,6 +5,7 @@
 [core]
     excludesfile = ~/.gitignore_global
     compression = 9
+    pager = less -FRSX
 
 [push]
     default = simple
