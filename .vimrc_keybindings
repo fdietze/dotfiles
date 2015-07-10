@@ -89,12 +89,6 @@ imap  <End>    <Esc><End>
 noremap <expr> <silent> <Home> col('.') == match(getline('.'),'\S')+1 ? '0' : '^'
 imap <silent> <Home> <C-O><Home>
 
-" Switch buffers with tab
-" nnoremap <silent> <Tab> :bnext<CR>
-" nnoremap <silent> <S-Tab> :bprevious<CR>
-" vnoremap <silent> <Tab> :bnext<CR>
-" vnoremap <silent> <S-Tab> :bprevious<CR>
-
 " jump to tag (for example in help files)
 nnoremap <leader>j <C-]>
 
