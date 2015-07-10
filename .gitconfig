@@ -43,3 +43,28 @@
 
 [merge]
     tool = meld
+
+
+[tig]
+    vertical-split = true
+    tab-size = 4
+    ignore-space = all
+    ignore-case = true ; search
+    ; wrap-lines = true ; conflicts with stage-update-line
+    editor-line-number = true
+    mouse-scroll = true
+    show-changes = true
+
+[tig "bind"]
+    generic = ä Quit
+    generic = ü view-close
+    generic = <Up> move-up
+    generic = <Down> move-down
+    generic = g move-first-line
+    generic = G move-last-line
+    main = G move-last-line ; overwrite default keybinding
+    status = A !git commit --amend
+    stage = u stage-update-line
+    stage = U status-update
+    stage = C !git commit
+    ; generic = C !git cherry-pick %(commit)
