@@ -31,8 +31,10 @@ vnoremap ä <esc>:q<CR>
 nnoremap ü :bd<CR>
 vnoremap ü <esc>:bd<CR>
 
-" ß: replay q macro
+" replay q/f macro
+" Q was ex mode
 nnoremap ß @q
+nnoremap Q @f
 
 " Smart way to move between windows, adjusted for NEO
 " in insert mode
@@ -57,7 +59,6 @@ map ∃ <C-W>l
 
 
 
-" TODO: remap Q (ex-mode)
 " TODO: imap <C-r>+ <C-o>"+p
 
 " make Y behave like D and C, yanking till end of line
