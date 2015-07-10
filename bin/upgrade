@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/zsh -ie
 
 echo "upgrading installed packages..."
 yaourt -Syyua --devel --noconfirm
@@ -11,6 +11,16 @@ sudo pkgfile -u
 
 echo "optimize pacman database..."
 sudo pacman-optimize
+
+
+echo "updating zgen plugins..."
+zgen update
+
+echo "updating vim plugins..."
+vim +PlugInstall +PlugUpgrade +PlugUpdate +qall
+
+echo "updating ruby gems..."
+sudo gem update
 
 echo "updating mlocate database..."
 sudo updatedb
