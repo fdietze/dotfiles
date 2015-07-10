@@ -66,5 +66,6 @@
     status = A !git commit --amend
     stage = u stage-update-line
     stage = U status-update
+    stage = A !git commit --amend
     stage = C !git commit
     ; generic = C !git cherry-pick %(commit)
