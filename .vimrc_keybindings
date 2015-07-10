@@ -126,6 +126,10 @@ nmap <leader>gr <Plug>GitGutterRevertHunk
 " don't overwrite register when pasting over selection
 vnoremap p pgvy
 
+" search backwards with backslash
+nmap \ ?
+vmap \ ?
+
 " delete/edit whole word backwards
 nnoremap db xdb
 nnoremap cb xcb
