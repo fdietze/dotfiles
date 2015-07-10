@@ -1,69 +1,74 @@
 source ~/.zprofile # because I have bash as my login shell
+DISABLE_AUTO_UPDATE="true" # disable oh-my-zsh auto-update
+source /usr/share/zsh/scripts/zgen/zgen.zsh
+export PURE_GIT_PULL=0
 
-# Path to your oh-my-zsh installation.
-ZSH=/usr/share/oh-my-zsh/
+if ! zgen saved; then
+    echo "creating zgen save..."
+    zgen oh-my-zsh # oh-my-zsh default settings
 
-# Uncomment the following line to disable bi-weekly auto-update checks.
-DISABLE_AUTO_UPDATE="true"
+    zgen load zsh-users/zsh-syntax-highlighting
+    zgen load zsh-users/zsh-history-substring-search # needs to be loaded after highlighting
+    zgen load jimhester/per-directory-history
+    zgen load rupa/z # jump to most used directories
 
-# Uncomment the following line to enable command auto-correction.
-# ENABLE_CORRECTION="true"
+    zgen load tarruda/zsh-autosuggestions
 
-# Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
-# Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
-# Example format: plugins=(rails git textmate ruby lighthouse)
-# Add wisely, as too many plugins slow down shell startup.
-plugins=(
-git
-cp
-history-substring-search
-systemd
-web-search
-heroku
-sbt
-scala
-per-directory-history
-)
-source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.plugin.zsh
+    # instant auto completion
+    # zgen load hchbaw/auto-fu.zsh
+    # zle-line-init () {auto-fu-init;}; zle -N zle-line-init
+    # zstyle ':completion:*' completer _oldlist _complete
+    # zle -N zle-keymap-select auto-fu-zle-keymap-select
 
-source $ZSH/oh-my-zsh.sh
-# User configuration
+    zgen load mafredri/zsh-async # for pure-prompt
+    zgen load sindresorhus/pure # prompt
 
-source ~/projects/dottr/pan.zsh
+    zgen load dottr/dottr
+    zgen save
+fi
+
+# bind UP and DOWN arrow keys
+bindkey '^[[A' history-substring-search-up
+bindkey '^[[B' history-substring-search-down
+
+
 fry ncserve
 fry pacman-disowned
 fry alias-usage-analysis
 fry print-expanded-alias
-fry vim-open-files-at-lines
+# fry vim-open-files-at-lines
 fry search-select-edit
 fry git-select-commit
 fry git-onstage
+fry github-clone
 fry daytime
 fry interactive-mv
 fry cd-tmp
 fry cd-git-root
 fry neo4j-query
 NEO4J_QUERY_JSON_FORMATTER="underscore print --color --outfmt json"
+fry mkdir-cd
 
-source ~/.sh_aliases
-
-# renaming utils
-autoload -U zmv
-
-}
-
-# set prompt theme
-source ~/.oh-my-zsh/themes/slim.zsh-theme
-
-# z (changing directories fast: https://github.com/rupa/z/)
-. ~/bin/z.sh
 
 # command not found for Arch
 [ -r /etc/profile.d/cnf.sh ] && . /etc/profile.d/cnf.sh
+
+source ~/.sh_aliases
 
 # vimpager instead of less
 export PAGER=/usr/bin/vimpager
 alias less=$PAGER
 alias zless=$PAGER
+
+
+# renaming utils
+autoload -U zmv
+
+setopt nonomatch # avoid the zsh "no matches found" / allows sbt ~compile
+setopt hash_list_all # rehash command path and completions on completion attempt
+
+# Vi-mode for zsh
+# bindkey -v
+# export KEYTIMEOUT=1
 
 
