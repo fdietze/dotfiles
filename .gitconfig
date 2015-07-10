@@ -17,6 +17,7 @@
     co = checkout
     cob = checkout -b
     ci = commit
+    cm = commit -m
     cim = commit -m
     cam = commit -a -m
     amend = commit --amend
@@ -26,6 +27,13 @@
     lg = fry one-line-log-colors
     df  = fry word-based-diff
     dfs  = fry word-based-diff --staged
+    peng = push --force --tags
+    po = "!git push --set-upstream origin \"$(git rev-parse --abbrev-ref HEAD)\""
+    dbr = "!f() { git branch -D $1 && git push origin :$1;}; f"
+    rba = rebase --abort
+    ma = merge --abort
+    rbc = rebase --continue
+    save = commit -m 'TEMPORARY SAVE'
 
 [color]
     branch = auto
