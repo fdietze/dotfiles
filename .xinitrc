@@ -3,6 +3,9 @@
 # set up keyboard layouts and toggle shortcut
 setxkbmap -layout de,de -variant neo,basic -option -option grp:menu_toggle &
 
+# switch keyboard backlight off
+keyboardbacklightoff
+
 # initialize keybindings
 xbindkeys &
 

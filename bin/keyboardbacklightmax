@@ -1,0 +1,6 @@
+#!/bin/bash
+# udev rule:
+# DEVPATH=="/devices/platform/asus-nb-wmi/leds/asus::kbd_backlight", RUN+="/bin/chmod 0666 /sys/class/leds/asus::kbd_backlight/brightness"
+
+cat /sys/class/leds/asus::kbd_backlight/max_brightness > /sys/class/leds/asus::kbd_backlight/brightness
+
