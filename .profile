@@ -1,5 +1,7 @@
 export PATH=$HOME/bin:$PATH
 export PATH=$PATH:~/.node_modules/bin
+export PATH="$PATH:$HOME/projects/dottr/pan.git"
+export PATH=$PATH:/root/.gem/ruby/2.2.0/bin
 
 export EDITOR=vim
 export BROWSER=qutebrowser
