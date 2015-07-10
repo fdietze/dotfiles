@@ -16,10 +16,14 @@ hc keyunbind --all
 Mod=Mod1    # Use left alt as the main modifier
 #Mod=Mod4   # Use the super key as the main modifier
 
-hc keybind $Mod-Shift-q quit
-hc keybind $Mod-Shift-y reload
 hc keybind $Mod-q close
 hc keybind $Mod-x close
+hc keybind $Mod-Shift-q quit
+hc keybind $Mod-Shift-x quit
+hc keybind $Mod-Ctrl-Shift-q spawn poweroff
+hc keybind $Mod-Ctrl-Shift-x spawn poweroff
+hc keybind $Mod-Shift-y reload
+hc keybind $Mod-Ctrl-Shift-y spawn reboot
 hc keybind $Mod-k spawn xkill
 hc keybind $Mod-d spawn termitexcwd
 hc keybind $Mod-y spawn launcher
