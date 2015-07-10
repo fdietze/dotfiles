@@ -32,14 +32,21 @@ nnoremap <esc> <esc>:nohls<return><esc>
 " don't lose selection when indenting
 vnoremap < <gv
 vnoremap > >gv
+vnoremap = =gv
 
 " let Y yank not entire line, but from cursor to the end (consistent with D, C)
 nnoremap Y y$
 
+" don't overwrite register when pasting over selection
+vnoremap p pgvy
+
+" delete whole word backwards
+nnoremap db dbx
+
 " replay q macro (helpful in NEO keyboard layout)
 nmap ß @q
 
-" jump to mark
+" jump to mark (NEO)
 nmap j `
 
 
@@ -69,6 +76,9 @@ nmap <space>f :action ActivateProjectToolWindow<CR>
 nmap gcc :action CommentByLineComment<CR>
 vmap gcc :action CommentByLineComment<CR>
 nmap <space>r :action RenameElement<CR>
+
+" like in vim-multiple-cursors
+nmap <C-n> :action RenameElement<CR>
 nmap <space>m :action ExtractMethod<CR>
 vnoremap <space>m :action ExtractMethod<CR>
 nmap <space>v :action IntroduceVariable<CR>
