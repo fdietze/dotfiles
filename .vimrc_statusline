@@ -8,26 +8,95 @@ set noshowmode
 let g:lightline = {
       \ 'colorscheme': 'wombat',
       \ 'active': {
-      \   'left': [ [ 'mode' ], [ 'gitbranch', 'bufferline' ]],
-      \   'right': [  ['scrollbarhighres'], [ 'filetype' ] ]
+      \   'left': [ [ 'mode' ], [ 'gitbranch', 'syntastic', 'bufferline' ]],
+      \   'right': [  ['scrollbar'], [ 'filetype' ] ]
       \ },
       \ 'inactive': {
       \   'left': [ ['filename'] ],
-      \   'right': [  ['scrollbarhighres'] ]
+      \   'right': [  ['scrollbar'] ]
       \ },
       \ 'component' : {
       \   'bufferline': '%{bufferline#refresh_status()}%{g:bufferline_status_info.before}%#TabLineSel#%{g:bufferline_status_info.current}%#LightLineLeft_active_1#%{g:bufferline_status_info.after}',
-      \   'scrollbar': '%{Scrollbar(20)}',
-      \   'scrollbarhighres': '%{Scrollbar_Highres(20)}',
-      \   'scrollbarsinglechar': '%{Scrollbar_SingleChar()}'
       \ },
       \ 'component_function': {
       \   'gitbranch': 'BarGitBranch',
       \   'filename' : 'BarFilename',
+      \   'scrollbar': 'BarScrollbar'
+      \ },
+      \ 'component_expand': {
+      \   'syntastic': 'SyntasticStatuslineFlag',
+      \ },
+      \ 'component_type': {
+      \   'syntastic': 'error',
       \ },
       \ 'separator': { 'left': '', 'right': '' },
-      \ 'subseparator': { 'left': '|', 'right': '|' }
+      \ 'subseparator': { 'left': '▍', 'right': '▐' }
       \ }
+
+function! BarScrollbar()
+    return winwidth(0) > 70 ? Scrollbar_Highres(20) : Scrollbar_SingleChar()
+endfunction
+
+augroup AutoSyntastic
+  autocmd!
+  autocmd BufWritePost *.js call s:syntastic()
+augroup END
+
+function! s:syntastic()
+  call lightline#update()
+endfunction
+
+" hi def link User1 GuiInactiveFull
+" hi def link User2 GuiAlternateActiveFull
+" hi def link User3 Cursorlinenr
+
+function! BarGitBranch()
+  try
+    if expand('%:t') !~? 'Tagbar\|Gundo\|NERD' && &ft !~? 'vimfiler' && exists('*fugitive#head')
+      let mark = '⎇  '  " edit here for cool mark
+      let _ = fugitive#head()
+      let out = strlen(_) ? mark._ : ''
+      return winwidth(0) > 70 ? out : ''
+    endif
+  catch
+  endtry
+  return ''
+endfunction
+
+function! BarModified()
+  if &filetype == "help"
+    return ""
+  elseif &modified
+    return "*"
+  elseif &modifiable
+    return ""
+  else
+    return ""
+  endif
+endfunction
+
+function! BarReadonly()
+  if &filetype == "help"
+    return ""
+  elseif &readonly
+    return "[ro]"
+  else
+    return ""
+  endif
+endfunction
+
+
+function! BarFilename()
+  return ('' != expand('%:t') ? expand('%:t') : '[No Name]') .
+       \ ('' != BarReadonly() ? BarReadonly() . ' ' : '') .
+       \ ('' != BarModified() ? BarModified() : '')
+endfunction
+
+let g:bufferline_echo = 0
+let g:bufferline_active_buffer_left = ''
+let g:bufferline_active_buffer_right = ''
+let g:bufferline_show_bufnr = 0
+
 
 func! Update_Scrollbar_Highres(charwidth)
     " let res        = 8
@@ -128,46 +197,4 @@ func! Scrollbar_SingleChar()
     " echo 'lines: '.lines.', cursor: '.cursor.', display:'.display
     return blocks[display]
 endfun
-
-" hi def link User1 GuiInactiveFull
-" hi def link User2 GuiAlternateActiveFull
-" hi def link User3 Cursorlinenr
-
-function! BarGitBranch()
-  return exists('*fugitive#head') ? fugitive#head() : ''
-endfunction
-
-function! BarModified()
-  if &filetype == "help"
-    return ""
-  elseif &modified
-    return "*"
-  elseif &modifiable
-    return ""
-  else
-    return ""
-  endif
-endfunction
-
-function! BarReadonly()
-  if &filetype == "help"
-    return ""
-  elseif &readonly
-    return "[ro]"
-  else
-    return ""
-  endif
-endfunction
-
-
-function! BarFilename()
-  return ('' != expand('%:t') ? expand('%:t') : '[No Name]') .
-       \ ('' != BarReadonly() ? BarReadonly() . ' ' : '') .
-       \ ('' != BarModified() ? BarModified() : '')
-endfunction
-
-let g:bufferline_echo = 0
-let g:bufferline_active_buffer_left = ''
-let g:bufferline_active_buffer_right = ''
-let g:bufferline_show_bufnr = 0
 
