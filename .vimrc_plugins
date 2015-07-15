@@ -292,7 +292,7 @@ let g:syntastic_java_checkstyle_classpath = '/usr/share/java/checkstyle-5.7.jar'
 let g:syntastic_java_checkstyle_conf = '/usr/share/checkstyle/sun_checks.xml'
 
 " syntastic javascript
-let g:syntastic_jslint_checkers=['jshint']
+let g:syntastic_javascript_checkers=['jshint'] " , 'eslint', 'flow']
 
 
 " switch.vim
