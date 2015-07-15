@@ -22,7 +22,8 @@ Plug 'mhinz/vim-startify'
 Plug 'tpope/vim-repeat'
 
 " enlarge focused window a bit
-Plug 'roman/golden-ratio'
+" Plug 'roman/golden-ratio'
+Plug 'zhaocai/GoldenView.Vim'
 
 " VCS change info per line
 Plug 'airblade/vim-gitgutter' " only git
@@ -114,6 +115,12 @@ Plug 'fidian/hexmode'
 
 " reformat source code
 Plug 'Chiel92/vim-autoformat'
+
+" close all buffers except current one
+Plug 'vim-scripts/BufOnly.vim'
+
+" show undo tree
+Plug 'mbbill/undotree'
 
 
 
