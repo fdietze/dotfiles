@@ -45,6 +45,9 @@ Plug 'kshenoy/vim-signature'
 " (conflicts with vim-indexed-search)
 Plug 'haya14busa/incsearch.vim'
 
+" open files at line with filename:32
+Plug 'cornerman/file-line'
+
 
 
 """"""""""""""""""""""""""""""""""""""""
