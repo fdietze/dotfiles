@@ -39,6 +39,7 @@ alias imv='interactive-mv'
 o() { xdg-open $@ > /dev/null 2>&1; }
 alias of='o "$(fzf)"'
 f() { $@ "$(fzf)"; }
+vimf() { vim "$(fzf --query="$(echo $@ | tr ' ' '\ ' )")"; }
 ft() { $@ "$(ls -tr1 --group-directories-first | fzf --no-sort)"; } # least modified files
 alias cdt='cd-tmp'
 alias cdg='cd-git-root'

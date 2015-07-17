@@ -250,9 +250,10 @@ let g:ycm_key_list_select_completion = ['<TAB>']
 
 
 " CtrlP fuzzy file finding
-let g:ctrlp_user_command = 'ag %s -l --nocolor -g ""'
+let g:ctrlp_user_command = 'ag %s -l --nocolor --hidden -g ""'
 let g:ctrlp_working_path_mode = 'r'
 let g:ctrlp_reuse_window = 'startify'
+let g:ctrlp_show_hidden = 1
 
 " gitgutter and signify
 " let g:gitgutter_diff_args = '--ignore-space-at-eol --ignore-space-change --ignore-all-space' " ignore whitespace in diff
