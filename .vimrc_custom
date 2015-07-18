@@ -52,11 +52,15 @@ function! StripTrailingSpaces()
 endfunction
 
 " from: http://stackoverflow.com/questions/18157501/toggle-semicolon-or-other-character-at-end-of-line
-function! ToggleEndChar(charToMatch)
+function! s:ToggleEndChar(charToMatch)
     let save_cursor = getpos(".") " backup cursor
     s/\v(.)$/\=submatch(1)==a:charToMatch ? '' : submatch(1).a:charToMatch
     call setpos('.', save_cursor) " restore cursor
+    silent! call repeat#set("\<Plug>ToggleEndChar".a:charToMatch, -1)
 endfunction
+
+noremap <unique> <Plug>ToggleEndChar; :call <SID>ToggleEndChar(';')<CR>
+noremap <unique> <Plug>ToggleEndChar, :call <SID>ToggleEndChar(',')<CR>
 
 " try to capture and analyze keystrokes
 "

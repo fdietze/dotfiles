@@ -105,9 +105,8 @@ inoremap <c-s> <c-g>u<Esc>[s1z=`]a<c-g>u
 nnoremap <c-s> 1z=
 
 " toggle chars at end of line
-nnoremap <silent> <Leader>; :call ToggleEndChar(';')<CR>
-nnoremap <silent> <Leader>, :call ToggleEndChar(',')<CR>\
-    silent! call repeat#set("ToggleEndChar(',')<CR>", -1)
+nmap <silent> <Leader>; <Plug>ToggleEndChar;
+nmap <silent> <Leader>, <Plug>ToggleEndChar,
 
 " insert empty lines on NEO up/down arrow
 nmap <silent> <leader>l <Plug>unimpairedBlankUp
