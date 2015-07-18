@@ -24,7 +24,8 @@ function conky_init()
             charwidth    = 9
         }
     end
-    s.cpucount = exec("grep 'physical id' /proc/cpuinfo | wc -l")
+    -- s.cpucount = exec("grep 'physical id' /proc/cpuinfo | wc -l")
+    s.cpucount = 1
 end
 
 function conky(var)
