@@ -6,10 +6,10 @@
 
 
 " Use Vim settings, rather than Vi settings
-set nocompatible 
+set nocompatible
 
 " allow UTF-8 characters in vimrc
-scriptencoding utf-8 
+scriptencoding utf-8
 
 " clear all keymappings
 mapclear
@@ -38,11 +38,11 @@ endif
 " gui settings
 set mouse=a
 if has("gui_running")
-  set guioptions=aci        " hide toolbars
-  set guifont=Inconsolata\ 8
-  "set lines=24 columns=80 " Maximize window.
-  set guicursor+=a:blinkon0 "disible blinking
-  set guicursor+=i-ci:block-iCursor-blinkon0 "insert mode: block, no blinking, highlight with iCursor
+    set guioptions=aci        " hide toolbars
+    set guifont=Inconsolata\ 8
+    "set lines=24 columns=80 " Maximize window.
+    set guicursor+=a:blinkon0 "disible blinking
+    set guicursor+=i-ci:block-iCursor-blinkon0 "insert mode: block, no blinking, highlight with iCursor
 endif
 
 " display
@@ -87,7 +87,6 @@ set lazyredraw                    " performance: dont redraw while executing mac
 set ttyfast                       " allow vim to write more characters to screen
 set autoread                      " read file when changed from outside
 set confirm                       " ask to save files when closing vim
-cd %:p:h                          " cd to directory of current file
 set exrc                          " source .vimrc from directories
 set secure                        " secure local vimrc execution
 set wildignore=*.o,*.obj,*.class,target/**
@@ -113,11 +112,14 @@ if !isdirectory(expand(&directory))
     call mkdir(expand(&directory), "p")
 endif
 
-
 " define a group `vimrc` and initialize.
 augroup vimrc
-  autocmd!
+    autocmd!
 augroup END
+
+" change directory to the current buffer when opening files.
+" set autochdir
+autocmd vimrc BufEnter * silent! lcd %:p:h
 
 " break text automatically
 autocmd vimrc FileType text setlocal textwidth=78
@@ -137,14 +139,14 @@ autocmd vimrc FileType vim,html,css,scss,javascript,sh
 " return to last edit position when opening a file.
 " except for git commits: Enter insert mode instead.
 autocmd vimrc BufReadPost *
-\ if line("'\"") > 0 && line("'\"") <= line("$") |
-\   if &filetype == 'gitcommit' |
-\       setlocal spell |
-\       startinsert |
-\   else |
-\      exe "normal! g`\"" |
-\    endif |
-\ endif
+            \ if line("'\"") > 0 && line("'\"") <= line("$") |
+            \   if &filetype == 'gitcommit' |
+            \       setlocal spell |
+            \       startinsert |
+            \   else |
+            \      exe "normal! g`\"" |
+            \    endif |
+            \ endif
 
 
 " leave insert mode quickly

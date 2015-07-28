@@ -125,6 +125,7 @@ nmap <leader>gu <Plug>GitGutterStageHunk
 nmap <leader>gr <Plug>GitGutterRevertHunk
 nmap <leader>gs :silent !tig status<CR>:GitGutterAll<CR>:redraw!<CR>
 nmap <leader>gp :!git push<CR>
+nmap <silent> <leader>gd :Rooter<CR>
 
 " don't overwrite register when pasting over selection
 vnoremap p pgvy

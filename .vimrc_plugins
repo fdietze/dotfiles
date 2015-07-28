@@ -48,6 +48,9 @@ Plug 'haya14busa/incsearch.vim'
 " open files at line with filename:32
 Plug 'cornerman/file-line'
 
+" cd to project root
+Plug 'airblade/vim-rooter'
+
 
 
 """"""""""""""""""""""""""""""""""""""""
@@ -349,4 +352,9 @@ let g:switch_custom_definitions =
     \ ]
 " \   {'\([^-0-9]\)\(\d\+\)': '\1-\2', '-\(\d\+\)': '\1'},
 " \   {'+\(.\+\)': '-\1', '-\(.\+\)': '+\1'},
+
+
+" rooter
+let g:rooter_manual_only = 1
+let g:rooter_disable_map = 1
 
