@@ -117,10 +117,14 @@ nmap <silent> <leader>da m`:silent +g/\m^\s*$/d<CR>``:noh<CR>
 " Autoformat
 nmap <leader>f :Autoformat<CR>
 
-" Gitgutter
-let g:gitgutter_map_keys = 0 " no default mappings
-nmap <leader>gs <Plug>GitGutterStageHunk
+" Git
+nmap <leader>gn <Plug>GitGutterNextHunk
+nmap <leader>gN <Plug>GitGutterPrevHunk
+nmap <leader>ga <Plug>GitGutterStageHunk
+nmap <leader>gu <Plug>GitGutterStageHunk
 nmap <leader>gr <Plug>GitGutterRevertHunk
+nmap <leader>gs :silent !tig status<CR>:GitGutterAll<CR>:redraw!<CR>
+nmap <leader>gp :!git push<CR>
 
 " don't overwrite register when pasting over selection
 vnoremap p pgvy
