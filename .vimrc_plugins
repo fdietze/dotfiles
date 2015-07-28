@@ -218,6 +218,7 @@ Plug 'vim-scripts/LanguageTool'
 
 " TODO: Plug 'nathanaelkane/vim-indent-guides'
 " TODO: Plug 'ervandew/supertab'
+Plug 'zirrostig/vim-schlepp'
 
 
 call plug#end()
@@ -297,6 +298,11 @@ let g:syntastic_java_checkstyle_conf = '/usr/share/checkstyle/sun_checks.xml'
 
 " syntastic javascript
 let g:syntastic_javascript_checkers=['jshint'] " , 'eslint', 'flow']
+
+" vim schlepp
+let g:Schlepp#allowSquishingLines = 1
+let g:Schlepp#allowSquishingBlocks = 1
+let g:Schlepp#reindent = 1
 
 
 " switch.vim

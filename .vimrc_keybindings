@@ -159,6 +159,16 @@ noremap <silent> <c-f> :call smooth_scroll#down(&scroll*2, 0, 4)<CR>
 noremap <silent> <PageUp> :call smooth_scroll#up(&scroll*2, 0, 4)<CR>
 noremap <silent> <PageDown> :call smooth_scroll#down(&scroll*2, 0, 4)<CR>
 
+" vim-schlepp visual movement
+vmap <S-up>    <Plug>SchleppUp
+vmap <S-down>  <Plug>SchleppDown
+vmap <S-left>  <Plug>SchleppLeft
+vmap <S-right> <Plug>SchleppRight
+nmap <S-up>    <S-v><Plug>SchleppUp
+nmap <S-down>  <S-v><Plug>SchleppDown
+nmap <S-left>  <S-v><Plug>SchleppLeft
+nmap <S-right> <S-v><Plug>SchleppRight
+
 " ExpandRegion
 map + <Plug>(expand_region_expand)
 map - <Plug>(expand_region_shrink)
