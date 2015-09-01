@@ -75,4 +75,6 @@
     stage = U status-update
     stage = A !git commit --amend
     stage = C !git commit
+    status = w !git fry word-based-diff
+    stage = w !git fry word-based-diff %(file)
     ; generic = C !git cherry-pick %(commit)
