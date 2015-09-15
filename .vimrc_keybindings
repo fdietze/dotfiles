@@ -25,17 +25,18 @@ nnoremap <silent> L :bprev<CR>
 vnoremap <silent> L :bprev<CR>
 
 nnoremap ö :update<CR>
-nnoremap Ö :SudoWrite<CR>
 vnoremap ö <esc>:update<CR>gv
+nnoremap Ö :SudoWrite<CR>
 vnoremap Ö <esc>:SudoWrite<CR>gv
+nnoremap <Leader>ö :update<CR>:call SyntasticAndStatusUpdate()<CR>
 nnoremap ä :q<CR>
-nnoremap Ä :q!<CR>
 vnoremap ä <esc>:q<CR>
+nnoremap Ä :q!<CR>
 vnoremap Ä <esc>:q!<CR>
 nnoremap ü :bd<CR>
-nnoremap Ü :BufOnly<CR>
 vnoremap ü <esc>:bd<CR>
-vnoremap Ü <esc>:BufOnly<CR>
+nnoremap <Leader>ü :BufOnly<CR>
+vnoremap <Leader>ü <esc>:BufOnly<CR>gv
 
 " replay q/f macro
 " Q was ex mode
