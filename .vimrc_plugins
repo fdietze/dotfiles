@@ -74,7 +74,12 @@ Plug 'honza/vim-snippets' " Snippets for the snippet engine
 
 " more text objects
 Plug 'kana/vim-textobj-user' " framework for custom text objects
-Plug 'kana/vim-textobj-indent' "ai ii
+Plug 'kana/vim-textobj-indent' " i
+Plug 'whatyouhide/vim-textobj-xmlattr' " x
+Plug 'glts/vim-textobj-comment' " c
+Plug 'kana/vim-textobj-function' " f
+
+Plug 'PeterRincker/vim-argumentative' " text object ',' / also provides argument movements with >, ],
 
 " toggle true/false etc
 Plug 'AndrewRadev/switch.vim'
