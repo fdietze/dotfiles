@@ -32,6 +32,7 @@ bindkey '^[[A' history-substring-search-up
 bindkey '^[[B' history-substring-search-down
 
 
+fry completion
 fry ncserve
 fry pacman-disowned
 fry alias-usage-analysis
@@ -71,4 +72,7 @@ setopt hash_list_all # rehash command path and completions on completion attempt
 # bindkey -v
 # export KEYTIMEOUT=1
 
+
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
