@@ -4,7 +4,7 @@
 
 [core]
     excludesfile = ~/.gitignore_global
-    pager = less -FRSX
+    pager = less
 
 [push]
     default = simple
@@ -13,6 +13,7 @@
     autosetuprebase = always
 
 [alias]
+    st = status
     co = checkout
     cob = checkout -b
     ci = commit
@@ -21,18 +22,29 @@
     cam = commit -a -m
     amend = commit --amend
     unstage = reset HEAD
-    st = status
+    prev = reset HEAD~1
     br = branch
     lg = fry one-line-log-colors
     df  = fry word-based-diff
     dfs  = fry word-based-diff --staged
-    peng = push --force --tags
-    po = "!git push --set-upstream origin \"$(git rev-parse --abbrev-ref HEAD)\""
-    dbr = "!f() { git branch -D $1 && git push origin :$1;}; f"
+    diff = diff --irreversible-delete --find-copies-harder --find-copies --ignore-space-at-eol --ignore-space-change --ignore-all-space
+    diffs = diff --irreversible-delete --find-copies-harder --find-copies --ignore-space-at-eol --ignore-space-change --ignore-all-space
+    p = push
+    pf = push --force
+    peng = push --force
+    po = "!git push --set-upstream origin \"$(git rev-parse --abbrev-ref HEAD)\"" # push current branch to origin
+    dbr = "!f() { git branch -D $1 && git push origin :$1;}; f" # delete local and remote branch
+    wip = commit -m 'wip'
+
     rba = rebase --abort
-    ma = merge --abort
+    rbs = rebase --skip
     rbc = rebase --continue
-    save = commit -m 'TEMPORARY SAVE'
+    mra = merge --abort
+    mrs = merge --skip
+    mrc = merge --continue
+    cpa = cherry-pick --abort
+    cps = cherry-pick --skip
+    cpc = cherry-pick --continue
 
 [color]
     branch = auto
@@ -50,7 +62,6 @@
 
 [merge]
     tool = meld
-
 
 [tig]
     vertical-split = true
