@@ -66,7 +66,3 @@ setopt hash_list_all # rehash command path and completions on completion attempt
 # bindkey -v
 # export KEYTIMEOUT=1
 
-
-
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-
