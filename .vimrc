@@ -26,9 +26,10 @@ filetype plugin indent on
 
 
 " Colorscheme
+syntax enable
 if filereadable($HOME."/.colors") && match(readfile($HOME."/.colors"),"light")
     set background=dark
-    colorscheme base16-monokai
+    colorscheme solarized
 else
     set background=light
     colorscheme goodmorning
@@ -46,7 +47,6 @@ if has("gui_running")
 endif
 
 " display
-syntax on
 set cursorline                    " highlight current line
 set number                        " enable line numbers
 set relativenumber                " show relative numbers for all lines but the current one
@@ -133,8 +133,9 @@ autocmd vimrc BufNewFile,BufRead *.jad set filetype=java
 autocmd vimrc FileType vim,html,css,scss,javascript,sh
             \ autocmd BufWritePre * call StripTrailingSpaces()
 
-autocmd vimrc FileType vim,html,css,scss,javascript,sh
-            \ autocmd BufWritePre * Autoformat
+" on save, autoformat
+autocmd vimrc FileType vim,html
+            \ autocmd BufWritePre *.vim *.html Autoformat
 
 " return to last edit position when opening a file.
 " except for git commits: Enter insert mode instead.
@@ -159,4 +160,10 @@ if ! has('gui_running')
     autocmd FastEscape InsertEnter * set timeoutlen=0
     autocmd FastEscape InsertLeave * set timeoutlen=1000
 endif
+
+" don't move cursor when leaving insert mode, breaks multiple-cursors
+" let CursorColumnI = 0 "the cursor column position in INSERT
+" autocmd InsertEnter * let CursorColumnI = col('.')
+" autocmd CursorMovedI * let CursorColumnI = col('.')
+" autocmd InsertLeave * if col('.') != CursorColumnI | call cursor(0, col('.')+1) | endif
 
