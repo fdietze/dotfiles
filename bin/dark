@@ -8,7 +8,7 @@ if [ "$DISPLAY" ]; then
 
     VIMS=`vim --serverlist`
     for vim in $VIMS; do
-        vim --servername $vim --remote-send '<Esc>:set background=dark<CR>:colorscheme base16-chalk<CR>'
+        vim --servername $vim --remote-send '<Esc>:set background=dark<CR>:colorscheme solarized<CR>'
     done
 
     herbstclient set window_border_width 2
@@ -30,7 +30,7 @@ if [ "$DISPLAY" ]; then
         done
     fi
 
-    nitrogen --set-zoom-fill ~/downloads/wallpapers/3-d-cube-constellation-wallpaper-1920x1080.jpg
+    nitrogen --set-zoom-fill ~/downloads/wallpapers/582.jpg
 else
     # set colors of console (without X)
     if [ "$TERM" = "linux" ]; then

@@ -30,7 +30,7 @@ if [ "$DISPLAY" ]; then
         done
     fi
 
-    nitrogen --set-zoom-fill ~/downloads/wallpapers/2443.jpg
+    nitrogen --set-zoom-fill ~/downloads/wallpapers/2445.jpg
 else
     # set colors of console (without X)
     if [ "$TERM" = "linux" ]; then
