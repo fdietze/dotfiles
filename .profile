@@ -1,25 +1,29 @@
+export PATH=$HOME/.node_modules/bin:$PATH
+export PATH="$(ruby -e 'print Gem.user_dir')/bin:$PATH"
+export PATH=$HOME/projects/dottr/pan.git:$PATH
 export PATH=$HOME/bin:$PATH
-export PATH=$PATH:~/.node_modules/bin
-export PATH="$PATH:$HOME/projects/dottr/pan.git"
-export PATH=$PATH:/root/.gem/ruby/2.2.0/bin
-
-export EDITOR=vim
-export BROWSER=qutebrowser
-export DE=mate
-
-# fix java apps in tiling window managers
-export _JAVA_AWT_WM_NONREPARENTING=1
-# export _JAVA_OPTIONS="-Dawt.useSystemAAFontSettings=off -Dsun.java2d.xrender=true"
-# export AWT_TOOLKIT=XToolkit
-
-export GDK_USE_XFT=1
 
 export GOPATH=~/go
 export RUST_SRC_PATH=~/projects/rust/src
 
-export SBT_OPTS="-Xms64M -Xmx256M -Xss1M -XX:+CMSClassUnloadingEnabled"
-export _JAVA_OPTIONS="-XX:+UseCompressedOops"
+export EDITOR=vim
+export BROWSER=qutebrowser
+export DE=gnome
+
+# fix java apps in tiling window managers
+export _JAVA_AWT_WM_NONREPARENTING=1
+
+# fix java apps font rendering
+javaopts=$javaopts" -Dawt.useSystemAAFontSettings=gasp -Dsun.java2d.xrender=true -Dswing.aatext=true"
+export AWT_TOOLKIT=MToolkit
+export GDK_USE_XFT=1
+
+sbtopts=$sbtopts" -Xms32M -Xmx712M -Xss1M -XX:+CMSClassUnloadingEnabled -XX:+UseConcMarkSweepGC"
+javaopts=$javaopts" -XX:+UseCompressedOops"
 
 # sbt-web: use native Node.js instead of Trireme
 # https://www.playframework.com/documentation/2.3.x/Migration23
-export SBT_OPTS="$SBT_OPTS -Dsbt.jse.engineType=Node"
+sbtopts=$sbtopts" -Dsbt.jse.engineType=Node"
+
+export _JAVA_OPTIONS=$javaopts
+export SBT_OPTS=$sbtopts
