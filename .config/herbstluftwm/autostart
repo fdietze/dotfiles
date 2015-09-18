@@ -26,6 +26,7 @@ hc keybind $Mod-Shift-y reload
 hc keybind $Mod-Ctrl-Shift-y spawn reboot
 hc keybind $Mod-k spawn xkill
 hc keybind $Mod-d spawn termitexcwd
+hc keybind $Mod-j spawn qutebrowser
 hc keybind $Mod-y spawn launcher
 hc keybind $Mod-Shift-d spawn nmcli_dmenu
 hc keybind $Mod-Shift-p spawn xrandr --output eDP1  --auto --primary --output VGA1 --off --output HDMI1 --off
