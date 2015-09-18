@@ -67,7 +67,7 @@ hc keybind $Mod-Ctrl-d spawn nmcli radio wifi off
 
 # set default layout to grid
 hc set default_frame_layout 3
-herbstclient set_layout grid
+hc set_layout grid
 
 # basic movement
 # focusing clients
@@ -96,8 +96,10 @@ hc keybind $Mod-g       chain , split   top    0.38 , focus up
 hc keybind $Mod-r       chain , split   bottom 0.62 , focus down
 hc keybind $Mod-n       chain , split   left   0.38 , focus left
 hc keybind $Mod-t       chain , split   right  0.62 , focus right
+
 # let the current frame explode into subframes
 hc keybind $Mod-m split explode
+hc keybind $Mod-Shift-m split explode
 
 # resizing frames
 resizestep=0.02
@@ -132,6 +134,7 @@ hc keybind $Mod-w use_previous
 
 # layouting
 hc keybind $Mod-comma remove
+hc keybind $Mod-Shift-comma remove
 hc keybind $Mod-Shift-h cycle_layout 1
 hc keybind $Mod-h floating toggle
 hc keybind $Mod-f fullscreen toggle
