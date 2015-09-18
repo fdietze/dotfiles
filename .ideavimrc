@@ -10,7 +10,8 @@ set relativenumber                " relative line numbers
 set scrolloff=5 sidescrolloff=10  " keep some lines before and after the cursor visible
 
 " edit ideavim config
-nnoremap <space>V :e ~/.ideavimrc<CR>
+nnoremap <space>vv :e ~/.ideavimrc<CR>
+nnoremap <space>vr :source ~/.ideavimrc<CR>
 
 " simple closing and saving (helpful in NEO keyboard layout)
 nnoremap ö :action ReformatCode<CR>:w<CR>
@@ -19,15 +20,15 @@ nnoremap ü :q<CR>
 nnoremap <space>ü :action CloseAllEditorsButActive<CR>
 
 " disable arrow keys and home/end in insert mode, exit insert mode when pressed
-inoremap  <Up>     <Esc><Up>
-inoremap  <Down>   <Esc><Down>
-inoremap  <Left>   <Esc>
-inoremap  <Right>  <Esc>2<Right>
+" inoremap  <Up>     <Esc><Up>
+" inoremap  <Down>   <Esc><Down>
+" inoremap  <Left>   <Esc>
+" inoremap  <Right>  <Esc>2<Right>
 inoremap  <Home>   <Esc><Home>
 inoremap  <End>    <Esc><End>
 
 " clear search highlighting
-nnoremap <esc> <esc>:nohls<return><esc>
+nnoremap <space>/ <esc>:nohls<return><esc>
 
 " don't lose selection when indenting
 vnoremap < <gv
@@ -55,6 +56,10 @@ nmap + :action EditorIncreaseFontSize<CR>
 nmap - :action EditorDecreaseFontSize<CR>
 nmap <space>= :action EditorResetFontSize<CR>
 
+" map search to IDE
+" nmap / :action Find<CR>
+" nmap n :action FindNext<CR>
+
 " code navigation
 nmap l :action NextTab<CR>
 nmap L :action PreviousTab<CR>
@@ -71,17 +76,17 @@ imap <C-p> <C-o>:action ParameterInfo<CR>
 nmap <space>n :action NextOccurence<CR>
 nmap <space>a :action GotoAction<CR>
 nmap <space>f :action ActivateProjectToolWindow<CR>
+nmap h mY*`Y
 
 " editing / refactoring
 nmap gcc :action CommentByLineComment<CR>
-vmap gcc :action CommentByLineComment<CR>
 nmap <space>r :action RenameElement<CR>
-
 " like in vim-multiple-cursors
 nmap <C-n> :action RenameElement<CR>
 nmap <space>m :action ExtractMethod<CR>
-vnoremap <space>m :action ExtractMethod<CR>
-nmap <space>v :action IntroduceVariable<CR>
+vmap <space>m :action ExtractMethod<CR>
+" nmap <space>v :action IntroduceVariable<CR>
+" vmap <space>v :action IntroduceVariable<CR>
 nmap <space>i :action Inline<CR>
 nmap <space>o :action OptimizeImports<CR>
 nmap <space>g :action Generate<CR>
