@@ -1,4 +1,5 @@
-" using plugin manager vim-plug
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" using plugin manager vim-plug.
 " auto-install if not found
 if empty(glob('~/.vim/autoload/plug.vim'))
     !mkdir -p ~/.vim/autoload
@@ -9,184 +10,98 @@ endif
 call plug#begin('~/.vim/bundle')
 
 
-""""""""""""""""""""""""""""""""""""""""
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " non-intrusive plugins which work without configuration
-
-" defaults everyone can agree on
-Plug 'tpope/vim-sensible'
-
-" Start screen with recently opened files
-Plug 'mhinz/vim-startify'
-
-" enable dot-command for Plugs
-Plug 'tpope/vim-repeat'
-
-" enlarge focused window a bit
-" Plug 'roman/golden-ratio'
-Plug 'zhaocai/GoldenView.Vim'
-
-" VCS change info per line
-Plug 'airblade/vim-gitgutter' " only git
+Plug 'tpope/vim-sensible'     " defaults everyone can agree on
+" Plug 'mhinz/vim-startify'     " Start screen with recently opened files
+Plug 'tpope/vim-repeat'       " enable dot-command for Plugins
+Plug 'zhaocai/GoldenView.Vim' " enlarge focused window
+Plug 'edsono/vim-matchit'     " matches not only parantheses, but also HTML-Tags and more
+Plug 'Valloric/YouCompleteMe', { 'do': './install.sh' } " fuzzy autocompletion
+" Plug 'kshenoy/vim-signature' " display and navigate marks
+" Plug 'henrik/vim-indexed-search' " show 'Match x of y' when searching (conflicts with incsearch)
+Plug 'haya14busa/incsearch.vim' " highlight all matches in incremental search (conflicts with vim-indexed-search)
+Plug 'kopischke/vim-fetch' " open files at line with filename:32
+Plug 'airblade/vim-rooter' " cd to project root
+Plug 'airblade/vim-gitgutter' " VCS change info per line (only git)
 " Plug 'mhinz/vim-signify' " git, mercurial, darcs, bazaar, subversion, cvs, rcs, fossil, accurev, perforce
 
-" matches not only parantheses, but also HTML-Tags and more
-Plug 'edsono/vim-matchit'
 
-" fuzzy autocompletion, eclim
-Plug 'Valloric/YouCompleteMe', { 'do': './install.sh' }
 
-" display and navigate marks
-Plug 'kshenoy/vim-signature'
-
-" show 'Match x of y' when searching
-" Plug 'henrik/vim-indexed-search' " conflicts with incsearch
-
-" highlight all matches in incremental search
-" (conflicts with vim-indexed-search)
-Plug 'haya14busa/incsearch.vim'
-
-" open files at line with filename:32
-Plug 'cornerman/file-line'
-
-" cd to project root
-Plug 'airblade/vim-rooter'
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" helpful tools providing new bindings
+Plug 'tpope/vim-commentary' " commenting
+Plug 'tpope/vim-surround' " surround text with quotes, parantheses, ...
+Plug 'tpope/vim-speeddating' " ctrl+A/X on dates and time
+Plug 'terryma/vim-multiple-cursors' " sublime-like multiple cursors
+Plug 'SirVer/ultisnips' | Plug 'honza/vim-snippets' " snippets
+Plug 'AndrewRadev/switch.vim' " toggle true/false etc
+" Plug 'vim-scripts/ingo-library' | Plug 'vim-scripts/QuickFixCurrentNumber' " next quickfix location from current cursor position
 
 
 
-""""""""""""""""""""""""""""""""""""""""
-" helpful tools providing new shortcuts
 
-" commenting
-Plug 'tpope/vim-commentary'
-
-" surround text with quotes, parantheses, ...
-Plug 'tpope/vim-surround'
-
-" ctrl+A/X on dates and time
-Plug 'tpope/vim-speeddating'
-
-" sublime-like multiple cursors
-Plug 'terryma/vim-multiple-cursors'
-
-" snippets
-Plug 'SirVer/ultisnips' " snippet engine
-Plug 'honza/vim-snippets' " Snippets for the snippet engine
-
-" more text objects
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" text objects
 Plug 'kana/vim-textobj-user' " framework for custom text objects
 Plug 'kana/vim-textobj-indent' " i
 Plug 'whatyouhide/vim-textobj-xmlattr' " x
 Plug 'glts/vim-textobj-comment' " c
 Plug 'kana/vim-textobj-function' " f
-
 Plug 'PeterRincker/vim-argumentative' " text object ',' / also provides argument movements with >, ],
 
-" toggle true/false etc
-Plug 'AndrewRadev/switch.vim'
 
 
 
-""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " helpful tools providing functions and commands
 " which need to be called/activated/mapped explicitly
-
-" fuzzy file finding
-Plug 'kien/ctrlp.vim'
-" TODO: fzf ?
-
-" git support
-Plug 'tpope/vim-fugitive'
-" Plug 'gregsexton/gitv'
-
-" align text
-Plug 'godlygeek/tabular'
-" TODO: check out Plug 'junegunn/vim-easy-align'
-
-" unix commands
-Plug 'tpope/vim-eunuch'
-
-" distraction-free writing
-Plug 'junegunn/goyo.vim'
-
-" Toggle fullscreen for one window
-" Plug 'ZoomWin'
-
-" redraw some intermediate steps when using PageUp/Down
-" https://stackoverflow.com/questions/4064651/what-is-the-best-way-to-do-smooth-scrolling-in-vim
-Plug 'terryma/vim-smooth-scroll'
-
-" identify highlighting group under cursor
-Plug 'gerw/vim-HiLinkTrace'
-
-" color parantheses depending on their depth
-" Plug 'luochen1990/rainbow'
-
-" HEX-Editor in vim
-Plug 'fidian/hexmode'
-
-" reformat source code
-Plug 'Chiel92/vim-autoformat'
-
-" close all buffers except current one
-Plug 'vim-scripts/BufOnly.vim'
-
-" show undo tree
-Plug 'mbbill/undotree'
+Plug 'tpope/vim-fugitive' " git support
+Plug 'rhysd/committia.vim' " better git commit message editing (show diff+status)
+Plug 'godlygeek/tabular' " align text, TODO: check out Plug 'junegunn/vim-easy-align'
+Plug 'tpope/vim-eunuch' " unix commands
+Plug 'junegunn/goyo.vim' " distraction-free writing
+Plug 'terryma/vim-smooth-scroll' " redraw some intermediate steps when using PageUp/Down
+" Plug 'gerw/vim-HiLinkTrace' " identify highlighting group under cursor, useful when creating colorschemes
+" Plug 'luochen1990/rainbow' " color parantheses depending on their depth
+" Plug 'fidian/hexmode' " HEX-Editor in vim
+Plug 'Chiel92/vim-autoformat' " reformat source code
+Plug 'vim-scripts/BufOnly.vim' " close all buffers except current one
+Plug 'mbbill/undotree' " show undo tree
+Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': 'yes \| ./install' } " fuzzy selector
+Plug 'zirrostig/vim-schlepp' " Move selections / lines
 
 
 
 
-
-""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " file type plugins
-
-" Scala programming language
-Plug 'derekwyatt/vim-scala'
-
-" decompile java .class files on the fly
-Plug 'vim-scripts/JavaDecompiler.vim'
-
-" Lots of filetypes
-" Plug 'sheerun/vim-polyglot'
-
-" play web framework
-Plug 'gre/play2vim'
-
-" fish shell
-" Plug 'dag/vim-fish'
-
-" HTML
-Plug 'othree/html5.vim'
-
-" New JavaScript Standard Ecmascript 6
-" Plug 'isRuslan/vim-es6'
-Plug 'othree/yajs.vim'
-
-" colors in formats like css
-" Plug 'gorodinskiy/vim-coloresque' " Conflicts with vim-scala: word movements
-" jump over dots, outdated repository...
-
-" Rust programming language by Mozilla
-Plug 'wting/rust.vim'
-
-" LaTeX
-Plug 'LaTeX-Box-Team/LaTeX-Box'
+" Plug 'sheerun/vim-polyglot' " Lots of filetypes
+Plug 'derekwyatt/vim-scala' " Scala programming language
+Plug 'gre/play2vim' " play web framework
+Plug 'othree/html5.vim' " HTML
+Plug 'othree/yajs.vim' " New JavaScript Standard Ecmascript 6
+Plug 'neo4j-contrib/cypher-vim-syntax' " Neo4j Cypher query language
+" Plug 'vim-scripts/JavaDecompiler.vim' " decompile java .class files on the fly
+Plug 'wting/rust.vim' " Rust programming language by Mozilla
+Plug 'LaTeX-Box-Team/LaTeX-Box' " LaTeX
+Plug 'vim-scripts/gnuplot.vim'
 
 
 
 
-""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " statusline
-
 Plug 'itchyny/lightline.vim'
 Plug 'bling/vim-bufferline'
 
 
 
-""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " colorschemes
-
-Plug 'chriskempson/base16-vim'
+Plug 'altercation/vim-colors-solarized'
+" Plug 'chriskempson/base16-vim'
 " Plug 'godlygeek/csapprox'
 " Plug 'vim-scripts/guicolorscheme.vim'
 " Plug 'nanotech/jellybeans.vim'
@@ -198,52 +113,44 @@ Plug 'chriskempson/base16-vim'
 " Plug 'noahfrederick/vim-hemisu'
 
 
-""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " experimental
-
-Plug 'scrooloose/syntastic'
-
-Plug 'vim-scripts/LanguageTool'
-
-" draw a sublime like minimap
-" Plug 'severin-lemaignan/vim-minimap'
-
-" auto completion for the Rust language
-" Plug 'ebfe/vim-racer'
-
-" automatically-close-brackets-magic
-" Plug 'Raimondi/delimitMate'
-
-" Interactive command execution
-" Plug 'Shougo/vimproc.vim'
+" Plug 'scrooloose/syntastic'
+Plug 'vim-scripts/LanguageTool' " spell grammar checking
+" Plug 'severin-lemaignan/vim-minimap' " draw a sublime like minimap
+" Plug 'ebfe/vim-racer' " auto completion for the Rust language
+" Plug 'Raimondi/delimitMate' " automatically-close-brackets-magic
+" Plug 'Shougo/vimproc.vim' " Interactive command execution
+" Plug 'vim-scripts/ColorSchemeEditor' " graphical editor for colorschemes
 
 " Collaborative Editing
 " Plug 'FredKSchott/CoVim'
 " Plug 'emgram769/vim-multiuser'
-
-" graphical editor for colorschemes
-" Plug 'vim-scripts/ColorSchemeEditor'
+" TODO: , {'do': :UpdateRemotePlugins}
+Plug 'floobits/floobits-neovim' " https://floobits.com/help/plugins/nvim
 
 " TODO: Plug 'nathanaelkane/vim-indent-guides'
 " TODO: Plug 'ervandew/supertab'
-Plug 'zirrostig/vim-schlepp'
+
+
 
 
 call plug#end()
 
 
-""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " plugin configuration
 
 
 " Colorschemes
-let base16colorspace=256  " Access colors present in 256 colorspace
-let g:rehash256 = 1 " molokai
-
+" let base16colorspace=256  " Access colors present in 256 colorspace
+" let g:rehash256 = 1 " molokai
+" let g:solarized_termcolors=256
+" let g:solarized_contrast="high"
 
 " YouCompleteMe
 let g:ycm_auto_trigger = 1
-let g:ycm_min_num_of_chars_for_completion = 5
+let g:ycm_min_num_of_chars_for_completion = 3
 let g:ycm_key_list_previous_completion = ['<S-TAB>']
 let g:ycm_key_list_select_completion = ['<TAB>']
 
@@ -258,14 +165,8 @@ let g:ycm_key_list_select_completion = ['<TAB>']
 " let g:EclimMakeLCD = 0
 
 
-" CtrlP fuzzy file finding
-let g:ctrlp_user_command = 'ag %s -l --nocolor --hidden -g ""'
-let g:ctrlp_working_path_mode = 'r'
-let g:ctrlp_reuse_window = 'startify'
-let g:ctrlp_show_hidden = 1
-
 " gitgutter and signify
-" let g:gitgutter_diff_args = '--ignore-space-at-eol --ignore-space-change --ignore-all-space' " ignore whitespace in diff
+let g:gitgutter_map_keys = 0 " no default mappings
 let g:gitgutter_sign_added = '+'
 let g:gitgutter_sign_modified = '⌇'
 let g:gitgutter_sign_removed = '✕'
@@ -295,17 +196,20 @@ let g:UltiSnipsJumpBackwardTrigger="<c-z>"
 
 
 " Syntastic
-let g:syntastic_enable_signs  = 1
-let g:syntastic_always_populate_loc_list = 1
-let g:syntastic_check_on_wq = 0
+" let g:syntastic_enable_signs  = 1
+" let g:syntastic_always_populate_loc_list = 1
+" let g:syntastic_check_on_wq = 0
+" let g:syntastic_check_on_open = 0
+" let g:syntastic_error_symbol = "E"
+" let g:syntastic_warning_symbol = "W"
 
 " styntastic java stuff
-let g:syntastic_java_checkers = ['javac', 'checkstyle']
-let g:syntastic_java_checkstyle_classpath = '/usr/share/java/checkstyle-5.7.jar'
-let g:syntastic_java_checkstyle_conf = '/usr/share/checkstyle/sun_checks.xml'
+" let g:syntastic_java_checkers = ['javac', 'checkstyle']
+" let g:syntastic_java_checkstyle_classpath = '/usr/share/java/checkstyle-5.7.jar'
+" let g:syntastic_java_checkstyle_conf = '/usr/share/checkstyle/sun_checks.xml'
 
 " syntastic javascript
-let g:syntastic_javascript_checkers=['jshint'] " , 'eslint', 'flow']
+" let g:syntastic_javascript_checkers=['jshint'] " , 'eslint', 'flow']
 
 " vim schlepp
 let g:Schlepp#allowSquishingLines = 1
