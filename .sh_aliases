@@ -1,5 +1,36 @@
-alias zz='dark; zsh'
+# launch helpers
+alias qrscan='LD_PRELOAD=/usr/lib/libv4l/v4l1compat.so zbarcam --raw /dev/video0'
+alias photoshop='wine ~/.wine/drive_c/Program\ Files\ \(x86\)/Adobe/Photoshop\ 7.0/Photoshop.exe'
+alias gparted='gksu gparted'
+alias skype='PULSE_LATENCY_MSEC=30 /usr/bin/skype'
 
+# fix highdpi for chromium
+alias chromium='chromium --high-dpi-support=1 --force-device-scale-factor=1'
+alias chromium-continuous-bin='chromium-continuous-bin --high-dpi-support=1 --force-device-scale-factor=1'
+alias chrome-unstable='google-chrome-unstable --high-dpi-support=1 --force-device-scale-factor=1'
+
+# unsorted / general
+alias ssh='TERM=xterm-256color ssh'
+alias hc='herbstclient'
+alias watch='watch -c -d COPE=1 ' # force cope colors, and leave one space to trigger alias expansion in command
+alias on='ping -c 1 8.8.8.8 && ping -c 4 google.com'
+alias hd='hexdump -C'
+alias fucking='sudo'
+alias speakerup='amixer -c 0 sset Speaker 100%'
+alias defrag='sudo btrfs filesystem defragment -r -v -f -clzo'
+alias iotop='sudo iotop'
+alias kp='keepass-dmenu --database ~/.keepass/passwords.kdbx --fn "Droid Sans Mono-8" --nb "#FFFFFF" --nf "#000000" --sb "#00D7FF" --sf "#101010"'
+alias vbmods='sudo modprobe -a vboxnetadp vboxnetflt vboxpci virtio_net vboxdrv' # load VirtualBox kernel modules
+alias cups='sudo systemctl start cups-browsed.service'
+
+# wifi with networkmanager
+alias won='nmcli radio wifi on; wscan'
+alias woff='nmcli radio wifi off'
+alias wscan='nmcli dev wifi rescan > /dev/null 2>&1; true'
+alias wlist='nmcli dev wifi list'
+alias wcon='nmcli dev wifi connect'
+
+# yaourt
 alias y='yaourt'
 alias yoghurt='yaourt'
 alias ys='yaourt -S --asexplicit' # install and mark as explicitly installed
@@ -11,100 +42,105 @@ alias yo='yaourt -Qo' # package for command
 alias yl='yaourt -Ql' # list files for package
 alias ye='yaourt -Qe --date' # list installed packages
 
+# vim
+alias va='vim ~/.sh_aliases'
 alias vv='vim ~/.vimrc'
 alias vvp='vim ~/.vimrc_plugins'
+alias vvc='vim ~/.vimrc_custom'
 alias vvk='vim ~/.vimrc_keybindings'
 alias vvs='vim ~/.vimrc_statusline'
-alias vim="vim --servername vim-$$"
-alias vag="search-select-edit"
+alias vim="vim --servername vim-$$" # always start vim as server (for live colorscheme changing)
 alias vimt='vim $(date +"%Y-%m-%d")'
+v() { (cd-git-root; vim "$(fzf --query="$(echo $@ | tr ' ' '\ ' )")"); }
 
-alias fucking='sudo'
+# file search
 alias lo='locate -i'
-alias ff='ag -i -g'
+alias f='ag -i -g'
+alias ag='ag -S -f'
 alias gg='grep -irn'
-alias agg='ag -S -f'
-alias md='mkdir -p'
-alias ls='ls --group-directories-first --color=auto -h'
-alias lt='ls -ltr'
-alias l='ls -l'
-alias t='tree'
-alias ta='tree -a'
-alias watch='watch -c -d COPE=1 ' # force cope colors, and leave one space to trigger alias expansion in command
-alias hd='hexdump -C'
-alias m='make'
-alias mc='make clean'
-alias c='qalc'
-alias imv='interactive-mv'
-o() { xdg-open $@ > /dev/null 2>&1; }
-alias of='o "$(fzf)"'
-f() { $@ "$(fzf)"; }
-vimf() { vim "$(fzf --query="$(echo $@ | tr ' ' '\ ' )")"; }
+alias vag="search-select-edit"
+alias gr='grep'
+fo() { $@ "$(fzf)"; }
 ft() { $@ "$(ls -tr1 --group-directories-first | fzf --no-sort)"; } # least modified files
-alias cdt='cd-tmp'
-alias cdg='cd-git-root'
-alias mkcd='mkdir-cd'
-
-alias mcp='noglob zmv -C -W'
-alias mln='noglob zmv -L -W'
-alias mmv='noglob zmv -W'
-alias sx='startx'
-alias xkodi='/usr/bin/xinit /usr/bin/dbus-launch --exit-with-session /usr/bin/kodi-standalone -- :0 -nolisten tcp vt1'
-alias speakerup='amixer -c 0 sset Speaker 100%'
-
-
-alias wa='tungsten' # WolframAlpha client
-alias w='wikicurses'
-alias aw='w -w "https://wiki.archlinux.org/api.php"'
-alias hc='herbstclient'
-alias won='nmcli radio wifi on; wscan'
-alias woff='nmcli radio wifi off'
-alias wscan='nmcli dev wifi rescan > /dev/null 2>&1; true'
-alias wlist='nmcli dev wifi list'
-alias wcon='nmcli dev wifi connect'
-alias rn='ranger'
-alias scala='scala -Dscala.color -deprecation'
-alias defrag='sudo btrfs filesystem defragment -r -v -f -clzo'
-alias jsb='underscore print --color --outfmt json' # beautify json
-alias gparted='gksu gparted'
-alias iotop='sudo iotop'
-alias kp='keepass-dmenu --database ~/.keepass/passwords.kdbx --fn "Droid Sans Mono-14" --nb "#FFFFFF" --nf "#000000" --sb "#00D7FF" --sf "#101010"'
-
-alias vbmods='sudo modprobe -a vboxnetadp vboxnetflt vboxpci virtio_net vboxdrv'
-alias skype='PULSE_LATENCY_MSEC=30 /usr/bin/skype'
 s() {
     # interactively select a line from stdin and execute command
     # example usage: find /var/log/Xorg* | s less
     # if no stdin is given, match on all files in current dir
     fzf | while read -r line; do $@ "$line"; done
 }
+
+# file listing/interaction
+alias ls='ls --group-directories-first --color=auto -h'
+alias lt='ls -ltr'
+alias l='ls -l'
+alias t='tree'
+alias ta='tree -a'
+alias df='df -h'
+alias md='mkdir -p'
+alias mdcd='mkdir-cd'
+alias imv='interactive-mv'
+alias mcp='noglob zmv -C -W'
+alias mln='noglob zmv -L -W'
+alias mmv='noglob zmv -W'
+o() { xdg-open $@ > /dev/null 2>&1; }
+
+# change directories
+alias cdd='cd ~/downloads'
+alias cdp='cd ~/projects'
+alias cd.='cd ~/projects/dotfiles'
+alias cdt='cd-tmp'
+alias cdg='cd-git-root'
+
+# start X
+alias sx='startx'
+alias xkodi='/usr/bin/xinit /usr/bin/dbus-launch --exit-with-session /usr/bin/kodi-standalone -- :0 -nolisten tcp vt1'
+
+# services
+alias wa='tungsten' # WolframAlpha client
+alias w='wikicurses'
+alias aw='wiki-search' # offline ArchWiki search, package arch-wiki-lite
+
+# git
+alias g='git'
+alias gs='git status'
+alias gu='git up'
+alias gp='git push'
+alias gl='git lg'
 alias gsc='git-select-commit'
+alias gd='git df --no-index'
 alias onstage='git-onstage'
 
-alias nstart='termite -e "$HOME/downloads/neo4j-community-2.2.0/bin/neo4j console"'
+# dev
+alias m='make'
+alias mc='make clean'
+alias scala='scala -Dscala.color -deprecation -unchecked -explaintypes -language:_'
+alias jsb='underscore print --color --outfmt json' # beautify json, package: npm -g install underscore-cli
 alias nquery='neo4j-query'
 alias nclear='neo4j-clear'
 alias nall='neo4j-all'
 
-alias gm='xdg-open https://mail.google.com'
-alias fb='xdg-open https://facebook.com/messages'
+sbt() { (
+        # TODO, only if there is no build.sbt in current folder
+        cd-git-root
+        env sbt $@
+        ) }
+
+nstart() {
+    hc use_index 7
+    (sleep 1; hc use_previous) &
+    termite -e "$HOME/downloads/neo4j-community-2.2.4/bin/neo4j console"
+}
+
+wust() {
+    hc use_index 7
+    (sleep 1; hc use_previous) &
+    termite -e "bash -c \"cd ~/projects/wust && sbt compile run\"" &
+    termite -e "bash -c \"cd ~/projects/wust && ./blumenkohl\"" &
+    termite -e "$HOME/downloads/neo4j-community-2.2.4/bin/neo4j console"
+}
 
 
-
-alias qrscan='LD_PRELOAD=/usr/lib/libv4l/v4l1compat.so zbarcam --raw /dev/video0'
-alias photoshop='wine ~/.wine/drive_c/Program\ Files\ \(x86\)/Adobe/Photoshop\ 7.0/Photoshop.exe'
-
-alias gu='git up'
-alias gp='git push'
-alias gl='git lg'
-alias gst='git status'
-
-alias em='emacs -nw'
-alias ssh='TERM=xterm-256color ssh'
-
-
-# alias daytime='daytime 50.77N 6.08W'
-
+# other
 autocolors() {
     if daytime 50.77N 6.08W
     then ~/bin/light $@
@@ -112,11 +148,10 @@ autocolors() {
     fi
 }
 
-
 low() {
     # save energy
     xbacklight -set 10 -time 0
-    sudo asus-kbd-backlight off
+    keyboardbacklightoff
     nmcli radio wifi off
     sudo rfkill block all
 
@@ -154,8 +189,5 @@ movietime() {
     xsetroot -solid '#ffffff'
     systemctl --user stop redshift.service
 }
-
-
-alias disablewifipm='sudo iwconfig wlp2s0 power off'
 
 # vim: ft=sh
