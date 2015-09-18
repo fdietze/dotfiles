@@ -9,7 +9,10 @@ eval $(dircolors ~/.dir_colors)
 # syntax highlighting for less
 # export LESSOPEN="| /usr/bin/src-hilite-lesspipe.sh %s" # package: source-highlight
 export LESSOPEN="| highlight %s -O ansi" # package: highlight-gui
-export LESS=' -R '
+export LESS=' -cRS '
+
+# vimpager instead of less
+export PAGER=/usr/bin/vimpager
 
 # colorize manpages
 export LESS_TERMCAP_mb=$(printf "\33[01;34m")   # begin blinking

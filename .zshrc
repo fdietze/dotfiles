@@ -56,12 +56,6 @@ fry mkdir-cd
 
 source ~/.sh_aliases
 
-# vimpager instead of less
-export PAGER=/usr/bin/vimpager
-alias less=$PAGER
-alias zless=$PAGER
-
-
 # renaming utils
 autoload -U zmv
 
