@@ -6,7 +6,7 @@ set laststatus=2
 set noshowmode
 
 let g:lightline = {
-      \ 'colorscheme': 'wombat',
+      \ 'colorscheme': 'solarized_dark',
       \ 'active': {
       \   'left': [ [ 'mode' ], [ 'gitbranch', 'syntastic', 'bufferline' ]],
       \   'right': [  ['scrollbar'], [ 'filetype' ] ]
@@ -37,12 +37,13 @@ function! BarScrollbar()
     return winwidth(0) > 70 ? Scrollbar_Highres(20) : Scrollbar_SingleChar()
 endfunction
 
-augroup AutoSyntastic
-  autocmd!
-  autocmd BufWritePost *.js call s:syntastic()
-augroup END
+" augroup AutoSyntastic
+"   autocmd!
+"   autocmd BufWritePost * call s:syntastic()
+" augroup END
 
-function! s:syntastic()
+function! SyntasticAndStatusUpdate()
+  SyntasticCheck
   call lightline#update()
 endfunction
 
