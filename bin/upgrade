@@ -6,11 +6,12 @@ yaourt -Syyua --devel --noconfirm
 echo "cleaning package cache..."
 sudo pkgcacheclean
 
-echo "update package search database..."
+echo "updating package search database..."
 sudo pkgfile -u
 
-echo "optimize pacman database..."
+echo "optimizing pacman database..."
 sudo pacman-optimize
+
 
 
 echo "updating zgen plugins..."
@@ -20,7 +21,12 @@ echo "updating vim plugins..."
 vim +PlugInstall +PlugUpgrade +PlugUpdate +qall
 
 echo "updating ruby gems..."
-sudo gem update
+gem update
+
+echo "updating global npm packages"
+npm -g update
+
+
 
 echo "updating mlocate database..."
 sudo updatedb
