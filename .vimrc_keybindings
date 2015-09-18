@@ -1,10 +1,14 @@
 let mapleader="\<space>"
 let g:mapleader="\<space>"
-
 " Toggles are mapped to <leader>t<something>
 
-" In NEO keyboard Layout (http://neo-layout.org/) we can remap hjkl,
-" because there are arrow keys in the middle of the keyboard already.
+
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" NEO Keyboard Layout (http://neo-layout.org/)
+
+" In NEO we can remap hjkl, because there are arrow keys in the middle of the
+" keyboard already.
 " Additionally we have: üöäß
 
 " h: Highlight current word, selection, autohighlight
@@ -15,15 +19,21 @@ nnoremap <Leader>th :if AutoHighlightToggle()<Bar>set hls<Bar>endif<CR>
 
 " j: jump to mark
 nnoremap j `
+vnoremap j `
+" jump to tag (for example in help files)
+nnoremap <leader>j <C-]>
 
 " k: (notehing yet)
+nnoremap k <Nop>
+vnoremap k <Nop>
 
-" l: next buffer
+" l/L: next/prev buffer
 nnoremap <silent> l :bnext<CR>
 vnoremap <silent> l :bnext<CR>
 nnoremap <silent> L :bprev<CR>
 vnoremap <silent> L :bprev<CR>
 
+" efficient one-button save/close bindings
 nnoremap ö :update<CR>
 vnoremap ö <esc>:update<CR>gv
 nnoremap Ö :SudoWrite<CR>
@@ -39,6 +49,7 @@ nnoremap <Leader>ü :BufOnly<CR>
 vnoremap <Leader>ü <esc>:BufOnly<CR>gv
 
 " replay q/f macro
+" ß is on the right side next to q
 " Q was ex mode
 nnoremap ß @q
 nnoremap Q @f
@@ -66,70 +77,25 @@ map ∃ <C-W>l
 
 
 
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Fix some vim annoyances
+
 " TODO: imap <C-r>+ <C-o>"+p
 
 " make Y behave like D and C, yanking till end of line
 map Y y$
 
+" paste over rest of line
+nnoremap <Leader>p v$<Left>p
+" TODO: paste over text objects
+
+" don't overwrite register when pasting over selection
+vnoremap p pgvy
+
 " don't lose selection when indenting
 vnoremap < <gv
 vnoremap > >gv
 vnoremap = =gv
-
-" fast way to edit ~/.vimrc*
-nnoremap <Leader>vv :e ~/.vimrc<CR>
-nnoremap <Leader>vp :e ~/.vimrc_plugins<CR>
-nnoremap <Leader>vk :e ~/.vimrc_keybindings<CR>
-nnoremap <Leader>vs :e ~/.vimrc_statusline<CR>
-nnoremap <Leader>vc :e ~/.vimrc_custom<CR>
-nnoremap <Leader>vr :source ~/.vimrc<CR>
-
-" disable arrow keys and home/end in insert mode, exit insert mode when pressed
-" inoremap  <Up>     <Esc><Up>
-" inoremap  <Down>   <Esc><Down>
-inoremap  <Left>   <Esc>
-inoremap  <Right>  <Esc>2<Right>
-imap  <Home>   <Esc><Home>
-imap  <End>    <Esc><End>
-
-" smart home
-noremap <expr> <silent> <Home> col('.') == match(getline('.'),'\S')+1 ? '0' : '^'
-imap <silent> <Home> <C-O><Home>
-
-" jump to tag (for example in help files)
-nnoremap <leader>j <C-]>
-
-" toggle local spell checking
-nnoremap <leader>ts :setlocal spell! spell?<CR>
-" insert best suggestion for last misspelled word
-inoremap <c-s> <c-g>u<Esc>[s1z=`]a<c-g>u
-nnoremap <c-s> 1z=
-
-" toggle chars at end of line
-nmap <silent> <Leader>; <Plug>ToggleEndChar;
-nmap <silent> <Leader>, <Plug>ToggleEndChar,
-
-" insert empty lines on NEO up/down arrow
-nmap <silent> <leader>l <Plug>unimpairedBlankUp
-nmap <silent> <leader>a <Plug>unimpairedBlankDown
-nmap <silent> <leader>dl m`:silent -g/\m^\s*$/d<CR>``:noh<CR>
-nmap <silent> <leader>da m`:silent +g/\m^\s*$/d<CR>``:noh<CR>
-
-" Autoformat
-nmap <leader>f :Autoformat<CR>
-
-" Git
-nmap <leader>gn <Plug>GitGutterNextHunk
-nmap <leader>gN <Plug>GitGutterPrevHunk
-nmap <leader>ga <Plug>GitGutterStageHunk
-nmap <leader>gu <Plug>GitGutterStageHunk
-nmap <leader>gr <Plug>GitGutterRevertHunk
-nmap <leader>gs :silent !tig status<CR>:GitGutterAll<CR>:redraw!<CR>
-nmap <leader>gp :!git push<CR>
-nmap <silent> <leader>gd :Rooter<CR>
-
-" don't overwrite register when pasting over selection
-vnoremap p pgvy
 
 " search backwards with backslash
 nmap \ ?
@@ -139,19 +105,89 @@ vmap \ ?
 nnoremap db xdb
 nnoremap cb xcb
 
-" Fuzzy file finding
-nmap <leader>e :CtrlP<CR>
-nmap <leader>a :CtrlPBuffer<CR>
+" smart home
+noremap <expr> <silent> <Home> col('.') == match(getline('.'),'\S')+1 ? '0' : '^'
+imap <silent> <Home> <C-O><Home>
+
+" exit insert mode when navigating
+" inoremap  <Up>     <Esc><Up>
+" inoremap  <Down>   <Esc><Down>
+" inoremap  <Left>   <Esc>
+" inoremap  <Right>  <Esc>2<Right>
+imap  <Home>   <Esc><Home>
+imap  <End>    <Esc><End>
+
+
+
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" custom bindings
+
+" fast way to edit ~/.vimrc*, reload, install plugins
+nnoremap <Leader>vv :e ~/.vimrc<CR>
+nnoremap <Leader>vp :e ~/.vimrc_plugins<CR>
+nnoremap <Leader>vpi :source ~/.vimrc_plugins<CR>:PlugInstall<CR>:source ~/.vimrc_plugins<CR>
+nnoremap <Leader>vk :e ~/.vimrc_keybindings<CR>
+nnoremap <Leader>vkr :source ~/.vimrc_keybindings<CR>
+nnoremap <Leader>vs :e ~/.vimrc_statusline<CR>
+nnoremap <Leader>vc :e ~/.vimrc_custom<CR>
+nnoremap <Leader>vr :source ~/.vimrc<CR>
+nnoremap <Leader>vj :Johannes<CR>
 
 " clear search highlighting
 nnoremap <silent> <Leader><Leader> :nohlsearch<CR>
 nnoremap <silent> <Leader>/ :nohlsearch<CR>
 
+" TODO: highlight all matches before starting multiple-cursors
+" nmap <C-n> :call HighlightCurrentWord()<CR>:!redraw<CR>:call multiple_cursors#new("n",1)<CR>
+
+" location navigation
+nnoremap <leader>n :lnext<CR>
+nnoremap <leader>N :lprev<CR>
+
+" toggle local spell checking
+nnoremap <leader>ts :setlocal spell! spell?<CR>
+" TODO: insert best suggestion for last misspelled word
+inoremap <c-s> <c-g>u<Esc>[s1z=`]a<c-g>u
+nnoremap <c-s> 1z=
+
+" toggle chars at end of line
+nmap <silent> <Leader>; <Plug>ToggleEndChar;
+nmap <silent> <Leader>, <Plug>ToggleEndChar,
+
+
+
+
+
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Plugins
+
+" Fuzzy file finding
+" nmap <silent> <leader>o :FZFTags<CR>
+" nmap <silent> <leader>i :FZFTagFile<CR>
+nmap <silent> <leader>e :Rooter<CR>:FZFE<CR>:silent! lcd %:p:h<CR>
+" nmap <silent> <leader>a :FZFBuffers<CR>
+" nmap <silent> <leader>E :FZFE<CR>
+" nmap <silent> <leader>; :FZFMru<CR>
+" nmap <silent> <Leader>C :FZFColorscheme<CR>
+" nmap <silent> <Leader>l :FZFLines<CR>
+nmap <leader>a :RFZFAg<space>
+
+" Git
+nmap <leader>gn <Plug>GitGutterNextHunk
+nmap <leader>gN <Plug>GitGutterPrevHunk
+nmap <leader>ga <Plug>GitGutterStageHunk
+nmap <leader>gu <Plug>GitGutterStageHunk
+nmap <leader>gr <Plug>GitGutterRevertHunk
+nmap <leader>gs :silent !tig status<CR>:GitGutterAll<CR>:redraw!<CR>
+nmap <silent> <leader>gd :Rooter<CR>
+
+" Autoformat
+nmap <leader>f :Autoformat<CR>
+
 " toggle distraction free writing
 nnoremap <silent> <leader>tg :Goyo<CR>
-
-" Toggle fullscreen for current window (Plugin ZoomWin)
-noremap <silent> <leader>tf :ZoomWin<CR>
 
 " smooth scrolling (Plugin vim-smooth-scroll)
 noremap <silent> <c-u> :call smooth_scroll#up(&scroll, 0, 2)<CR>
@@ -171,11 +207,8 @@ nmap <S-down>  <S-v><Plug>SchleppDown
 nmap <S-left>  <S-v><Plug>SchleppLeft
 nmap <S-right> <S-v><Plug>SchleppRight
 
-" ExpandRegion
-map + <Plug>(expand_region_expand)
-map - <Plug>(expand_region_shrink)
-
 " incsearch plugin
 map /  <Plug>(incsearch-forward)
+map \  <Plug>(incsearch-backward)
 map ?  <Plug>(incsearch-backward)
 
