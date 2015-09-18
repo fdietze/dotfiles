@@ -8,6 +8,8 @@ addCommandAlias("cr", ";clean; run")
 addCommandAlias("rr", "~run")
 addCommandAlias("t", "test")
 addCommandAlias("tt", "~test")
-addCommandAlias("pl", "publish-local")
+addCommandAlias("pl", ";set isSnapshot := true;publish-local")
 addCommandAlias("ppl", "publish-local")
 addCommandAlias("du", "dependencyUpdates")
+
+// net.virtualvoid.sbt.graph.Plugin.graphSettings
