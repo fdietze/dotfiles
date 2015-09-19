@@ -82,6 +82,7 @@ Plug 'derekwyatt/vim-scala' " Scala programming language
 Plug 'gre/play2vim' " play web framework
 Plug 'othree/html5.vim' " HTML
 Plug 'othree/yajs.vim' " New JavaScript Standard Ecmascript 6
+Plug 'othree/javascript-libraries-syntax.vim'
 Plug 'neo4j-contrib/cypher-vim-syntax' " Neo4j Cypher query language
 " Plug 'vim-scripts/JavaDecompiler.vim' " decompile java .class files on the fly
 Plug 'wting/rust.vim' " Rust programming language by Mozilla
