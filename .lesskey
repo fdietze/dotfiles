@@ -1,0 +1,25 @@
+#command
+
+# VIM
+j   forw-line
+k   back-line
+h   left-scroll
+l   right-scroll
+g   goto-line
+G   goto-end
+^d  forw-scroll
+^u  back-scroll
+^f  forw-screen
+^b  back-screen
+
+# NEO
+^h  undo-hilite
+\   back-search
+ä quit
+
+#env
+# syntax highlighting for less
+# export LESSOPEN="| /usr/bin/src-hilite-lesspipe.sh %s" # package: source-highlight
+LESSOPEN="| highlight %s -O ansi" # package: highlight-gui
+LESS=' -icRS '
+

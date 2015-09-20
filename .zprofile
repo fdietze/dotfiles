@@ -6,11 +6,6 @@ export PATH=$(cope_path):$PATH
 # colorful file listings
 eval $(dircolors ~/.dir_colors)
 
-# syntax highlighting for less
-# export LESSOPEN="| /usr/bin/src-hilite-lesspipe.sh %s" # package: source-highlight
-export LESSOPEN="| highlight %s -O ansi" # package: highlight-gui
-export LESS=' -cRS '
-
 # vimpager instead of less
 export PAGER=/usr/bin/vimpager
 
