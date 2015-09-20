@@ -24,6 +24,7 @@
     unstage = reset HEAD
     prev = reset HEAD~1
     br = branch
+    brr = branch -r
     lg = fry one-line-log-colors
     df  = fry word-based-diff
     dfs  = fry word-based-diff --staged
@@ -33,12 +34,16 @@
     pf = push --force
     peng = push --force
     po = "!git push --set-upstream origin \"$(git rev-parse --abbrev-ref HEAD)\"" # push current branch to origin
-    dbr = "!f() { git branch -D $1 && git push origin :$1;}; f" # delete local and remote branch
+    dbr = "!f() { git branch -D $1; git push origin :$1;}; f" # delete local and remote branch
     wip = commit -m 'wip'
+
+    ss = stash save
+    sp = stash pop
 
     rba = rebase --abort
     rbs = rebase --skip
     rbc = rebase --continue
+    rbi = rebase -i
     mra = merge --abort
     mrs = merge --skip
     mrc = merge --continue

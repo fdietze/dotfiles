@@ -56,6 +56,7 @@ v() { (cd-git-root; vim "$(fzf --query="$(echo $@ | tr ' ' '\ ' )")"); }
 # file search
 alias lo='locate -i'
 alias f='ag -i -g'
+alias ff="find . -iname"
 alias ag='ag -S -f'
 alias gg='grep -irn'
 alias vag="search-select-edit"
