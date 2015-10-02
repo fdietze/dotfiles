@@ -54,6 +54,9 @@ fry mkdir-cd
 # command not found for Arch
 [ -r /etc/profile.d/cnf.sh ] && . /etc/profile.d/cnf.sh
 
+# fzf fuzzy file matcher shell extensions
+. /etc/profile.d/fzf.zsh
+
 source ~/.sh_aliases
 
 # renaming utils
