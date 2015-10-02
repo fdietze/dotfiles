@@ -183,6 +183,10 @@ nmap <leader>gr <Plug>GitGutterRevertHunk
 nmap <leader>gs :silent !tig status<CR>:GitGutterAll<CR>:redraw!<CR>
 nmap <silent> <leader>gd :Rooter<CR>
 
+" Emmet
+nmap <C-e> <Plug>(emmet-expand-abbr)
+imap <C-e> <Plug>(emmet-expand-abbr)
+
 " Autoformat
 nmap <leader>f :Autoformat<CR>
 

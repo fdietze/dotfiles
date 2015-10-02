@@ -81,6 +81,7 @@ Plug 'zirrostig/vim-schlepp' " Move selections / lines
 Plug 'derekwyatt/vim-scala' " Scala programming language
 Plug 'gre/play2vim' " play web framework
 Plug 'othree/html5.vim' " HTML
+Plug 'mattn/emmet-vim' " generate HTML with CSS selectors
 Plug 'othree/yajs.vim' " New JavaScript Standard Ecmascript 6
 Plug 'othree/javascript-libraries-syntax.vim'
 Plug 'neo4j-contrib/cypher-vim-syntax' " Neo4j Cypher query language
@@ -177,6 +178,10 @@ let g:signify_sign_add               = '+'
 let g:signify_sign_change            = '⌇' " '︴⌇⌇┇
 let g:signify_sign_delete            = '✕'
 let g:signify_sign_delete_first_line = '⌅'
+
+" Emmet
+let g:user_emmet_install_global = 0
+autocmd vimrc FileType html,css EmmetInstall
 
 " Languagetool
 let g:languagetool_jar=$HOME."/local/LanguageTool-2.6/languagetool-commandline.jar"
