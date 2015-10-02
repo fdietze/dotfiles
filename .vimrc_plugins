@@ -89,6 +89,7 @@ Plug 'neo4j-contrib/cypher-vim-syntax' " Neo4j Cypher query language
 Plug 'wting/rust.vim' " Rust programming language by Mozilla
 Plug 'LaTeX-Box-Team/LaTeX-Box' " LaTeX
 Plug 'vim-scripts/gnuplot.vim'
+Plug 'Valloric/MatchTagAlways' " Highlight matching/surrounding html tags
 
 
 
