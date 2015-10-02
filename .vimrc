@@ -14,6 +14,10 @@ scriptencoding utf-8
 " clear all keymappings
 mapclear
 
+" define a group `vimrc` and initialize.
+augroup vimrc
+    autocmd!
+augroup END
 
 source $HOME/.vimrc_plugins
 source $HOME/.vimrc_custom
@@ -111,11 +115,6 @@ endif
 if !isdirectory(expand(&directory))
     call mkdir(expand(&directory), "p")
 endif
-
-" define a group `vimrc` and initialize.
-augroup vimrc
-    autocmd!
-augroup END
 
 " change directory to the current buffer when opening files.
 " set autochdir
