@@ -112,10 +112,10 @@ noremap <expr> <silent> <Home> col('.') == match(getline('.'),'\S')+1 ? '0' : '^
 imap <silent> <Home> <C-O><Home>
 
 " exit insert mode when navigating
-" inoremap  <Up>     <Esc><Up>
-" inoremap  <Down>   <Esc><Down>
-" inoremap  <Left>   <Esc>
-" inoremap  <Right>  <Esc>2<Right>
+inoremap  <Left>   <Esc>
+inoremap  <Right>  <Esc>2<Right>
+inoremap  <Up>     <Esc><Up>
+inoremap  <Down>   <Esc><Down>
 imap  <Home>   <Esc><Home>
 imap  <End>    <Esc><End>
 
