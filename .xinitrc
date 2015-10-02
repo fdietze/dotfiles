@@ -27,6 +27,9 @@ unclutter -idle 3 -jitter 5 -noevents -root &
 # not enabled, because it needs a running X session
 systemctl --user start redshift &
 
+# load screen color profile
+xcalib ~/projects/dotfiles/Asus_UX21A_FHD_matt_CMN__N116HSE_EA1.icm
+
 # now we can launch the window manager
 exec herbstluftwm --locked
 
