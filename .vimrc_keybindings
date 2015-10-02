@@ -147,7 +147,7 @@ nnoremap <leader>N :lprev<CR>
 
 " toggle local spell checking
 nnoremap <leader>ts :setlocal spell! spell?<CR>
-" TODO: insert best suggestion for last misspelled word
+" insert best suggestion for last misspelled word
 inoremap <c-s> <c-g>u<Esc>[s1z=`]a<c-g>u
 nnoremap <c-s> 1z=
 
