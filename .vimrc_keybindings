@@ -1,5 +1,6 @@
 let mapleader="\<space>"
 let g:mapleader="\<space>"
+
 " Toggles are mapped to <leader>t<something>
 
 
@@ -23,11 +24,12 @@ vnoremap j `
 " jump to tag (for example in help files)
 nnoremap <leader>j <C-]>
 
-" k: (notehing yet)
+" k: (nothing yet)
 nnoremap k <Nop>
 vnoremap k <Nop>
 
 " l/L: next/prev buffer
+" L was: place cursor at bottom of screen
 nnoremap <silent> l :bnext<CR>
 vnoremap <silent> l :bnext<CR>
 nnoremap <silent> L :bprev<CR>
@@ -139,6 +141,11 @@ inoremap <C-Right> <Esc><Right><C-Right>
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " custom bindings
+
+" jump to m-mark
+" M was: place cursor in the center of screen
+" now I can hit mm to mark something quickly
+nnoremap M `m
 
 " fast way to edit ~/.vimrc*, reload, install plugins
 nnoremap <Leader>vv :e ~/.vimrc<CR>
