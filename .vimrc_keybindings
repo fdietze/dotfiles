@@ -119,6 +119,21 @@ inoremap  <Down>   <Esc><Down>
 imap  <Home>   <Esc><Home>
 imap  <End>    <Esc><End>
 
+" navigate through wrapped lines
+nnoremap <C-Up> g<Up>
+nnoremap <C-Down> g<Down>
+vnoremap <C-Up> g<Up>
+vnoremap <C-Down> g<Down>
+
+nnoremap <C-Home> g<Home>
+nnoremap <C-End> g<End>
+vnoremap <C-Home> g<Home>
+vnoremap <C-End> g<End>
+
+inoremap <C-Up> <Esc>g<Up>
+inoremap <C-Down> <Esc>g<Down>
+inoremap <C-Left> <Esc><C-Left>
+inoremap <C-Right> <Esc><Right><C-Right>
 
 
 
