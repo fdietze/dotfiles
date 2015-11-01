@@ -156,6 +156,7 @@ nnoremap <c-s> 1z=
 " toggle chars at end of line
 nmap <silent> <Leader>; <Plug>ToggleEndChar;
 nmap <silent> <Leader>, <Plug>ToggleEndChar,
+nmap <silent> <Leader>. <Plug>ToggleEndChar.
 
 
 

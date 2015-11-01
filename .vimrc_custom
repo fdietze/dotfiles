@@ -61,6 +61,7 @@ endfunction
 
 noremap <unique> <Plug>ToggleEndChar; :call <SID>ToggleEndChar(';')<CR>
 noremap <unique> <Plug>ToggleEndChar, :call <SID>ToggleEndChar(',')<CR>
+noremap <unique> <Plug>ToggleEndChar. :call <SID>ToggleEndChar('.')<CR>
 
 command! Johannes :call Johannes()
 function! Johannes()
