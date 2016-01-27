@@ -1,0 +1,23 @@
+#!/bin/bash
+
+INPUT=$1
+OUTPUT=$2
+RESOLUTION=$3
+
+: ${RESOLUTION:=72}
+
+/bin/gs \
+  -o $OUTPUT \
+  -sDEVICE=pdfwrite \
+  -dDownsampleColorImages=true \
+  -dDownsampleGrayImages=true \
+  -dDownsampleMonoImages=true \
+  -dColorImageResolution=$RESOLUTION \
+  -dGrayImageResolution=$RESOLUTION \
+  -dMonoImageResolution=$RESOLUTION \
+  -dColorImageDownsampleThreshold=1.0 \
+  -dGrayImageDownsampleThreshold=1.0 \
+  -dMonoImageDownsampleThreshold=1.0 \
+  -dUseFlateCompression=true
+  -f $INPUT
+
