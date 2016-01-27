@@ -35,6 +35,7 @@
     peng = push --force
     po = "!git push --set-upstream origin \"$(git rev-parse --abbrev-ref HEAD)\"" # push current branch to origin
     dbr = "!f() { git branch -D $1; git push origin :$1;}; f" # delete local and remote branch
+    dtag = "!f() { git tag -d $1; git push origin :$1;}; f" # delete local and remote tag
     wip = commit -m 'wip'
 
     ss = stash save
@@ -50,6 +51,8 @@
     cpa = cherry-pick --abort
     cps = cherry-pick --skip
     cpc = cherry-pick --continue
+
+    h = help
 
 [color]
     branch = auto
@@ -79,13 +82,16 @@
     show-changes = true
 
 [tig "bind"]
+    ;NEO
     generic = ä Quit
     generic = ü view-close
     generic = 8 move-up ; NEO right hand analog to arrow up
     generic = 5 move-down ; NEO right hand analog to arrow down
+
     generic = g move-first-line
     generic = G move-last-line
     main = G move-last-line ; overwrite default keybinding
+    generic = F !git fetch
     generic = P !git push
     status = A !git commit --amend
     stage = u stage-update-line
