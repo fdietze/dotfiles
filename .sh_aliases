@@ -7,7 +7,6 @@ alias skype='PULSE_LATENCY_MSEC=30 /usr/bin/skype'
 # fix highdpi for chromium
 alias chromium='chromium --high-dpi-support=1 --force-device-scale-factor=1'
 alias chromium-continuous-bin='chromium-continuous-bin --high-dpi-support=1 --force-device-scale-factor=1'
-alias chrome-unstable='google-chrome-unstable --high-dpi-support=1 --force-device-scale-factor=1'
 
 # unsorted / general
 alias ssh='TERM=xterm-256color ssh'
@@ -43,6 +42,7 @@ alias yl='yaourt -Ql' # list files for package
 alias ye='yaourt -Qe --date' # list installed packages
 
 # vim
+# alias vim='nvim'
 alias va='vim ~/.sh_aliases'
 alias vv='vim ~/.vimrc'
 alias vvp='vim ~/.vimrc_plugins'
@@ -52,6 +52,24 @@ alias vvs='vim ~/.vimrc_statusline'
 alias vim="vim --servername vim-$$" # always start vim as server (for live colorscheme changing)
 alias vimt='vim $(date +"%Y-%m-%d")'
 v() { (cd-git-root; vim "$(fzf --query="$(echo $@ | tr ' ' '\ ' )")"); }
+alias vr="vim +:FZFMru"
+
+nvim_command() {
+    # usage: nvim_command <socket> <command>
+    # requires: https://github.com/jakm/msgpack-cli
+
+    # https://github.com/msgpack-rpc/msgpack-rpc/blob/master/spec.md
+    # msgpack-rpc is an array of [type, msgid, method, params]
+    # encode and send it to nvims unix socket via netcat
+    msgpack-cli encode <(echo "[0,0,\"vim_command\",[\"$2\"]]") | netcat -U $1
+}
+
+nvim_all_command() {
+    # usage: nvim_all_command <command>
+    for nvim in /tmp/nvim*/0; do
+        nvim_command $nvim "$1"
+    done
+}
 
 # file search
 alias lo='locate -i'
@@ -61,8 +79,8 @@ alias ag='ag -S -f'
 alias gg='grep -irn'
 alias vag="search-select-edit"
 alias gr='grep'
-fo() { $@ "$(fzf)"; }
-ft() { $@ "$(ls -tr1 --group-directories-first | fzf --no-sort)"; } # least modified files
+fo() { xdg-open "$(fzf)" > /dev/null 2>&1; }
+lto() { xdg-open "$(ls -tr1 --group-directories-first | fzf --tac --no-sort)" > /dev/null 2>&1; } # least modified files
 s() {
     # interactively select a line from stdin and execute command
     # example usage: find /var/log/Xorg* | s less
@@ -121,15 +139,16 @@ alias nclear='neo4j-clear'
 alias nall='neo4j-all'
 
 sbt() { (
-        # TODO, only if there is no build.sbt in current folder
-        cd-git-root
-        env sbt $@
-        ) }
+    # TODO, only if there is no build.sbt in current folder
+    cd-git-root
+    env sbt $@
+    )
+}
 
 nstart() {
     hc use_index 7
     (sleep 1; hc use_previous) &
-    termite -e "$HOME/downloads/neo4j-community-2.2.4/bin/neo4j console"
+    termite -e "$HOME/downloads/neo4j-community-2.2.2/bin/neo4j console"
 }
 
 wust() {
@@ -137,7 +156,7 @@ wust() {
     (sleep 1; hc use_previous) &
     termite -e "bash -c \"cd ~/projects/wust && sbt compile run\"" &
     termite -e "bash -c \"cd ~/projects/wust && ./blumenkohl\"" &
-    termite -e "$HOME/downloads/neo4j-community-2.2.4/bin/neo4j console"
+    termite -e "$HOME/downloads/neo4j-community-2.2.2/bin/neo4j console"
 }
 
 
@@ -160,6 +179,7 @@ low() {
 
     systemctl --user stop btsync
     systemctl --user stop dropbox
+    sudo systemctl stop syncthing@felix.service
     killall owncloud
     systemctl --user stop pulseaudio
 
@@ -169,7 +189,7 @@ low() {
 high() {
     xbacklight -set 100
 
-    sudo cpupower frequency-set --max $(sudo cat /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq)
+    sudo cpupower frequency-set --max 2800Mhz
 
     systemctl --user start btsync
     systemctl --user start pulseaudio
