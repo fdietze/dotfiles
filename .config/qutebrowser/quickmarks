@@ -10,3 +10,5 @@ pb https://banking.postbank.de/rai/login
 s file:///usr/share/doc/scala/api/scala-library/index.html#package
 td http://www.toodledo.com/tasks/index.php#main
 wu https://www.wunderlist.com/#/lists/inbox
+kunagi http://dum.hopto.org:8082/kunagi/#project=ef4b23be-1d70-4748-b1f9-1d1fc6a8da55-1%7Cpage=Dashboard
+haskell http://dev.stephendiehl.com/hask/
