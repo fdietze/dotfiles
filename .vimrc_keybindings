@@ -25,8 +25,11 @@ vnoremap j `
 nnoremap <leader>j <C-]>
 
 " k: (nothing yet)
-nnoremap k <Nop>
+nnoremap K zg  " add current word to spellfile
 vnoremap k <Nop>
+nnoremap k 1z= " insert best suggestion misspelled word
+nnoremap <C-h> ]s " next misspelled word
+nnoremap <C-k> [s " prev misspelled word
 
 " l/L: next/prev buffer
 " L was: place cursor at bottom of screen
@@ -209,8 +212,12 @@ nmap <leader>gs :silent !tig status<CR>:GitGutterAll<CR>:redraw!<CR>
 nmap <silent> <leader>gd :Rooter<CR>
 
 " Emmet
-nmap <C-e> <Plug>(emmet-expand-abbr)
-imap <C-e> <Plug>(emmet-expand-abbr)
+" nmap <C-e> <Plug>(emmet-expand-abbr)
+" imap <C-e> <Plug>(emmet-expand-abbr)
+
+" LatexBox
+vmap <Leader>le <Plug>LatexWrapSelection
+vmap <buffer>lo <Plug>LatexEnvWrapSelection
 
 " Autoformat
 nmap <leader>f :Autoformat<CR>

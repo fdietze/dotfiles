@@ -87,6 +87,7 @@ Plug 'othree/javascript-libraries-syntax.vim'
 Plug 'neo4j-contrib/cypher-vim-syntax' " Neo4j Cypher query language
 " Plug 'vim-scripts/JavaDecompiler.vim' " decompile java .class files on the fly
 Plug 'wting/rust.vim' " Rust programming language by Mozilla
+Plug 'cespare/vim-toml' " TOML (used for Rust project configuration)
 Plug 'LaTeX-Box-Team/LaTeX-Box' " LaTeX
 Plug 'vim-scripts/gnuplot.vim'
 Plug 'Valloric/MatchTagAlways' " Highlight matching/surrounding html tags
@@ -109,7 +110,7 @@ Plug 'altercation/vim-colors-solarized'
 " Plug 'vim-scripts/guicolorscheme.vim'
 " Plug 'nanotech/jellybeans.vim'
 " Plug 'chriskempson/tomorrow-theme', {'rtp': 'vim/'}
-" Plug 'fdietze/goodday.vim'
+Plug 'fdietze/goodday.vim'
 " Plug 'tomasr/molokai'
 " Plug 'sickill/vim-monokai'
 " Plug 'noahfrederick/vim-noctu'
@@ -121,7 +122,7 @@ Plug 'altercation/vim-colors-solarized'
 " Plug 'scrooloose/syntastic'
 Plug 'vim-scripts/LanguageTool' " spell grammar checking
 " Plug 'severin-lemaignan/vim-minimap' " draw a sublime like minimap
-" Plug 'ebfe/vim-racer' " auto completion for the Rust language
+Plug 'ebfe/vim-racer' " auto completion for the Rust language
 " Plug 'Raimondi/delimitMate' " automatically-close-brackets-magic
 " Plug 'Shougo/vimproc.vim' " Interactive command execution
 " Plug 'vim-scripts/ColorSchemeEditor' " graphical editor for colorschemes
@@ -156,11 +157,17 @@ let g:ycm_auto_trigger = 1
 let g:ycm_min_num_of_chars_for_completion = 3
 let g:ycm_key_list_previous_completion = ['<S-TAB>']
 let g:ycm_key_list_select_completion = ['<TAB>']
+let g:ycm_cache_omnifunc = 0
 
 " dont display detail window about current completion
 " set completeopt=menuone,longest
 " let g:ycm_autoclose_preview_window_after_insertion = 1
 
+" Goyo distraction free editing
+let g:goyo_width = 80
+let g:goyo_height = '100%'
+let g:goyo_margin_top = 3
+let g:goyo_margin_bottom = 3
 
 " Eclim
 " let g:EclimCompletionMethod = 'omnifunc'
@@ -187,10 +194,13 @@ autocmd vimrc FileType html,css EmmetInstall
 " Languagetool
 let g:languagetool_jar=$HOME."/local/LanguageTool-2.6/languagetool-commandline.jar"
 
+" rust.vim
+" let g:rustfmt_autosave = 1
+
 " racer
-" set hidden
-" let g:racer_cmd = "racer"
-" let $RUST_SRC_PATH="/home/felix/projects/rust/src"
+set hidden
+let g:racer_cmd = "racer"
+let $RUST_SRC_PATH="/home/felix/projects/rust/src"
 
 " ultisnips
 " Trigger configuration. Do not use <tab> if you use https://github.com/Valloric/YouCompleteMe.
@@ -226,46 +236,46 @@ let g:Schlepp#reindent = 1
 
 " switch.vim
 let g:switch_custom_definitions =
-    \ [
-    \   ['on', 'off'],
-    \   ['==', '!='],
-    \   ['_', '-'],
-    \   [' < ', ' > '],
-    \   ['<=', '>='],
-    \   [' + ', ' - '],
-    \   ['-=', '+='],
-    \   ['and', 'or'],
-    \   ['if', 'unless'],
-    \   ['YES', 'NO'],
-    \   ['yes', 'no'],
-    \   ['first', 'last'],
-    \   ['else', 'else if'],
-    \   ['max', 'min'],
-    \   ['px', '%', 'em'],
-    \   ['left', 'right'],
-    \   ['top', 'bottom'],
-    \   ['margin', 'padding'],
-    \   ['height', 'width'],
-    \   ['absolute', 'relative'],
-    \   ['horizontal', 'vertical'],
-    \   ['show', 'hide'],
-    \   ['visible', 'hidden'],
-    \   ['add', 'remove'],
-    \   ['up', 'down'],
-    \   ['before', 'after'],
-    \   ['slow', 'fast'],
-    \   ['small', 'large'],
-    \   ['even', 'odd'],
-    \   ['inside', 'outside'],
-    \   {'"\([^"]*\)"': '''\1''', '''\([^'']*\)''': '"\1"'},
-    \   {
-    \     '\<\(\l\)\(\l\+\(\u\l\+\)\+\)\>': '\=toupper(submatch(1)) . submatch(2)',
-    \     '\<\(\u\l\+\)\(\u\l\+\)\+\>': "\\=tolower(substitute(submatch(0), '\\(\\l\\)\\(\\u\\)', '\\1_\\2', 'g'))",
-    \     '\<\(\l\+\)\(_\l\+\)\+\>': '\U\0',
-    \     '\<\(\u\+\)\(_\u\+\)\+\>': "\\=tolower(substitute(submatch(0), '_', '-', 'g'))",
-    \     '\<\(\l\+\)\(-\l\+\)\+\>': "\\=substitute(submatch(0), '-\\(\\l\\)', '\\u\\1', 'g')",
-    \   }
-    \ ]
+            \ [
+            \   ['on', 'off'],
+            \   ['==', '!='],
+            \   ['_', '-'],
+            \   [' < ', ' > '],
+            \   ['<=', '>='],
+            \   [' + ', ' - '],
+            \   ['-=', '+='],
+            \   ['and', 'or'],
+            \   ['if', 'unless'],
+            \   ['YES', 'NO'],
+            \   ['yes', 'no'],
+            \   ['first', 'last'],
+            \   ['else', 'else if'],
+            \   ['max', 'min'],
+            \   ['px', '%', 'em'],
+            \   ['left', 'right'],
+            \   ['top', 'bottom'],
+            \   ['margin', 'padding'],
+            \   ['height', 'width'],
+            \   ['absolute', 'relative'],
+            \   ['horizontal', 'vertical'],
+            \   ['show', 'hide'],
+            \   ['visible', 'hidden'],
+            \   ['add', 'remove'],
+            \   ['up', 'down'],
+            \   ['before', 'after'],
+            \   ['slow', 'fast'],
+            \   ['small', 'large'],
+            \   ['even', 'odd'],
+            \   ['inside', 'outside'],
+            \   {'"\([^"]*\)"': '''\1''', '''\([^'']*\)''': '"\1"'},
+            \   {
+            \     '\<\(\l\)\(\l\+\(\u\l\+\)\+\)\>': '\=toupper(submatch(1)) . submatch(2)',
+            \     '\<\(\u\l\+\)\(\u\l\+\)\+\>': "\\=tolower(substitute(submatch(0), '\\(\\l\\)\\(\\u\\)', '\\1_\\2', 'g'))",
+            \     '\<\(\l\+\)\(_\l\+\)\+\>': '\U\0',
+            \     '\<\(\u\+\)\(_\u\+\)\+\>': "\\=tolower(substitute(submatch(0), '_', '-', 'g'))",
+            \     '\<\(\l\+\)\(-\l\+\)\+\>': "\\=substitute(submatch(0), '-\\(\\l\\)', '\\u\\1', 'g')",
+            \   }
+            \ ]
 " \   {'\([^-0-9]\)\(\d\+\)': '\1-\2', '-\(\d\+\)': '\1'},
 " \   {'+\(.\+\)': '-\1', '-\(.\+\)': '+\1'},
 

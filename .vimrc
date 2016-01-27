@@ -123,18 +123,22 @@ autocmd vimrc BufEnter * silent! lcd %:p:h
 " break text automatically
 autocmd vimrc FileType text setlocal textwidth=78
 
+let g:tex_flavor = "latex"
+
+" set spell spelllang=en_us
+
 " filetype aliases
 autocmd vimrc BufNewFile,BufRead *.sbt set filetype=scala
 autocmd vimrc BufNewFile,BufRead *.gdb set filetype=sh
 autocmd vimrc BufNewFile,BufRead *.jad set filetype=java
 
 " on save, delete trailing spaces
-autocmd vimrc FileType vim,html,css,scss,javascript,sh
+autocmd vimrc FileType vim,html,css,scss,javascript,sh,rust
             \ autocmd BufWritePre * call StripTrailingSpaces()
 
 " on save, autoformat
-autocmd vimrc FileType vim,html
-            \ autocmd BufWritePre *.vim *.html Autoformat
+autocmd vimrc FileType vim,html,rust
+            \ autocmd BufWritePre * Autoformat
 
 " return to last edit position when opening a file.
 " except for git commits: Enter insert mode instead.
