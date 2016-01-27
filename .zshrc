@@ -49,6 +49,8 @@ fry cd-git-root
 fry neo4j-query
 NEO4J_QUERY_JSON_FORMATTER="underscore print --color --outfmt json"
 fry mkdir-cd
+fry screencapture
+fry transcode-video
 
 
 # command not found for Arch
