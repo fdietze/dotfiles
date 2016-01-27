@@ -1,0 +1,106 @@
+in /usr/share/X11/xkb/compat/misc hinzufügen:
+
+    interpret 0x1100001 {
+        repeat= True;
+        action= RedirectKey(key=<BKSP>,clearMods= Lock+Mod2+Mod3+Mod5);
+    };
+
+    interpret 0x1100002 {
+        repeat= True;
+        action= RedirectKey(key=<UP>,clearMods= Lokc+Mod2+Mod3+Mod5);
+    };
+
+    interpret 0x1100003 {
+        repeat= True;
+        action= RedirectKey(key=<DOWN>,clearMods= Lokc+Mod2+Mod3+Mod5);
+    };
+
+    interpret 0x1100004 {
+        repeat= True;
+        action= RedirectKey(key=<LEFT>,clearMods= Lokc+Mod2+Mod3+Mod5);
+    };
+
+    interpret 0x1100005 {
+        repeat= True;
+        action= RedirectKey(key=<RGHT>,clearMods= Lokc+Mod2+Mod3+Mod5);
+    };
+
+    interpret 0x1100006 {
+        repeat= True;
+        action= RedirectKey(key=<PGUP>,clearMods= Lokc+Mod2+Mod3+Mod5);
+    };
+
+    interpret 0x1100007 {
+        repeat= True;
+        action= RedirectKey(key=<PGDN>,clearMods= Lokc+Mod2+Mod3+Mod5);
+    };
+
+    interpret 0x1100008 {
+        repeat= True;
+        action= RedirectKey(key=<DELE>,clearMods= Lokc+Mod2+Mod3+Mod5);
+    };
+
+    interpret 0x1100009 {
+        repeat= True;
+        action= RedirectKey(key=<END>,clearMods= Lokc+Mod2+Mod3+Mod5);
+    };
+
+    interpret 0x110000A {
+        repeat= True;
+        action= RedirectKey(key=<HOME>,clearMods= Lokc+Mod2+Mod3+Mod5);
+    };
+
+    interpret 0x110000B {
+        repeat= True;
+        action= RedirectKey(key=<RTRN>,clearMods= Lokc+Mod2+Mod3+Mod5);
+    };
+
+    interpret 0x110000C {
+        repeat= True;
+        action= RedirectKey(key=<ESC>,clearMods= Lokc+Mod2+Mod3+Mod5);
+    };
+
+    interpret 0x110000D {
+        repeat= True;
+        action= RedirectKey(key=<TAB>,clearMods= Lokc+Mod2+Mod3+Mod5);
+    };
+
+    interpret 0x110000E {
+        repeat= True;
+        action= RedirectKey(key=<INS>,clearMods= Lokc+Mod2+Mod3+Mod5);
+    };
+
+    interpret 0x110000F {
+        repeat= True;
+        action= RedirectKey(key=<UNDO>,clearMods= Lokc+Mod2+Mod3+Mod5);
+    };
+
+    interpret 0x1100010 {
+        repeat= True;
+        action= RedirectKey(key=<AGAI>,clearMods= Lokc+Mod2+Mod3+Mod5);
+    };
+
+
+Und in /usr/share/X11/xkb/symbols/de die Sachen mit den entsprechenden Codes von unten ersetzen (ich habe keine Ahnung, ob man auf jedem Rechner die Zeilen einfach so übernehmen darf)
+
+    key <AD01> { [ x,                       X,                       ellipsis,                Greek_xi,                0x1100006,               0x1100006,               Greek_XI,                NoSymbol                 ] };
+    key <AD02> { [ v,                       V,                       underscore,              NoSymbol,                0x1100001,               0x1100001,               radical,                 NoSymbol                 ] };
+    key <AD03> { [ l,                       L,                       bracketleft,             Greek_lambda,            0x1100002,               0x1100002,               Greek_LAMBDA,            NoSymbol                 ] };
+    key <AD04> { [ c,                       C,                       bracketright,            Greek_chi,               0x1100008,               0x1100008,               U2102,                   NoSymbol                 ] };
+    key <AD05> { [ w,                       W,                       asciicircum,             Greek_omega,             0x1100007,               0x1100007,               Greek_OMEGA,             NoSymbol                 ] };
+
+    key <AC01> { [ u,                       U,                       backslash,               NoSymbol,                0x110000A,               0x110000A,               includedin,              NoSymbol                 ] };
+    key <AC02> { [ i,                       I,                       slash,                   Greek_iota,              0x1100004,               0x1100004,               integral,                NoSymbol                 ] };
+    key <AC03> { [ a,                       A,                       braceleft,               Greek_alpha,             0x1100003,               0x1100003,               U2200,                   NoSymbol                 ] };
+    key <AC04> { [ e,                       E,                       braceright,              Greek_epsilon,           0x1100005,               0x1100005,               U2203,                   NoSymbol                 ] };
+    key <AC05> { [ o,                       O,                       asterisk,                Greek_omicron,           0x1100009,               0x1100009,               elementof,               NoSymbol                 ] };
+
+    key <AB01> { [ udiaeresis,              Udiaeresis,              numbersign,              NoSymbol,                0x110000C,               0x110000C,               union,                   NoSymbol                 ] };
+    key <AB02> { [ odiaeresis,              Odiaeresis,              dollar,                  U03F5,                   0x110000D,               0x110000D,               intersection,            NoSymbol                 ] };
+    key <AB03> { [ adiaeresis,              Adiaeresis,              bar,                     Greek_eta,               0x110000E,               0x110000E,               U2135,                   NoSymbol                 ] };
+    key <AB04> { [ p,                       P,                       asciitilde,              Greek_pi,                0x110000B,               0x110000B,               Greek_PI,                NoSymbol                 ] };
+    key <AB05> { [ z,                       Z,                       grave,                   Greek_zeta,              0x110000F,               0x1100010,               U2124,                   NoSymbol                 ] };
+
+Falls die Tasten langsam wiederholt werden, z.B.
+xset r rate 300 100
+ausführen.

@@ -1,0 +1,109 @@
+# append history list to the history file; this is the default but we make sure
+# because it's required for share_history.
+setopt append_history
+
+# import new commands from the history file also in other zsh-session
+setopt share_history
+
+# save each command's beginning timestamp and the duration to the history file
+setopt extended_history
+
+# If a new command line being added to the history list duplicates an older
+# one, the older command is removed from the list
+setopt histignorealldups
+
+# Expire duplicate entries first when trimming history.
+setopt hist_expire_dups_first
+
+# Don't record an entry that was just recorded again.
+setopt hist_ignore_dups
+
+# Don't write duplicate entries in the history file.
+setopt hist_save_no_dups
+
+# remove command lines from the history list when the first character on the
+# line is a space
+setopt histignorespace
+
+# When searching history don't display results already cycled through twice
+setopt hist_find_no_dups
+
+# Remove extra blanks from each command line being added to history
+setopt hist_reduce_blanks
+
+# !keyword
+setopt bang_hist
+
+# if argument to cd is the name of a parameter whose value is a valid directory, it will become the current directory
+#setopt cdablevar
+
+# if a command is issued that can't be executed as a normal command, and the
+# command is the name of a directory, perform the cd command to that directory.
+setopt auto_cd
+
+# in order to use #, ~ and ^ for filename generation grep word
+# *~(*.gz|*.bz|*.bz2|*.zip|*.Z) -> searches for word not in compressed files
+# don't forget to quote '^', '~' and '#'!
+setopt extended_glob
+
+# display PID when suspending processes as well
+setopt longlistjobs
+
+# try to avoid the 'zsh: no matches found...'
+setopt nonomatch
+
+# report the status of backgrounds jobs immediately
+setopt notify
+
+# whenever a command completion is attempted, make sure the entire command path
+# is hashed first.
+setopt hash_list_all
+
+# Don't send SIGHUP to background processes when the shell exits.
+# setopt nohup
+
+# make cd push the old directory onto the directory stack.
+setopt auto_pushd
+
+# swap the meaning of + and -, makes more sense and is easier to type
+setopt pushdminus
+
+# don't push the same dir twice.
+setopt pushd_ignore_dups
+
+# avoid "beep"ing
+setopt nobeep
+
+# * shouldn't match dotfiles. ever.
+setopt noglobdots
+
+# use zsh style word splitting
+setopt noshwordsplit
+
+# correct me if i'm wrong
+setopt correct
+
+# comments in shell
+setopt interactivecomments
+
+# When completing from the middle of a word, move the cursor to the end of the word
+setopt always_to_end
+
+# Allow completion from within a word/phrase
+setopt complete_in_word
+
+# Automatically list choices on an ambiguous completion
+setopt auto_list
+
+# only show the rprompt on the current prompt
+setopt transient_rprompt
+
+# perform implicit tees or cats when multiple redirections are attempted
+setopt multios
+
+# don't error out when unset parameters are used
+#setopt unset
+
+# we don't want no flow control, i.e. unfreeze/freeze
+unsetopt flow_control
+stty -ixon
