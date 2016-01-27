@@ -11,6 +11,11 @@ if [ "$DISPLAY" ]; then
         vim --servername $vim --remote-send '<Esc>:set background=light<CR>:colorscheme goodmorning<CR>'
     done
 
+    # source ~/.sh_aliases # load aliases
+    # nvim_all_command "set background=light"
+    # nvim_all_command "colorscheme goodmorning"
+
+
     herbstclient set window_border_width 3
     herbstclient set frame_border_width  3
     herbstclient set frame_border_active_color  '#00AF2B'

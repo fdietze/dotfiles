@@ -11,6 +11,11 @@ if [ "$DISPLAY" ]; then
         vim --servername $vim --remote-send '<Esc>:set background=dark<CR>:colorscheme solarized<CR>'
     done
 
+    # source ~/.sh_aliases # load aliases
+    # nvim_all_command "set background=dark"
+    # nvim_all_command "colorscheme solarized"
+
+
     herbstclient set window_border_width 2
     herbstclient set frame_border_width  2
     herbstclient set frame_border_active_color  '#37BAFF'
@@ -30,7 +35,8 @@ if [ "$DISPLAY" ]; then
         done
     fi
 
-    nitrogen --set-zoom-fill ~/downloads/wallpapers/582.jpg
+    nitrogen --set-zoom-fill ~/downloads/wallpapers/stock-photo-62157131.jpg
+    # nitrogen --set-zoom-fill ~/downloads/wallpapers/Aurora-Borealis-Dual-Screen-HD-Wallpaper.jpg
 else
     # set colors of console (without X)
     if [ "$TERM" = "linux" ]; then
