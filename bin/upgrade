@@ -4,7 +4,7 @@ echo "upgrading installed packages..."
 yaourt -Syyua --devel --noconfirm
 
 echo "cleaning package cache..."
-sudo pkgcacheclean
+sudo pkgcacheclean 1
 
 echo "updating package search database..."
 sudo pkgfile -u
@@ -25,6 +25,9 @@ gem update
 
 echo "updating global npm packages"
 npm -g update
+
+echo "updating rust installation"
+multirust update nightly
 
 
 
