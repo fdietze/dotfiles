@@ -20,7 +20,7 @@ keyboardbacklightoff
 xbindkeys &
 
 # reset colorscheme
-rm ~/.colors
+rm -f ~/.colors
 
 # hide mouse after some seconds of no movement
 unclutter --timeout 3 --fork # unclutter-xfixes
