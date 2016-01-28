@@ -1,0 +1,11 @@
+map + zoomPageIn
+map - zoomPageOut
+map r reloadTab
+map R reloadTabUncached
+map u goBack
+map v goForward
+map d closeTab
+map l nextTab
+map L previousTab
+map e nextTab
+map a previousTab
