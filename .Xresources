@@ -1,0 +1,22 @@
+Xft.dpi: 190
+
+rofi.modi: combi,calculate:calc,wolfram alpha:tungsten,ssh
+rofi.combi-modi: window,run
+rofi.terminal: termite
+rofi.run-command: zsh -i -c "{cmd}"
+rofi.run-shell-command: {terminal} -e "zsh -i -c \"{cmd}\""
+rofi.ssh-command: {terminal} -e {ssh-client} {host}
+rofi.sidebar-mode:                   true
+rofi.auto-select:                    false
+rofi.font: Droid Sans Mono 9
+rofi.dpi: 190
+rofi.separator-style:                none
+rofi.width: 1920
+rofi.lines:                          15
+rofi.fixed-num-lines:                          true
+rofi.columns: 1
+rofi.color-enabled: false
+rofi.bw: 0
+rofi.location:                       2
+rofi.kb-mode-previous:               Left
+rofi.kb-mode-next:                   Right
