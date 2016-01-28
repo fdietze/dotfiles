@@ -3,6 +3,7 @@ alias qrscan='LD_PRELOAD=/usr/lib/libv4l/v4l1compat.so zbarcam --raw /dev/video0
 alias photoshop='wine ~/.wine/drive_c/Program\ Files\ \(x86\)/Adobe/Photoshop\ 7.0/Photoshop.exe'
 alias gparted='gksu gparted'
 alias skype='PULSE_LATENCY_MSEC=30 /usr/bin/skype'
+alias signal='chromium --app-id=bikioccmkafdpakkkcpdbppfkghcmihk'
 
 # fix highdpi for chromium
 alias chromium='chromium --high-dpi-support=1 --force-device-scale-factor=1'
@@ -32,8 +33,8 @@ alias wcon='nmcli dev wifi connect'
 # yaourt
 alias y='yaourt'
 alias yoghurt='yaourt'
-alias ys='yaourt -S --asexplicit' # install and mark as explicitly installed
-alias yu='yaourt -Syua --devel' # update
+alias ys='yaourt -S' # install and mark as explicitly installed
+alias yu='yaourt -Syy' # update
 alias yr='yaourt -Rs' # remove package
 alias yi='yaourt -Qi' # package info
 alias yb='yaourt -Sb' # build package
@@ -162,7 +163,7 @@ wust() {
 
 # other
 autocolors() {
-    if daytime 50.77N 6.08W
+    if [ $(sunwait poll 50.77N 6.08W) == "DAY" ]
     then ~/bin/light $@
     else ~/bin/dark $@
     fi

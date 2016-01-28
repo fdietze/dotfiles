@@ -42,7 +42,6 @@ fry search-select-edit
 fry git-select-commit
 fry git-onstage
 fry github-clone
-fry daytime
 fry interactive-mv
 fry cd-tmp
 fry cd-git-root
