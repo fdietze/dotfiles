@@ -1,6 +1,6 @@
 source ~/.zprofile # because I have bash as my login shell
 DISABLE_AUTO_UPDATE="true" # disable oh-my-zsh auto-update
-source /usr/share/zsh/scripts/zgen/zgen.zsh
+source ~/local/zgen/zgen.zsh
 export PURE_GIT_PULL=0
 
 if ! zgen saved; then
