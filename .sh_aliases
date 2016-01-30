@@ -10,6 +10,7 @@ alias chromium='chromium --high-dpi-support=1 --force-device-scale-factor=1'
 alias chromium-continuous-bin='chromium-continuous-bin --high-dpi-support=1 --force-device-scale-factor=1'
 
 # unsorted / general
+alias d='yadm'
 alias ssh='TERM=xterm-256color ssh'
 alias hc='herbstclient'
 alias watch='watch -c -d COPE=1 ' # force cope colors, and leave one space to trigger alias expansion in command
