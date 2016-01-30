@@ -1,6 +1,7 @@
 Xft.dpi: 190
 
-rofi.modi: combi,calculate:calc,wolfram alpha:tungsten,ssh
+rofi.modi: combi
+rofi.key-combi: Alt+y
 rofi.combi-modi: window,run
 rofi.terminal: termite
 rofi.run-command: zsh -i -c "{cmd}"
