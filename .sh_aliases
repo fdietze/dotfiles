@@ -78,8 +78,8 @@ alias f='ag -i -g'
 alias ff="find . -iname"
 alias ag='ag -S -f'
 alias gg='grep -irn'
+alias gr='grep -i'
 alias vag="search-select-edit"
-alias gr='grep'
 fo() { xdg-open "$(fzf)" > /dev/null 2>&1; }
 lto() { xdg-open "$(ls -tr1 --group-directories-first | fzf --tac --no-sort)" > /dev/null 2>&1; } # least modified files
 s() {
