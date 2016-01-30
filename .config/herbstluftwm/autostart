@@ -175,13 +175,6 @@ hc set smart_frame_surroundings 1
 # hc set window_border_normal_color '#343434'
 # hc set window_border_active_color '#37BAFF'
 
-# set dark terminal and vim colors if not set
-if [ ! -f ~/.colors ]; then
-    xsetroot -solid '#000000' # black background
-    zsh -i -c "autocolors nopanel"
-fi
-
-
 
 # rules
 hc unrule -F
@@ -210,10 +203,35 @@ hc detect_monitors
 hc set mouse_recenter_gap 1
 
 
+# set dark terminal and vim colors if not set
+# xsetroot -solid '#000000' # black background
+zsh -i -c "autocolors nopanel"
+
 # find the panel
 panel=~/.config/herbstluftwm/panel.sh
 for monitor in $(herbstclient list_monitors | cut -d: -f1) ; do
     # start it on each monitor
     "$panel" $monitor &
 done
+
+killall rofi
+rofi &
+
+# switch keyboard backlight off
+# keyboardbacklightoff
+
+# initialize keybindings
+xbindkeys &
+
+# hide mouse after some seconds of no movement
+killall unclutter
+unclutter --timeout 3 --fork & # unclutter-xfixes
+
+# load screen color profile
+xcalib ~/projects/dotfiles/Asus_UX21A_FHD_matt_CMN__N116HSE_EA1.icm &
+
+# change color temperature depending on sun position
+# not enabled, because it needs a running X session
+killall -9 redshift
+redshift &
 
