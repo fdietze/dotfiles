@@ -52,7 +52,8 @@ function click(content, command)
 end
 
 function icon(name)
-    return " ^p(-"..s.charwidth..")^i(/usr/share/icons/stlarch_icons/"..name..")"
+    -- return " ^p(-"..s.charwidth..")^i(/usr/share/icons/stlarch_icons/"..name..")"
+    return ""
 end
 
 function conky_sep()
@@ -133,9 +134,9 @@ function conky_net(height)
             if( essid == nil or essid == "" ) then -- ethernet device
                 str = str ..conky_prefix(iface).. iface_speed(iface)
             else -- wifi device
-                if( essid ~= "off/any" ) then 
+                if( essid ~= "off/any" ) then
                     -- local qual = tonumber(conky("wireless_link_qual_perc " .. iface))
-                    
+
                     -- if     qual <= 33 then str = str .. conky_prefix(icon("wireless10.xbm"))
                     -- elseif qual <= 66 then str = str .. conky_prefix(icon("wireless9.xbm"))
                     -- else                   str = str .. conky_prefix(icon("wireless8.xbm")) end
