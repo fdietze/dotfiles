@@ -35,7 +35,7 @@ if [ "$DISPLAY" ]; then
         done
     fi
 
-    nitrogen --set-zoom-fill ~/downloads/wallpapers/stock-photo-62157131.jpg
+    nitrogen --set-zoom-fill ~/downloads/wallpapers/bg_xiang.jpg
     # nitrogen --set-zoom-fill ~/downloads/wallpapers/Aurora-Borealis-Dual-Screen-HD-Wallpaper.jpg
 else
     # set colors of console (without X)
