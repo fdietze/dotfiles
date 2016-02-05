@@ -1,5 +1,5 @@
-# fix large borders in tiling window managers
-# https://wiki.archlinux.org/index.php/GTK%2B#Client-side_decorations
+/* fix large borders in tiling window managers
+ https://wiki.archlinux.org/index.php/GTK%2B#Client-side_decorations */
 
 .window-frame, .window-frame:backdrop {
  box-shadow: 0 0 0 black;
