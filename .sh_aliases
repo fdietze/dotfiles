@@ -1,8 +1,10 @@
 # launch helpers
 alias qrscan='LD_PRELOAD=/usr/lib/libv4l/v4l1compat.so zbarcam --raw /dev/video0'
 alias photoshop='wine ~/.wine/drive_c/Program\ Files\ \(x86\)/Adobe/Photoshop\ 7.0/Photoshop.exe'
-alias gparted='gksu gparted'
-alias skype='PULSE_LATENCY_MSEC=30 /usr/bin/skype'
+alias gparted='gksudo gparted'
+alias skype='gksudo "systemctl start docker"; skype'
+alias teamviewer='gksudo "systemctl start teamviewerd"; teamviewer'
+
 alias signal='chromium --app-id=bikioccmkafdpakkkcpdbppfkghcmihk'
 
 # fix highdpi for chromium
@@ -11,18 +13,30 @@ alias chromium-continuous-bin='chromium-continuous-bin --high-dpi-support=1 --fo
 
 # unsorted / general
 alias d='yadm'
+alias dp='yadm --git-dir=$HOME/projects/dotfiles-private/.git'
+alias tigd='GIT_DIR=$HOME/.yadm/repo.git GIT_WORK_TREE=$HOME tig'
+alias tigdp='GIT_DIR=$HOME/projects/dotfiles-private/.git GIT_WORK_TREE=$HOME tig'
 alias ssh='TERM=xterm-256color ssh'
+sshforward() {
+    REMOTEHOST=$1
+    REMOTELOCALPORT=$2
+    LOCALPORT=$3
+    ssh -NL ${LOCALPORT}:localhost:${REMOTELOCALPORT} ${REMOTEHOST}
+}
 alias hc='herbstclient'
 alias watch='watch -c -d COPE=1 ' # force cope colors, and leave one space to trigger alias expansion in command
+alias w='watch '
 alias on='ping -c 1 8.8.8.8 && ping -c 4 google.com'
 alias hd='hexdump -C'
 alias fucking='sudo'
 alias speakerup='amixer -c 0 sset Speaker 100%'
 alias defrag='sudo btrfs filesystem defragment -r -v -f -clzo'
 alias iotop='sudo iotop'
-alias kp='keepass-dmenu --database ~/.keepass/passwords.kdbx --fn "Droid Sans Mono-8" --nb "#FFFFFF" --nf "#000000" --sb "#00D7FF" --sf "#101010"'
+alias keepass='secret-tool lookup keepass password | keepass $HOME/.keepass/passwords.kdbx --pw-stdin'
+alias kp='keepass-dmenu --database ~/.keepass/passwords.kdbx --password "$(secret-tool lookup keepass password)" --fn "Droid Sans Mono-8" --nb "#FFFFFF" --nf "#000000" --sb "#00D7FF" --sf "#101010" > /dev/null'
 alias vbmods='sudo modprobe -a vboxnetadp vboxnetflt vboxpci virtio_net vboxdrv' # load VirtualBox kernel modules
 alias cups='sudo systemctl start cups-browsed.service'
+alias kodi='AE_SINK=ALSA kodi'
 
 # wifi with networkmanager
 alias won='nmcli radio wifi on; wscan'
@@ -34,7 +48,8 @@ alias wcon='nmcli dev wifi connect'
 # yaourt
 alias y='yaourt'
 alias yoghurt='yaourt'
-alias ys='yaourt -S' # install and mark as explicitly installed
+alias ys='yaourt -S' # install
+alias yss='yaourt -S --noconfirm' # install
 alias yu='yaourt -Syy' # update
 alias yr='yaourt -Rs' # remove package
 alias yi='yaourt -Qi' # package info
@@ -94,12 +109,12 @@ s() {
 alias ls='ls --group-directories-first --color=auto -h'
 alias lt='ls -ltr'
 alias l='ls -l'
-alias t='tree'
+alias t='tree -C' # -C is for color=always
 alias ta='tree -a'
 alias df='df -h'
 alias md='mkdir -p'
 alias mdcd='mkdir-cd'
-alias imv='interactive-mv'
+alias mvi='interactive-mv'
 alias mcp='noglob zmv -C -W'
 alias mln='noglob zmv -L -W'
 alias mmv='noglob zmv -W'
@@ -116,10 +131,17 @@ alias cdg='cd-git-root'
 alias sx='startx'
 alias xkodi='/usr/bin/xinit /usr/bin/dbus-launch --exit-with-session /usr/bin/kodi-standalone -- :0 -nolisten tcp vt1'
 
-# services
-alias wa='tungsten' # WolframAlpha client
-alias w='wikicurses'
-alias aw='wiki-search' # offline ArchWiki search, package arch-wiki-lite
+# web services
+# alias w=''
+alias wa='urlappend https://www.wolframalpha.com/input/?i='
+alias aw='urlappend https://wiki.archlinux.org/index.php?search='
+alias gh='urlappend https://github.com/search?q='
+urlappend() {
+    echo $*
+    URL=$1
+    shift 1
+    chromium "$URL$*"
+}
 
 # git
 alias g='git'
@@ -136,9 +158,15 @@ alias m='make'
 alias mc='make clean'
 alias scala='scala -Dscala.color -deprecation -unchecked -explaintypes -language:_'
 alias jsb='underscore print --color --outfmt json' # beautify json, package: npm -g install underscore-cli
-alias nquery='neo4j-query'
-alias nclear='neo4j-clear'
-alias nall='neo4j-all'
+# alias nquery='neo4j-query'
+# alias nclear='neo4j-clear'
+# alias nall='neo4j-all'
+alias cg='cargo'
+
+cgw() {
+    cargo $1
+    cargo watch $1
+}
 
 sbt() { (
     # TODO, only if there is no build.sbt in current folder
@@ -179,22 +207,17 @@ low() {
 
     light
 
+    killall owncloud
     systemctl --user stop btsync
     systemctl --user stop dropbox
-    sudo systemctl stop syncthing@felix.service
-    killall owncloud
-    systemctl --user stop pulseaudio
-
-    sudo cpupower frequency-set --max 800Mhz
+    systemctl --user stop syncthing
 }
 
 high() {
     xbacklight -set 100
 
-    sudo cpupower frequency-set --max 2800Mhz
-
     systemctl --user start btsync
-    systemctl --user start pulseaudio
+    systemctl --user start syncthing
 }
 
 stayawake() {
