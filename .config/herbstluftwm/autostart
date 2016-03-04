@@ -27,12 +27,24 @@ hc keybind $Mod-Ctrl-Shift-y spawn reboot
 hc keybind $Mod-k spawn xkill
 hc keybind $Mod-d spawn termitexcwd
 hc keybind $Mod-j spawn qutebrowser
-# hc keybind $Mod-y spawn rofi -show combi
+hc keybind $Mod-y spawn launcher
 
 hc keybind $Mod-Shift-d spawn nmcli_dmenu
 hc keybind $Mod-Shift-p spawn xrandr --output eDP1  --auto --primary --output VGA1 --off --output HDMI1 --off
 hc keybind $Mod-Shift-z spawn movietime
-hc keybind Print spawn scrot
+
+# fn+Fxx keys
+hc keybind XF86KbdBrightnessDown spawn keyboardbacklightoff
+hc keybind XF86KbdBrightnessUp   spawn keyboardbacklightmax
+hc keybind XF86MonBrightnessDown spawn /usr/bin/light -U 5
+hc keybind XF86MonBrightnessUp   spawn /usr/bin/light -A 5
+# hc keybind XF86Display spawn
+hc keybind XF86TouchpadToggle    spawn touchpadtoggle
+hc keybind XF86AudioMute         chain , spawn pulseaudio-ctl mute , emit_hook panel_refresh
+hc keybind XF86AudioLowerVolume  chain , spawn pulseaudio-ctl down , emit_hook panel_refresh
+hc keybind XF86AudioRaiseVolume  chain , spawn pulseaudio-ctl up   , emit_hook panel_refresh
+hc keybind Print                 spawn scrot
+hc keybind Shift+Print           spawn scrot --focused
 
 # adjust volume
 hc keybind $Mod-Ctrl-h chain , spawn pulseaudio-ctl up   , emit_hook panel_refresh
@@ -40,10 +52,10 @@ hc keybind $Mod-Ctrl-n chain , spawn pulseaudio-ctl down , emit_hook panel_refre
 hc keybind $Mod-Ctrl-m chain , spawn pulseaudio-ctl mute , emit_hook panel_refresh
 
 # adjust screen brightness
-hc keybind $Mod-Ctrl-g spawn xbacklight +5 -steps 1 -time 0
-hc keybind $Mod-Ctrl-r spawn xbacklight -5 -steps 1 -time 0
-hc keybind $Mod-Ctrl-Shift-g spawn xbacklight +1 -steps 1 -time 0
-hc keybind $Mod-Ctrl-Shift-r spawn xbacklight -1 -steps 1 -time 0
+hc keybind $Mod-Ctrl-g spawn /usr/bin/light -A 5
+hc keybind $Mod-Ctrl-r spawn /usr/bin/light -U 5
+hc keybind $Mod-Ctrl-Shift-g spawn /usr/bin/light -A 1
+hc keybind $Mod-Ctrl-Shift-r spawn /usr/bin/light -U 1
 
 # switch color scheme
 hc keybind $Mod-Ctrl-k spawn light
@@ -214,21 +226,12 @@ for monitor in $(herbstclient list_monitors | cut -d: -f1) ; do
     "$panel" $monitor &
 done
 
-killall rofi
-rofi &
-
 # switch keyboard backlight off
-# keyboardbacklightoff
-
-# initialize keybindings
-xbindkeys &
+keyboardbacklightoff &
 
 # hide mouse after some seconds of no movement
 killall unclutter
 unclutter --timeout 3 --fork & # unclutter-xfixes
-
-# load screen color profile
-xcalib ~/projects/dotfiles/Asus_UX21A_FHD_matt_CMN__N116HSE_EA1.icm &
 
 # change color temperature depending on sun position
 # not enabled, because it needs a running X session
