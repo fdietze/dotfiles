@@ -86,7 +86,7 @@ Plug 'othree/yajs.vim' " New JavaScript Standard Ecmascript 6
 Plug 'othree/javascript-libraries-syntax.vim'
 Plug 'neo4j-contrib/cypher-vim-syntax' " Neo4j Cypher query language
 " Plug 'vim-scripts/JavaDecompiler.vim' " decompile java .class files on the fly
-Plug 'wting/rust.vim' " Rust programming language by Mozilla
+Plug 'rust-lang/rust.vim' " Rust programming language by Mozilla
 Plug 'cespare/vim-toml' " TOML (used for Rust project configuration)
 Plug 'LaTeX-Box-Team/LaTeX-Box' " LaTeX
 Plug 'vim-scripts/gnuplot.vim'
