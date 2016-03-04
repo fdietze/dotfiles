@@ -205,12 +205,24 @@ stayawake() {
 }
 
 movietime() {
-    xrandr --output HDMI1  --auto --primary --output VGA1 --off --output eDP1 --off
+    xrandr --output HDMI-1  --auto --primary --output VGA-1 --off --output eDP-1 --off
     herbstclient reload
     pacmd set-sink-mute 0 0
     stayawake
     xsetroot -solid '#ffffff'
-    systemctl --user stop redshift.service
+    killall redshift
+}
+
+reset-screen() {
+    xrandr --output eDP-1  --auto --primary --output VGA-1 --off --output HDMI-1 --off
+    herbstclient reload
+
+    xset s blank
+    xset s on
+    xset +dpms
+
+    rm -f ~/.colors
+    autocolors
 }
 
 # vim: ft=sh
