@@ -24,8 +24,8 @@ function conky_init()
             charwidth    = 9
         }
     end
-    -- s.cpucount = exec("grep 'physical id' /proc/cpuinfo | wc -l")
-    s.cpucount = 1
+    s.cpucount = exec("grep 'physical id' /proc/cpuinfo | wc -l")
+    -- s.cpucount = 1
 end
 
 function conky(var)
@@ -113,7 +113,7 @@ end
 function conky_bat(height)
     local col = fg(s.fgcolor)
     local batpc = conky("battery_percent")
-    if(batpc ~= nil and tonumber(batpc) <= 5) then
+    if(batpc ~= nil and tonumber(batpc) <= 10) then
         col = fg(s.fgcolorbad)
     end
     return conky_prefix("bat ")..col..conky_vbar(conky("battery_percent"),100, height)..conky_format("%11s", conky("battery_time"))
@@ -122,8 +122,8 @@ end
 
 function conky_net(height)
     function iface_speed(iface)
-        return " "..conky_format("%7s", trim(conky("upspeedf "..iface))).."K"..icon("uparrow3.xbm")
-        .." "..conky_format("%7s", trim(conky("downspeedf "..iface))).."K"..icon("downarrow3.xbm")
+        return " "..conky_format("%7s", trim(conky("upspeedf "..iface))).."K up"..icon("uparrow3.xbm")
+        .." "..conky_format("%7s", trim(conky("downspeedf "..iface))).."K down"..icon("downarrow3.xbm")
         ..conky_sep()
     end
 
