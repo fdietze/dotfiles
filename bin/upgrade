@@ -1,7 +1,9 @@
 #!/bin/zsh -ie
 
 echo "upgrading installed packages..."
+sudo rm -rf /tmp/yaourt-tmp-$USER /tmp/makepkg
 yaourt -Syyua --devel --noconfirm
+sudo rm -rf /tmp/yaourt-tmp-$USER /tmp/makepkg
 
 echo "cleaning package cache..."
 sudo pkgcacheclean 1
