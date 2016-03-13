@@ -1,3 +1,6 @@
+[include]
+    path = .gitconfig_hub
+
 [user]
     email = felix@beerleader.net
     name = Felix Dietze
