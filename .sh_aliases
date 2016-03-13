@@ -3,7 +3,7 @@ alias qrscan='LD_PRELOAD=/usr/lib/libv4l/v4l1compat.so zbarcam --raw /dev/video0
 alias photoshop='wine ~/.wine/drive_c/Program\ Files\ \(x86\)/Adobe/Photoshop\ 7.0/Photoshop.exe'
 alias gparted='gksudo gparted'
 alias skype='gksudo "systemctl start docker"; skype'
-alias teamviewer='gksudo "systemctl start teamviewerd"; teamviewer'
+alias teamviewer='gksudo "systemctl start teamviewerd"; sleep 5; teamviewer'
 
 alias signal='chromium --app-id=bikioccmkafdpakkkcpdbppfkghcmihk'
 
