@@ -1,0 +1,58 @@
+#!/bin/bash
+if [ $(cat $HOME/.colors) = "dark" ]; then
+    style='-fn "Droid Sans Mono-8" -nb "#121212" -nf "#EFEFEF" -sb "#121212" -sf "#EFEFEF"'
+else
+    style='-fn "Droid Sans Mono-8" -nb "#FFFFFF" -nf "#000000" -sb "#FFFFFF" -sf "#101010"'
+fi
+
+query=$(eval "echo | dmenu -p web: $style")
+cmd=$(echo $query | cut -d " " -f1)
+params=$(echo $query | cut -d " " -f2-)
+
+browser='chromium --high-dpi-support=1 --force-device-scale-factor=1'
+
+echo $query
+echo $cmd
+
+case $cmd in
+    "gg") # feeling lucky
+        $browser "https://www.google.com/search?btnI&q=$params" ;;
+    "gi") # images
+        $browser "https://encrypted.google.com/search?tbm=isch&q=$params" ;;
+    "amazon")
+        $browser "https://www.amazon.de/s/?field-keywords=$params" ;;
+    "d")
+        $browser "https://dict.leo.org/ende/index_de.html#/search=$params" ;;
+    "g")
+        $browser "https://google.com/search?q=$params" ;;
+    "gh")
+        $browser "https://github.com/search?q=$params&ref=opensearch" ;;
+    "m")
+        $browser "https://maps.google.com/maps?q=$params" ;;
+    "s")
+        $browser "https://scholar.google.com/scholar?q=$params" ;;
+    "t")
+        $browser "https://translate.google.de/?source=osdd#auto/en/$params" ;;
+    "trends")
+        $browser "https://www.google.com/trends?q=$params" ;;
+    "w")
+        $browser "https://de.wikipedia.org/w/index.php?title=Special:Search&search=$params" ;;
+    "wa")
+        $browser "https://www.wolframalpha.com/input/?i=$params" ;;
+    "we")
+        $browser "https://en.wikipedia.org/w/index.php?title=Special:Search&search=$params" ;;
+    "y")
+        $browser "https://www.youtube.com/results?search_query=$params" ;;
+    "aw")
+        $browser "https://wiki.archlinux.org/index.php?search=$params" ;;
+    "aur")
+        $browser "https://www.archlinux.org/packages/?q=$params" ;;
+    "wa")
+        $browser "https://www.wolframalpha.com/input/?i=$params" ;;
+    "url")
+        $browser $params ;;
+    "") # cancel
+        exit 0 ;;
+    *) # default search
+        $browser "https://duckduckgo.com/?q=$query" ;;
+esac
