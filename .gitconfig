@@ -6,7 +6,6 @@
     name = Felix Dietze
 
 [core]
-    excludesfile = ~/.gitignore_global
     pager = less
 
 [push]

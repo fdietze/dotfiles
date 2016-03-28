@@ -12,10 +12,10 @@ alias chromium='chromium --high-dpi-support=1 --force-device-scale-factor=1'
 alias chromium-continuous-bin='chromium-continuous-bin --high-dpi-support=1 --force-device-scale-factor=1'
 
 # unsorted / general
-alias d='yadm'
-alias dp='yadm --git-dir=$HOME/projects/dotfiles-private/.git'
-alias tigd='GIT_DIR=$HOME/.yadm/repo.git GIT_WORK_TREE=$HOME tig'
-alias tigdp='GIT_DIR=$HOME/projects/dotfiles-private/.git GIT_WORK_TREE=$HOME tig'
+alias  d='YADM_REPO=$HOME/projects/dotfiles         yadm -c core.excludesfile=~/.gitignore-dotfiles'
+alias dp='YADM_REPO=$HOME/projects/dotfiles-private yadm -c core.excludesfile=~/.gitignore-dotfiles-private'
+alias  tigd='GIT_DIR=$HOME/projects/dotfiles         GIT_WORK_TREE=$HOME tig'
+alias tigdp='GIT_DIR=$HOME/projects/dotfiles-private GIT_WORK_TREE=$HOME tig'
 alias ssh='TERM=xterm-256color ssh'
 sshforward() {
     REMOTEHOST=$1
