@@ -31,6 +31,9 @@ npm -g update
 echo "updating rust installation"
 multirust update nightly
 
+echo "updating git repos"
+mr update
+
 
 
 echo "updating mlocate database..."
