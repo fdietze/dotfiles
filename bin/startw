@@ -1,8 +1,12 @@
 #!/bin/bash
 export XKB_DEFAULT_LAYOUT=de
 export XKB_DEFAULT_VARIANT=neo
+
 export GDK_BACKEND=wayland
 export QT_QPA_PLATFORM=wayland-egl
 export CLUTTER_BACKEND=wayland
 export SDL_VIDEODRIVER=wayland
+
+rm -f ~/.colors
+
 exec sway
