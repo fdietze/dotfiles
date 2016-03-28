@@ -6,14 +6,14 @@ if [ "$DISPLAY" ]; then
     cp $HOME/.config/termite/config-light $HOME/.config/termite/config
     killall -USR1 termite
 
-    VIMS=`vim --serverlist`
-    for vim in $VIMS; do
-        vim --servername $vim --remote-send '<Esc>:set background=light<CR>:colorscheme goodmorning<CR>'
-    done
+    # VIMS=`vim --serverlist`
+    # for vim in $VIMS; do
+    #     vim --servername $vim --remote-send '<Esc>:set background=light<CR>:colorscheme goodmorning<CR>'
+    # done
 
-    # source ~/.sh_aliases # load aliases
-    # nvim_all_command "set background=light"
-    # nvim_all_command "colorscheme goodmorning"
+    source ~/.sh_aliases # load aliases
+    nvim_all_command "set background=light"
+    nvim_all_command "colorscheme goodmorning"
 
 
     herbstclient set window_border_width 3

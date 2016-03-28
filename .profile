@@ -9,7 +9,7 @@ export GOPATH=~/go
 export RUST_SRC_PATH=~/projects/rust/src
 export RUST_BACKTRACE=1
 
-export EDITOR=vim
+export EDITOR=nvim
 export BROWSER=chromium
 export DE=gnome
 
