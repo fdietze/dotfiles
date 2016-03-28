@@ -18,7 +18,9 @@ setxkbmap -layout de,de -variant neo,basic -option -option grp:menu_toggle &
 xss-lock -- i3lock --color=333333 --nofork --ignore-empty-password &
 
 # load screen color profile
-xcalib ~/projects/dotfiles/Asus_UX21A_FHD_matt_CMN__N116HSE_EA1.icm &
+if [ -f ~/.config/screen-color-profile.icm ]; then
+    xcalib ~/.config/screen-color-profile.icm &
+fi
 
 # keyring
 # eval $(/usr/bin/gnome-keyring-daemon --start --components=pkcs11,secrets,ssh)
