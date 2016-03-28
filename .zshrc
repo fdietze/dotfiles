@@ -9,16 +9,7 @@ if ! zgen saved; then
 
     zgen load zsh-users/zsh-syntax-highlighting
     zgen load zsh-users/zsh-history-substring-search # needs to be loaded after highlighting
-    zgen load jimhester/per-directory-history
     zgen load rupa/z # jump to most used directories
-
-    zgen load tarruda/zsh-autosuggestions
-
-    # instant auto completion
-    # zgen load hchbaw/auto-fu.zsh
-    # zle-line-init () {auto-fu-init;}; zle -N zle-line-init
-    # zstyle ':completion:*' completer _oldlist _complete
-    # zle -N zle-keymap-select auto-fu-zle-keymap-select
 
     zgen load mafredri/zsh-async # for pure-prompt
     zgen load sindresorhus/pure # prompt
@@ -26,6 +17,49 @@ if ! zgen saved; then
     zgen load dottr/dottr
     zgen save
 fi
+
+# VI mode for zsh
+bindkey -v
+export KEYTIMEOUT=1 # reduce ESC key delay to 0.01s
+
+# VI mode indicator
+vim_ins_mode="%{$bg[green]%}%{$fg[white]%}%B I %{$reset_color%}"
+vim_cmd_mode="%{$bg[blue]%}%{$fg[white]%}%B N %{$reset_color%}"
+vim_mode=$vim_ins_mode
+
+function zle-keymap-select {
+  vim_mode="${${KEYMAP/vicmd/${vim_cmd_mode}}/(main|viins)/${vim_ins_mode}}"
+  zle reset-prompt
+}
+zle -N zle-keymap-select
+
+function zle-line-finish {
+  vim_mode=$vim_ins_mode
+}
+zle -N zle-line-finish
+
+# Fix a bug when you C-c in CMD mode and you'd be prompted with CMD mode indicator, while in fact you would be in INS mode
+# Fixed by catching SIGINT (C-c), set vim_mode to INS and then repropagate the SIGINT, so if anything else depends on it, we will not break it
+# Thanks Ron! (see comments)
+function TRAPINT() {
+  vim_mode=$vim_ins_mode
+  return $(( 128 + $1 ))
+} 
+RPROMPT='${vim_mode}'
+
+zle-line-init() { echoti smkx; }  
+zle-line-finish() { echoti rmkx; }
+zle -N zle-line-init
+zle -N zle-line-finish
+
+bindkey -M vicmd "${terminfo[kend]}" end-of-line
+bindkey -M viins "${terminfo[kend]}" end-of-line
+bindkey -M vicmd "${terminfo[khome]}" beginning-of-line
+bindkey -M viins "${terminfo[khome]}" beginning-of-line
+bindkey -M viins "^?" backward-delete-char
+bindkey -M viins "^[[3~" delete-char
+bindkey -M viins "^W" backward-kill-word 
+
 
 # bind UP and DOWN arrow keys
 bindkey '^[[A' history-substring-search-up
@@ -70,8 +104,4 @@ setopt hash_list_all # rehash command path and completions on completion attempt
 # this allows vim to map <C-s>
 unsetopt flow_control
 stty -ixon
-
-# Vi-mode for zsh
-# bindkey -v
-# export KEYTIMEOUT=1
 
