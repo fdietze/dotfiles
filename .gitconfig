@@ -82,6 +82,7 @@
     editor-line-number = true
     mouse-scroll = true
     show-changes = true
+    status-untracked-dirs = false
 
 [tig "bind"]
     ;NEO
