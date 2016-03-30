@@ -91,6 +91,7 @@ Plug 'cespare/vim-toml' " TOML (used for Rust project configuration)
 Plug 'LaTeX-Box-Team/LaTeX-Box' " LaTeX
 Plug 'vim-scripts/gnuplot.vim'
 Plug 'Valloric/MatchTagAlways' " Highlight matching/surrounding html tags
+Plug 'gorodinskiy/vim-coloresque' " Preview colors in css
 
 
 
@@ -131,7 +132,7 @@ Plug 'ebfe/vim-racer' " auto completion for the Rust language
 " Plug 'FredKSchott/CoVim'
 " Plug 'emgram769/vim-multiuser'
 " TODO: , {'do': :UpdateRemotePlugins}
-Plug 'floobits/floobits-neovim' " https://floobits.com/help/plugins/nvim
+" Plug 'floobits/floobits-neovim' " https://floobits.com/help/plugins/nvim
 
 " TODO: Plug 'nathanaelkane/vim-indent-guides'
 " TODO: Plug 'ervandew/supertab'
@@ -192,7 +193,12 @@ let g:user_emmet_install_global = 0
 autocmd vimrc FileType html,css EmmetInstall
 
 " Languagetool
-let g:languagetool_jar=$HOME."/local/LanguageTool-2.6/languagetool-commandline.jar"
+let g:languagetool_jar=$HOME."/local/languagetool/languagetool-commandline.jar"
+
+" Autoformat
+let g:autoformat_autoindent = 0
+let g:autoformat_retab = 0
+let g:autoformat_remove_trailing_spaces = 0
 
 " rust.vim
 " let g:rustfmt_autosave = 1
