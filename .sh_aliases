@@ -164,6 +164,18 @@ alias jsb='underscore print --color --outfmt json' # beautify json, package: npm
 # alias nall='neo4j-all'
 alias cg='cargo'
 
+# pipes
+if [ -n "$ZSH_VERSION" ]; then
+    alias -g G=' | grep -i'
+    alias -g GV=' | grep -iv'
+    alias -g H=' | head'
+    alias -g T=' | tail'
+    alias -g L=' | less'
+    alias -g X=' | xargs -I{}'
+    alias -g N="\$(\ls -tp | grep -v '\/$' | head -1)"
+    alias oo='o N'
+fi
+
 cgw() {
     cargo $1
     cargo watch $1
