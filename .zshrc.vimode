@@ -1,0 +1,49 @@
+# VI mode for zsh
+bindkey -v
+export KEYTIMEOUT=1 # reduce ESC key delay to 0.01s
+
+# implement replace mode
+bindkey -N virep viins
+bindkey -M vicmd "R" overwrite-mode
+overwrite-mode() {
+  zle -K virep
+  zle .overwrite-mode
+}
+zle -N overwrite-mode
+
+# VI mode indicator
+MODE_INDICATOR=""
+
+function zle-keymap-select {
+    case $KEYMAP in
+        main|viins  ) MODE_INDICATOR="%{$bg[green]%}%{$fg[white]%}%B I %{$reset_color%}" ;;
+        vicmd       ) MODE_INDICATOR="%{$bg[blue]%}%{$fg[white]%}%B N %{$reset_color%}" ;;
+        vivis|vivli ) MODE_INDICATOR="%{$bg[magenta]%}%{$fg[white]%}%B V %{$reset_color%}" ;;
+        virep       ) MODE_INDICATOR="%{$bg[red]%}%{$fg[white]%}%B R %{$reset_color%}" ;;
+    esac
+    zle reset-prompt
+}
+zle -N zle-keymap-select
+
+function zsh-vi-precmd {
+    MODE_INDICATOR="%{$bg[green]%}%{$fg[white]%}%B I %{$reset_color%}"
+}
+add-zsh-hook precmd zsh-vi-precmd
+
+
+# Fix a bug when you C-c in CMD mode and you'd be prompted with CMD mode indicator, while in fact you would be in INS mode
+# Fixed by catching SIGINT (C-c), set vim_mode to INS and then repropagate the SIGINT, so if anything else depends on it, we will not break it
+# function TRAPINT() {
+#     zle zle-line-finish
+#     return $(( 128 + $1 ))
+# }
+
+bind2maps emacs viins vicmd -- "Home" beginning-of-line
+bind2maps emacs viins vicmd -- "End" end-of-line
+bind2maps vivis -- "Home" vi-visual-bol
+bind2maps vivis -- "End" vi-visual-eol
+
+bind2maps viins -- "Backspace" backward-delete-char
+bind2maps viins -- "Delete" delete-char
+bindkey -M viins "^W" backward-kill-word
+
