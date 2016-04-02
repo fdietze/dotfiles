@@ -8,7 +8,7 @@ if ! zgen saved; then
     zgen oh-my-zsh # oh-my-zsh default settings
 
     zgen load zsh-users/zsh-syntax-highlighting
-    zgen load zsh-users/zsh-history-substring-search # needs to be loaded after highlighting
+    # zgen load zsh-users/zsh-history-substring-search # needs to be loaded after highlighting
     zgen load rupa/z # jump to most used directories
 
     zgen load mafredri/zsh-async # for pure-prompt
@@ -19,14 +19,7 @@ if ! zgen saved; then
     zgen save
 fi
 
-# command not found for Arch
-[ -r /etc/profile.d/cnf.sh ] && . /etc/profile.d/cnf.sh
-
-# fzf fuzzy file matcher shell extensions
-. /etc/profile.d/fzf.zsh
-
 source ~/.sh_aliases
-
 
 # needed for bind2maps
 typeset -A key
@@ -67,27 +60,35 @@ fry transcode-video
 fry bind2maps
 
 
-# renaming utils
-autoload -U zmv
 
 setopt nonomatch # avoid the zsh "no matches found" / allows sbt ~compile
 setopt hash_list_all # rehash command path and completions on completion attempt
+setopt transient_rprompt # hide earlier rprompts
+unsetopt flow_control # we don't want no flow control, Ctrl-s / Ctrl-q, this allows vim to map <C-s>
+stty -ixon # (belongs to flow control option)
 
-# we don't want no flow control, Ctrl-s / Ctrl-q
-# this allows vim to map <C-s>
-unsetopt flow_control
-stty -ixon
-
+# activate vi modes and display mode
 source .zshrc.vimode
 RPROMPT='${MODE_INDICATOR}'
 
-setopt transient_rprompt # hide earlier rprompts
+# renaming utils
+autoload -U zmv
 
-# bind UP and DOWN arrow keys
-bind2maps vicmd viins -- "$terminfo[kcuu1]" history-substring-search-up
-bind2maps vicmd viins -- "$terminfo[kcud1]" history-substring-search-down
+# history prefix search
+autoload -U history-search-end
+zle -N history-beginning-search-backward-end history-search-end
+zle -N history-beginning-search-forward-end history-search-end
+bind2maps emacs viins vicmd -- "Up" up-line-or-search
+bind2maps emacs viins vicmd -- "Down" down-line-or-search
+
+# command not found for Arch
+[ -r /etc/profile.d/cnf.sh ] && . /etc/profile.d/cnf.sh
+
+# fzf fuzzy file matcher shell extensions
+. /etc/profile.d/fzf.zsh
 
 
 
-
+# bind2maps emacs vicmd viins -- "$terminfo[kcuu1]" history-substring-search-up
+# bind2maps vicmd viins -- "$terminfo[kcud1]" history-substring-search-down
 
