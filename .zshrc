@@ -6,6 +6,7 @@ export PURE_GIT_PULL=0
 if ! zgen saved; then
     echo "creating zgen save..."
     zgen oh-my-zsh # oh-my-zsh default settings
+    zgen load b4b4r07/zsh-vimode-visual
 
     zgen load zsh-users/zsh-syntax-highlighting
     zgen load zsh-users/zsh-history-substring-search # needs to be loaded after highlighting
@@ -22,48 +23,69 @@ fi
 bindkey -v
 export KEYTIMEOUT=1 # reduce ESC key delay to 0.01s
 
+# implement replace mode
+bindkey -N virep viins
+bindkey -M vicmd "R" overwrite-mode
+overwrite-mode() {
+  zle -K virep
+  zle .overwrite-mode
+}
+zle -N overwrite-mode
+
 # VI mode indicator
-vim_ins_mode="%{$bg[green]%}%{$fg[white]%}%B I %{$reset_color%}"
-vim_cmd_mode="%{$bg[blue]%}%{$fg[white]%}%B N %{$reset_color%}"
-vim_mode=$vim_ins_mode
+RPROMPT=""
 
 function zle-keymap-select {
-  vim_mode="${${KEYMAP/vicmd/${vim_cmd_mode}}/(main|viins)/${vim_ins_mode}}"
-  zle reset-prompt
+    case $KEYMAP in
+        main|viins  ) RPROMPT="%{$bg[green]%}%{$fg[white]%}%B I %{$reset_color%}" ;;
+        vicmd       ) RPROMPT="%{$bg[blue]%}%{$fg[white]%}%B N %{$reset_color%}" ;;
+        vivis|vivli ) RPROMPT="%{$bg[magenta]%}%{$fg[white]%}%B V %{$reset_color%}" ;;
+        virep       ) RPROMPT="%{$bg[red]%}%{$fg[white]%}%B R %{$reset_color%}" ;;
+    esac
+    zle reset-prompt
 }
 zle -N zle-keymap-select
 
-function zle-line-finish {
-  vim_mode=$vim_ins_mode
+# always start in insert mode
+function zle-line-init {
+    zle vi-insert
+    zle zle-keymap-select
+    zle reset-prompt
 }
-zle -N zle-line-finish
+
+# clear old indicator
+function zle-line-finish {
+    RPROMPT=""
+    zle reset-prompt
+}
 
 # Fix a bug when you C-c in CMD mode and you'd be prompted with CMD mode indicator, while in fact you would be in INS mode
 # Fixed by catching SIGINT (C-c), set vim_mode to INS and then repropagate the SIGINT, so if anything else depends on it, we will not break it
-# Thanks Ron! (see comments)
 function TRAPINT() {
-  vim_mode=$vim_ins_mode
-  return $(( 128 + $1 ))
+    zle zle-line-finish
+    return $(( 128 + $1 ))
 } 
-RPROMPT='${vim_mode}'
 
-zle-line-init() { echoti smkx; }  
-zle-line-finish() { echoti rmkx; }
-zle -N zle-line-init
-zle -N zle-line-finish
 
 bindkey -M vicmd "${terminfo[kend]}" end-of-line
 bindkey -M viins "${terminfo[kend]}" end-of-line
+# bindkey -M vivis "${terminfo[kend]}" vi-visual-eol
 bindkey -M vicmd "${terminfo[khome]}" beginning-of-line
 bindkey -M viins "${terminfo[khome]}" beginning-of-line
+# bindkey -M vivis "${terminfo[khome]}" vi-visual-bol
 bindkey -M viins "^?" backward-delete-char
 bindkey -M viins "^[[3~" delete-char
 bindkey -M viins "^W" backward-kill-word 
 
-
 # bind UP and DOWN arrow keys
-bindkey '^[[A' history-substring-search-up
-bindkey '^[[B' history-substring-search-down
+bindkey -M vicmd "$terminfo[kcuu1]" history-substring-search-up
+bindkey -M viins "$terminfo[kcuu1]" history-substring-search-up
+bindkey -M vicmd "$terminfo[kcud1]" history-substring-search-down
+bindkey -M viins "$terminfo[kcud1]" history-substring-search-down
+
+bindkey -M vicmd 'V'  vi-vlines-mode
+bindkey -M vicmd 'v'  vi-visual-mode
+
 
 
 fry completion
