@@ -148,6 +148,9 @@ inoremap <C-Right> <Esc><Right><C-Right>
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " custom bindings
 
+" back to hjkl
+nnoremap <Leader>vj :Johannes<CR>
+
 " jump to m-mark
 " M was: place cursor in the center of screen
 " now I can hit mm to mark something quickly
@@ -163,7 +166,7 @@ nnoremap <Leader>vs :e ~/.vimrc_statusline<CR>
 nnoremap <Leader>vc :e ~/.vimrc_custom<CR>
 nnoremap <Leader>vr :source ~/.vimrc<CR>
 nnoremap <Leader>vz :e ~/.zshrc<CR>
-nnoremap <Leader>vj :Johannes<CR>
+nnoremap <Leader>va :e ~/.sh_aliases<CR>
 
 " clear search highlighting
 nnoremap <silent> <Leader><Leader> :nohlsearch<CR>

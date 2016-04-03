@@ -4,18 +4,20 @@ alias photoshop='wine ~/.wine/drive_c/Program\ Files\ \(x86\)/Adobe/Photoshop\ 7
 alias gparted='gksudo gparted'
 alias skype='gksudo "systemctl start docker"; skype'
 alias teamviewer='gksudo "systemctl start teamviewerd"; sleep 5; teamviewer'
-
 alias signal='chromium --app-id=bikioccmkafdpakkkcpdbppfkghcmihk'
+
 
 # fix highdpi for chromium
 alias chromium='chromium --high-dpi-support=1 --force-device-scale-factor=1'
 alias chromium-continuous-bin='chromium-continuous-bin --high-dpi-support=1 --force-device-scale-factor=1'
 
-# unsorted / general
+# dotfile management
 alias  d='YADM_REPO=$HOME/projects/dotfiles         yadm -c core.excludesfile=~/.gitignore-dotfiles'
 alias dp='YADM_REPO=$HOME/projects/dotfiles-private yadm -c core.excludesfile=~/.gitignore-dotfiles-private'
 alias  tigd='GIT_DIR=$HOME/projects/dotfiles         GIT_WORK_TREE=$HOME tig'
 alias tigdp='GIT_DIR=$HOME/projects/dotfiles-private GIT_WORK_TREE=$HOME tig'
+
+# unsorted / general
 alias ssh='TERM=xterm-256color ssh'
 sshforward() {
     REMOTEHOST=$1
@@ -59,7 +61,6 @@ alias yl='yaourt -Ql' # list files for package
 alias ye='yaourt -Qe --date' # list installed packages
 
 # vim
-alias vim='nvim'
 alias va='vim ~/.sh_aliases'
 alias vz='vim ~/.zshrc'
 alias vv='vim ~/.vimrc'
@@ -95,7 +96,6 @@ alias f='ag -i -g'
 alias ff="find . -iname"
 alias ag='ag -S -f'
 alias gg='grep -irn'
-alias gr='grep -i'
 alias vag="search-select-edit"
 fo() { xdg-open "$(fzf)" > /dev/null 2>&1; }
 lto() { xdg-open "$(ls -tr1 --group-directories-first | fzf --tac --no-sort)" > /dev/null 2>&1; } # least modified files
@@ -131,18 +131,6 @@ alias cdg='cd-git-root'
 # start X
 alias sx='startx'
 alias xkodi='/usr/bin/xinit /usr/bin/dbus-launch --exit-with-session /usr/bin/kodi-standalone -- :0 -nolisten tcp vt1'
-
-# web services
-# alias w=''
-alias wa='urlappend https://www.wolframalpha.com/input/?i='
-alias aw='urlappend https://wiki.archlinux.org/index.php?search='
-alias gh='urlappend https://github.com/search?q='
-urlappend() {
-    echo $*
-    URL=$1
-    shift 1
-    chromium "$URL$*"
-}
 
 # git
 alias g='git'
@@ -218,12 +206,16 @@ low() {
     nmcli radio wifi off
     sudo rfkill block all
 
-    light
+    low-traffic
 
+    light
+}
+
+low-traffic() {
     killall owncloud
     systemctl --user stop btsync
-    systemctl --user stop dropbox
     systemctl --user stop syncthing
+    systemctl --user stop dropbox
 }
 
 high() {
@@ -258,6 +250,7 @@ reset-screen() {
     xrandr --output eDP1  --auto --primary --output VGA1 --off --output HDMI1 --off
     herbstclient reload
 
+    # enable screensaver
     xset s blank
     xset s on
     xset +dpms
