@@ -16,6 +16,14 @@ alias  d='YADM_REPO=$HOME/projects/dotfiles         yadm -c core.excludesfile=~/
 alias dp='YADM_REPO=$HOME/projects/dotfiles-private yadm -c core.excludesfile=~/.gitignore-dotfiles-private'
 alias  tigd='GIT_DIR=$HOME/projects/dotfiles         GIT_WORK_TREE=$HOME tig'
 alias tigdp='GIT_DIR=$HOME/projects/dotfiles-private GIT_WORK_TREE=$HOME tig'
+DOTFILES_GIT='GIT_DIR=$HOME/projects/dotfiles GIT_WORK_TREE=$HOME'
+alias va="$DOTFILES_GIT vim ~/.sh_aliases"
+alias vz="$DOTFILES_GIT vim ~/.zshrc"
+alias vv="$DOTFILES_GIT vim ~/.vimrc"
+alias vvp="$DOTFILES_GIT vim ~/.vimrc_plugins"
+alias vvc="$DOTFILES_GIT vim ~/.vimrc_custom"
+alias vvk="$DOTFILES_GIT vim ~/.vimrc_keybindings"
+alias vvs="$DOTFILES_GIT vim ~/.vimrc_statusline"
 
 # unsorted / general
 alias ssh='TERM=xterm-256color ssh'
@@ -61,18 +69,11 @@ alias yl='yaourt -Ql' # list files for package
 alias ye='yaourt -Qe --date' # list installed packages
 
 # vim
-alias va='vim ~/.sh_aliases'
-alias vz='vim ~/.zshrc'
-alias vv='vim ~/.vimrc'
-alias vvp='vim ~/.vimrc_plugins'
-alias vvc='vim ~/.vimrc_custom'
-alias vvk='vim ~/.vimrc_keybindings'
-alias vvs='vim ~/.vimrc_statusline'
-# alias vim="vim --servername vim-$$" # always start vim as server (for live colorscheme changing)
 alias vimt='vim $(date +"%Y-%m-%d")'
 v() { (cd-git-root; vim "$(fzf --query="$(echo $@ | tr ' ' '\ ' )")"); }
 alias vr="vim +:FZFMru"
 
+# alias vim="vim --servername vim-$$" # always start vim as server (for live colorscheme changing, working differently for neovim)
 nvim_command() {
     # usage: nvim_command <socket> <command>
     # requires: https://github.com/jakm/msgpack-cli
