@@ -11,9 +11,6 @@ set nocompatible
 " allow UTF-8 characters in vimrc
 scriptencoding utf-8
 
-" clear all keymappings
-mapclear
-
 " define a group `vimrc` and initialize.
 augroup vimrc
     autocmd!
@@ -133,7 +130,7 @@ autocmd vimrc BufNewFile,BufRead *.gdb set filetype=sh
 autocmd vimrc BufNewFile,BufRead *.jad set filetype=java
 
 " on save, delete trailing spaces
-autocmd vimrc FileType vim,html,css,scss,javascript,sh,rust
+autocmd vimrc FileType vim,html,css,scss,javascript,sh,rust,scala
             \ autocmd BufWritePre * call StripTrailingSpaces()
 
 " on save, autoformat
@@ -152,6 +149,11 @@ autocmd vimrc BufReadPost *
             \    endif |
             \ endif
 
+
+if has('nvim')
+    " neovim: automatically close terminal when process exited
+    autocmd TermClose * call feedkeys('<cr>')
+endif
 
 " leave insert mode quickly
 if ! has('gui_running')

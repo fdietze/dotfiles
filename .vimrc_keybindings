@@ -1,3 +1,6 @@
+" clear all keymappings
+mapclear
+
 let mapleader="\<space>"
 let g:mapleader="\<space>"
 
@@ -43,7 +46,7 @@ nnoremap ö :update<CR>
 vnoremap ö <esc>:update<CR>gv
 nnoremap Ö :SudoWrite<CR>
 vnoremap Ö <esc>:SudoWrite<CR>gv
-nnoremap <Leader>ö :update<CR>:call SyntasticAndStatusUpdate()<CR>
+nnoremap <Leader>ö :update<CR>
 nnoremap ä :q<CR>
 vnoremap ä <esc>:q<CR>
 nnoremap Ä :q!<CR>
@@ -159,6 +162,7 @@ nnoremap <Leader>vkr :source ~/.vimrc_keybindings<CR>
 nnoremap <Leader>vs :e ~/.vimrc_statusline<CR>
 nnoremap <Leader>vc :e ~/.vimrc_custom<CR>
 nnoremap <Leader>vr :source ~/.vimrc<CR>
+nnoremap <Leader>vz :e ~/.zshrc<CR>
 nnoremap <Leader>vj :Johannes<CR>
 
 " clear search highlighting
@@ -192,15 +196,22 @@ nmap <silent> <Leader>. <Plug>ToggleEndChar.
 " Plugins
 
 " Fuzzy file finding
+if has('nvim')
+    " TODO: Rooter, FZFE and lcd not working in nvim?
+    nmap <silent> <leader>e :FZF<CR>
+else
+    nmap <silent> <leader>e :Rooter<CR>:FZFE<CR>:silent! lcd %:p:h<CR>
+endif
+
+nmap <silent> <leader>r :FZFMru<CR>
+nmap <leader>a :RFZFAg<space>
+
 " nmap <silent> <leader>o :FZFTags<CR>
 " nmap <silent> <leader>i :FZFTagFile<CR>
-nmap <silent> <leader>e :Rooter<CR>:FZFE<CR>:silent! lcd %:p:h<CR>
 " nmap <silent> <leader>a :FZFBuffers<CR>
 " nmap <silent> <leader>E :FZFE<CR>
-" nmap <silent> <leader>; :FZFMru<CR>
 " nmap <silent> <Leader>C :FZFColorscheme<CR>
 " nmap <silent> <Leader>l :FZFLines<CR>
-nmap <leader>a :RFZFAg<space>
 
 " Git
 nmap <leader>gn <Plug>GitGutterNextHunk
@@ -208,8 +219,12 @@ nmap <leader>gN <Plug>GitGutterPrevHunk
 nmap <leader>ga <Plug>GitGutterStageHunk
 nmap <leader>gu <Plug>GitGutterStageHunk
 nmap <leader>gr <Plug>GitGutterRevertHunk
-nmap <leader>gs :silent !tig status<CR>:GitGutterAll<CR>:redraw!<CR>
-nmap <silent> <leader>gd :Rooter<CR>
+
+if has('nvim')
+    nmap <leader>gs :term tig status<CR>
+else
+    nmap <leader>gs :silent !tig status<CR>:GitGutterAll<CR>:redraw!<CR>
+endif
 
 " Emmet
 " nmap <C-e> <Plug>(emmet-expand-abbr)
