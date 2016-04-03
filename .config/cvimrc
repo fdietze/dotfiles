@@ -1,7 +1,9 @@
 let homedirectory = '/home/felix'
 let configpath = '~/.config/cvimrc'
 set localconfig
+let mapleader = "<Space>"
 
+map <Leader>g :open @%!g<CR>
 map + zoomPageIn
 map - zoomPageOut
 map r reloadTab
@@ -15,3 +17,5 @@ map e nextTab
 map a previousTab
 let hintcharacters="arenitudlg"
 let blacklists = ["http://doodle.com/*"]
+
+
