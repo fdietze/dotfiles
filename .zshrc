@@ -1,14 +1,11 @@
 source ~/.zprofile # because I have bash as my login shell
-DISABLE_AUTO_UPDATE="true" # disable oh-my-zsh auto-update
-source ~/local/zgen/zgen.zsh
-export PURE_GIT_PULL=0
 
+source ~/local/zgen/zgen.zsh
 if ! zgen saved; then
     echo "creating zgen save..."
     zgen oh-my-zsh # oh-my-zsh default settings
 
     zgen load zsh-users/zsh-syntax-highlighting
-    # zgen load zsh-users/zsh-history-substring-search # needs to be loaded after highlighting
     zgen load rupa/z # jump to most used directories
 
     zgen load mafredri/zsh-async # for pure-prompt
@@ -19,7 +16,8 @@ if ! zgen saved; then
     zgen save
 fi
 
-source ~/.sh_aliases
+export PURE_GIT_PULL=0 # disable pure-promt git pull when entering git repo
+DISABLE_AUTO_UPDATE="true" # disable oh-my-zsh auto-update
 
 # needed for bind2maps
 typeset -A key
@@ -59,20 +57,17 @@ fry screencapture
 fry transcode-video
 fry bind2maps
 
-
-
 setopt nonomatch # avoid the zsh "no matches found" / allows sbt ~compile
 setopt hash_list_all # rehash command path and completions on completion attempt
 setopt transient_rprompt # hide earlier rprompts
 unsetopt flow_control # we don't want no flow control, Ctrl-s / Ctrl-q, this allows vim to map <C-s>
 stty -ixon # (belongs to flow control option)
+autoload -U zmv # renaming utils
 
-# activate vi modes and display mode
-source .zshrc.vimode
+# activate vi modes and display mode indicator in prompt
+source ~/.zshrc.vimode
 RPROMPT='${MODE_INDICATOR}'
 
-# renaming utils
-autoload -U zmv
 
 # history prefix search
 autoload -U history-search-end
@@ -87,8 +82,5 @@ bind2maps emacs viins vicmd -- "Down" down-line-or-search
 # fzf fuzzy file matcher shell extensions
 . /etc/profile.d/fzf.zsh
 
-
-
-# bind2maps emacs vicmd viins -- "$terminfo[kcuu1]" history-substring-search-up
-# bind2maps vicmd viins -- "$terminfo[kcud1]" history-substring-search-down
+source ~/.sh_aliases
 

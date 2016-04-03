@@ -9,9 +9,13 @@ export GOPATH=~/go
 export RUST_SRC_PATH=~/projects/rust/src
 export RUST_BACKTRACE=1
 
-export EDITOR=nvim
+export EDITOR=vim
 export BROWSER=chromium
 export DE=gnome
+
+# vimpager instead of less
+export PAGER=/usr/bin/vimpager
+
 
 # fix java apps in tiling window managers
 export _JAVA_AWT_WM_NONREPARENTING=1

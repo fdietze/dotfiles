@@ -1,5 +1,4 @@
-# VI mode for zsh
-bindkey -v
+bindkey -v # activate vi modes
 export KEYTIMEOUT=1 # reduce ESC key delay to 0.01s
 
 # implement replace mode
@@ -12,8 +11,16 @@ overwrite-mode() {
 zle -N overwrite-mode
 
 # VI mode indicator
-MODE_INDICATOR=""
+# use this variable in your PROMPT or RPROMPT
+MODE_INDICATOR="%{$bg[green]%}%{$fg[white]%}%B I %{$reset_color%}"
 
+# reset mode indicator to insert mode for every new line
+function zsh-vi-precmd {
+    MODE_INDICATOR="%{$bg[green]%}%{$fg[white]%}%B I %{$reset_color%}"
+}
+add-zsh-hook precmd zsh-vi-precmd
+
+# on mode switch, update mode indicator
 function zle-keymap-select {
     case $KEYMAP in
         main|viins  ) MODE_INDICATOR="%{$bg[green]%}%{$fg[white]%}%B I %{$reset_color%}" ;;
@@ -25,18 +32,8 @@ function zle-keymap-select {
 }
 zle -N zle-keymap-select
 
-function zsh-vi-precmd {
-    MODE_INDICATOR="%{$bg[green]%}%{$fg[white]%}%B I %{$reset_color%}"
-}
-add-zsh-hook precmd zsh-vi-precmd
 
 
-# Fix a bug when you C-c in CMD mode and you'd be prompted with CMD mode indicator, while in fact you would be in INS mode
-# Fixed by catching SIGINT (C-c), set vim_mode to INS and then repropagate the SIGINT, so if anything else depends on it, we will not break it
-# function TRAPINT() {
-#     zle zle-line-finish
-#     return $(( 128 + $1 ))
-# }
 
 bind2maps emacs viins vicmd -- "Home" beginning-of-line
 bind2maps emacs viins vicmd -- "End" end-of-line
