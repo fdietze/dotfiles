@@ -2,11 +2,11 @@
 
 echo "upgrading installed packages..."
 sudo rm -rf /tmp/yaourt-tmp-$USER /tmp/makepkg
-yaourt -Syyua --devel --noconfirm
+yaourt -Syua --devel --noconfirm
 sudo rm -rf /tmp/yaourt-tmp-$USER /tmp/makepkg
 
 echo "cleaning package cache..."
-sudo pkgcacheclean 1
+paccache -r && paccache -ruk0
 
 echo "updating package search database..."
 sudo pkgfile -u
@@ -20,7 +20,9 @@ echo "updating zgen plugins..."
 zgen update
 
 echo "updating vim plugins..."
-vim +PlugInstall +PlugUpgrade +PlugUpdate +qall
+vim +PlugUpgrade +qall
+vim +PlugInstall +qall
+vim +PlugUpdate +qall
 
 echo "updating ruby gems..."
 gem update
