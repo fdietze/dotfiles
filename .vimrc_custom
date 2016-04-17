@@ -59,9 +59,11 @@ function! s:ToggleEndChar(charToMatch)
     silent! call repeat#set("\<Plug>ToggleEndChar".a:charToMatch, -1)
 endfunction
 
-noremap <unique> <Plug>ToggleEndChar; :call <SID>ToggleEndChar(';')<CR>
-noremap <unique> <Plug>ToggleEndChar, :call <SID>ToggleEndChar(',')<CR>
-noremap <unique> <Plug>ToggleEndChar. :call <SID>ToggleEndChar('.')<CR>
+command! -nargs=* ToggleEndChar call s:ToggleEndChar('<args>')
+
+noremap <Plug>ToggleEndChar; :ToggleEndChar ;<CR>
+noremap <Plug>ToggleEndChar, :ToggleEndChar ,<CR>
+noremap <Plug>ToggleEndChar. :ToggleEndChar .<CR>
 
 command! Johannes :call Johannes()
 function! Johannes()
