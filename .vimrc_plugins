@@ -69,7 +69,7 @@ Plug 'terryma/vim-smooth-scroll' " redraw some intermediate steps when using Pag
 Plug 'Chiel92/vim-autoformat' " reformat source code
 Plug 'vim-scripts/BufOnly.vim' " close all buffers except current one
 Plug 'mbbill/undotree' " show undo tree
-Plug 'junegunn/fzf' " fuzzy selector
+Plug 'junegunn/fzf.vim' | Plug 'junegunn/fzf' " fuzzy selector
 Plug 'zirrostig/vim-schlepp' " Move selections / lines
 
 
