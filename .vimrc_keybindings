@@ -198,23 +198,13 @@ nmap <silent> <Leader>. <Plug>ToggleEndChar.
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Plugins
 
-" Fuzzy file finding
-if has('nvim')
-    " TODO: Rooter, FZFE and lcd not working in nvim?
-    nmap <silent> <leader>e :FZF<CR>
-else
-    nmap <silent> <leader>e :Rooter<CR>:FZFE<CR>:silent! lcd %:p:h<CR>
-endif
-
-nmap <silent> <leader>r :FZFMru<CR>
-nmap <leader>a :RFZFAg<space>
-
-" nmap <silent> <leader>o :FZFTags<CR>
-" nmap <silent> <leader>i :FZFTagFile<CR>
-" nmap <silent> <leader>a :FZFBuffers<CR>
-" nmap <silent> <leader>E :FZFE<CR>
-" nmap <silent> <Leader>C :FZFColorscheme<CR>
-" nmap <silent> <Leader>l :FZFLines<CR>
+" FZF: Fuzzy file finding
+nmap <leader>e :GitFiles<CR>
+nmap <leader>r :History<CR>
+nmap <leader>l :Locate<space>
+nmap <leader>t :BTags<CR>
+nmap <leader>T :Tags<CR>
+nmap <leader>a :Ag<space>
 
 " Git
 nmap <leader>gn <Plug>GitGutterNextHunk
