@@ -15,7 +15,8 @@ Plug 'tpope/vim-sensible'     " defaults everyone can agree on
 Plug 'tpope/vim-repeat'       " enable dot-command for Plugins
 Plug 'zhaocai/GoldenView.Vim' " enlarge focused window
 Plug 'edsono/vim-matchit'     " matches not only parantheses, but also HTML-Tags and more
-Plug 'Valloric/YouCompleteMe', { 'do': './install.sh' } " fuzzy autocompletion
+Plug 'Valloric/YouCompleteMe', { 'do': './install.py --clang-completer --gocode-completer --racer-completer --tern-completer' } " fuzzy autocompletion
+" https://github.com/rdnetto/YCM-Generator
 " Plug 'kshenoy/vim-signature' " display and navigate marks
 " Plug 'henrik/vim-indexed-search' " show 'Match x of y' when searching (conflicts with incsearch)
 Plug 'haya14busa/incsearch.vim' " highlight all matches in incremental search (conflicts with vim-indexed-search)
@@ -121,7 +122,7 @@ Plug 'xolox/vim-easytags' | Plug 'xolox/vim-misc'
 " Plug 'scrooloose/syntastic'
 Plug 'vim-scripts/LanguageTool' " spell grammar checking
 " Plug 'severin-lemaignan/vim-minimap' " draw a sublime like minimap
-Plug 'ebfe/vim-racer' " auto completion for the Rust language
+" Plug 'ebfe/vim-racer' " auto completion for the Rust language
 " Plug 'Raimondi/delimitMate' " automatically-close-brackets-magic
 " Plug 'Shougo/vimproc.vim' " Interactive command execution
 " Plug 'vim-scripts/ColorSchemeEditor' " graphical editor for colorschemes
@@ -176,11 +177,13 @@ let g:easytags_languages = {
 " let g:solarized_contrast="high"
 
 " YouCompleteMe
+let g:ycm_server_python_interpreter = '/usr/bin/python3' " force ycm to use py3 - useful when multiple versions are installed
 let g:ycm_auto_trigger = 1
 let g:ycm_min_num_of_chars_for_completion = 3
 let g:ycm_key_list_previous_completion = ['<S-TAB>']
 let g:ycm_key_list_select_completion = ['<TAB>']
 let g:ycm_cache_omnifunc = 0
+let g:ycm_rust_src_path = '/home/felix/projects/rust/src'
 
 " dont display detail window about current completion
 " set completeopt=menuone,longest
@@ -226,9 +229,9 @@ let g:autoformat_remove_trailing_spaces = 0
 " let g:rustfmt_autosave = 1
 
 " racer
-set hidden
-let g:racer_cmd = "racer"
-let $RUST_SRC_PATH="/home/felix/projects/rust/src"
+" set hidden
+" let g:racer_cmd = "racer"
+" let $RUST_SRC_PATH="/home/felix/projects/rust/src"
 
 " ultisnips
 " Trigger configuration. Do not use <tab> if you use https://github.com/Valloric/YouCompleteMe.
