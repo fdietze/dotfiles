@@ -1,4 +1,6 @@
 source ~/.zprofile # because I have bash as my login shell
+export PURE_GIT_PULL=0 # disable pure-promt git pull when entering git repo
+DISABLE_AUTO_UPDATE="true" # disable oh-my-zsh auto-update
 
 source ~/local/zgen/zgen.zsh
 if ! zgen saved; then
@@ -15,9 +17,6 @@ if ! zgen saved; then
     zgen load dottr/dottr
     zgen save
 fi
-
-export PURE_GIT_PULL=0 # disable pure-promt git pull when entering git repo
-DISABLE_AUTO_UPDATE="true" # disable oh-my-zsh auto-update
 
 # needed for bind2maps
 typeset -A key
