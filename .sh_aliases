@@ -17,6 +17,7 @@ alias dp='yadm --yadm-repo $HOME/projects/dotfiles-private -c core.excludesfile=
 alias  tigd='GIT_DIR=$HOME/projects/dotfiles         GIT_WORK_TREE=$HOME tig'
 alias tigdp='GIT_DIR=$HOME/projects/dotfiles-private GIT_WORK_TREE=$HOME tig'
 DOTFILES_GIT='GIT_DIR=$HOME/projects/dotfiles GIT_WORK_TREE=$HOME'
+alias vd="$DOTFILES_GIT vim -c GitFiles"
 alias va="$DOTFILES_GIT vim ~/.sh_aliases"
 alias vz="$DOTFILES_GIT vim ~/.zshrc"
 alias vv="$DOTFILES_GIT vim ~/.vimrc"
@@ -70,8 +71,16 @@ alias ye='yaourt -Qe --date' # list installed packages
 
 # vim
 alias vimt='vim $(date +"%Y-%m-%d")'
-v() { (cd-git-root; vim "$(fzf --query="$(echo $@ | tr ' ' '\ ' )")"); }
-alias vr="vim +:FZFMru"
+v() {
+    (
+        cd-git-root > /dev/null
+        file="$(fzf --query="$(echo $@ | tr ' ' '\ ' )")"
+        [[ -n $file ]] && vim "$file"
+    );
+}
+# v() { echo $@ | vim -c Rooter -c Files }
+vr() { vim -c "History $*" }
+vt() { vim -c "Tags $*" }
 
 # alias vim="vim --servername vim-$$" # always start vim as server (for live colorscheme changing, working differently for neovim)
 nvim_command() {

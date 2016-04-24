@@ -143,6 +143,15 @@ call plug#end()
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " plugin configuration
+
+" fzf
+let g:fzf_layout = {} " default to full screen
+function! s:find_git_root()
+  return system('git rev-parse --show-toplevel 2> /dev/null')[:-2]
+endfunction
+
+command! ProjectFiles execute 'Files' s:find_git_root()
+
 let g:easytags_cmd = "/usr/bin/ctags"
 let g:easytags_auto_update = 1
 let g:easytags_dynamic_files = 1
