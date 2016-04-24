@@ -1,6 +1,3 @@
-" clear all keymappings
-mapclear
-
 let mapleader="\<space>"
 let g:mapleader="\<space>"
 
@@ -62,7 +59,9 @@ vnoremap <Leader>ü <esc>:BufOnly<CR>gv
 " ß is on the right side next to q
 " Q was ex mode
 nnoremap ß @q
+vnoremap ß @q
 nnoremap Q @f
+vnoremap Q @f
 
 " Smart way to move between windows, adjusted for NEO
 " in insert mode
@@ -112,6 +111,7 @@ nmap \ ?
 vmap \ ?
 
 " delete/edit whole word backwards
+" (can confilict with multiple cursors)
 nnoremap db xdb
 nnoremap cb xcb
 
@@ -143,6 +143,9 @@ inoremap <C-Down> <Esc>g<Down>
 inoremap <C-Left> <Esc><C-Left>
 inoremap <C-Right> <Esc><Right><C-Right>
 
+" remap unused vim commands
+nnoremap go <C-o>  " original: jump to the n-th byte in the file
+
 
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -150,6 +153,9 @@ inoremap <C-Right> <Esc><Right><C-Right>
 
 " back to hjkl
 nnoremap <Leader>vj :Johannes<CR>
+
+" insert TODO
+inoremap <C-t> // TODO:<space>
 
 " jump to m-mark
 " M was: place cursor in the center of screen
