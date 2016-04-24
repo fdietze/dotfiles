@@ -76,6 +76,7 @@ Plug 'zirrostig/vim-schlepp' " Move selections / lines
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " file type plugins
 " Plug 'sheerun/vim-polyglot' " Lots of filetypes
+Plug 'xolox/vim-easytags' | Plug 'xolox/vim-misc'
 Plug 'derekwyatt/vim-scala' " Scala programming language
 Plug 'gre/play2vim' " play web framework
 Plug 'othree/html5.vim' " HTML
@@ -118,7 +119,6 @@ Plug 'fdietze/goodday.vim'
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " experimental
-Plug 'xolox/vim-easytags' | Plug 'xolox/vim-misc'
 " Plug 'scrooloose/syntastic'
 Plug 'vim-scripts/LanguageTool' " spell grammar checking
 " Plug 'severin-lemaignan/vim-minimap' " draw a sublime like minimap
@@ -153,11 +153,12 @@ endfunction
 
 command! ProjectFiles execute 'Files' s:find_git_root()
 
+" easytags
 let g:easytags_cmd = "/usr/bin/ctags"
 let g:easytags_auto_update = 1
 let g:easytags_dynamic_files = 1
 let g:easytags_by_filetype = "~/.vim/vimtags/"
-let g:easytags_async = 0
+let g:easytags_async = 1
 let g:easytags_ignored_filetypes = ''
 let g:easytags_updatetime_min = 30000
 let g:easytags_languages = {
