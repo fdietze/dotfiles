@@ -12,8 +12,8 @@ alias chromium='chromium --high-dpi-support=1 --force-device-scale-factor=1'
 alias chromium-continuous-bin='chromium-continuous-bin --high-dpi-support=1 --force-device-scale-factor=1'
 
 # dotfile management
-alias  d='YADM_REPO=$HOME/projects/dotfiles         yadm -c core.excludesfile=~/.gitignore-dotfiles'
-alias dp='YADM_REPO=$HOME/projects/dotfiles-private yadm -c core.excludesfile=~/.gitignore-dotfiles-private'
+alias  d='yadm --yadm-repo $HOME/projects/dotfiles         -c core.excludesfile=~/.gitignore-dotfiles'
+alias dp='yadm --yadm-repo $HOME/projects/dotfiles-private -c core.excludesfile=~/.gitignore-dotfiles-private'
 alias  tigd='GIT_DIR=$HOME/projects/dotfiles         GIT_WORK_TREE=$HOME tig'
 alias tigdp='GIT_DIR=$HOME/projects/dotfiles-private GIT_WORK_TREE=$HOME tig'
 DOTFILES_GIT='GIT_DIR=$HOME/projects/dotfiles GIT_WORK_TREE=$HOME'
