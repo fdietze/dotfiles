@@ -199,11 +199,12 @@ nmap <silent> <Leader>. <Plug>ToggleEndChar.
 " Plugins
 
 " FZF: Fuzzy file finding
-nmap <leader>e :GitFiles<CR>
+nmap <leader>e :ProjectFiles<CR>
+nmap <leader>E :GitFiles<CR>
 nmap <leader>r :History<CR>
 nmap <leader>l :Locate<space>
-nmap <leader>t :BTags<CR>
-nmap <leader>T :Tags<CR>
+" nmap <leader>t :BTags<CR>
+nmap <leader>t :Tags<CR>
 nmap <leader>a :Ag<space>
 
 " Git
