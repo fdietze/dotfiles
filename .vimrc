@@ -160,10 +160,3 @@ if ! has('gui_running')
     autocmd FastEscape InsertEnter * set timeoutlen=0
     autocmd FastEscape InsertLeave * set timeoutlen=1000
 endif
-
-" don't move cursor when leaving insert mode, breaks multiple-cursors
-" let CursorColumnI = 0 "the cursor column position in INSERT
-" autocmd InsertEnter * let CursorColumnI = col('.')
-" autocmd CursorMovedI * let CursorColumnI = col('.')
-" autocmd InsertLeave * if col('.') != CursorColumnI | call cursor(0, col('.')+1) | endif
-
