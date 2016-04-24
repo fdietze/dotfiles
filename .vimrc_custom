@@ -42,15 +42,6 @@ function! AutoHighlightToggle()
 endfunction
 
 
-function! StripTrailingSpaces()
-    let _s=@/ " backup search string
-    let save_cursor = getpos(".") " backup cursor
-    " :silent! %s#\($\n\s*\)\+\%$##
-    %s/\s\+$//e
-    let @/=_s " restore search string
-    call setpos('.', save_cursor) " restore cursor
-endfunction
-
 " from: http://stackoverflow.com/questions/18157501/toggle-semicolon-or-other-character-at-end-of-line
 function! s:ToggleEndChar(charToMatch)
     let save_cursor = getpos(".") " backup cursor

@@ -224,7 +224,10 @@ let g:languagetool_jar=$HOME."/local/languagetool/languagetool-commandline.jar"
 " Autoformat
 let g:autoformat_autoindent = 0
 let g:autoformat_retab = 0
-let g:autoformat_remove_trailing_spaces = 0
+let g:autoformat_remove_trailing_spaces = 1
+
+let g:formatdef_scalariform = "'scalariform'"
+let g:formatters_scala = ['scalariform']
 
 " rust.vim
 " let g:rustfmt_autosave = 1
