@@ -38,7 +38,7 @@
     po = "!git push --set-upstream origin \"$(git rev-parse --abbrev-ref HEAD)\"" # push current branch to origin
     dbr = "!f() { git branch -D $1; git push origin :$1;}; f" # delete local and remote branch
     dtag = "!f() { git tag -d $1; git push origin :$1;}; f" # delete local and remote tag
-    wip = commit -m 'wip'
+    wip = "!git add -A; git commit --message='wip'"
 
     ss = stash save
     sp = stash pop
@@ -47,9 +47,11 @@
     rbs = rebase --skip
     rbc = rebase --continue
     rbi = rebase -i
+
     mra = merge --abort
     mrs = merge --skip
     mrc = merge --continue
+
     cpa = cherry-pick --abort
     cps = cherry-pick --skip
     cpc = cherry-pick --continue
