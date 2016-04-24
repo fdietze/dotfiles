@@ -48,6 +48,7 @@ alias kp='keepass-dmenu --database ~/.keepass/passwords.kdbx --password "$(secre
 alias vbmods='sudo modprobe -a vboxnetadp vboxnetflt vboxpci virtio_net vboxdrv' # load VirtualBox kernel modules
 alias cups='sudo systemctl start cups-browsed.service'
 alias kodi='AE_SINK=ALSA kodi'
+alias rm='rm -v'
 
 # wifi with networkmanager
 alias won='nmcli radio wifi on; wscan'
@@ -79,8 +80,8 @@ v() {
     );
 }
 # v() { echo $@ | vim -c Rooter -c Files }
-vr() { vim -c "History $*" }
-vt() { vim -c "Tags $*" }
+vr() { vim -c "History $*"; }
+vt() { vim -c "Tags $*"; }
 
 # alias vim="vim --servername vim-$$" # always start vim as server (for live colorscheme changing, working differently for neovim)
 nvim_command() {
@@ -103,7 +104,7 @@ nvim_all_command() {
 # file search
 alias lo='locate -i'
 alias f='ag -i -g'
-alias ff="find . -iname"
+ff() { find . -iname "*$@*"; }
 alias ag='ag -S -f'
 alias gg='grep -irn'
 alias vag="search-select-edit"
@@ -213,12 +214,13 @@ low() {
     # save energy
     xbacklight -set 10 -time 0
     keyboardbacklightoff
-    nmcli radio wifi off
-    sudo rfkill block all
 
     low-traffic
 
     light
+
+    nmcli radio wifi off
+    sudo rfkill block all
 }
 
 low-traffic() {
