@@ -13,7 +13,7 @@ call plug#begin('~/.vim/bundle')
 Plug 'tpope/vim-sensible'     " defaults everyone can agree on
 " Plug 'mhinz/vim-startify'     " Start screen with recently opened files
 Plug 'tpope/vim-repeat'       " enable dot-command for Plugins
-Plug 'zhaocai/GoldenView.Vim' " enlarge focused window
+" Plug 'zhaocai/GoldenView.Vim' " enlarge focused window
 Plug 'edsono/vim-matchit'     " matches not only parantheses, but also HTML-Tags and more
 Plug 'Valloric/YouCompleteMe', { 'do': './install.py --clang-completer --gocode-completer --racer-completer --tern-completer' } " fuzzy autocompletion
 " https://github.com/rdnetto/YCM-Generator
@@ -33,7 +33,6 @@ Plug 'tpope/vim-commentary' " commenting
 Plug 'tpope/vim-surround' " surround text with quotes, parantheses, ...
 Plug 'tpope/vim-speeddating' " ctrl+A/X on dates and time
 Plug 'terryma/vim-multiple-cursors' " sublime-like multiple cursors
-Plug 'SirVer/ultisnips' | Plug 'honza/vim-snippets' " snippets
 Plug 'AndrewRadev/switch.vim' " toggle true/false etc
 " Plug 'vim-scripts/ingo-library' | Plug 'vim-scripts/QuickFixCurrentNumber' " next quickfix location from current cursor position
 
@@ -57,7 +56,7 @@ Plug 'PeterRincker/vim-argumentative' " text object ',' / also provides argument
 " which need to be called/activated/mapped explicitly
 Plug 'tpope/vim-fugitive' " git support
 Plug 'rhysd/committia.vim' " better git commit message editing (show diff+status)
-Plug 'godlygeek/tabular' " align text, TODO: check out Plug 'junegunn/vim-easy-align'
+Plug 'junegunn/vim-easy-align'
 Plug 'tpope/vim-eunuch' " unix commands
 Plug 'junegunn/goyo.vim' " distraction-free writing
 Plug 'terryma/vim-smooth-scroll' " redraw some intermediate steps when using PageUp/Down
@@ -67,7 +66,8 @@ Plug 'terryma/vim-smooth-scroll' " redraw some intermediate steps when using Pag
 Plug 'Chiel92/vim-autoformat' " reformat source code
 Plug 'vim-scripts/BufOnly.vim' " close all buffers except current one
 Plug 'mbbill/undotree' " show undo tree
-Plug 'junegunn/fzf.vim' | Plug 'junegunn/fzf' " fuzzy selector
+Plug 'junegunn/fzf.vim' " fuzzy selector
+Plug 'junegunn/fzf' " fuzzy selector
 Plug 'zirrostig/vim-schlepp' " Move selections / lines
 
 
@@ -76,6 +76,7 @@ Plug 'zirrostig/vim-schlepp' " Move selections / lines
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " file type plugins
 " Plug 'sheerun/vim-polyglot' " Lots of filetypes
+" Plug 'SirVer/ultisnips' | Plug 'honza/vim-snippets' " snippets
 Plug 'xolox/vim-easytags' | Plug 'xolox/vim-misc'
 Plug 'derekwyatt/vim-scala' " Scala programming language
 Plug 'gre/play2vim' " play web framework
