@@ -94,12 +94,12 @@ map ∃ <C-W>l
 " make Y behave like D and C, yanking till end of line
 map Y y$
 
-" paste over rest of line
-nnoremap <Leader>p v$<Left>p
-" TODO: paste over text objects
-
 " don't overwrite register when pasting over selection
 vnoremap p pgvy
+
+" paste over rest of line
+nnoremap <Leader>p v$<Left>pgvy
+" TODO: paste over text objects
 
 " don't lose selection when indenting
 vnoremap < <gv
@@ -218,7 +218,7 @@ nmap <leader>gn <Plug>GitGutterNextHunk
 nmap <leader>gN <Plug>GitGutterPrevHunk
 nmap <leader>ga <Plug>GitGutterStageHunk
 nmap <leader>gu <Plug>GitGutterStageHunk
-nmap <leader>gr <Plug>GitGutterRevertHunk
+nmap <leader>gr <Plug>GitGutterUndoHunk
 
 if has('nvim')
     nmap <leader>gs :term tig status<CR>

@@ -1,4 +1,3 @@
-" TODO: exit insert mode on <Up>/<Down>, move inside wrapped lines
 " TODO: leave insert mode when losing focus?
 " TODO: remove stuff, thats already in vim-sensible
 " http://chibicode.com/vimrc/
@@ -7,9 +6,6 @@
 
 " Use Vim settings, rather than Vi settings
 set nocompatible
-
-" allow UTF-8 characters in vimrc
-scriptencoding utf-8
 
 " define a group `vimrc` and initialize.
 augroup vimrc
@@ -78,18 +74,18 @@ set nostartofline                 " keep column position when switching buffers
 
 " behavior
 set hidden                        " switch from unsaved buffers
-set shell=/bin/bash
+set shell=/bin/zsh
 set encoding=utf-8
-set history=1000                  " keep x lines of command line history
+set history=10000                 " keep x lines of command line history
 set showcmd                       " display incomplete commands
 set wildmenu                      " better command line completion
 set wildmode=list:longest,full
 set lazyredraw                    " performance: dont redraw while executing macros
-set ttyfast                       " allow vim to write more characters to screen
+" set ttyfast                       " allow vim to write more characters to screen
 set autoread                      " read file when changed from outside
 set confirm                       " ask to save files when closing vim
-set exrc                          " source .vimrc from directories
-set secure                        " secure local vimrc execution
+" set exrc                          " source .vimrc from directories
+" set secure                        " secure local vimrc execution
 set wildignore=*.o,*.obj,*.class,target/**
 set viewoptions=cursor,folds,slash,unix
 
