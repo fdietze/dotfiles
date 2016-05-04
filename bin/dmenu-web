@@ -7,32 +7,37 @@ fi
 
 query=$(eval "echo | dmenu -p web: $style")
 cmd=$(echo $query | cut -d " " -f1)
-params=$(echo $query | cut -d " " -f2-)
+params=$(echo $query | cut -d " " -s -f2-)
 
 browser='chromium --high-dpi-support=1 --force-device-scale-factor=1'
 
-echo $query
-echo $cmd
-
 case $cmd in
+    "g") $browser "https://google.com/search?q=$params" ;;
     "gg") $browser "https://www.google.com/search?btnI&q=$params" ;; # feeling lucky
     "gi") $browser "https://encrypted.google.com/search?tbm=isch&q=$params" ;; # images
-    "amazon") $browser "https://www.amazon.de/s/?field-keywords=$params" ;;
-    "d") $browser "https://dict.leo.org/ende/index_de.html#/search=$params" ;;
-    "g") $browser "https://google.com/search?q=$params" ;;
-    "gh") $browser "https://github.com/search?q=$params&ref=opensearch" ;;
     "m") $browser "https://maps.google.com/maps?q=$params" ;;
     "s") $browser "https://scholar.google.com/scholar?q=$params" ;;
     "t") $browser "https://translate.google.de/?source=osdd#auto/en/$params" ;;
     "trends") $browser "https://www.google.com/trends?q=$params" ;;
-    "w") $browser "https://de.wikipedia.org/w/index.php?title=Special:Search&search=$params" ;;
-    "wa") $browser "https://www.wolframalpha.com/input/?i=$params" ;;
-    "we") $browser "https://en.wikipedia.org/w/index.php?title=Special:Search&search=$params" ;;
     "y") $browser "https://www.youtube.com/results?search_query=$params" ;;
+    "gm") case $params in
+            "") $browser "https://mail.google.com/mail/u/0/#inbox" ;;
+            *) $browser "https://mail.google.com/mail/u/0/#search/$params" ;;
+        esac ;;
+    "cal") case $params in
+            "") $browser "https://calendar.google.com" ;;
+            *) $browser "https://calendar.google.com/calendar/render?q=$params" ;;
+        esac ;;
+
+    "w") $browser "https://de.wikipedia.org/w/index.php?title=Special:Search&search=$params" ;;
+    "we") $browser "https://en.wikipedia.org/w/index.php?title=Special:Search&search=$params" ;;
+    "d") $browser "https://dict.leo.org/ende/index_de.html#/search=$params" ;;
+    "wa") $browser "https://www.wolframalpha.com/input/?i=$params" ;;
+    "gh") $browser "https://github.com/search?q=$params&ref=opensearch" ;;
+    "fb") $browser "https://www.facebook.com/messages" ;;
+    "amazon") $browser "https://www.amazon.de/s/?field-keywords=$params" ;;
     "aw") $browser "https://wiki.archlinux.org/index.php?search=$params" ;;
     "aur") $browser "https://www.archlinux.org/packages/?q=$params" ;;
-    "wa") $browser "https://www.wolframalpha.com/input/?i=$params" ;;
-    "fb") $browser "https://www.facebook.com/messages" ;;
     "url") $browser $params ;;
     "") exit 0 ;; # cancel
     *) $browser "https://duckduckgo.com/?q=$query" ;; # default search
