@@ -45,6 +45,7 @@ alias defrag='sudo btrfs filesystem defragment -r -v -f -clzo'
 alias iotop='sudo iotop'
 alias keepass='secret-tool lookup keepass password | keepass $HOME/.keepass/passwords.kdbx --pw-stdin'
 alias kp='keepass-dmenu --database ~/.keepass/passwords.kdbx --password "$(secret-tool lookup keepass password)" --fn "Droid Sans Mono-8" --nb "#FFFFFF" --nf "#000000" --sb "#00D7FF" --sf "#101010" > /dev/null'
+alias VirtualBox='gksudo modprobe -a vboxnetadp vboxnetflt vboxpci virtio_net vboxdrv; VirtualBox'
 alias vbmods='sudo modprobe -a vboxnetadp vboxnetflt vboxpci virtio_net vboxdrv' # load VirtualBox kernel modules
 alias cups='sudo systemctl start cups-browsed.service'
 alias kodi='AE_SINK=ALSA kodi'
