@@ -7,6 +7,7 @@
 
 [core]
     pager = less
+    excludesfile=~/.config/git/ignore # needed for ag
 
 [push]
     default = simple
