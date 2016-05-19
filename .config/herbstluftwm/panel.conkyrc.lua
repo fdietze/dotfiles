@@ -10,6 +10,7 @@ function conky_init()
             fgcolorbad   = "FF3F74",
             bgcolorsel   = "37BAFF",
             fgcolorsel   = "000000",
+            bgcolorurgent= "CE6D00",
             charwidth    = 8
         }
     else
@@ -21,6 +22,7 @@ function conky_init()
             fgcolorbad   = "FF3F74",
             bgcolorsel   = "00D7FF",
             fgcolorsel   = "000000",
+            bgcolorurgent= "FFD8AC",
             charwidth    = 9
         }
     end
@@ -82,6 +84,7 @@ function conky_hctags()
 
         if      tagstatus == ":" then addtag(tagname, s.bgcolor, s.fgcolor)
         elseif  tagstatus == "#" then addtag(tagname, s.bgcolorsel, s.fgcolorsel)
+        elseif  tagstatus == "!" then addtag(tagname, s.bgcolorurgent, s.fgcolorsel)
         else                          addtag(tagname, s.bgcolor, s.fgcolorinact) end
 
     end
