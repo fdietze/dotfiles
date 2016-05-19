@@ -1,2 +1,6 @@
 # project local ctags
 /tags
+
+# Intellij IDEA
+/.idea
+/.idea_modules
