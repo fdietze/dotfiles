@@ -2,6 +2,7 @@
 
 echo "upgrading installed packages..."
 sudo rm -rf /tmp/yaourt-tmp-$USER /tmp/makepkg
+yaourt -Syu --noconfirm
 yaourt -Syua --devel --noconfirm
 sudo rm -rf /tmp/yaourt-tmp-$USER /tmp/makepkg
 
@@ -20,9 +21,7 @@ echo "updating zgen plugins..."
 zgen update
 
 echo "updating vim plugins..."
-vim +PlugUpgrade +qall
-vim +PlugInstall +qall
-vim +PlugUpdate +qall
+vim +PlugUpgrade +PlugInstall +PlugUpdate +PlugClean! +qall
 
 echo "updating ruby gems..."
 gem update
@@ -31,7 +30,7 @@ echo "updating global npm packages"
 npm -g update
 
 echo "updating rust installation"
-multirust update nightly
+multirust update
 
 echo "updating git repos"
 mr update
