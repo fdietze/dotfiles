@@ -47,7 +47,7 @@ alias keepass='secret-tool lookup keepass password | keepass $HOME/.keepass/pass
 alias kp='keepass-dmenu --database ~/.keepass/passwords.kdbx --password "$(secret-tool lookup keepass password)" --fn "Droid Sans Mono-8" --nb "#FFFFFF" --nf "#000000" --sb "#00D7FF" --sf "#101010" > /dev/null'
 alias VirtualBox='gksudo modprobe -a vboxnetadp vboxnetflt vboxpci virtio_net vboxdrv; VirtualBox'
 alias vbmods='sudo modprobe -a vboxnetadp vboxnetflt vboxpci virtio_net vboxdrv' # load VirtualBox kernel modules
-alias cups='systemctl --user start cups-browsed.service'
+alias cups='sudo systemctl start cups-browsed.service'
 alias kodi='AE_SINK=ALSA kodi'
 alias rm='rm -v'
 
