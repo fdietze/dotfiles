@@ -236,10 +236,11 @@ low() {
 }
 
 low-traffic() {
-    killall owncloud
-    systemctl --user stop btsync
-    systemctl --user stop syncthing
-    systemctl --user stop dropbox
+    killall owncloud > /dev/null 2>&1
+    systemctl --user stop ipfs > /dev/null 2>&1
+    systemctl --user stop btsync > /dev/null 2>&1
+    systemctl --user stop syncthing > /dev/null 2>&1
+    systemctl --user stop dropbox > /dev/null 2>&1
 }
 
 high() {
