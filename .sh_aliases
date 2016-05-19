@@ -95,6 +95,12 @@ nvim_command() {
     msgpack-cli encode <(echo "[0,0,\"vim_command\",[\"$2\"]]") | netcat -U $1
 }
 
+x() {
+    $@ &
+    disown
+    exit
+}
+
 nvim_all_command() {
     # usage: nvim_all_command <command>
     for nvim in /tmp/nvim*/0; do
