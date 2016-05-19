@@ -9,7 +9,7 @@ query=$(eval "echo | dmenu -p web: $style")
 cmd=$(echo $query | cut -d " " -f1)
 params=$(echo $query | cut -d " " -s -f2-)
 
-browser='chromium --high-dpi-support=1 --force-device-scale-factor=1'
+browser='chromium --new-window --high-dpi-support=1 --force-device-scale-factor=1'
 
 case $cmd in
     "g") $browser "https://google.com/search?q=$params" ;;
