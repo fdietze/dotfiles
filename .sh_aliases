@@ -161,6 +161,10 @@ alias gsc='git-select-commit'
 alias gd='git df --no-index'
 alias onstage='git-onstage'
 
+# dotfiles git
+alias ds='d status'
+alias dps='dp status'
+
 # dev
 alias m='make'
 alias mc='make clean'
