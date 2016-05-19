@@ -1,4 +1,11 @@
-source ~/.zprofile # because I have bash as my login shell
+ # if this is a login shell
+if [[ -o login ]]; then
+    # if first tty: start x
+    [[ -z $DISPLAY && $XDG_VTNR -eq 1 ]] && exec startx -deferglyphs 16
+    # else fall back to bash
+    exec bash
+fi
+
 export PURE_GIT_PULL=0 # disable pure-promt git pull when entering git repo
 DISABLE_AUTO_UPDATE="true" # disable oh-my-zsh auto-update
 
