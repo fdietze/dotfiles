@@ -11,5 +11,6 @@ addCommandAlias("tt", "~test")
 addCommandAlias("pl", ";set isSnapshot := true;publish-local")
 addCommandAlias("ppl", "publish-local")
 addCommandAlias("du", "dependencyUpdates")
+addCommandAlias("coverageAll", ";clean ;coverage ;test ;coverageReport")
 
 // net.virtualvoid.sbt.graph.Plugin.graphSettings
