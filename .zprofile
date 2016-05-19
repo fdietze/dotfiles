@@ -6,7 +6,10 @@ export PATH=$(cope_path):$PATH
 # colorful file listings
 eval $(dircolors ~/.dir_colors)
 
-# colorize manpages
+# vimpager instead of less
+export PAGER=/usr/bin/vimpager
+
+# colorize manpages (when using less as pager)
 export LESS_TERMCAP_mb=$(printf "\33[01;34m")   # begin blinking
 export LESS_TERMCAP_md=$(printf "\33[01;34m")   # begin bold
 export LESS_TERMCAP_me=$(printf "\33[0m")       # end mode

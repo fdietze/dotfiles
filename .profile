@@ -13,10 +13,6 @@ export EDITOR=vim
 export BROWSER=chromium
 export DE=gnome
 
-# vimpager instead of less
-export PAGER=/usr/bin/vimpager
-
-
 # fix java apps in tiling window managers
 export _JAVA_AWT_WM_NONREPARENTING=1
 
@@ -25,12 +21,12 @@ export _JAVA_AWT_WM_NONREPARENTING=1
 export AWT_TOOLKIT=MToolkit
 export GDK_USE_XFT=1
 
-sbtopts=$sbtopts" -Xms32M -Xmx712M -Xss1M -XX:+CMSClassUnloadingEnabled -XX:+UseConcMarkSweepGC"
+sbtopts="$sbtopts -Xms32M -Xmx712M -Xss1M -XX:+CMSClassUnloadingEnabled -XX:+UseConcMarkSweepGC"
 # javaopts=$javaopts" -XX:+UseCompressedOops"
 
 # sbt-web: use native Node.js instead of Trireme
 # https://www.playframework.com/documentation/2.3.x/Migration23
-sbtopts=$sbtopts" -Dsbt.jse.engineType=Node"
+sbtopts="$sbtopts -Dsbt.jse.engineType=Node"
 
 # export _JAVA_OPTIONS=$javaopts
 export SBT_OPTS=$sbtopts
