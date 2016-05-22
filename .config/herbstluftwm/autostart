@@ -162,7 +162,7 @@ hc mousebind $Mod-Button3 resize
 
 # focus
 hc keybind $Mod-BackSpace   cycle_monitor
-#hc keybind $Mod-c cycle
+hc keybind $Mod-Tab cycle
 hc keybind $Mod-b jumpto urgent
 
 
