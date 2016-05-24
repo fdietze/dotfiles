@@ -12,5 +12,6 @@ addCommandAlias("pl", ";set isSnapshot := true;publish-local")
 addCommandAlias("ppl", "publish-local")
 addCommandAlias("du", "dependencyUpdates")
 addCommandAlias("coverageAll", ";clean ;coverage ;test ;coverageReport")
+addCommandAlias("opt", """set scalacOptions ++= Seq("-Xdisable-assertions", "-optimize", "-Yinline")""")
 
 // net.virtualvoid.sbt.graph.Plugin.graphSettings
