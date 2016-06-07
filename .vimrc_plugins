@@ -227,7 +227,7 @@ let g:autoformat_autoindent = 0
 let g:autoformat_retab = 0
 let g:autoformat_remove_trailing_spaces = 1
 
-let g:formatdef_scalariform = "'scalariform'"
+let g:formatdef_scalariform ='"ng-scalariform"'
 let g:formatters_scala = ['scalariform']
 
 " rust.vim
