@@ -26,6 +26,7 @@
     amend = commit --amend
     unstage = reset HEAD
     prev = reset HEAD~1
+    cl = clone
     br = branch
     brr = branch -r
     lg = fry one-line-log-colors
