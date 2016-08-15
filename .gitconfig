@@ -41,8 +41,10 @@
     dbr = "!f() { git branch -D $1; git push origin :$1;}; f" # delete local and remote branch
     dtag = "!f() { git tag -d $1; git push origin :$1;}; f" # delete local and remote tag
     wip = "!git add -A; git commit --message='wip'"
+    wipbr = "!f() { git cob $1; git wip; git po;}; f" # push current branch to origin
 
     ss = stash save
+    ssu = stash save --include-untracked
     sp = stash pop
 
     rba = rebase --abort
