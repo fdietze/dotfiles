@@ -98,6 +98,7 @@ function conky_cpu(height)
         local cpuload = conky("cpu cpu"..cpu.."")
         str = str .. conky_vbar(cpuload, 100, height)
     end
+    str = str .. " " .. conky("platform coretemp.0/hwmon/hwmon1 temp 1") .. "C"
     return str
 end
 
