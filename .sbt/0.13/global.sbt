@@ -14,4 +14,6 @@ addCommandAlias("du", "dependencyUpdates")
 addCommandAlias("coverageAll", ";clean ;coverage ;test ;coverageReport")
 addCommandAlias("opt", """set scalacOptions ++= Seq("-Xdisable-assertions", "-optimize", "-Yinline")""")
 
+maxErrors := 3
+
 // net.virtualvoid.sbt.graph.Plugin.graphSettings
