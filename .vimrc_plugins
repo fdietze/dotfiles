@@ -24,6 +24,7 @@ Plug 'kopischke/vim-fetch' " open files at line with filename:32
 Plug 'airblade/vim-rooter' " cd to project root
 Plug 'airblade/vim-gitgutter' " VCS change info per line (only git)
 " Plug 'mhinz/vim-signify' " git, mercurial, darcs, bazaar, subversion, cvs, rcs, fossil, accurev, perforce
+Plug 'zirrostig/vim-smart-swap' " handle vim swap files, delete older and identical swap files
 
 
 
@@ -93,6 +94,7 @@ Plug 'vim-scripts/gnuplot.vim'
 Plug 'Valloric/MatchTagAlways' " Highlight matching/surrounding html tags
 Plug 'gorodinskiy/vim-coloresque' " Preview colors in css
 
+Plug 'zah/nim.vim'
 
 
 
