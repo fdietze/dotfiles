@@ -212,8 +212,10 @@ cgw() {
 }
 
 sbt() { (
-    # TODO, only if there is no build.sbt in current folder
-    cd-git-root
+    # TODO: search tree upwards for build.sbt
+    if [ ! -f build.sbt ]; then
+        cd-git-root
+    fi
     env sbt $@
     )
 }
