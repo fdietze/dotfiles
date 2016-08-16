@@ -96,6 +96,13 @@ v() {
 vr() { vim -c "History $*"; }
 vt() { vim -c "Tags $*"; }
 
+proj_ctags () {
+    cd-git-root
+    dir=$(realpath .)
+    touch $dir/tags
+    ctags --fields=+l --c-kinds=+p --c++-kinds=+p -f $dir/tags -R $dir
+}
+
 # alias vim="vim --servername vim-$$" # always start vim as server (for live colorscheme changing, working differently for neovim)
 nvim_command() {
     # usage: nvim_command <socket> <command>
