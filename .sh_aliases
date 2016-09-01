@@ -20,6 +20,7 @@ DOTFILES_GIT='GIT_DIR=$HOME/projects/dotfiles GIT_WORK_TREE=$HOME'
 alias vd="$DOTFILES_GIT vim -c GitFiles"
 alias va="$DOTFILES_GIT vim ~/.sh_aliases"
 alias vz="$DOTFILES_GIT vim ~/.zshrc"
+alias vp="$DOTFILES_GIT vim ~/.profile"
 alias vv="$DOTFILES_GIT vim ~/.vimrc"
 alias vvp="$DOTFILES_GIT vim ~/.vimrc_plugins"
 alias vvc="$DOTFILES_GIT vim ~/.vimrc_custom"
@@ -52,7 +53,7 @@ alias kodi='AE_SINK=ALSA kodi'
 alias rm='rm -v'
 alias start='sudo systemctl start'
 alias stop='sudo systemctl stop'
-alias status='sudo systemctl status'
+alias status='systemctl status'
 alias restart='sudo systemctl restart'
 # alias enable='sudo systemctl enable'
 # alias disable='sudo systemctl disable'
@@ -62,6 +63,7 @@ alias statusu='systemctl --user status'
 alias restartu='systemctl --user restart'
 # alias enableu='systemctl --user enable'
 # alias disableu='systemctl --user disable'
+addusertogroup() { sudo usermod -a -G ${2-$USER} $1; }
 
 # wifi with networkmanager
 alias won='nmcli radio wifi on; wscan'
@@ -166,6 +168,7 @@ alias cdp='cd ~/projects'
 alias cd.='cd ~/projects/dotfiles'
 alias cdt='cd-tmp'
 alias cdg='cd-git-root'
+p() {cd ~/projects/$(ls ~/projects | fzf --query="$(echo $@ | tr ' ' '\ ' )")}
 
 # start X
 alias sx='startx'
@@ -176,6 +179,7 @@ alias g='git'
 alias gs='git status'
 alias gu='git up'
 alias gp='git push'
+alias gpf='git push --force'
 alias gl='git lg'
 alias gsc='git-select-commit'
 alias gd='git df --no-index'
