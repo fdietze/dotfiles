@@ -196,7 +196,9 @@ nmap <silent> <Leader>; <Plug>ToggleEndChar;
 nmap <silent> <Leader>, <Plug>ToggleEndChar,
 nmap <silent> <Leader>. <Plug>ToggleEndChar.
 
-
+" display word count
+nnoremap <Leader>w g<C-g>
+vnoremap <Leader>w g<C-g>
 
 
 
