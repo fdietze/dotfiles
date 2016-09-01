@@ -37,6 +37,7 @@
     p = push
     pf = push --force
     peng = push --force
+    up = pull --rebase --autostash
     po = "!git push --set-upstream origin \"$(git rev-parse --abbrev-ref HEAD)\"" # push current branch to origin
     dbr = "!f() { git branch -D $1; git push origin :$1;}; f" # delete local and remote branch
     dtag = "!f() { git tag -d $1; git push origin :$1;}; f" # delete local and remote tag
