@@ -151,9 +151,6 @@ nnoremap go <C-o>  " original: jump to the n-th byte in the file
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " custom bindings
 
-" back to hjkl
-nnoremap <Leader>vj :Johannes<CR>
-
 " insert TODO
 inoremap <C-t> // TODO:<space>
 
