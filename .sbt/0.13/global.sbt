@@ -1,5 +1,6 @@
 addCommandAlias("off", "set offline := true")
 addCommandAlias("re", "reload")
+addCommandAlias("up", "update")
 addCommandAlias("c", "compile")
 addCommandAlias("cc", "~compile")
 addCommandAlias("ccc", ";clean;~compile")
