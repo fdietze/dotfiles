@@ -1,2 +1,2 @@
 #!/bin/bash
-termite -d "$(DISPLAY=:0 xcwd)" -e zsh
+termite -d "$(xcwd)"
