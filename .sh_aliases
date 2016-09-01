@@ -106,7 +106,8 @@ proj_ctags () {
 # alias vim="vim --servername vim-$$" # always start vim as server (for live colorscheme changing, working differently for neovim)
 nvim_command() {
     # usage: nvim_command <socket> <command>
-    # requires: https://github.com/jakm/msgpack-cli
+    # requires: https://github.com/jakm/msgpack-cli and netcat
+    # go get github.com/jakm/msgpack-cli
 
     # https://github.com/msgpack-rpc/msgpack-rpc/blob/master/spec.md
     # msgpack-rpc is an array of [type, msgid, method, params]
