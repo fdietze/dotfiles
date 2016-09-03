@@ -228,7 +228,7 @@ sbt() { (
 nstart() {
     hc use_index 7
     (sleep 1; hc use_previous) &
-    termite -e "$HOME/downloads/neo4j-community-2.2.2/bin/neo4j console"
+    termite -e "$HOME/local/neo4j/bin/neo4j console"
 }
 
 wust() {
@@ -236,7 +236,7 @@ wust() {
     (sleep 1; hc use_previous) &
     termite -e "bash -c \"cd ~/projects/wust && sbt compile run\"" &
     termite -e "bash -c \"cd ~/projects/wust && ./blumenkohl\"" &
-    termite -e "$HOME/downloads/neo4j-community-2.2.2/bin/neo4j console"
+    termite -e "$HOME/local/neo4j/bin/neo4j console"
 }
 
 
