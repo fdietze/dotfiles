@@ -168,7 +168,7 @@ alias cdp='cd ~/projects'
 alias cd.='cd ~/projects/dotfiles'
 alias cdt='cd-tmp'
 alias cdg='cd-git-root'
-p() {cd ~/projects/$(ls ~/projects | fzf --query="$(echo $@ | tr ' ' '\ ' )")}
+p() { cd ~/projects/$(ls ~/projects | fzf --query="$(echo $@ | tr ' ' '\ ' )");}
 
 # start X
 alias sx='startx'
