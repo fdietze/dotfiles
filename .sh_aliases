@@ -221,7 +221,7 @@ sbt() { (
     if [ ! -f build.sbt ]; then
         cd-git-root
     fi
-    env sbt $@
+    env sbt -Dscala.color $@
     )
 }
 
