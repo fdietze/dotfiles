@@ -188,6 +188,9 @@ let g:ycm_key_list_previous_completion = ['<S-TAB>']
 let g:ycm_key_list_select_completion = ['<TAB>']
 let g:ycm_cache_omnifunc = 0
 let g:ycm_rust_src_path = '/home/felix/projects/rust/src'
+let g:ycm_cpp_flags = ['-Wextra', '-Werror' ]
+let g:ycm_extra_conf_vim_data = [ 'g:ycm_cpp_flags' ]
+let g:ycm_global_ycm_extra_conf = '~/.vim/global_ycm_extra_conf.py'
 
 " dont display detail window about current completion
 " set completeopt=menuone,longest
