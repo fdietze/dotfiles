@@ -120,12 +120,13 @@ noremap <expr> <silent> <Home> col('.') == match(getline('.'),'\S')+1 ? '0' : '^
 imap <silent> <Home> <C-O><Home>
 
 " exit insert mode when navigating
-inoremap  <Left>   <Esc>
-inoremap  <Right>  <Esc>2<Right>
-inoremap  <Up>     <Esc><Up>
-inoremap  <Down>   <Esc><Down>
-imap  <Home>   <Esc><Home>
-imap  <End>    <Esc><End>
+" be careful: this is also triggered in vim-multiple-cursors
+" inoremap  <Left>   <Esc>
+" inoremap  <Right>  <Esc>2<Right>
+" inoremap  <Up>     <Esc><Up>
+" inoremap  <Down>   <Esc><Down>
+" imap  <Home>   <Esc><Home>
+" imap  <End>    <Esc><End>
 
 " navigate through wrapped lines
 nnoremap <C-Up> g<Up>
