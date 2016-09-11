@@ -62,6 +62,7 @@ fry mkdir-cd
 fry screencapture
 fry transcode-video
 fry bind2maps
+fry watchdo
 
 setopt nonomatch # avoid the zsh "no matches found" / allows sbt ~compile
 setopt hash_list_all # rehash command path and completions on completion attempt
