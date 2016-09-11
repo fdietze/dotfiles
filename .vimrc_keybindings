@@ -176,9 +176,6 @@ nnoremap <Leader>va :e ~/.sh_aliases<CR>
 nnoremap <silent> <Leader><Leader> :nohlsearch<CR>
 nnoremap <silent> <Leader>/ :nohlsearch<CR>
 
-" TODO: highlight all matches before starting multiple-cursors
-" nmap <C-n> :call HighlightCurrentWord()<CR>:!redraw<CR>:call multiple_cursors#new("n",1)<CR>
-
 " location navigation
 nnoremap <leader>n :lnext<CR>
 nnoremap <leader>N :lprev<CR>
@@ -203,6 +200,12 @@ vnoremap <Leader>w g<C-g>
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Plugins
+
+" multiple cursors
+" TODO: highlight all matches before starting multiple-cursors
+" nmap <C-n> :call HighlightCurrentWord()<CR>:!redraw<CR>:call multiple_cursors#new("n",1)<CR>
+nnoremap <silent> <Enter> :MultipleCursorsFind <C-R>/<CR>
+vnoremap <silent> <Enter> :MultipleCursorsFind <C-R>/<CR>
 
 " FZF: Fuzzy file finding
 nmap <leader>e :ProjectFiles<CR>

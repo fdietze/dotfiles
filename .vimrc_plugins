@@ -31,9 +31,9 @@ Plug 'zirrostig/vim-smart-swap' " handle vim swap files, delete older and identi
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " helpful tools providing new bindings
 Plug 'tpope/vim-commentary' " commenting
+Plug 'terryma/vim-multiple-cursors' " sublime-like multiple cursors
 Plug 'tpope/vim-surround' " surround text with quotes, parantheses, ...
 Plug 'tpope/vim-speeddating' " ctrl+A/X on dates and time
-Plug 'terryma/vim-multiple-cursors' " sublime-like multiple cursors
 Plug 'AndrewRadev/switch.vim' " toggle true/false etc
 " Plug 'vim-scripts/ingo-library' | Plug 'vim-scripts/QuickFixCurrentNumber' " next quickfix location from current cursor position
 
@@ -173,6 +173,10 @@ let g:easytags_languages = {
             \       'recurse_flag': '-R'
             \   }
             \}
+
+" multiple-cursors
+let g:multi_cursor_exit_from_visual_mode = 0
+let g:multi_cursor_exit_from_insert_mode = 0
 
 " Colorschemes
 " let base16colorspace=256  " Access colors present in 256 colorspace
