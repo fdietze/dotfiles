@@ -62,6 +62,7 @@ fry mkdir-cd
 fry screencapture
 fry transcode-video
 fry bind2maps
+fry git-dirty-files-command
 fry watchdo
 
 setopt nonomatch # avoid the zsh "no matches found" / allows sbt ~compile
@@ -87,6 +88,7 @@ bind2maps emacs viins vicmd -- "Down" down-line-or-search
 [ -r /etc/profile.d/cnf.sh ] && . /etc/profile.d/cnf.sh
 
 # fzf fuzzy file matcher shell extensions
+. /usr/share/fzf/completion.zsh
 . /usr/share/fzf/key-bindings.zsh
 
 source ~/.sh_aliases
