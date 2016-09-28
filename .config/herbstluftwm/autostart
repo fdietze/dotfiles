@@ -44,7 +44,7 @@ hc keybind XF86AudioMute         chain , spawn pulseaudio-ctl mute , emit_hook p
 hc keybind XF86AudioLowerVolume  chain , spawn pulseaudio-ctl down , emit_hook panel_refresh
 hc keybind XF86AudioRaiseVolume  chain , spawn pulseaudio-ctl up   , emit_hook panel_refresh
 hc keybind Print                 spawn scrot
-hc keybind Shift+Print           spawn scrot --focused
+hc keybind $Mod+Print           spawn scrot --focused
 
 # adjust volume
 hc keybind $Mod-Ctrl-h chain , spawn pulseaudio-ctl up   , emit_hook panel_refresh
