@@ -131,18 +131,19 @@ for i in ${!tag_names[@]} ; do
     hc add "${tag_names[$i]}"
     key="${tag_keys[$i]}"
     if ! [ -z "$key" ] ; then
-        hc keybind "$Mod-F$key" use_index "$i"
-        hc keybind "$Mod-Shift-F$key" chain , move_index "$i" , use_index $i
         hc keybind "$Mod-$key" use_index "$i"
         hc keybind "$Mod-Shift-$key" chain , move_index "$i" , use_index $i
+        hc keybind "$Mod-Shift-Ctrl-$key" move_index "$i"
     fi
 done
 
 # cycle through tags
 hc keybind $Mod-c use_index +1 --skip-visible
-hc keybind $Mod-Shift-c chain ,  move_index  +1 --skip-visible , use_index +1
+hc keybind $Mod-Shift-c chain ,  move_index  +1 --skip-visible , use_index +1 --skip-visible
+hc keybind $Mod-Shift-Ctrl-c move_index  +1 --skip-visible
 hc keybind $Mod-v use_index -1 --skip-visible
-hc keybind $Mod-Shift-v chain ,  move_index  -1 --skip-visible , use_index -1
+hc keybind $Mod-Shift-v chain ,  move_index  -1 --skip-visible , use_index -1 --skip-visible
+hc keybind $Mod-Shift-Ctrl-v move_index  -1 --skip-visible
 
 hc keybind $Mod-w use_previous
 
