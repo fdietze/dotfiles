@@ -14,7 +14,6 @@ if ! zgen saved; then
     echo "creating zgen save..."
     zgen oh-my-zsh # oh-my-zsh default settings
 
-    zgen load zsh-users/zsh-syntax-highlighting
     zgen load rupa/z # jump to most used directories
 
     zgen load mafredri/zsh-async # for pure-prompt
@@ -22,6 +21,8 @@ if ! zgen saved; then
     zgen load b4b4r07/zsh-vimode-visual
 
     zgen load dottr/dottr
+
+    zgen load zsh-users/zsh-syntax-highlighting # must be last, because it wraps all widgets
     zgen save
 fi
 
