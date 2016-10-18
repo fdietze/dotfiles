@@ -223,6 +223,9 @@ nmap <leader>ga <Plug>GitGutterStageHunk
 nmap <leader>gu <Plug>GitGutterStageHunk
 nmap <leader>gr <Plug>GitGutterUndoHunk
 
+" surround with S
+nmap S ys
+
 if has('nvim')
     nmap <leader>gs :term tig status<CR>
 else
