@@ -55,6 +55,7 @@ command! -nargs=* ToggleEndChar call s:ToggleEndChar('<args>')
 noremap <Plug>ToggleEndChar; :ToggleEndChar ;<CR>
 noremap <Plug>ToggleEndChar, :ToggleEndChar ,<CR>
 noremap <Plug>ToggleEndChar. :ToggleEndChar .<CR>
+noremap <Plug>ToggleEndChar: :ToggleEndChar :<CR>
 
 command! Johannes :call Johannes()
 function! Johannes()
