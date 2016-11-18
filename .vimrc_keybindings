@@ -146,6 +146,7 @@ inoremap <C-Right> <Esc><Right><C-Right>
 
 " remap unused vim commands
 nnoremap go <C-o>  " original: jump to the n-th byte in the file
+nnoremap gi <C-i>  " original: insert mode at the last insert position
 
 
 
@@ -154,6 +155,8 @@ nnoremap go <C-o>  " original: jump to the n-th byte in the file
 
 " insert TODO
 inoremap <C-t> // TODO:<space>
+
+nnoremap <leader>m :make<CR>
 
 " jump to m-mark
 " M was: place cursor in the center of screen
@@ -191,10 +194,6 @@ nmap <silent> <Leader>; <Plug>ToggleEndChar;
 nmap <silent> <Leader>, <Plug>ToggleEndChar,
 nmap <silent> <Leader>. <Plug>ToggleEndChar.
 nmap <silent> <Leader>: <Plug>ToggleEndChar:
-
-" display word count
-nnoremap <Leader>w g<C-g>
-vnoremap <Leader>w g<C-g>
 
 
 
