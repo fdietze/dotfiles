@@ -224,6 +224,9 @@ let g:signify_sign_change            = '⌇' " '︴⌇⌇┇
 let g:signify_sign_delete            = '✕'
 let g:signify_sign_delete_first_line = '⌅'
 
+" committia
+let g:committia#git#diff_cmd = "diff --irreversible-delete --find-copies-harder --find-copies --ignore-space-at-eol --ignore-space-change --ignore-all-space -u --cached --no-color --no-ext-diff"
+
 " Emmet
 let g:user_emmet_install_global = 0
 autocmd vimrc FileType html,css EmmetInstall
