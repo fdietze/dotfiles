@@ -109,6 +109,7 @@ Plug 'bling/vim-bufferline'
 " colorschemes
 Plug 'altercation/vim-colors-solarized'
 " Plug 'chriskempson/base16-vim'
+Plug 'morhetz/gruvbox'
 " Plug 'godlygeek/csapprox'
 " Plug 'vim-scripts/guicolorscheme.vim'
 " Plug 'nanotech/jellybeans.vim'
