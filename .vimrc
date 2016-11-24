@@ -23,10 +23,11 @@ filetype plugin indent on
 
 
 " Colorscheme
+set termguicolors " true color support
 syntax enable
 if filereadable($HOME."/.colors") && match(readfile($HOME."/.colors"),"light")
     set background=dark
-    colorscheme solarized
+    colorscheme gruvbox
 else
     set background=light
     colorscheme goodmorning

@@ -13,7 +13,7 @@ if [ "$DISPLAY" ]; then
 
     source ~/.sh_aliases # load aliases
     nvim_all_command "set background=dark"
-    nvim_all_command "colorscheme solarized"
+    nvim_all_command "colorscheme gruvbox"
 
 
     herbstclient set window_border_width 2
