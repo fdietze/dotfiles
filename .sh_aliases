@@ -17,7 +17,7 @@ alias    dp='yadm --yadm-repo $HOME/projects/dotfiles-private -c core.excludesfi
 alias  tigd='GIT_DIR=$HOME/projects/dotfiles         GIT_WORK_TREE=$HOME tig'
 alias tigdp='GIT_DIR=$HOME/projects/dotfiles-private GIT_WORK_TREE=$HOME tig'
 DOTFILES_GIT='GIT_DIR=$HOME/projects/dotfiles GIT_WORK_TREE=$HOME'
-alias vd="$DOTFILES_GIT vim -c GitFiles"
+vd() {(cd; eval $DOTFILES_GIT vim -c GitFiles);}
 alias va="$DOTFILES_GIT vim ~/.sh_aliases"
 alias vz="$DOTFILES_GIT vim ~/.zshrc"
 alias vp="$DOTFILES_GIT vim ~/.profile"
