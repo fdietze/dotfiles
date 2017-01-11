@@ -89,6 +89,7 @@ set confirm                       " ask to save files when closing vim
 " set secure                        " secure local vimrc execution
 set wildignore=*.o,*.obj,*.class,target/**
 set viewoptions=cursor,folds,slash,unix
+set clipboard=unnamedplus
 
 " backup/undo/swap files
 set swapfile
