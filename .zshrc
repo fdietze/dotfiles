@@ -77,6 +77,10 @@ autoload -U zmv # renaming utils
 source ~/.zshrc.vimode
 RPROMPT='${MODE_INDICATOR}'
 
+autoload edit-command-line
+zle -N edit-command-line
+bind2maps vicmd viins -- -s '^v' edit-command-line
+
 
 # history prefix search
 autoload -U history-search-end
