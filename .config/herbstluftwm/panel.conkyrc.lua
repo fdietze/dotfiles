@@ -136,7 +136,9 @@ function conky_net(height)
         if iface ~= "lo" then
             local essid = conky("wireless_essid "..iface)
             if( essid == nil or essid == "" ) then -- ethernet device
-                str = str ..conky_prefix(iface).. iface_speed(iface)
+                if (string.sub(iface, 1, 3) == "enp") then
+                    str = str ..conky_prefix(iface).. iface_speed(iface)
+                end
             else -- wifi device
                 if( essid ~= "off/any" ) then
                     -- local qual = tonumber(conky("wireless_link_qual_perc " .. iface))
