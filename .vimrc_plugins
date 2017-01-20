@@ -56,7 +56,7 @@ Plug 'PeterRincker/vim-argumentative' " text object ',' / also provides argument
 " helpful tools providing functions and commands
 " which need to be called/activated/mapped explicitly
 Plug 'tpope/vim-fugitive' " git support
-Plug 'rhysd/committia.vim' " better git commit message editing (show diff+status)
+" Plug 'rhysd/committia.vim' " better git commit message editing (show diff+status)
 Plug 'junegunn/vim-easy-align'
 Plug 'tpope/vim-eunuch' " unix commands
 Plug 'junegunn/goyo.vim' " distraction-free writing
