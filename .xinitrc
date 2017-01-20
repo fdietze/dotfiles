@@ -13,9 +13,9 @@ rm -f ~/.colors
 xrdb load ~/.Xresources
 
 # set up keyboard layouts and toggle shortcut
-setxkbmap -layout de,de -variant neo,basic -option -option grp:menu_toggle &
+setxkbmap -layout de,de -variant neo,basic -option -option grp:menu_toggle
 
-xss-lock -- i3lock --color=333333 --nofork --ignore-empty-password &
+xss-lock -- i3lock --color=DDDDDD --nofork --ignore-empty-password &
 
 # load screen color profile
 if [ -f ~/.config/screen-color-profile.icm ]; then
