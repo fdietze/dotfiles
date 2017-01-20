@@ -130,6 +130,7 @@ Plug 'vim-scripts/LanguageTool' " spell grammar checking
 " Plug 'Raimondi/delimitMate' " automatically-close-brackets-magic
 " Plug 'Shougo/vimproc.vim' " Interactive command execution
 " Plug 'vim-scripts/ColorSchemeEditor' " graphical editor for colorschemes
+Plug 'jamessan/vim-gnupg'
 
 " Collaborative Editing
 " Plug 'FredKSchott/CoVim'
