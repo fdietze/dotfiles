@@ -51,7 +51,7 @@ alias vbmods='sudo modprobe -a vboxnetadp vboxnetflt vboxpci virtio_net vboxdrv'
 alias cups='sudo systemctl start cups-browsed.service'
 alias kodi='AE_SINK=ALSA kodi'
 alias rm='rm -v'
-alias sys='systemctl'
+alias sys='sudo systemctl'
 alias sysu='systemctl --user'
 addusertogroup() { sudo usermod -a -G ${2-$USER} $1; }
 
