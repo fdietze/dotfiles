@@ -54,6 +54,14 @@ alias rm='rm -v'
 alias sys='sudo systemctl'
 alias sysu='systemctl --user'
 addusertogroup() { sudo usermod -a -G ${2-$USER} $1; }
+movie-godzilla() {
+    title=$@
+    selection=$(ssh neptun bin/fuzzysearch movies $title | fzf)
+    while read -r file; do
+        echo $file
+        scp neptun:"'$file'" ~/videos
+    done <<< "$selection"
+}
 
 # wifi with networkmanager
 alias won='nmcli radio wifi on; wscan'
