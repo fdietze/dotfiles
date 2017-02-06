@@ -158,10 +158,11 @@ inoremap <C-t> // TODO:<space>
 
 nnoremap <leader>m :make<CR>
 
-" jump to m-mark
+" Mark with Shift-m
+" use m to jump to mark
 " M was: place cursor in the center of screen
-" now I can hit mm to mark something quickly
-nnoremap M `m
+nnoremap M m
+nnoremap m `
 
 " fast way to edit ~/.vimrc*, reload, install plugins
 nnoremap <Leader>vv :e ~/.vimrc<CR>
