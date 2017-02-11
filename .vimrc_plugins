@@ -322,6 +322,7 @@ let g:switch_custom_definitions =
             \   ['small', 'large'],
             \   ['even', 'odd'],
             \   ['inside', 'outside'],
+            \   ['with', 'extends'],
             \   {'"\([^"]*\)"': '''\1''', '''\([^'']*\)''': '"\1"'},
             \   {
             \     '\<\(\l\)\(\l\+\(\u\l\+\)\+\)\>': '\=toupper(submatch(1)) . submatch(2)',
