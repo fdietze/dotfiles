@@ -36,6 +36,12 @@ sshforward() {
     LOCALPORT=${3:-$2}
     ssh -NL ${LOCALPORT}:localhost:${REMOTELOCALPORT} ${REMOTEHOST}
 }
+dockerhost() {
+    # export DOCKER_HOST=localhost
+    sshforward $1 2375 &
+}
+
+
 alias hc='herbstclient'
 alias watch='watch -c -d COPE=1 ' # force cope colors, and leave one space to trigger alias expansion in command
 alias w='watch '
