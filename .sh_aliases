@@ -30,9 +30,10 @@ alias vvs="$DOTFILES_GIT vim ~/.vimrc_statusline"
 # unsorted / general
 alias ssh='TERM=xterm-256color ssh'
 sshforward() {
+    # usage: sshforward host remoteport [localport]
     REMOTEHOST=$1
     REMOTELOCALPORT=$2
-    LOCALPORT=$3
+    LOCALPORT=${3:-$2}
     ssh -NL ${LOCALPORT}:localhost:${REMOTELOCALPORT} ${REMOTEHOST}
 }
 alias hc='herbstclient'
