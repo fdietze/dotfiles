@@ -189,8 +189,9 @@ alias gu='git up'
 alias gp='git push'
 alias gpf='git push --force'
 alias gl='git lg'
+alias gla='git lg --all'
 alias gsc='git-select-commit'
-alias gd='git df --no-index'
+alias gdf='git df --no-index'
 alias onstage='git-onstage'
 
 # dotfiles git
