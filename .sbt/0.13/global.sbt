@@ -26,3 +26,5 @@ maxErrors := 4
 
 triggeredMessage in ThisBuild := Watched.clearWhenTriggered
 
+import com.softwaremill.clippy.ClippySbtPlugin._ // needed in global configuration only
+clippyColorsEnabled := true
