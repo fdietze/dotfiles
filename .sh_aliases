@@ -140,11 +140,9 @@ nvim_all_command() {
 
 # file search
 alias lo='locate -i'
-# alias f='ag -i -g'
-# ff() { find . -iname "*$@*"; }
-alias f='ag --follow --smart-case -g'
 alias ag='ag --follow --smart-case'
-alias gg='grep -irn'
+alias f='ag -g'
+alias fa='find . | ag --smart-case'
 alias vag="search-select-edit"
 fo() { xdg-open "$(fzf)" > /dev/null 2>&1; }
 lto() { xdg-open "$(ls -tr1 --group-directories-first | fzf --tac --no-sort)" > /dev/null 2>&1; } # least modified files
