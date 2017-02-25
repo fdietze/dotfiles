@@ -1,7 +1,7 @@
 [[ -e ~/.profile ]] && emulate sh -c 'source ~/.profile'
 
 # color wrappers for common commands
-export PATH=$(cope_path):$PATH
+which cope_path && export PATH=$(cope_path):$PATH
 
 # colorful file listings
 eval $(dircolors ~/.dir_colors)
