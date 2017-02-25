@@ -31,4 +31,4 @@ sbtopts="$sbtopts -Xms32M -Xmx712M -Xss1M -XX:+CMSClassUnloadingEnabled -XX:+Use
 sbtopts="$sbtopts -Dsbt.jse.engineType=Node"
 
 # export _JAVA_OPTIONS=$javaopts
-export SBT_OPTS=$sbtopts
+export SBT_OPTS="$sbtopts"
