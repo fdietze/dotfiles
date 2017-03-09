@@ -29,7 +29,7 @@ hc keybind $Mod-d spawn termitexcwd
 hc keybind $Mod-j spawn dmenu-web
 hc keybind $Mod-y spawn launcher
 
-hc keybind $Mod-Shift-d spawn nmcli_dmenu
+hc keybind $Mod-Shift-d spawn networkmanager_dmenu
 hc keybind $Mod-Shift-z spawn zsh -i -c movietime # alias from .sh_aliases
 hc keybind $Mod-Shift-p spawn zsh -i -c reset-screen # alias from .sh_aliases
 
