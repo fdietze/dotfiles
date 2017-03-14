@@ -193,6 +193,10 @@ alias gla='git lg --all'
 alias gsc='git-select-commit'
 alias gdf='git df --no-index'
 alias onstage='git-onstage'
+# alias gclp='github-clone'
+if [ -n "$ZSH_VERSION" ]; then
+    alias -g GSC='$(gsc)'
+fi
 
 # dotfiles git
 alias ds='d status'
