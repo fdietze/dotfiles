@@ -1,9 +1,3 @@
-" TODO: leave insert mode when losing focus?
-" TODO: remove stuff, thats already in vim-sensible
-" http://chibicode.com/vimrc/
-" http://nvie.com/posts/how-i-boosted-my-vim/
-
-
 " Use Vim settings, rather than Vi settings
 set nocompatible
 
@@ -11,6 +5,9 @@ set nocompatible
 augroup vimrc
     autocmd!
 augroup END
+
+source $HOME/.zgen/dottr/dottr-master/pan.vim
+Fry edit-multiple-files
 
 source $HOME/.vimrc_plugins
 source $HOME/.vimrc_custom
@@ -156,3 +153,4 @@ if ! has('gui_running')
     autocmd FastEscape InsertEnter * set timeoutlen=0
     autocmd FastEscape InsertLeave * set timeoutlen=1000
 endif
+
