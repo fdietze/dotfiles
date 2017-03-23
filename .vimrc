@@ -40,7 +40,7 @@ if has("gui_running")
     set guioptions=aci        " hide toolbars
     set guifont=Inconsolata\ 8
     "set lines=24 columns=80 " Maximize window.
-    set guicursor+=a:blinkon0 "disible blinking
+    set guicursor+=a:blinkon0 "disable blinking
     set guicursor+=i-ci:block-iCursor-blinkon0 "insert mode: block, no blinking, highlight with iCursor
 endif
 
@@ -131,16 +131,14 @@ autocmd vimrc BufNewFile,BufRead *.jad set filetype=java
 au BufWritePre * :Autoformat
 
 " return to last edit position when opening a file.
-" except for git commits: Enter insert mode instead.
 autocmd vimrc BufReadPost *
-            \ if line("'\"") > 0 && line("'\"") <= line("$") |
-            \   if &filetype == 'gitcommit' |
-            \       setlocal spell |
-            \       startinsert |
-            \   else |
-            \      exe "normal! g`\"" |
-            \    endif |
-            \ endif
+\ if line("'\"") > 0 && line("'\"") <= line("$") |
+\   if &filetype == 'gitcommit' |
+\       setlocal spell |
+\   else |
+\      exe "normal! g`\"" |
+\    endif |
+\ endif
 
 
 if has('nvim')
