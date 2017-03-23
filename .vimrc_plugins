@@ -102,7 +102,7 @@ Plug 'shmup/vim-sql-syntax'
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " statusline
 Plug 'itchyny/lightline.vim'
-Plug 'bling/vim-bufferline'
+Plug 'mgee/lightline-bufferline'
 
 
 

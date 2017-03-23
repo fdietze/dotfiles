@@ -6,17 +6,14 @@ set laststatus=2
 set noshowmode
 
 let g:lightline = {
-      \ 'colorscheme': 'solarized',
+      \ 'colorscheme': 'wombat',
       \ 'active': {
-      \   'left': [ [ 'mode' ], [ 'gitbranch', 'syntastic', 'bufferline' ]],
+      \   'left': [ [ 'mode' ], [ 'gitbranch', 'syntastic', 'buffers' ]],
       \   'right': [  ['scrollbar'], [ 'filetype' ] ]
       \ },
       \ 'inactive': {
       \   'left': [ ['filename'] ],
       \   'right': [  ['scrollbar'] ]
-      \ },
-      \ 'component' : {
-      \   'bufferline': '%{bufferline#refresh_status()}%{g:bufferline_status_info.before}%#TabLineSel#%{g:bufferline_status_info.current}%#LightLineLeft_active_1#%{g:bufferline_status_info.after}',
       \ },
       \ 'component_function': {
       \   'gitbranch': 'BarGitBranch',
@@ -25,9 +22,11 @@ let g:lightline = {
       \ },
       \ 'component_expand': {
       \   'syntastic': 'SyntasticStatuslineFlag',
+      \   'buffers' : 'lightline#bufferline#buffers'
       \ },
       \ 'component_type': {
       \   'syntastic': 'error',
+      \   'buffers': 'tabsel'
       \ },
       \ 'separator': { 'left': '', 'right': '' },
       \ 'subseparator': { 'left': '▍', 'right': '▐' }
