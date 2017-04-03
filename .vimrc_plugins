@@ -102,14 +102,14 @@ Plug 'shmup/vim-sql-syntax'
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " statusline
 Plug 'itchyny/lightline.vim'
-Plug 'mgee/lightline-bufferline'
+Plug 'taohex/lightline-buffer'
 
 
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " colorschemes
 Plug 'altercation/vim-colors-solarized'
-" Plug 'chriskempson/base16-vim'
+"Plug 'chriskempson/base16-vim'
 Plug 'morhetz/gruvbox'
 " Plug 'godlygeek/csapprox'
 " Plug 'vim-scripts/guicolorscheme.vim'
