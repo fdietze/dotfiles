@@ -46,12 +46,12 @@ vnoremap Ö <esc>:SudoWrite<CR>gv
 nnoremap <Leader>ö :update<CR>
 nnoremap ä :q<CR>
 vnoremap ä <esc>:q<CR>
-nnoremap Ä :q!<CR>
-vnoremap Ä <esc>:q!<CR>
+" nnoremap Ä :q!<CR>
+" vnoremap Ä <esc>:q!<CR>
 nnoremap ü :bd<CR>
 vnoremap ü <esc>:bd<CR>
-nnoremap Ü :bd!<CR>
-vnoremap Ü <esc>:bd!<CR>
+" nnoremap Ü :bd!<CR>
+" vnoremap Ü <esc>:bd!<CR>
 nnoremap <Leader>ü :BufOnly<CR>
 vnoremap <Leader>ü <esc>:BufOnly<CR>gv
 
