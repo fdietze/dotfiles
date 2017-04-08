@@ -11,9 +11,30 @@
 
 [push]
     default = simple
+    followTags = true
+
+[pull]
+    ff = only
 
 [branch]
     autosetuprebase = always
+
+[merge]
+    ff = only
+    conflictstyle = diff3
+
+[rebase]
+    autoStash = true
+    autoSquash = true
+
+[status]
+    showUntrackedFiles = all
+
+[transfer]
+    fsckobjects = true
+
+[diff]
+    algorithm = histogram
 
 [alias]
     st = status
@@ -32,20 +53,20 @@
     lg = fry one-line-log-colors
     df  = fry word-based-diff
     dfs  = fry word-based-diff --staged
-    diff = diff --irreversible-delete --find-copies-harder --find-copies --ignore-space-at-eol --ignore-space-change --ignore-all-space
-    diffs = diff --irreversible-delete --find-copies-harder --find-copies --ignore-space-at-eol --ignore-space-change --ignore-all-space
+    diff = diff --irreversible-delete --find-copies  --find-copies-harder --ignore-space-at-eol --ignore-space-change --ignore-all-space
+    diffs = diff --irreversible-delete --find-copies  --find-copies-harder --ignore-space-at-eol --ignore-space-change --ignore-all-space --staged
     p = push
-    pf = push --force
-    peng = push --force
-    up = pull --rebase --autostash
+    pf = push --force-with-lease
+    peng = push --force-with-lease
+    up = pull
     po = "!git push --set-upstream origin \"$(git rev-parse --abbrev-ref HEAD)\"" # push current branch to origin
     dbr = "!f() { git branch -D $1; git push origin :$1;}; f" # delete local and remote branch
+    prune = fetch --prune # remove old branches
     dtag = "!f() { git tag -d $1; git push origin :$1;}; f" # delete local and remote tag
     wip = "!git add -A; git commit --message='wip'"
     wipbr = "!f() { git cob $1; git wip; git po;}; f" # push current branch to origin
 
-    ss = stash save
-    ssu = stash save --include-untracked
+    ss = stash save --include-untracked
     sp = stash pop
 
     rba = rebase --abort
@@ -76,9 +97,6 @@
     added = green
     changed = yellow
     untracked = blue
-
-[merge]
-    tool = meld
 
 [tig]
     vertical-split = true
