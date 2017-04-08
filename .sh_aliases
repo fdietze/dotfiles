@@ -187,7 +187,7 @@ alias g='git'
 alias gs='git status'
 alias gu='git up'
 alias gp='git push'
-alias gpf='git push --force'
+alias gpf='git push --force-with-lease'
 alias gl='git lg'
 alias gla='git lg --all'
 alias gsc='git-select-commit'
@@ -195,7 +195,8 @@ alias gdf='git df --no-index'
 alias onstage='git-onstage'
 # alias gclp='github-clone'
 if [ -n "$ZSH_VERSION" ]; then
-    alias -g GSC='$(gsc)'
+    alias -g GSC='$(git-select-commit)'
+    alias -g GSD='$(git-select-dirty-files)'
 fi
 
 # dotfiles git
