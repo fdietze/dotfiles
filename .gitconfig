@@ -43,7 +43,7 @@
     verbose = true
 
 [apply]
-    ignoreWhitespace = true # do not produce whitespace conflicts
+    ignoreWhitespace = change # do not produce whitespace conflicts
 
 [alias]
     st = status
