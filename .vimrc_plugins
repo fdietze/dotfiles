@@ -217,6 +217,7 @@ let g:goyo_margin_bottom = 3
 
 " commentary
 autocmd FileType sql setlocal commentstring=--\ %s
+autocmd FileType cypher setlocal commentstring=//\ %s
 
 
 " gitgutter and signify
