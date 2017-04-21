@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 trayer_width=60
 if grep -q "dark" ~/.colors
 then # dark
