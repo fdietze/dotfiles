@@ -32,7 +32,7 @@
     showUntrackedFiles = all
 
 [transfer]
-    fsckobjects = true
+    ; fsckobjects = true
 
 [diff]
     algorithm = histogram
