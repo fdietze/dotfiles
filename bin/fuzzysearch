@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # uses tre-agrep for fuzzy search
 dir=$1
 shift 1
