@@ -93,8 +93,8 @@ bind2maps emacs viins vicmd -- "Down" down-line-or-search
 [ -r /etc/profile.d/cnf.sh ] && . /etc/profile.d/cnf.sh
 
 # fzf fuzzy file matcher shell extensions
-. /usr/share/fzf/completion.zsh
-. /usr/share/fzf/key-bindings.zsh
+. $HOME/.vim/bundle/fzf/shell/completion.zsh
+. $HOME/.vim/bundle/fzf/shell/key-bindings.zsh
 
 source ~/.sh_aliases
 
