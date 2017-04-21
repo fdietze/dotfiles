@@ -72,7 +72,7 @@ set nostartofline                 " keep column position when switching buffers
 
 " behavior
 set hidden                        " switch from unsaved buffers
-set shell=/bin/zsh
+set shell=zsh
 set encoding=utf-8
 set history=10000                 " keep x lines of command line history
 set showcmd                       " display incomplete commands
