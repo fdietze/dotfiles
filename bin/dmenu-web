@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 if [ $(cat $HOME/.colors) = "dark" ]; then
     style='-fn "Droid Sans Mono-8" -nb "#121212" -nf "#EFEFEF" -sb "#121212" -sf "#EFEFEF"'
 else

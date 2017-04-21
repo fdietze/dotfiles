@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # sflock -c ' ' -f "-*-Droid Sans Mono-*-*-*-*-16-*-*-*-*-*-*-*"
 # sflock -c ' ' -h -f "-*-Droid Sans Mono-*-*-*-*-20-*-*-*-*-*-*-*"
 i3lock --color=EEEEEE --nofork &
