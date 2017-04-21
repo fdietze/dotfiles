@@ -239,11 +239,12 @@ cgw() {
 }
 
 sbt() { (
+
     # TODO: search tree upwards for build.sbt
     if [ ! -f build.sbt ]; then
         cd-git-root
     fi
-    env sbt -Dscala.color $@
+    env sbt $@
     )
 }
 
