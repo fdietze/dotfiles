@@ -75,7 +75,8 @@
     wip = "!git add -A; git commit --message='wip'"
     wipbr = "!f() { git cob $1; git wip; git po;}; f" # push current branch to origin
 
-    ss = stash save --include-untracked
+    ss = stash save
+    ssu = stash save --include-untracked
     sp = stash pop
 
     rba = rebase --abort
