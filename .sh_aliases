@@ -177,7 +177,7 @@ alias cdt='cd-tmp'
 alias cdg='cd-git-root'
 p() { cd ~/projects/"$(ls -t ~/projects | fzf --query="$(echo $@ | tr ' ' '\ ' )")";}
 alias pp='cd ~/projects/$(ls -t ~/projects | head -1)'
-alias vm='git-dirty-files-command vim'
+alias vm='vim $(git-select-dirty-files)'
 
 # start X
 alias sx='startx'
