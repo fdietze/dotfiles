@@ -43,7 +43,7 @@ endif
 " display
 set cursorline                    " highlight current line
 set number                        " enable line numbers
-set relativenumber                " show relative numbers for all lines but the current one
+" set relativenumber                " show relative numbers for all lines but the current one
 set ruler                         " show the cursor position all the time
 set incsearch                     " do incremental searching
 set ignorecase                    " smart case sensitive search
@@ -128,6 +128,7 @@ au BufWritePre * call AutoformatFixedUndo()
 
 function! AutoformatFixedUndo()
     " inspired by http://vim.wikia.com/wiki/Restore_the_cursor_position_after_undoing_text_change_made_by_a_script
+    " "_x deletes char without putting x into the yank register
     :normal ix
     :normal "_x
     :Autoformat
