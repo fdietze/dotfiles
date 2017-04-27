@@ -17,6 +17,9 @@
     ff = only
     rebase = true
 
+[fetch]
+    prune = true # remove old branches on fetch
+
 [branch]
     autosetuprebase = always
 
