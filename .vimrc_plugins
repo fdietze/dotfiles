@@ -96,6 +96,7 @@ Plug 'LaTeX-Box-Team/LaTeX-Box', {'for': 'tex'} " LaTeX
 Plug 'vim-scripts/gnuplot.vim', {'for': 'gnuplot'}
 Plug 'gorodinskiy/vim-coloresque' " Preview colors in css
 Plug 'shmup/vim-sql-syntax'
+Plug 'LnL7/vim-nix' " nixos syntax
 
 
 
