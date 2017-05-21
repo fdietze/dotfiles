@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-ng scalariform.commandline.Main --stdin
+ng scalariform.commandline.Main -f -q +alignParameters +alignSingleLineCaseStatements +preserveSpaceBeforeArguments -danglingCloseParenthesis=Force --stdin --stdout
