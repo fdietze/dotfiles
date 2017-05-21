@@ -1,2 +1,2 @@
-#!/bin/bash
+#!/usr/bin/env bash
 ng-server $HOME/local/scalariform/cli/target/scala-2.11/cli-assembly-0.2.0-SNAPSHOT.jar
