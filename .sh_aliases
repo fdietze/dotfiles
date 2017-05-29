@@ -48,7 +48,7 @@ dockerhost() {
 alias hc='herbstclient'
 alias watch='watch -c -d COPE=1 ' # force cope colors, and leave one space to trigger alias expansion in command
 alias w='watch '
-alias on='ping -c 1 8.8.8.8 && ping -c 1 google.com'
+alias on='ping -c 1 8.8.8.8 -W 5 && ping -c 1 google.com -W 5' # -W timout
 alias hd='hexdump -C'
 alias fucking='sudo'
 alias speakerup='amixer -c 0 sset Speaker 100%'
