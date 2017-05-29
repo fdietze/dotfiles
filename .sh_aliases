@@ -145,8 +145,8 @@ alias ag='ag --follow --smart-case'
 alias f='ag -g'
 alias fa='find . | ag --smart-case'
 alias vag="search-select-edit"
-fo() { xdg-open "$(fzf)" > /dev/null 2>&1; }
-lto() { xdg-open "$(ls -tr1 --group-directories-first | fzf --tac --no-sort)" > /dev/null 2>&1; } # least modified files
+fo() { gio open "$(fzf)" > /dev/null 2>&1; }
+lto() { gio open "$(ls -tr1 --group-directories-first | fzf --tac --no-sort)" > /dev/null 2>&1; } # least modified files
 s() {
     # interactively select a line from stdin and execute command
     # example usage: find /var/log/Xorg* | s less
@@ -167,7 +167,7 @@ alias mvi='interactive-mv'
 alias mcp='noglob zmv -C -W'
 alias mln='noglob zmv -L -W'
 alias mmv='noglob zmv -W'
-o() { xdg-open $@ > /dev/null 2>&1; }
+o() { gio open $@ > /dev/null 2>&1; }
 
 # change directories
 alias cdd='cd ~/downloads'
