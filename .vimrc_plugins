@@ -15,7 +15,7 @@ Plug 'tpope/vim-sensible'     " defaults everyone can agree on
 Plug 'tpope/vim-repeat'       " enable dot-command for Plugins
 " Plug 'zhaocai/GoldenView.Vim' " enlarge focused window
 Plug 'vim-scripts/matchit.zip'     " matches not only parantheses, but also HTML-Tags and more
-Plug 'Valloric/YouCompleteMe', { 'do': './install.py --clang-completer --gocode-completer --racer-completer --tern-completer' } " fuzzy autocompletion
+Plug 'Valloric/YouCompleteMe', { 'do': './install.py' } " fuzzy autocompletion
 " https://github.com/rdnetto/YCM-Generator
 " Plug 'kshenoy/vim-signature' " display and navigate marks
 " Plug 'henrik/vim-indexed-search' " show 'Match x of y' when searching (conflicts with incsearch)
