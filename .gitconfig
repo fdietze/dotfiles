@@ -70,6 +70,7 @@
     p = push
     pf = push --force-with-lease
     peng = push --force-with-lease
+    wupp = push
     up = pull
     po = "!git push --set-upstream origin \"$(git rev-parse --abbrev-ref HEAD)\"" # push current branch to origin
     dbr = "!f() { git branch -D $1; git push origin :$1;}; f" # delete local and remote branch
