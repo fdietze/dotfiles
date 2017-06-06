@@ -70,29 +70,35 @@
   # $ nix-env -qaP | grep wget
   environment = {
     systemPackages = with pkgs; [
-      wget pv htop atop git netcat xorg.xkill psmisc lm_sensors calc tree gparted gksu scrot
-      evince
-      neovim python35Packages.neovim python27Packages.neovim python
-      fzf silver-searcher tig xclip tmate pmount nix-zsh-completions
-      termite keepassx-community unclutter-xfixes numix-gtk-theme redshift nitrogen
+      wget pv htop atop git netcat xorg.xkill psmisc lm_sensors calc tree gparted gksu ntfs3g
+      fzf silver-searcher tig xclip tmate pmount scrot nix-zsh-completions haskellPackages.yeganesh
+      termite keepassx-community numix-gtk-theme nitrogen redshift unclutter-xfixes # cope
       dzen2 dmenu conky lua lua51Packages.luafilesystem trayer polybar # panel
       chromium firefox
       jdk scala sbt maven visualvm
       gnumake cmake clang gcc autoconf automake
       nodejs yarn
       docker docker_compose
-      rustNightly.rustc rustNightly.cargo
+      rustBeta.rustc rustBeta.cargo
       nim
       texlive.combined.scheme-full
-      ntfs3g
+      
 
-      spotify mpv vlc playerctl pamixer
-      imv
+      neovim
+      python2
+      python27Packages.neovim # ensime
+      python27Packages.websocket_client # ensime
+      python27Packages.sexpdata # ensime
+      python3
+      python35Packages.neovim
 
-      bruteforce-luks
-      haskellPackages.yeganesh
-      gnome3.gvfs
-      gnome3.nautilus
+      mosh
+
+      evince
+      spotify mpv vlc playerctl pamixer imv
+
+      
+      gnome3.nautilus gnome3.gvfs 
     ];
 
     shellAliases = {
@@ -132,14 +138,7 @@
       };
     };
 
-    # Open ports in the firewall.
-    # networking.firewall.allowedTCPPorts = [ ... ];
-    # networking.firewall.allowedUDPPorts = [ ... ];
-    # Or disable the firewall altogether.
-    # networking.firewall.enable = false;
-
-    # Enable CUPS to print documents.
-    # services.printing.enable = true;
+    networking.firewall.allowedUDPPortRanges = [ { from = 60000; to = 61000; } ]; # for mosh
 
     hardware.opengl.driSupport32Bit = true;
     services = {
@@ -154,7 +153,17 @@
         layout = "de,de";
         xkbVariant = "neo,basic";
         xkbOptions = "grp:menu_toggle";
+        displayManager.lightdm.enable = true;
+        windowManager.herbstluftwm.enable = true;
       };
+      compton.enable = true;
+      redshift = {
+        enable = true;
+        latitude = "50.77";
+        longitude = "6.08";
+      };
+      # unclutter-xfixes.enable = true; # not working?
+
 
       syncthing = {
         enable = true;
@@ -178,22 +187,17 @@
       fonts = with pkgs; [
         corefonts
         dejavu_fonts
-        opensans-ttf
+        # opensans-ttf
+        symbola # many unicode symbols
         ubuntu_font_family
         inconsolata
         font-droid # needed for firefox
+        siji # polybar icon font
       ];
       fontconfig = {
-        # dpi = 227;
+        includeUserConf = false;
         defaultFonts.monospace = [ "Inconsolata" "DejaVu Sans Mono" ];
       };
-    };
-
-    services.xserver.windowManager.herbstluftwm.enable = true;
-    services.redshift = {
-      enable = true;
-      latitude = "50.77";
-      longitude = "6.08";
     };
 
     virtualisation.virtualbox.host.enable = true;
