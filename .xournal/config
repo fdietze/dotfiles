@@ -1,0 +1,143 @@
+# Xournal configuration file.
+# This file is generated automatically upon saving preferences.
+# Use caution when editing this file manually.
+#
+
+[general]
+# the display resolution, in pixels per inch
+display_dpi=106.00
+# the initial zoom level, in percent
+initial_zoom=100.00
+# maximize the window at startup (true/false)
+window_maximize=true
+# start in full screen mode (true/false)
+window_fullscreen=false
+# the window width in pixels (when not maximized)
+window_width=720
+# the window height in pixels
+window_height=480
+# scrollbar step increment (in pixels)
+scrollbar_speed=30
+# the step increment in the zoom dialog box
+zoom_dialog_increment=1
+# the multiplicative factor for zoom in/out
+zoom_step_factor=1.500
+# document view (true = continuous, false = single page)
+view_continuous=true
+# use XInput extensions (true/false)
+use_xinput=true
+# discard Core Pointer events in XInput mode (true/false)
+discard_corepointer=false
+# always map eraser tip to eraser (true/false)
+use_erasertip=true
+# default path for open/save (leave blank for current directory)
+default_path=/home/felix/daten/docs/Notes
+# use pressure sensitivity to control pen stroke width (true/false)
+pressure_sensitivity=true
+# minimum width multiplier
+width_minimum_multiplier=0.00
+# maximum width multiplier
+width_maximum_multiplier=1.25
+# interface components from top to bottom
+# valid values: drawarea menu main_toolbar pen_toolbar statusbar
+interface_order=menu main_toolbar pen_toolbar drawarea statusbar
+# interface components in fullscreen mode, from top to bottom
+interface_fullscreen=main_toolbar pen_toolbar drawarea
+# interface has left-handed scrollbar (true/false)
+interface_lefthanded=false
+# hide some unwanted menu or toolbar items (true/false)
+shorten_menus=false
+# interface items to hide (customize at your own risk!)
+# see source file xo-interface.c for a list of item names
+shorten_menu_items=optionsAntialiasBG optionsProgressiveBG optionsLeftHanded
+# highlighter opacity (0 to 1, default 0.5)
+# warning: opacity level is not saved in xoj files!
+highlighter_opacity=0.50
+# auto-save preferences on exit (true/false)
+autosave_prefs=false
+
+[paper]
+# the default page width, in points (1/72 in)
+width=595.27
+# the default page height, in points (1/72 in)
+height=841.89
+# the default paper color
+color=white
+# the default paper style (plain, lined, ruled, or graph)
+style=graph
+# apply paper style changes to all pages (true/false)
+apply_all=true
+# preferred unit (cm, in, px, pt)
+default_unit=cm
+# include paper ruling when printing or exporting to PDF (true/false)
+print_ruling=true
+# antialiased bitmap backgrounds (true/false)
+antialias_bg=true
+# progressive scaling of bitmap backgrounds (true/false)
+progressive_bg=true
+# bitmap resolution of PS/PDF backgrounds rendered using ghostscript (dpi)
+gs_bitmap_dpi=144
+# bitmap resolution of PDF backgrounds when printing with libgnomeprint (dpi)
+pdftoppm_printing_dpi=150
+
+[tools]
+# selected tool at startup (pen, eraser, highlighter, selectrect, vertspace, hand)
+startup_tool=pen
+# default pen color
+pen_color=black
+# default pen thickness (fine = 1, medium = 2, thick = 3)
+pen_thickness=2
+# default pen is in ruler mode (true/false)
+pen_ruler=false
+# default pen is in shape recognizer mode (true/false)
+pen_recognizer=false
+# default eraser thickness (fine = 1, medium = 2, thick = 3)
+eraser_thickness=2
+# default eraser mode (standard = 0, whiteout = 1, strokes = 2)
+eraser_mode=2
+# default highlighter color
+highlighter_color=yellow
+# default highlighter thickness (fine = 1, medium = 2, thick = 3)
+highlighter_thickness=2
+# default highlighter is in ruler mode (true/false)
+highlighter_ruler=false
+# default highlighter is in shape recognizer mode (true/false)
+highlighter_recognizer=false
+# button 2 tool (pen, eraser, highlighter, text, selectrect, vertspace, hand)
+btn2_tool=pen
+# button 2 brush linked to primary brush (true/false) (overrides all other settings)
+btn2_linked=true
+# button 2 brush color (for pen or highlighter only)
+btn2_color=black
+# button 2 brush thickness (pen, eraser, or highlighter only)
+btn2_thickness=2
+# button 2 ruler mode (true/false) (for pen or highlighter only)
+btn2_ruler=false
+# button 2 shape recognizer mode (true/false) (pen or highlighter only)
+btn2_recognizer=false
+# button 2 eraser mode (eraser only)
+btn2_erasermode=2
+# button 3 tool (pen, eraser, highlighter, text, selectrect, vertspace, hand)
+btn3_tool=selectrect
+# button 3 brush linked to primary brush (true/false) (overrides all other settings)
+btn3_linked=true
+# button 3 brush color (for pen or highlighter only)
+btn3_color=white
+# button 3 brush thickness (pen, eraser, or highlighter only)
+btn3_thickness=0
+# button 3 ruler mode (true/false) (for pen or highlighter only)
+btn3_ruler=false
+# button 3 shape recognizer mode (true/false) (pen or highlighter only)
+btn3_recognizer=false
+# button 3 eraser mode (eraser only)
+btn3_erasermode=2
+# thickness of the various pens (in points, 1 pt = 1/72 in)
+pen_thicknesses=0.42;0.85;1.41;2.26;5.67
+# thickness of the various erasers (in points, 1 pt = 1/72 in)
+eraser_thicknesses=2.83;8.50;19.84
+# thickness of the various highlighters (in points, 1 pt = 1/72 in)
+highlighter_thicknesses=2.83;8.50;19.84
+# name of the default font
+default_font=Sans
+# default font size
+default_font_size=12.0
