@@ -71,7 +71,7 @@
   environment = {
     systemPackages = with pkgs; [
       wget pv htop atop git netcat xorg.xkill psmisc lm_sensors calc tree gparted gksu ntfs3g
-      fzf silver-searcher tig xclip tmate pmount scrot nix-zsh-completions haskellPackages.yeganesh
+      fzf silver-searcher tig ctags xclip tmate pmount scrot nix-zsh-completions haskellPackages.yeganesh
       termite keepassx-community numix-gtk-theme nitrogen redshift unclutter-xfixes # cope
       dzen2 dmenu conky lua lua51Packages.luafilesystem trayer polybar # panel
       chromium firefox
@@ -79,9 +79,10 @@
       gnumake cmake clang gcc autoconf automake
       nodejs yarn
       docker docker_compose
-      rustBeta.rustc rustBeta.cargo
+      # rust.rustc rust.cargo
       nim
       texlive.combined.scheme-full
+      biber
       
 
       neovim
@@ -94,8 +95,9 @@
 
       mosh
 
-      evince
-      spotify mpv vlc playerctl pamixer imv
+      evince inkscape gimp
+      # spotify
+      mpv vlc playerctl pamixer imv
 
       
       gnome3.nautilus gnome3.gvfs 
@@ -114,8 +116,8 @@
       };
     };
 
-    nix.maxJobs = 32;
-    nix.buildCores = 24;
+    nix.maxJobs = 16;
+    nix.buildCores = 16;
 
     nix.gc.automatic = true;
     nix.gc.dates = "01:15";
@@ -147,6 +149,11 @@
         passwordAuthentication = false;
       };
 
+      printing = {
+        enable = true;
+        drivers = [ pkgs.hplip ];
+      };
+
       xserver = {
         enable = true;
         videoDrivers = [ "nvidia" ];
@@ -156,7 +163,7 @@
         displayManager.lightdm.enable = true;
         windowManager.herbstluftwm.enable = true;
       };
-      compton.enable = true;
+      # compton.enable = true;
       redshift = {
         enable = true;
         latitude = "50.77";
@@ -175,6 +182,15 @@
         enable = true;
         interval = "22:00";
       };
+
+      psd = {
+        enable = true;
+        users = ["felix" "jelias"];
+      };
+
+      upower.enable  = true;
+      gnome3.gvfs.enable  = true;
+      udisks2.enable = true;
 
       # ipfs = {
       #   enable = true;
@@ -211,7 +227,17 @@
       useDefaultShell = true;
       openssh.authorizedKeys.keys = [
         "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDU3dAvm/F8DksvT2fQ1804/ScajO20OxadixGD8lAPINLbCj7mRpLJmgnVjdJSSHQpaJXsDHjLul4Z4nuvgcOG2cjtI+/Z2d1AC+j5IDTJNs6yGgyzkRalPYWXKpzrOa/yQcVpJyGsliKyPuyc9puLJIQ0vvosVAUxN6TLMfnrgdtnZMsuQecToJ8AgyEgsGedOnYC2/1ELUJEdh2v2LMr2saWJW/HTptTotbS8Fwz+QWZPAxXWlEbH5r5LEma3xpn/7oiE4JKr7DL7bE4jWVgW0yrOZL0EAVm771oigqcS/ekTqLutVoFmcH0ysInsWKjnuT02+PIjDJdGODwlE5P felix@beef"
-        # "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDEgFHPfX2zAgJvTYxRN9/M5rRyR2G3MKA7ZDA6qGTYX7eH7qIvBN1krGe+A6PVf2WOlftDQru0Ws3YWgLUfbzXdB5esshvjO1MtkwlwBi6EO7scDDTkcxswQLcpa10fUdkwlqeaPes8oxsA1RMoaYiVx2l+JAXsNhzchCOLkcve6zr8vA5RcWIqd4E9Z0ZJewghJgPSpthdaV8/dJY1Xumz43dbDvJVAs92YiZiaBkMIJeH+sWhhWL1YuQ/WtgtTh+s32DtkCmvyffbs4/5sE+yhZwHcbZcDZ77WVw7EmzNNfGBbS4ABK+T355qSGwbToOiWN2e/ZFKrucSpbCTZgH cornerman@genius"
+        "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDEgFHPfX2zAgJvTYxRN9/M5rRyR2G3MKA7ZDA6qGTYX7eH7qIvBN1krGe+A6PVf2WOlftDQru0Ws3YWgLUfbzXdB5esshvjO1MtkwlwBi6EO7scDDTkcxswQLcpa10fUdkwlqeaPes8oxsA1RMoaYiVx2l+JAXsNhzchCOLkcve6zr8vA5RcWIqd4E9Z0ZJewghJgPSpthdaV8/dJY1Xumz43dbDvJVAs92YiZiaBkMIJeH+sWhhWL1YuQ/WtgtTh+s32DtkCmvyffbs4/5sE+yhZwHcbZcDZ77WVw7EmzNNfGBbS4ABK+T355qSGwbToOiWN2e/ZFKrucSpbCTZgH cornerman@genius"
+        "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCuuJUpJb/RaaGtng74AwZngADO5tDBUoDj4gfnDl1C2E6jpzF4iZtIhiSzqKxvmPWYGhsQrdptRH1sQqRaTEODhCThDJ4Z0CkiVk7oVVNM+qD+Z6RMsxRda/aHqnqQuarK3kVhoWQJNj1gjyk9aHmg1Cx0LCpGscH7CPv7H1+qBbwxOgzDYeHP773Lc1tmXicMKGZopfBEgDYVgApnuDU2A9nljAMndBqNS6D3xi0eCaPynESMAHfcZakNuhglsEw8Vmzq3ug0POy1xgWvyBl1KF+XZF/IFmSVRr4wBjW3r0qKdaOZ/0ZLKG5eSHoD+Pkr/x5cTsUWIJlZGJelamNr9X+291Msps6iGXlgY6UncnCqGSJxMXB0JHboXYl1XkX4DjChQg9fL6Qij3HsDHj5JFbP4NGzKirVBmppYB8EKboXCi3BGepPPuNRl965Yx9R8yGoP4daoKVZ63kRxM3k4wQMPS2mBfIrK3kjk5JmAeUxaE9geZS1uey77LFBD9rEx7qQ+afnmhxREARCtIPSZt+onqxOarEJkby6MXZpbCpvD6hk+D0rK7gSixw0YTzUXcwPTWrCVKwViEYN7MjlkvUzXKEiWrwai+AvBX0GdN460vrvSNQttRkYzdr1OFhPAkugsRr+Lff2SYnPmG5jX1cVt5A1dgEOdPinzx/mMQ== felix@neptun"
+      ];
+    };
+
+    users.extraUsers.jelias = {
+      isNormalUser = true;
+      extraGroups = ["wheel" "vboxusers" "docker"];
+      useDefaultShell = true;
+      openssh.authorizedKeys.keys = [
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM+BIE+0anEEYK0fBIEpjedblyGW0UnuYBCDtjZ5NW6P jelias@merkur"
       ];
     };
   }
