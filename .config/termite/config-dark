@@ -36,46 +36,46 @@ cursor_shape = block
 # set size hints for the window
 #size_hints = false
 
-[colors]
 # http://terminal.sexy/#GBgY5ubmGBgY-EafgOBR-J8rL5P4oGDmQt2P2traRlRX-luqqvpb-qpbW6r6qlv6W_qq____ (own)
 # http://terminal.sexy/#ACs2g5SWBzZC3DIvhZkAtYkAJovS0zaCKqGY7ujVACs2y0sWWG51ZXuDg5SWbHHEk6Gh_fbj (solarized)
 
-# special
-foreground      = #839496
-foreground_bold = #839496
-cursor          = #839496
-background      = #002b36
+[colors]
+# hard contrast: background = #1d2021
+background = #282828
+# soft contrast: background = #32302f
+foreground = #ebdbb2
+foreground_bold = #ebdbb2
 
-# black
-color0  = #073642
-color8  = #002b36
+# dark0 + gray
+color0 = #282828
+color8 = #928374
 
-# red
-color1  = #dc322f
-color9  = #cb4b16
+# neutral_red + bright_red
+color1 = #cc241d
+color9 = #fb4934
 
-# green
-color2  = #859900
-color10 = #586e75
+# neutral_green + bright_green
+color2 = #98971a
+color10 = #b8bb26
 
-# yellow
-color3  = #b58900
-color11 = #657b83
+# neutral_yellow + bright_yellow
+color3 = #d79921
+color11 = #fabd2f
 
-# blue
-color4  = #268bd2
-color12 = #839496
+# neutral_blue + bright_blue
+color4 = #458588
+color12 = #83a598
 
-# magenta
-color5  = #d33682
-color13 = #6c71c4
+# neutral_purple + bright_purple
+color5 = #b16286
+color13 = #d3869b
 
-# cyan
-color6  = #2aa198
-color14 = #93a1a1
+# neutral_aqua + faded_aqua
+color6 = #689d6a
+color14 = #8ec07c
 
-# white
-color7  = #eee8d5
-color15 = #fdf6e3
+# light4 + light1
+color7 = #a89984
+color15 = #ebdbb2
 
 # vim: ft=dosini cms=#%s
