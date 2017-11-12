@@ -79,13 +79,14 @@
   # $ nix-env -qaP | grep wget
   environment = {
     systemPackages = with pkgs; [
-      wget pv htop atop git netcat nmap xorg.xkill psmisc lm_sensors calc tree gparted gksu ntfs3g inotify-tools
+      wget pv htop atop git netcat nmap xorg.xkill psmisc lm_sensors calc tree gparted gksu ntfs3g inotify-tools unzip
       ncdu fzf fasd silver-searcher tig ctags xclip tmate pmount scrot nix-zsh-completions haskellPackages.yeganesh
-      termite keepassx-community numix-gtk-theme nitrogen unclutter-xfixes # cope
+      termite numix-gtk-theme nitrogen unclutter-xfixes grc #cope
       dzen2 dmenu rofi conky lua lua51Packages.luafilesystem trayer polybar # panel
       chromium firefox
       jdk scala sbt maven visualvm
       gnumake cmake clang gcc autoconf automake
+      meld
       nodejs yarn
       docker docker_compose
       # rust.rustc rust.cargo
@@ -94,6 +95,7 @@
       biber
 
       boost
+      wine winetricks mono
 
       libreoffice-fresh hunspell hunspellDicts.en-us languagetool mythes
       samba cifs-utils
@@ -109,13 +111,15 @@
       mosh
 
       mate.atril inkscape gimp
-      spotify
+      # spotify
       sane-frontends
       mpv vlc playerctl pamixer imv
 
       vulkan-loader
 
+      shared_mime_info # file-type associations?
 
+      gnome3.dconf # needed for meld
       gnome3.nautilus gnome3.gvfs
       gnome3.gnome_keyring gnome3.seahorse libsecret
     ];
@@ -147,6 +151,7 @@
 
   programs.zsh.enable = true;
   programs.zsh.enableCompletion = true;
+  programs.command-not-found.enable = true;
   users.defaultUserShell = "/run/current-system/sw/bin/zsh";
 
   security = {
@@ -193,7 +198,7 @@
 
     printing = {
       enable = true;
-      drivers = [ pkgs.hplip pkgs.epson-escpr ];
+      drivers = [ pkgs.gutenprint pkgs.hplip pkgs.epson-escpr ];
     };
 
     xserver = {
