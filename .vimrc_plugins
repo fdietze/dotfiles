@@ -47,6 +47,7 @@ Plug 'kana/vim-textobj-indent'         " i
 Plug 'whatyouhide/vim-textobj-xmlattr' " x
 Plug 'glts/vim-textobj-comment'        " c
 Plug 'kana/vim-textobj-function'       " f
+Plug 'kana/vim-textobj-entire'         " e
 Plug 'PeterRincker/vim-argumentative' " text object ',' / also provides argument movements with >, ],
 
 
@@ -83,7 +84,7 @@ Plug 'derekwyatt/vim-scala', {'for': 'scala'} " Scala programming language
 " Plug 'ensime/ensime-vim'
 " Plug 'gre/play2vim' " play web framework
 Plug 'othree/html5.vim', {'for': 'html'} " HTML
-Plug 'mattn/emmet-vim', {'for': 'html'} " generate HTML with CSS selectors
+" Plug 'mattn/emmet-vim', {'for': 'html'} " generate HTML with CSS selectors
 Plug 'Valloric/MatchTagAlways', {'for': 'html'} " Highlight matching/surrounding html tags
 Plug 'othree/yajs.vim', {'for': 'javascript'} " New JavaScript Standard Ecmascript 6
 Plug 'othree/javascript-libraries-syntax.vim', {'for': 'javascript'}
@@ -109,7 +110,7 @@ Plug 'taohex/lightline-buffer'
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " colorschemes
-Plug 'altercation/vim-colors-solarized'
+"Plug 'altercation/vim-colors-solarized'
 "Plug 'chriskempson/base16-vim'
 Plug 'morhetz/gruvbox'
 " Plug 'godlygeek/csapprox'

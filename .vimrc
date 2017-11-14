@@ -124,7 +124,7 @@ autocmd vimrc BufNewFile,BufRead *.gdb set filetype=sh
 autocmd vimrc BufNewFile,BufRead *.jad set filetype=java
 
 " on save, autoformat - also removes trailing spaces
-au BufWritePre * call AutoformatFixedUndo()
+" au BufWritePre * call AutoformatFixedUndo()
 
 function! AutoformatFixedUndo()
     " inspired by http://vim.wikia.com/wiki/Restore_the_cursor_position_after_undoing_text_change_made_by_a_script
