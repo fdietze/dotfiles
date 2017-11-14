@@ -26,6 +26,7 @@
 [merge]
     ff = only
     conflictstyle = diff3
+    ignore-space-change = true
 
 [rebase]
     autoStash = true
@@ -72,6 +73,7 @@
     peng = push --force-with-lease
     wupp = push
     up = pull
+    fa = fetch --all
     po = "!git push --set-upstream origin \"$(git rev-parse --abbrev-ref HEAD)\"" # push current branch to origin
     dbr = "!f() { git branch -D $1; git push origin :$1;}; f" # delete local and remote branch
     prune = fetch --prune # remove old branches
@@ -83,11 +85,13 @@
     ssu = stash save --include-untracked
     sp = stash pop
 
+    rb = rebase
     rba = rebase --abort
     rbs = rebase --skip
     rbc = rebase --continue
     rbi = rebase -i
 
+    m = merge
     mra = merge --abort
     mrs = merge --skip
     mrc = merge --continue
