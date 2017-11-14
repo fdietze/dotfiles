@@ -45,8 +45,8 @@ hc keybind XF86AudioLowerVolume  chain , spawn pulseaudio-ctl down , emit_hook p
 hc keybind XF86AudioRaiseVolume  chain , spawn pulseaudio-ctl up   , emit_hook panel_refresh
 
 mkdir -p $HOME/screenshots
-hc keybind Print                 spawn scrot 'screenshots/%Y-%m-%d_$wx$h.png'
-hc keybind $Mod+Print           spawn scrot 'screenshots/%Y-%m-%d_$wx$h.png' --focused
+hc keybind Print                 spawn scrot 'screenshots/%Y-%m-%d_%H-%M-%S_$wx$h.png'
+hc keybind $Mod+Print           spawn scrot 'screenshots/%Y-%m-%d_%H-%M-%S_$wx$h.png' --focused
 
 # adjust volume
 hc keybind $Mod-Ctrl-h chain , spawn pulseaudio-ctl up   , emit_hook panel_refresh
@@ -134,7 +134,7 @@ for i in ${!tag_names[@]} ; do
     key="${tag_keys[$i]}"
     if ! [ -z "$key" ] ; then
         hc keybind "$Mod-$key" use_index "$i"
-        hc keybind "$Mod-Shift-$key" chain , move_index "$i" , use_index $i
+        hc keybind "$Mod-Shift-$key" chain , move_index "$i" , use_index "$i"
         hc keybind "$Mod-Shift-Ctrl-$key" move_index "$i"
     fi
 done
