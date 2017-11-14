@@ -145,6 +145,7 @@ alias ag='ag --follow --smart-case'
 alias f='ag -g'
 alias fa='find . | ag --smart-case'
 alias vag="search-select-edit"
+alias conflicts="vag ======="
 s() {
     # interactively select a line from stdin and execute command
     # example usage: find /var/log/Xorg* | s less
