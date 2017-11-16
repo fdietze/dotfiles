@@ -5,7 +5,7 @@ else
     style='-fn "Droid Sans Mono-8" -nb "#FFFFFF" -nf "#000000" -sb "#00D7FF" -sf "#101010"'
 fi
 
-command=$(bash -c "yeganesh -x -- -i $style || dmenu_run -i $style")
+command=$(bash -c "yeganesh -x -- -i $style || dmenu_path | dmenu -i $style")
 
 # launch interactive zsh, to expand aliases
 exec zsh -i -c "$command"
