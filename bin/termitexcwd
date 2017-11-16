@@ -1,2 +1,6 @@
 #!/usr/bin/env bash
-termite -d "$(xcwd || echo $HOME)"
+if type xcwd >/dev/null
+    then true;
+    else  function xcwd { echo $HOME ;}
+fi
+termite -d "$(xcwd)"
