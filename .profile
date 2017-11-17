@@ -1,7 +1,7 @@
 export PATH=$HOME/.node_modules/bin:$PATH
 # export PATH=$HOME/.gem/ruby/2.3.0/bin:$PATH
 export PATH=$HOME/projects/dottr/pan.git:$PATH
-# export PATH=$HOME/.multirust/toolchains/nightly/cargo/bin:$PATH
+export PATH=$HOME/.cargo/bin:$PATH
 export PATH=$HOME/go/bin:$PATH
 export PATH=$HOME/bin:$PATH
 export PATH=$HOME/bin:$PATH
