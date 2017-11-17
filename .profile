@@ -30,7 +30,7 @@ sbtopts="$sbtopts -Xms32M -Xmx712M -Xss1M -XX:+CMSClassUnloadingEnabled -XX:+Use
 # https://www.playframework.com/documentation/2.3.x/Migration23
 sbtopts="$sbtopts -Dsbt.jse.engineType=Node"
 # https://github.com/chenkelmann/neo2-awt-hack
-# wget https://github.com/chenkelmann/neo2-awt-hack/blob/master/releases/neo2-awt-hack-0.4-java8oracle.jar\?raw\=true -O ~/local/neo2-awt-hack-0.4-java8oracle.jar
+# curl https://github.com/chenkelmann/neo2-awt-hack/blob/master/releases/neo2-awt-hack-0.4-java8oracle.jar\?raw\=true > ~/local/neo2-awt-hack-0.4-java8oracle.jar
 export _JAVA_OPTIONS=" -Xbootclasspath/p:$HOME/local/neo2-awt-hack-0.4-java8oracle.jar"
 
 # export _JAVA_OPTIONS=$javaopts
