@@ -105,6 +105,7 @@ nmap <leader>= :action EditorResetFontSize<CR>
 " code navigation
 nmap <leader>e :action GotoFile<CR>
 nmap <leader>a :action FindInPath<CR>
+nmap <leader>r :action RecentFiles<CR>
 
 nmap l :action NextTab<CR>
 nmap L :action PreviousTab<CR>
@@ -122,11 +123,9 @@ nmap <leader>n :action GotoNextError<CR>
 nmap <leader>s :action GotoAction<CR>
 
 " editing / refactoring
-" TODO: commenting one line always moves one line down
-nnoremap gcc :action CommentByLineComment<CR>
+nmap gcc Vgc
 vnoremap gc :<bs><bs><bs><bs><bs>action VimVisualSwapSelections<cr>:action CommentByLineComment<cr>
 nmap <leader>f :action ReformatCode<CR>
-nmap <leader>r :action RenameElement<CR>
 
  " like in vim-multiple-cursors
 nmap <C-n> :action RenameElement<CR>
