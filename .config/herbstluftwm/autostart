@@ -40,18 +40,18 @@ hc keybind XF86MonBrightnessDown spawn /usr/bin/light -U 5
 hc keybind XF86MonBrightnessUp   spawn /usr/bin/light -A 5
 # hc keybind XF86Display spawn
 hc keybind XF86TouchpadToggle    spawn touchpadtoggle
-hc keybind XF86AudioMute         chain , spawn pulseaudio-ctl mute , emit_hook panel_refresh
-hc keybind XF86AudioLowerVolume  chain , spawn pulseaudio-ctl down , emit_hook panel_refresh
-hc keybind XF86AudioRaiseVolume  chain , spawn pulseaudio-ctl up   , emit_hook panel_refresh
+hc keybind XF86AudioRaiseVolume  chain , spawn pamixer --increase 5 , emit_hook panel_refresh
+hc keybind XF86AudioLowerVolume  chain , spawn pamixer --decrease 5 , emit_hook panel_refresh
+hc keybind XF86AudioMute         chain , spawn pamixer -t , emit_hook panel_refresh
 
 mkdir -p $HOME/screenshots
 hc keybind Print                 spawn scrot 'screenshots/%Y-%m-%d_%H-%M-%S_$wx$h.png'
 hc keybind $Mod+Print           spawn scrot 'screenshots/%Y-%m-%d_%H-%M-%S_$wx$h.png' --focused
 
 # adjust volume
-hc keybind $Mod-Ctrl-h chain , spawn pulseaudio-ctl up   , emit_hook panel_refresh
-hc keybind $Mod-Ctrl-n chain , spawn pulseaudio-ctl down , emit_hook panel_refresh
-hc keybind $Mod-Ctrl-m chain , spawn pulseaudio-ctl mute , emit_hook panel_refresh
+hc keybind $Mod-Ctrl-h chain , spawn pamixer --increase 5 , emit_hook panel_refresh
+hc keybind $Mod-Ctrl-n chain , spawn pamixer --decrease 5 , emit_hook panel_refresh
+hc keybind $Mod-Ctrl-m chain , spawn pamixer -t , emit_hook panel_refresh
 
 # adjust screen brightness
 hc keybind $Mod-Ctrl-g spawn /usr/bin/light -A 5
