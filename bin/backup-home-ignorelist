@@ -21,6 +21,8 @@ spotifile
 # contains the actual encrypted home directory
 /.Private
 
+.local/share/flatpak
+
 # Session-specific:
 /.dbus
 /.cache
