@@ -25,8 +25,11 @@
 
 [merge]
     ff = only
-    conflictstyle = diff3
     ignore-space-change = true
+    conflictstyle = diff3 # this allows to show 3 panes in meld
+
+[rerere]
+	enabled = 1 # Reuse recorded resolution of conflicted merges: https://git-scm.com/docs/git-rerere
 
 [rebase]
     autoStash = true
@@ -64,6 +67,7 @@
     br = branch
     brr = branch -r
     lg = fry one-line-log-colors
+    lga = fry branch-topology
     df  = fry word-based-diff
     dfs  = fry word-based-diff --staged
     diff = diff --irreversible-delete --find-copies  --find-copies-harder --ignore-space-at-eol --ignore-space-change --ignore-all-space

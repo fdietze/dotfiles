@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 export XKB_DEFAULT_LAYOUT=de
 export XKB_DEFAULT_VARIANT=neo
 

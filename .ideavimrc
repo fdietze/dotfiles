@@ -96,6 +96,7 @@ nnoremap h mZ*`Z
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""
 " IDEA specific
+nmap <leader>? :action GotoAction<CR>
 
 " change font size
 nmap + :action EditorIncreaseFontSize<CR>
@@ -120,7 +121,6 @@ nmap <C-p> :action ParameterInfo<CR>
 imap <C-p> <C-o>:action ParameterInfo<CR>
 nmap <leader>n :action GotoNextError<CR>
 " nmap <leader>n :action NextOccurence<CR>
-nmap <leader>s :action GotoAction<CR>
 
 " editing / refactoring
 nmap gcc Vgc
