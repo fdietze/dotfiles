@@ -271,9 +271,12 @@ wust() {
 
 # other
 autocolors() {
+    if type sunwait >/dev/null; then 
     if [ $(sunwait poll 50.77N 6.08W) == "DAY" ]
     then ~/bin/light $@
     else ~/bin/dark $@
+    fi
+        else ~/bin/light $@
     fi
 }
 
