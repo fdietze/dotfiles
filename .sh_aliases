@@ -15,9 +15,9 @@ alias chromium-continuous-bin='chromium-continuous-bin --high-dpi-support=1 --fo
 DOTFILES_GIT='GIT_DIR=$HOME/projects/dotfiles GIT_WORK_TREE=$HOME'
 DOTFILES_PRIVATE_GIT='GIT_DIR=$HOME/projects/dotfiles-private GIT_WORK_TREE=$HOME'
 alias     d="$DOTFILES_GIT         git -c core.excludesfile=~/.gitignore-dotfiles"
+alias    dp="$DOTFILES_PRIVATE_GIT git -c core.excludesfile=~/.gitignore-dotfiles-private"
 # which yadm > /dev/null && alias     d='yadm --yadm-repo $HOME/projects/dotfiles         -c core.excludesfile=~/.gitignore-dotfiles'
 # which yadm > /dev/null && alias    dp='yadm --yadm-repo $HOME/projects/dotfiles-private -c core.excludesfile=~/.gitignore-dotfiles-private'
-alias    dp="$DOTFILES_PRIVATE_GIT git -c core.excludesfile=~/.gitignore-dotfiles-private"
 alias  tigd="$DOTFILES_GIT         tig"
 alias tigdp="$DOTFILES_PRIVATE_GIT tig"
 vd() {(cd; eval $DOTFILES_GIT vim -c GitFiles);}
@@ -29,6 +29,7 @@ alias vvp="$DOTFILES_GIT vim ~/.vimrc_plugins"
 alias vvc="$DOTFILES_GIT vim ~/.vimrc_custom"
 alias vvk="$DOTFILES_GIT vim ~/.vimrc_keybindings"
 alias vvs="$DOTFILES_GIT vim ~/.vimrc_statusline"
+alias vn="vim /etc/nixos/configuration.nix"
 
 # unsorted / general
 alias ssh='TERM=xterm-256color ssh'
@@ -192,13 +193,14 @@ alias gu='git up'
 alias gp='git push'
 alias gpf='git push --force-with-lease'
 alias gl='git lg'
-alias gla='git lg --all'
+alias gla='git lga'
 alias gsc='git-select-commit'
 alias gdf='git df --no-index'
 alias onstage='git-onstage'
 # alias gclp='github-clone'
 if [ -n "$ZSH_VERSION" ]; then
     alias -g GSC='$(git-select-commit)'
+    alias -g GSCA='$(git-select-commit --all)'
     alias -g GSD='$(git-select-dirty-files)'
 fi
 

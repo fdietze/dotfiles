@@ -1,4 +1,4 @@
-#!/bin/zsh -ie
+#!/usr/bin/env zsh
 
 echo "upgrading installed packages..."
 sudo rm -rf /tmp/yaourt-tmp-$USER /tmp/makepkg

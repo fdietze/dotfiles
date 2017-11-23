@@ -1,6 +1,9 @@
 *~
 
 /.AndroidStudioPreview2.0
+/.IdeaIC*
+/eclipse-workspace
+/.eclipse
 /.android
 /.IdeaIC15
 /.Skype
@@ -10,6 +13,13 @@
 /.kodi
 /.mozilla
 /.sync
+/.wine
+/.config/google-chrome
+/.config/Atom/packages
+/.config/Atom/Cache
+/.atom
+/.nv
+/.minecraft
 
 
 /.Xauthority
@@ -29,12 +39,22 @@
 /.ivy2
 /.multirust
 /.sbt
+/.ammonite
+/.coursier
 /.npm
 /.node-gyp
+/.cargo
 /.node-modules
 /.vim/bundle
 /.vim/tmp
 /.zgen
+/.visualvm
+/.thumbnails
+/.rustup
+/.nimble
+/.m2
+/.ipfs/datastore
+/.ipfs/blocks
 
 /music
 /pictures

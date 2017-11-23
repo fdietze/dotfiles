@@ -82,4 +82,5 @@ function! Johannes()
     nmap <Enter> :bnext<CR>
     nmap <Backspace> :bprev<CR>
     nmap Q :bdel<CR>
+    map \ ö
 endfunction
