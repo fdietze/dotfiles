@@ -233,6 +233,8 @@ else
     nmap <leader>gs :nohlsearch<CR>:silent !tig status<CR>:GitGutterAll<CR>:redraw!<CR>
 endif
 
+:tnoremap <C-Esc> <C-\><C-n>
+
 " Emmet
 " nmap <C-e> <Plug>(emmet-expand-abbr)
 " imap <C-e> <Plug>(emmet-expand-abbr)
