@@ -127,10 +127,8 @@ nvim_command() {
     msgpack-cli encode <(echo "[0,0,\"vim_command\",[\"$2\"]]") | netcat -U $1
 }
 
-# TODO: alias expansion
 x() {
-    $@ &
-    disown
+    zsh -i -c "$@ &; disown" 
     exit
 }
 
