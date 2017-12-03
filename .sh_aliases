@@ -158,6 +158,8 @@ alias ls='ls --group-directories-first --color=auto -h'
 alias lt='ls -ltr'
 alias l='ls -l'
 alias t='tree -C' # -C is for color=always
+alias t2='tree -L 2 -C' # -C is for color=always
+alias t3='tree -L 3 -C' # -C is for color=always
 alias ta='tree -a'
 alias df='df -h'
 alias md='mkdir -p'
@@ -166,9 +168,9 @@ alias mvi='interactive-mv'
 alias mcp='noglob zmv -C -W'
 alias mln='noglob zmv -L -W'
 alias mmv='noglob zmv -W'
-o() { gio open $@ > /dev/null 2>&1; }
-of() { gio open "$(fzf)" > /dev/null 2>&1; }
-ot() { gio open "$(ls -tr1 --group-directories-first | fzf --tac --no-sort)" > /dev/null 2>&1; } # least modified files
+o() { xdg-open $@ > /dev/null 2>&1; }
+of() { xdg-open "$(fzf)" > /dev/null 2>&1; }
+ot() { xdg-open "$(ls -tr1 --group-directories-first | fzf --tac --no-sort)" > /dev/null 2>&1; } # least modified files
 
 # change directories
 alias cdd='cd ~/downloads'
@@ -251,6 +253,8 @@ sbt() { (
     env sbt $@
     )
 }
+
+alias sbt1="sbt -sbt-version 1.0.4"
 
 nstart() {
     hc use_index 7
