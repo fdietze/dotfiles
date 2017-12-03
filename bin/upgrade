@@ -1,4 +1,5 @@
 #!/usr/bin/env zsh
+set -e # stops on first failure
 
 echo "upgrading installed packages..."
 sudo rm -rf /tmp/yaourt-tmp-$USER /tmp/makepkg
