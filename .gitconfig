@@ -2,7 +2,7 @@
     path = .gitconfig_hub
 
 [user]
-    email = felix@beerleader.net
+    email = felix.dietze@rwth-aachen.de
     name = Felix Dietze
 
 [core]
