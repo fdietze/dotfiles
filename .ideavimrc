@@ -89,6 +89,7 @@ nnoremap <leader>/ <esc>:nohls<return><esc>
 
 " TODO: toggle chars at end of line
 nnoremap <leader>, mZA,<Esc>`Z
+nnoremap <leader>; mZA;<Esc>`Z
 
 " highlight current word
 nnoremap h mZ*`Z
