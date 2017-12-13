@@ -14,6 +14,8 @@ xrdb load ~/.Xresources
 
 # set up keyboard layouts and toggle shortcut
 setxkbmap -layout de,de -variant neo,basic -option -option grp:menu_toggle
+# setxkbmap -model apple -layout de,de -variant neo,basic -option -option grp:menu_toggle, altwin:swap_alt_win, lv5:rwin_switch_lock
+# apple keyboard <> fix: options hid_apple iso_layout=0 >> /etc/modprobe.d/hid_apple.conf
 
 xss-lock -- i3lock --color=DDDDDD --nofork --ignore-empty-password &
 
