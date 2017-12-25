@@ -8,7 +8,7 @@ set noshowmode
 let g:lightline = {
       \ 'colorscheme': 'wombat',
       \ 'active': {
-      \   'left': [ [ 'mode' ], ['gitbranch', 'bufferinfo'], [ 'bufferbefore', 'buffercurrent', 'bufferafter' ]],
+      \   'left': [ [ 'mode' ], ['gitbranch'], [ 'bufferbefore', 'buffercurrent', 'bufferafter' ]],
       \   'right': [  ['scrollbar'], [ 'filetype' ] ]
       \ },
       \ 'inactive': {
@@ -19,19 +19,28 @@ let g:lightline = {
       \ 'gitbranch': 'BarGitBranch',
       \ 'filename' : 'BarFilename',
       \ 'scrollbar': 'BarScrollbar',
-      \ 'bufferbefore': 'lightline#buffer#bufferbefore',
-      \ 'bufferafter': 'lightline#buffer#bufferafter',
-      \ 'bufferinfo': 'lightline#buffer#bufferinfo',
+      \   'bufferinfo': 'lightline#buffer#bufferinfo'
       \ },
       \ 'component_expand': {
-      \ 'buffercurrent': 'lightline#buffer#buffercurrent2'
+      \   'buffercurrent': 'lightline#buffer#buffercurrent',
+      \   'bufferbefore': 'lightline#buffer#bufferbefore',
+      \   'bufferafter': 'lightline#buffer#bufferafter'
       \ },
       \ 'component_type': {
-      \ 'buffercurrent': 'tabsel'
+      \   'buffercurrent': 'tabsel',
+      \   'bufferbefore': 'raw',
+      \   'bufferafter': 'raw',
       \ },
       \ 'separator': { 'left': '', 'right': '' },
       \ 'subseparator': { 'left': '▍', 'right': '▐' }
       \ }
+
+let g:lightline_buffer_show_bufnr = 0
+let g:lightline_buffer_expand_left_icon = ''
+let g:lightline_buffer_expand_right_icon = ''
+let g:lightline_buffer_active_buffer_left_icon = ''
+let g:lightline_buffer_active_buffer_right_icon = ''
+
 
 function! BarScrollbar()
     return winwidth(0) > 70 ? Scrollbar_Highres(20) : Scrollbar_SingleChar()
