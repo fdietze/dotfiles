@@ -139,7 +139,7 @@ nmap <leader>i :action Inline<CR>
 nmap <leader>o :action OptimizeImports<CR>
 nmap <leader>g :action Generate<CR>
 
-nmap <leader>t :action Run<CR>
+nmap <leader>t :action RunClass<CR>
 
 
 
