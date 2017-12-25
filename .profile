@@ -10,7 +10,7 @@ export RUST_SRC_PATH=~/projects/rust/src
 export RUST_BACKTRACE=1
 
 export EDITOR=vim
-export BROWSER=chromium
+export BROWSER=firefox
 export DE=gnome
 
 # fix java apps in tiling window managers
