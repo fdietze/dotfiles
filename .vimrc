@@ -46,6 +46,7 @@ set number                        " enable line numbers
 " set relativenumber                " show relative numbers for all lines but the current one
 set ruler                         " show the cursor position all the time
 set incsearch                     " do incremental searching
+set inccommand=nosplit            " live substitution preview
 set ignorecase                    " smart case sensitive search
 set smartcase                     "              "
 set hls                           " hightlight search results
