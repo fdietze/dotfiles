@@ -228,7 +228,7 @@ nmap <leader>gr <Plug>GitGutterUndoHunk
 nmap S ys
 
 if has('nvim')
-    nmap <leader>gs :nohlsearch<CR>:term tig status<CR>
+    nmap <leader>gs :nohlsearch<CR>:term tig status<CR>i
 else
     nmap <leader>gs :nohlsearch<CR>:silent !tig status<CR>:GitGutterAll<CR>:redraw!<CR>
 endif
