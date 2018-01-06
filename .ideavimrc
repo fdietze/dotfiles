@@ -130,6 +130,8 @@ nmap <leader>f :action ReformatCode<CR>
 
  " like in vim-multiple-cursors
 nmap <C-n> :action RenameElement<CR>
+nmap <, :action MoveElementLeft<CR>
+nmap >, :action MoveElementRight<CR>
 
 nmap <leader>m :action ExtractMethod<CR>
 vmap <leader>m :action ExtractMethod<CR>
@@ -137,9 +139,12 @@ vmap <leader>m :action ExtractMethod<CR>
 " vmap <leader>v :action IntroduceVariable<CR>
 nmap <leader>i :action Inline<CR>
 nmap <leader>o :action OptimizeImports<CR>
-nmap <leader>g :action Generate<CR>
+nmap <leader>G :action Generate<CR>
+nmap <leader>gu :action Vcs.RollbackChangedLines<CR>
+
 
 nmap <leader>t :action RunClass<CR>
+nmap <leader>T :action Run<CR>
 
 
 
