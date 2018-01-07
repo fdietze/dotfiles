@@ -81,6 +81,7 @@ autoload edit-command-line
 zle -N edit-command-line
 bind2maps vicmd viins -- -s '^v' edit-command-line
 
+autoload bashcompinit && bashcompinit
 
 # history prefix search
 autoload -U history-search-end
