@@ -2,7 +2,7 @@
 # Any customization should be done in ~/.gtkrc-2.0.mine instead.
 
 include "/home/felix/.gtkrc-2.0.mine"
-gtk-theme-name="Numix"
+gtk-theme-name="Clearlooks"
 gtk-icon-theme-name="Mist"
 gtk-font-name="Droid Sans 7"
 gtk-cursor-theme-name="Vanilla-DMZ"
