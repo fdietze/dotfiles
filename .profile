@@ -21,7 +21,7 @@ export _JAVA_AWT_WM_NONREPARENTING=1
 export AWT_TOOLKIT=MToolkit
 export GDK_USE_XFT=1
 
-sbtopts="$sbtopts -Xms32M -Xmx712M -Xss1M -XX:+CMSClassUnloadingEnabled -XX:+UseConcMarkSweepGC"
+sbtopts="$sbtopts -Xms32M -Xmx1024M -Xss1M -XX:+CMSClassUnloadingEnabled -XX:+UseConcMarkSweepGC"
 # javaopts=$javaopts" -XX:+UseCompressedOops"
 
 # https://github.com/chenkelmann/neo2-awt-hack
