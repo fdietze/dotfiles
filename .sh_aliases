@@ -66,6 +66,12 @@ alias lsblk='lsblk -o NAME,RM,FSTYPE,LABEL,MOUNTPOINT,RO,SIZE,UUID'
 alias sys='sudo systemctl'
 alias sysu='systemctl --user'
 addusertogroup() { sudo usermod -a -G ${2-$USER} $1; }
+movie() {
+    title=$@
+    $BROWSER --new-window "https://www.werstreamt.es/filme-serien/?q=$title" &
+    # movie-godzilla $title
+}
+
 movie-godzilla() {
     title=$@
     selection=$(ssh neptun bin/fuzzysearch movies $title | fzf)
@@ -174,7 +180,7 @@ ot() { xdg-open "$(ls -tr1 --group-directories-first | fzf --tac --no-sort)" > /
 
 # change directories
 alias cdd='cd ~/downloads'
-alias cdp='cd ~/projects'
+alias cdp='cd ~/projects '
 alias cd.='cd ~/projects/dotfiles'
 alias cdt='cd-tmp'
 alias cdg='cd-git-root'
@@ -254,22 +260,13 @@ sbt() { (
     )
 }
 
-alias sbt1="sbt -sbt-version 1.0.4"
+alias sbt1="sbt -sbt-version 1.1.0"
 
 nstart() {
     hc use_index 7
     (sleep 1; hc use_previous) &
     termite -e "$HOME/local/neo4j/bin/neo4j console"
 }
-
-wust() {
-    hc use_index 7
-    (sleep 1; hc use_previous) &
-    termite -e "bash -c \"cd ~/projects/wust && sbt compile run\"" &
-    termite -e "bash -c \"cd ~/projects/wust && ./blumenkohl\"" &
-    termite -e "$HOME/local/neo4j/bin/neo4j console"
-}
-
 
 # other
 autocolors() {
