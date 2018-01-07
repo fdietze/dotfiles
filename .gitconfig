@@ -155,3 +155,9 @@
     stage = w !git fry word-based-diff %(file)
     stage = W !git fry word-based-diff --staged %(file)
     ; generic = C !git cherry-pick %(commit)
+
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
