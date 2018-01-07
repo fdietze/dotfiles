@@ -11,19 +11,15 @@ call plug#begin('~/.vim/bundle')
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " non-intrusive plugins which work without configuration
 Plug 'tpope/vim-sensible'     " defaults everyone can agree on
-" Plug 'mhinz/vim-startify'     " Start screen with recently opened files
 Plug 'tpope/vim-repeat'       " enable dot-command for Plugins
-" Plug 'zhaocai/GoldenView.Vim' " enlarge focused window
-Plug 'vim-scripts/matchit.zip'     " matches not only parantheses, but also HTML-Tags and more
+Plug 'benjifisher/matchit.zip'     " matches not only parantheses, but also HTML-Tags and more
 Plug 'Valloric/YouCompleteMe', { 'do': './install.py' } " fuzzy autocompletion
 " https://github.com/rdnetto/YCM-Generator
 " Plug 'kshenoy/vim-signature' " display and navigate marks
-" Plug 'henrik/vim-indexed-search' " show 'Match x of y' when searching (conflicts with incsearch)
 Plug 'haya14busa/incsearch.vim' " highlight all matches in incremental search (conflicts with vim-indexed-search)
 Plug 'kopischke/vim-fetch' " open files at line with filename:32
 Plug 'airblade/vim-rooter' " cd to project root
 Plug 'airblade/vim-gitgutter' " VCS change info per line (only git)
-" Plug 'mhinz/vim-signify' " git, mercurial, darcs, bazaar, subversion, cvs, rcs, fossil, accurev, perforce
 Plug 'zirrostig/vim-smart-swap' " handle vim swap files, delete older and identical swap files
 
 
@@ -48,7 +44,7 @@ Plug 'whatyouhide/vim-textobj-xmlattr' " x
 Plug 'glts/vim-textobj-comment'        " c
 Plug 'kana/vim-textobj-function'       " f
 Plug 'kana/vim-textobj-entire'         " e
-Plug 'PeterRincker/vim-argumentative' " text object ',' / also provides argument movements with >, ],
+Plug 'PeterRincker/vim-argumentative'  " text object ',' / also provides argument movements with >, ],
 
 
 
@@ -57,12 +53,10 @@ Plug 'PeterRincker/vim-argumentative' " text object ',' / also provides argument
 " helpful tools providing functions and commands
 " which need to be called/activated/mapped explicitly
 Plug 'tpope/vim-fugitive' " git support
-" Plug 'rhysd/committia.vim' " better git commit message editing (show diff+status)
 Plug 'junegunn/vim-easy-align'
 Plug 'tpope/vim-eunuch' " unix commands
 Plug 'junegunn/goyo.vim' " distraction-free writing
 Plug 'terryma/vim-smooth-scroll' " redraw some intermediate steps when using PageUp/Down
-" Plug 'gerw/vim-HiLinkTrace' " identify highlighting group under cursor, useful when creating colorschemes
 " Plug 'luochen1990/rainbow' " color parantheses depending on their depth
 " Plug 'fidian/hexmode' " HEX-Editor in vim
 Plug 'Chiel92/vim-autoformat' " reformat source code
@@ -78,13 +72,9 @@ Plug 'zirrostig/vim-schlepp' " Move selections / lines
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " file type plugins
 " Plug 'sheerun/vim-polyglot' " Lots of filetypes
-" Plug 'SirVer/ultisnips' | Plug 'honza/vim-snippets' " snippets
 Plug 'xolox/vim-easytags', {'on': 'Tags'} | Plug 'xolox/vim-misc', {'on': 'Tags'}
 Plug 'derekwyatt/vim-scala', {'for': 'scala'} " Scala programming language
-" Plug 'ensime/ensime-vim'
-" Plug 'gre/play2vim' " play web framework
 Plug 'othree/html5.vim', {'for': 'html'} " HTML
-" Plug 'mattn/emmet-vim', {'for': 'html'} " generate HTML with CSS selectors
 Plug 'Valloric/MatchTagAlways', {'for': 'html'} " Highlight matching/surrounding html tags
 Plug 'othree/yajs.vim', {'for': 'javascript'} " New JavaScript Standard Ecmascript 6
 Plug 'othree/javascript-libraries-syntax.vim', {'for': 'javascript'}
@@ -110,18 +100,8 @@ Plug 'taohex/lightline-buffer'
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " colorschemes
-"Plug 'altercation/vim-colors-solarized'
-"Plug 'chriskempson/base16-vim'
 Plug 'morhetz/gruvbox'
-" Plug 'godlygeek/csapprox'
-" Plug 'vim-scripts/guicolorscheme.vim'
-" Plug 'nanotech/jellybeans.vim'
-" Plug 'chriskempson/tomorrow-theme', {'rtp': 'vim/'}
 Plug 'fdietze/goodday.vim'
-" Plug 'tomasr/molokai'
-" Plug 'sickill/vim-monokai'
-" Plug 'noahfrederick/vim-noctu'
-" Plug 'noahfrederick/vim-hemisu'
 
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -129,10 +109,9 @@ Plug 'fdietze/goodday.vim'
 " Plug 'scrooloose/syntastic'
 Plug 'vim-scripts/LanguageTool' " spell grammar checking
 " Plug 'severin-lemaignan/vim-minimap' " draw a sublime like minimap
-" Plug 'ebfe/vim-racer' " auto completion for the Rust language
 " Plug 'Raimondi/delimitMate' " automatically-close-brackets-magic
-" Plug 'Shougo/vimproc.vim' " Interactive command execution
 " Plug 'vim-scripts/ColorSchemeEditor' " graphical editor for colorschemes
+" Plug 'gerw/vim-HiLinkTrace' " identify highlighting group under cursor, useful when creating colorschemes
 Plug 'jamessan/vim-gnupg'
 
 " Collaborative Editing
@@ -155,6 +134,7 @@ call plug#end()
 
 " fzf
 let g:fzf_layout = {} " default to full screen
+
 function! s:find_git_root()
   return system('git rev-parse --show-toplevel 2> /dev/null')[:-2]
 endfunction
@@ -183,12 +163,6 @@ let g:easytags_languages = {
 let g:multi_cursor_exit_from_visual_mode = 0
 let g:multi_cursor_exit_from_insert_mode = 0
 
-" Colorschemes
-" let base16colorspace=256  " Access colors present in 256 colorspace
-" let g:rehash256 = 1 " molokai
-" let g:solarized_termcolors=256
-" let g:solarized_contrast="high"
-
 " YouCompleteMe
 let g:ycm_server_python_interpreter = '/usr/bin/python3' " force ycm to use py3 - useful when multiple versions are installed
 let g:ycm_auto_trigger = 1
@@ -201,26 +175,15 @@ let g:ycm_cpp_flags = ['-Wextra', '-Werror' ]
 let g:ycm_extra_conf_vim_data = [ 'g:ycm_cpp_flags' ]
 let g:ycm_global_ycm_extra_conf = '~/.vim/global_ycm_extra_conf.py'
 
-" dont display detail window about current completion
-" set completeopt=menuone,longest
-" let g:ycm_autoclose_preview_window_after_insertion = 1
-
 " Goyo distraction free editing
 let g:goyo_width = 80
 let g:goyo_height = '100%'
 let g:goyo_margin_top = 3
 let g:goyo_margin_bottom = 3
 
-" Eclim
-" let g:EclimCompletionMethod = 'omnifunc'
-" let g:EclimScalaSearchSingleResult = 'edit'
-" let g:EclimMakeLCD = 0
-
-
 " commentary
 autocmd FileType sql setlocal commentstring=--\ %s
 autocmd FileType cypher setlocal commentstring=//\ %s
-
 
 " gitgutter and signify
 let g:gitgutter_map_keys = 0 " no default mappings
@@ -229,17 +192,6 @@ let g:gitgutter_sign_modified = '⌇'
 let g:gitgutter_sign_removed = '✕'
 let g:gitgutter_sign_removed_first_line = '⌅'
 let g:gitgutter_sign_modified_removed = '⌇✕'
-let g:signify_sign_add               = '+'
-let g:signify_sign_change            = '⌇' " '︴⌇⌇┇
-let g:signify_sign_delete            = '✕'
-let g:signify_sign_delete_first_line = '⌅'
-
-" committia
-let g:committia#git#diff_cmd = "diff --irreversible-delete --find-copies-harder --find-copies --ignore-space-at-eol --ignore-space-change --ignore-all-space -u --cached --no-color --no-ext-diff"
-
-" Emmet
-" let g:user_emmet_install_global = 0
-" autocmd vimrc FileType html,css EmmetInstall
 
 " Languagetool
 let g:languagetool_jar=$HOME."/local/languagetool/languagetool-commandline.jar"
@@ -253,39 +205,13 @@ let g:formatdef_scalariform ='"ng-scalariform"'
 let g:formatdef_scalafmt ='"ng-scalafmt --stdin"'
 let g:formatters_scala = ['scalariform', 'scalafmt']
 
-" rust.vim
-" let g:rustfmt_autosave = 1
+let g:formatdef_htmltidy ='"html-beautify -s 2"'
+let g:formatdef_jsbeautify ='"js-beautify -s 2"'
+let g:formatdef_jsonbeautify ='"underscore print --outfmt json"'
+let g:formatters_html = ['htmltidy']
+let g:formatters_javascript = ['jsbeautify']
+let g:formatters_json = ['jsonbeautify']
 
-" racer
-" set hidden
-" let g:racer_cmd = "racer"
-" let $RUST_SRC_PATH="/home/felix/projects/rust/src"
-
-" ultisnips
-" Trigger configuration. Do not use <tab> if you use https://github.com/Valloric/YouCompleteMe.
-let g:UltiSnipsExpandTrigger="<c-e>"
-let g:UltiSnipsJumpForwardTrigger="<c-b>"
-let g:UltiSnipsJumpBackwardTrigger="<c-z>"
-
-" If you want :UltiSnipsEdit to split your window.
-" let g:UltiSnipsEditSplit="vertical"
-
-
-" Syntastic
-" let g:syntastic_enable_signs  = 1
-" let g:syntastic_always_populate_loc_list = 1
-" let g:syntastic_check_on_wq = 0
-" let g:syntastic_check_on_open = 0
-" let g:syntastic_error_symbol = "E"
-" let g:syntastic_warning_symbol = "W"
-
-" styntastic java stuff
-" let g:syntastic_java_checkers = ['javac', 'checkstyle']
-" let g:syntastic_java_checkstyle_classpath = '/usr/share/java/checkstyle-5.7.jar'
-" let g:syntastic_java_checkstyle_conf = '/usr/share/checkstyle/sun_checks.xml'
-
-" syntastic javascript
-" let g:syntastic_javascript_checkers=['jshint'] " , 'eslint', 'flow']
 
 " vim schlepp
 let g:Schlepp#allowSquishingLines = 1
@@ -337,9 +263,6 @@ let g:switch_custom_definitions =
             \     '\<\(\l\+\)\(-\l\+\)\+\>': "\\=substitute(submatch(0), '-\\(\\l\\)', '\\u\\1', 'g')",
             \   }
             \ ]
-" \   {'\([^-0-9]\)\(\d\+\)': '\1-\2', '-\(\d\+\)': '\1'},
-" \   {'+\(.\+\)': '-\1', '-\(.\+\)': '+\1'},
-
 
 " rooter
 let g:rooter_manual_only = 1
