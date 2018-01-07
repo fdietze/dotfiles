@@ -18,6 +18,7 @@ sudo pacman-optimize
 
 
 
+source "${HOME}/.zgen/zgen.zsh"
 echo "updating zgen plugins..."
 zgen update
 
@@ -43,5 +44,7 @@ sudo updatedb
 
 # sudo btrfs filesystem defragment /
 sync
+
+backup-home
 
 exit 0
