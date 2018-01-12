@@ -49,6 +49,15 @@
 
   time.timeZone = "Europe/Berlin";
 
+  hardware = {
+    pulseaudio.enable = true;
+    # pulseaudio.support32Bit = true; # This might be needed for Steam games
+    # opengl.driSupport32Bit = true;
+    sane.enable = true;
+
+    cpu.intel.updateMicrocode = true;
+  };
+
   nixpkgs.config = {
     allowUnfree = true;
     chromium = {
@@ -143,7 +152,7 @@
   };
 
   services = {
-    fstrim.enable = true;
+    # fstrim.enable = true;
     locate.enable = true;
 
     upower.enable  = true;
@@ -172,9 +181,34 @@
       layout = "de,de";
       xkbVariant = "neo,basic";
       xkbOptions = "grp:menu_toggle";
-      # libinput.enable = true;
-      synaptics.enable = true;
-      synaptics.twoFingerScroll = true;
+
+      libinput = {
+        enable = true;
+        scrollMethod = "twofinger";
+      };
+
+      synaptics = {
+        # enable = true;
+        # accelFactor = ;
+        # additionalOptions = ;
+        # buttonsMap = ;
+        # dev = ;
+        # fingersMap = ;
+        # horizEdgeScroll = ;
+        # horizTwoFingerScroll = ;
+        # horizontalScroll = ;
+        # maxSpeed = ;
+        # minSpeed = ;
+        palmDetect = true;
+        # palmMinWidth = ;
+        # palmMinZ = ;
+        # scrollDelta = ;
+        # tapButtons = ;
+        # twoFingerScroll = true;
+        # vertEdgeScroll = ;
+        # vertTwoFingerScroll = ;
+      };
+
       displayManager.lightdm.enable = true;
       windowManager.herbstluftwm.enable = true;
       #  windowManager.i3.enable = true;
