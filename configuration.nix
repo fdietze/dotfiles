@@ -24,6 +24,8 @@
       };
     };
 
+    kernelParams = ["processor.max_cstate=1"]; # fix for ryzen freeze?
+
     # kernelPackages = pkgs.linuxPackages_4_4;
     kernelPackages = pkgs.linuxPackages_latest;
     blacklistedKernelModules = [ "pinctrl-amd" ]; # else: kernel panic with ryzen
@@ -33,6 +35,7 @@
 
     kernel.sysctl = {
       "vm.swappiness" = 0;
+      "fs.inotify.max_user_watches" = "409600";
     };
   };
 
@@ -49,6 +52,9 @@
     # stdenv.userHook = ''
     #   NIX_CFLAGS_COMPILE+="-march=native"
     # '';
+
+    programs.qt5ct.enable = true;
+
   };
 
   # nix.extraOptions = ''
@@ -81,7 +87,7 @@
     systemPackages = with pkgs; [
       wget pv htop atop git netcat nmap xorg.xkill psmisc lm_sensors calc tree gparted gksu ntfs3g inotify-tools unzip
       ncdu fzf fasd silver-searcher tig ctags xclip tmate pmount scrot nix-zsh-completions haskellPackages.yeganesh
-      termite numix-gtk-theme nitrogen unclutter-xfixes grc #cope
+      termite xcwd numix-gtk-theme nitrogen unclutter-xfixes grc #cope
       dzen2 dmenu rofi conky lua lua51Packages.luafilesystem trayer polybar # panel
       chromium firefox
       jdk scala sbt maven visualvm
@@ -117,7 +123,9 @@
 
       vulkan-loader
 
+      xdg_utils
       shared_mime_info # file-type associations?
+      desktop_file_utils
 
       gnome3.dconf # needed for meld
       gnome3.nautilus gnome3.gvfs
@@ -145,9 +153,10 @@
   nix.buildCores = 16;
 
   nix.gc.automatic = true;
-  nix.gc.dates = "01:15";
+  nix.gc.dates = "23:00";
   nix.gc.options = "--delete-older-than 7d";
   system.autoUpgrade.enable = true;
+  system.autoUpgrade.dates = "23:15";
 
   programs.zsh.enable = true;
   programs.zsh.enableCompletion = true;
@@ -179,7 +188,7 @@
   networking.firewall.allowedUDPPortRanges = [ { from = 60000; to = 61000; } ]; # for mosh
 
   services = {
-    sshd = {
+    openssh = {
       enable = true;
       passwordAuthentication = false;
     };
@@ -216,12 +225,10 @@
       enable = true;
       latitude = "50.77";
       longitude = "6.08";
-      temperature.day = 5000;
-      temperature.night = 3000;
-      brightness.day = "1.0";
-      brightness.night = "0.75";
     };
-    # unclutter-xfixes.enable = true; # not working?
+
+    # hide mouse after some seconds of no movement
+    unclutter-xfixes.enable = true;
 
 
     syncthing = {
@@ -229,6 +236,7 @@
       user = "felix";
       dataDir = "/home/felix/.config/syncthing";
       useInotify = true;
+      openDefaultPorts = true;
     };
 
     # btsync = {
@@ -247,14 +255,14 @@
       users = ["felix" "jelias"];
     };
 
-    clamav = {
-      daemon.enable   = true;
-      daemon.extraConfig = ''
-        TCPAddr   127.0.0.1
-        TCPSocket 3310
-      '';
-      updater.enable  = true;
-    };
+    # clamav = {
+    #   daemon.enable   = true;
+    #   daemon.extraConfig = ''
+    #     TCPAddr   127.0.0.1
+    #     TCPSocket 3310
+    #   '';
+    #   updater.enable  = true;
+    # };
 
     upower.enable  = true;
     gnome3.gvfs.enable  = true;
