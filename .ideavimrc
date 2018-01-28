@@ -140,13 +140,13 @@ vmap <leader>m :action ExtractMethod<CR>
 nmap <leader>i :action Inline<CR>
 nmap <leader>o :action OptimizeImports<CR>
 nmap <leader>G :action Generate<CR>
-nmap <leader>gu :action Vcs.RollbackChangedLines<CR>
-
+nmap <leader>gr :action Vcs.RollbackChangedLines<CR>
 
 nmap <leader>t :action RunClass<CR>
 nmap <leader>T :action Run<CR>
 
-
+nmap <Home> ^
+imap <silent> <Home> <C-O>^
 
 
 
