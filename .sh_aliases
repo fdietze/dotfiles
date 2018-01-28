@@ -11,6 +11,8 @@ alias signal='chromium --app-id=bikioccmkafdpakkkcpdbppfkghcmihk'
 alias chromium='chromium --high-dpi-support=1 --force-device-scale-factor=1'
 alias chromium-continuous-bin='chromium-continuous-bin --high-dpi-support=1 --force-device-scale-factor=1'
 
+alias vim='nvim'
+
 # dotfile management
 DOTFILES_GIT='GIT_DIR=$HOME/projects/dotfiles GIT_WORK_TREE=$HOME'
 DOTFILES_PRIVATE_GIT='GIT_DIR=$HOME/projects/dotfiles-private GIT_WORK_TREE=$HOME'
@@ -60,7 +62,6 @@ alias defrag='sudo btrfs filesystem defragment -r -v -f -clzo'
 alias iotop='sudo iotop'
 alias keepass='secret-tool lookup keepass password | keepassxc $HOME/.keepass/passwords.kdbx --pw-stdin'
 alias kp='keepass-dmenu --database ~/.keepass/passwords.kdbx --password "$(secret-tool lookup keepass password)" --fn "Droid Sans Mono-8" --nb "#FFFFFF" --nf "#000000" --sb "#00D7FF" --sf "#101010" > /dev/null'
-alias VirtualBox='gksudo modprobe -a vboxnetadp vboxnetflt vboxpci virtio_net vboxdrv; VirtualBox'
 alias vbmods='sudo modprobe -a vboxnetadp vboxnetflt vboxpci virtio_net vboxdrv' # load VirtualBox kernel modules
 alias cups='sudo systemctl start cups-browsed.service'
 alias kodi='AE_SINK=ALSA kodi'
@@ -110,7 +111,7 @@ v() {
     (
         cd-git-root > /dev/null
         file="$(fzf --query="$(echo $@ | tr ' ' '\ ' )")"
-        [[ -n $file ]] && vim "$file"
+        [[ -n $file ]] && nvim "$file"
     );
 }
 # v() { echo $@ | vim -c Rooter -c Files }
@@ -274,10 +275,10 @@ nstart() {
 # other
 autocolors() {
     if type sunwait >/dev/null; then 
-    if [ $(sunwait poll 50.77N 6.08W) == "DAY" ]
-    then ~/bin/light $@
-    else ~/bin/dark $@
-    fi
+        if [ $(sunwait poll 50.77N 6.08W) == "DAY" ]
+            then ~/bin/light $@
+            else ~/bin/dark $@
+        fi
         else ~/bin/light $@
     fi
 }
