@@ -9,7 +9,7 @@ export PATH=$HOME/bin:$PATH
 # export RUST_SRC_PATH=~/projects/rust/src
 # export RUST_BACKTRACE=1
 
-export EDITOR=vim
+export EDITOR=nvim
 export BROWSER=firefox
 export DE=gnome
 
@@ -24,8 +24,7 @@ export AWT_TOOLKIT=MToolkit
 export GDK_USE_XFT=1
 
 # https://github.com/chenkelmann/neo2-awt-hack
-# curl https://github.com/chenkelmann/neo2-awt-hack/blob/master/releases/neo2-awt-hack-0.4-java8oracle.jar\?raw\=true > ~/local/neo2-awt-hack-0.4-java8oracle.jar
-export _JAVA_OPTIONS=" -Xbootclasspath/p:$HOME/local/neo2-awt-hack-0.4-java8oracle.jar"
+# wget https://github.com/chenkelmann/neo2-awt-hack/blob/master/releases/neo2-awt-hack-0.4-java8oracle.jar\?raw\=true -O ~/local/neo2-awt-hack-0.4-java8oracle.jar
+export _JAVA_OPTIONS="-XX:+UseCompressedOops -Dawt.useSystemAAFontSettings=lcd -Xbootclasspath/p:$HOME/local/neo2-awt-hack-0.4-java8oracle.jar"
 
-# export _JAVA_OPTIONS=$javaopts
-export SBT_OPTS="-Xms32M -Xmx8G -Xss1M -XX:+CMSClassUnloadingEnabled -XX:+UseConcMarkSweepGC"
+export SBT_OPTS="-Xms32M -Xmx1200M -Xss1M -XX:+CMSClassUnloadingEnabled -XX:+UseConcMarkSweepGC"
