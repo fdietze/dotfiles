@@ -5,3 +5,6 @@
 /.idea
 /.idea_modules
 /*.iml
+
+# Syncthing
+.stignore
