@@ -264,7 +264,8 @@ sbt() { (
     )
 }
 
-alias sbt1="sbt -sbt-version 1.1.0"
+alias sbt1="sbt -sbt-version 1.1.1"
+alias sbt0="sbt -sbt-version 0.13.17"
 
 nstart() {
     hc use_index 7
@@ -301,6 +302,7 @@ low-traffic() {
     sys stop btsync > /dev/null 2>&1
     sys stop syncthing > /dev/null 2>&1
     sys stop dropbox > /dev/null 2>&1
+    sys stop nixos-upgrade > /dev/null 2>&1
 }
 
 high() {
