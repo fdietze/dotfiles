@@ -1,6 +1,5 @@
 *~
 
-/.AndroidStudioPreview2.0
 /.IdeaIC*
 /eclipse-workspace
 /.eclipse
@@ -20,6 +19,7 @@
 /.atom
 /.nv
 /.minecraft
+/.AndroidStudio*
 
 
 /.Xauthority
