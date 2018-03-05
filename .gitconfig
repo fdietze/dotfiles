@@ -140,7 +140,8 @@
 
     generic = g move-first-line
     generic = G move-last-line
-    main = G move-last-line ; overwrite default keybinding
+    main = G move-last-line ; overwrites default keybinding
+    main = C !git checkout %(commit) ; overwrites default keybinding
     generic = F !git fetch
     generic = P !git push
     status = A !git commit --amend

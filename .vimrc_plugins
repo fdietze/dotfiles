@@ -253,6 +253,7 @@ let g:switch_custom_definitions =
             \   ['even', 'odd'],
             \   ['inside', 'outside'],
             \   ['with', 'extends'],
+            \   ['class', 'object', 'trait'],
             \   ['def', 'val'],
             \   {'"\([^"]*\)"': '''\1''', '''\([^'']*\)''': '"\1"'},
             \   {

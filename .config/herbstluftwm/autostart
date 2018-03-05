@@ -222,24 +222,26 @@ hc set mouse_recenter_gap 1
 
 # set dark terminal and vim colors if not set
 # xsetroot -solid '#000000' # black background
+rm ~/.colors
 zsh -i -c "autocolors nopanel"
 
 # find the panel
-panel=~/.config/herbstluftwm/panel.sh
-for monitor in $(herbstclient list_monitors | cut -d: -f1) ; do
-    # start it on each monitor
-    "$panel" $monitor &
-done
+# panel=~/.config/herbstluftwm/panel.sh
+# for monitor in $(herbstclient list_monitors | cut -d: -f1) ; do
+#     # start it on each monitor
+#     "$panel" $monitor &
+# done
+
+monitor=${1:-0}
+panel_height=15
+hc pad $monitor $panel_height
+$HOME/.config/polybar/launch.sh
 
 # switch keyboard backlight off
 keyboardbacklightoff &
 
-# hide mouse after some seconds of no movement
-killall unclutter
-unclutter --timeout 3 --fork & # unclutter-xfixes
 
 # change color temperature depending on sun position
 # not enabled, because it needs a running X session
-killall -9 redshift
 redshift &
 

@@ -22,7 +22,7 @@ nnoremap <leader>vr :source ~/.ideavimrc<CR>
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
 " NEO-Layout
 
-" simple closing and saving (helpful in NEO keyboard layout)
+" simple closing and saving
 nnoremap ö :w<CR>
 nnoremap ä :action Exit<CR>
 nnoremap ü :q<CR>
@@ -40,6 +40,10 @@ vnoremap Q @f
 nnoremap j `
 vnoremap j `
 
+
+" search backwards with backslash
+nmap \ ?
+vmap \ ?
 
 
 
@@ -59,10 +63,6 @@ nnoremap <leader>p v$<Left>pgvy
 vnoremap < <gv
 vnoremap > >gv
 vnoremap = =gv
-
-" search backwards with backslash
-nmap \ ?
-vmap \ ?
 
 " delete/edit whole word backwards
 " (can confilict with multiple cursors)
