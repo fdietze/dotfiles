@@ -138,6 +138,7 @@ vmap <leader>m :action ExtractMethod<CR>
 " nmap <leader>v :action IntroduceVariable<CR>
 " vmap <leader>v :action IntroduceVariable<CR>
 nmap <leader>i :action Inline<CR>
+nmap <leader>R :action Refactorings.QuickListPopupAction<CR>
 nmap <leader>o :action OptimizeImports<CR>
 nmap <leader>G :action Generate<CR>
 nmap <leader>gr :action Vcs.RollbackChangedLines<CR>
