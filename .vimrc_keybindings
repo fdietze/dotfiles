@@ -216,6 +216,8 @@ nmap <leader>l :Locate<space>
 " nmap <leader>t :BTags<CR>
 nmap <leader>t :Tags<CR>
 nmap <leader>a :Rooter<CR>:Ag<space>
+" johannes
+nmap <leader>s :Rooter<CR>:Ag<space>  
 
 " Git
 nmap <leader>gn <Plug>GitGutterNextHunk
@@ -274,4 +276,3 @@ nmap <S-right> <S-v><Plug>SchleppRight
 " map /  <Plug>(incsearch-forward)
 " map \  <Plug>(incsearch-backward)
 " map ?  <Plug>(incsearch-backward)
-
