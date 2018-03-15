@@ -27,6 +27,7 @@
     ff = only
     ignore-space-change = true
     conflictstyle = diff3 # this allows to show 3 panes in meld
+    tool = meld
 
 [rerere]
 	enabled = 1 # Reuse recorded resolution of conflicted merges: https://git-scm.com/docs/git-rerere
@@ -57,9 +58,7 @@
     co = checkout
     cob = checkout -b
     ci = commit
-    cm = commit -m
-    cim = commit -m
-    cam = commit -a -m
+    cia = commit -a
     amend = commit --amend
     unstage = reset HEAD
     prev = reset HEAD~1
