@@ -38,5 +38,3 @@ initialize ~= (_ => if (ConsoleLogger.formatEnabled) sys.props("scala.color") = 
 
 triggeredMessage in ThisBuild := Watched.clearWhenTriggered
 
-import com.softwaremill.clippy.ClippySbtPlugin._ // needed in global configuration only
-clippyColorsEnabled := true
