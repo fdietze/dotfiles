@@ -191,10 +191,19 @@ card = intel_backlight
 [module/cpu]
 type = internal/cpu
 interval = 2
+label = cpu 
+format = <label> <ramp-coreload>
 format-prefix = " "
 format-prefix-foreground = ${colors.foreground-alt}
 format-underline = #f90000
-label = cpu %percentage%%
+ramp-coreload-0 = ▁
+ramp-coreload-1 = ▂
+ramp-coreload-2 = ▃
+ramp-coreload-3 = ▄
+ramp-coreload-4 = ▅
+ramp-coreload-5 = ▆
+ramp-coreload-6 = ▇
+ramp-coreload-7 = █
 
 [module/memory]
 type = internal/memory
@@ -211,7 +220,7 @@ interval = 3.0
 
 format-connected = <ramp-signal> <label-connected>
 format-connected-underline = #9f78e1
-label-connected = %essid%
+label-connected = %essid% ▼%downspeed:9%  ▲%upspeed:9%
 
 format-disconnected =
 ;format-disconnected = <label-disconnected>
@@ -234,7 +243,7 @@ interval = 3.0
 format-connected-underline = #55aa55
 format-connected-prefix = " "
 format-connected-prefix-foreground = ${colors.foreground-alt}
-label-connected = %local_ip%
+label-connected = ▼%downspeed:9%  ▲%upspeed:9%
 
 format-disconnected =
 ;format-disconnected = <label-disconnected>
