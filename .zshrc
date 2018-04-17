@@ -1,10 +1,4 @@
- # if this is a login shell
-if [[ -o login ]]; then
-    # if first tty: start x
-    [[ -z $DISPLAY && $XDG_VTNR -eq 1 ]] && exec startx -deferglyphs 16
-    # else fall back to bash
-    exec bash
-fi
+[[ -e ~/.zprofile ]] && emulate sh -c 'source ~/.zprofile'
 
 source ~/.zprofile
 
@@ -48,7 +42,6 @@ BackTab  "${terminfo[kcbt]}"
 
 fry completion
 fry ncserve
-fry pacman-disowned
 fry alias-usage-analysis
 fry print-expanded-alias
 # fry vim-open-files-at-lines
@@ -59,8 +52,6 @@ fry github-clone
 fry interactive-mv
 fry cd-tmp
 fry cd-git-root
-fry neo4j-query
-NEO4J_QUERY_JSON_FORMATTER="underscore print --color --outfmt json"
 fry mkdir-cd
 fry screencapture
 fry transcode-video
@@ -92,12 +83,8 @@ zle -N history-beginning-search-forward-end history-search-end
 bind2maps emacs viins vicmd -- "Up" up-line-or-search
 bind2maps emacs viins vicmd -- "Down" down-line-or-search
 
-# command not found for Arch
-[ -r /etc/profile.d/cnf.sh ] && . /etc/profile.d/cnf.sh
-
-# fzf fuzzy file matcher shell extensions
-. $HOME/.vim/bundle/fzf/shell/completion.zsh
-. $HOME/.vim/bundle/fzf/shell/key-bindings.zsh
+if [ -n "${commands[fzf-share]}" ]; then
+  source "$(fzf-share)/key-bindings.zsh"
+fi
 
 source ~/.sh_aliases
-
