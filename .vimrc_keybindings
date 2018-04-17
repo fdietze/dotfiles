@@ -156,8 +156,6 @@ nnoremap gi <C-i>  " original: insert mode at the last insert position
 " insert TODO
 inoremap <C-t> // TODO:<space>
 
-nnoremap <leader>m :make<CR>
-
 " Mark with Shift-m
 " use m to jump to mark
 " M was: place cursor in the center of screen
@@ -211,6 +209,8 @@ vnoremap <silent> <Enter> :MultipleCursorsFind <C-R>/<CR>
 " FZF: Fuzzy file finding
 nmap <leader>e :ProjectFiles<CR>
 nmap <leader>E :GitFiles<CR>
+nmap <leader>b :Buffers<CR>
+nmap <leader>m :GitFiles?<CR>
 nmap <leader>r :History<CR>
 nmap <leader>l :Locate<space>
 " nmap <leader>t :BTags<CR>
