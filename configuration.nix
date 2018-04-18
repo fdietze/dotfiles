@@ -26,8 +26,8 @@
 
     kernelParams = ["processor.max_cstate=1"]; # fix for ryzen freeze?
 
-    # kernelPackages = pkgs.linuxPackages_4_4;
-    kernelPackages = pkgs.linuxPackages_latest;
+    kernelPackages = pkgs.linuxPackages_4_15;
+    # kernelPackages = pkgs.linuxPackages_latest;
     blacklistedKernelModules = [ "pinctrl-amd" ]; # else: kernel panic with ryzen
 
 
@@ -72,6 +72,7 @@
   };
 
   networking.hostName = "fff";
+  networking.wireless.enable = true;
 
   i18n = {
     #consoleFont = "Lat2-Terminus16";
@@ -85,9 +86,10 @@
   # $ nix-env -qaP | grep wget
   environment = {
     systemPackages = with pkgs; [
+      wirelesstools
       wget pv htop atop git netcat nmap xorg.xkill psmisc lm_sensors calc tree gparted gksu ntfs3g inotify-tools unzip
       ncdu fzf fasd silver-searcher tig ctags xclip tmate pmount scrot nix-zsh-completions haskellPackages.yeganesh
-      termite xcwd numix-gtk-theme nitrogen unclutter-xfixes grc #cope
+      termite xcwd nitrogen unclutter-xfixes grc #cope
       dzen2 dmenu rofi conky lua lua51Packages.luafilesystem trayer polybar # panel
       chromium firefox
       jdk scala sbt maven visualvm
@@ -108,16 +110,15 @@
 
       neovim
       python2
-      python27Packages.neovim # ensime
-      python27Packages.websocket_client # ensime
-      python27Packages.sexpdata # ensime
+      python2Packages.neovim # ensime
+      python2Packages.websocket_client # ensime
+      python2Packages.sexpdata # ensime
       python3
-      python35Packages.neovim
+      python3Packages.neovim
 
       mosh
 
       mate.atril inkscape gimp
-      # spotify
       sane-frontends
       mpv vlc playerctl pamixer imv
 
@@ -128,8 +129,12 @@
       desktop_file_utils
 
       gnome3.dconf # needed for meld
-      gnome3.nautilus gnome3.gvfs
+      gnome3.nautilus gnome3.gvfs gnome3.file-roller
       gnome3.gnome_keyring gnome3.seahorse libsecret
+
+      gnome3.adwaita-icon-theme
+      paper-icon-theme
+      vanilla-dmz
     ];
 
     shellAliases = {
@@ -141,7 +146,6 @@
     variables = {
       SUDO_EDITOR = "nvim";
       EDITOR = "nvim";
-      # BROWSER = "firefox";
       BROWSER = "chromium";
       SSH_AUTH_SOCK = "%t/keyring/ssh";
     };
@@ -149,7 +153,6 @@
 
   };
 
-  nix.maxJobs = 16;
   nix.buildCores = 16;
 
   nix.gc.automatic = true;
@@ -162,6 +165,9 @@
   programs.zsh.enableCompletion = true;
   programs.command-not-found.enable = true;
   users.defaultUserShell = "/run/current-system/sw/bin/zsh";
+
+
+  programs.adb.enable = true;
 
   security = {
     # pam.services = [
@@ -191,6 +197,7 @@
     openssh = {
       enable = true;
       passwordAuthentication = false;
+      forwardX11 = true;
     };
 
     journald = {
@@ -213,14 +220,22 @@
     xserver = {
       enable = true;
       videoDrivers = [ "nvidia" ];
+      screenSection = ''
+        Option "metamodes" "nvidia-auto-select +0+0 {ForceCompositionPipeline=On}"
+      '';
       layout = "de,de";
       xkbVariant = "neo,basic";
       xkbOptions = "grp:menu_toggle";
-      displayManager.lightdm.enable = true;
+      displayManager.lightdm = {
+        enable = true;
+      };
       windowManager.herbstluftwm.enable = true;
       windowManager.i3.enable = true;
+      windowManager.xmonad = {
+        enable = true;
+        enableContribAndExtras = true;
     };
-    # compton.enable = true;
+    };
     redshift = {
       enable = true;
       latitude = "50.77";
@@ -235,7 +250,6 @@
       enable = true;
       user = "felix";
       dataDir = "/home/felix/.config/syncthing";
-      useInotify = true;
       openDefaultPorts = true;
     };
 
@@ -279,13 +293,10 @@
     enableGhostscriptFonts = true;
     fonts = with pkgs; [
       corefonts
-      dejavu_fonts
-      # opensans-ttf
-      symbola # many unicode symbols
+      google-fonts
       ubuntu_font_family
-      inconsolata
-      font-droid # needed for firefox
-      siji # polybar icon font
+      dejavu_fonts
+      symbola # unicode symbols
     ];
     fontconfig = {
       includeUserConf = false;
@@ -300,7 +311,7 @@
   #users.mutableUsers = false;
   users.extraUsers.felix = {
     isNormalUser = true;
-    extraGroups = ["wheel" "vboxusers" "docker"];
+    extraGroups = ["wheel" "vboxusers" "docker" "scanner" "adbusers"];
     useDefaultShell = true;
     openssh.authorizedKeys.keys = [
       "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDU3dAvm/F8DksvT2fQ1804/ScajO20OxadixGD8lAPINLbCj7mRpLJmgnVjdJSSHQpaJXsDHjLul4Z4nuvgcOG2cjtI+/Z2d1AC+j5IDTJNs6yGgyzkRalPYWXKpzrOa/yQcVpJyGsliKyPuyc9puLJIQ0vvosVAUxN6TLMfnrgdtnZMsuQecToJ8AgyEgsGedOnYC2/1ELUJEdh2v2LMr2saWJW/HTptTotbS8Fwz+QWZPAxXWlEbH5r5LEma3xpn/7oiE4JKr7DL7bE4jWVgW0yrOZL0EAVm771oigqcS/ekTqLutVoFmcH0ysInsWKjnuT02+PIjDJdGODwlE5P felix@beef"
@@ -312,7 +323,7 @@
 
   users.extraUsers.jelias = {
     isNormalUser = true;
-    extraGroups = ["wheel" "vboxusers" "docker" "scanner"];
+    extraGroups = ["wheel" "vboxusers" "docker" "scanner" "adbusers"];
     useDefaultShell = true;
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM+BIE+0anEEYK0fBIEpjedblyGW0UnuYBCDtjZ5NW6P jelias@merkur"
