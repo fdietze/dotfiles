@@ -110,6 +110,7 @@ endif
 
 " change directory to the current buffer when opening files.
 " set autochdir
+autocmd vimrc BufEnter * set noreadonly " no delay, when editing read-only files
 autocmd vimrc BufEnter * silent! lcd %:p:h
 
 autocmd vimrc BufEnter * set noreadonly " no delay, when editing read-only files
