@@ -34,7 +34,7 @@ background-alt = #444
 foreground = #eee
 foreground-alt = #999
 primary = #ffb52a
-secondary = #e60053
+warn = #e60053
 alert = #bd2c40
 
 [base]
@@ -114,12 +114,12 @@ interval = 2
 
 warn-temperature = 90
 
-format = <ramp> <label>
-format-warn = <ramp> <label-warn>
+format = <label>
+format-warn = <label-warn>
 
 label = %temperature%
 label-warn = %temperature%
-label-warn-foreground = ${colors.secondary}
+label-warn-foreground = ${colors.warn}
 
 ramp-foreground = ${colors.foreground-alt}
 
@@ -154,11 +154,11 @@ format-disconnected =
 
 [module/wlan]
 type = internal/network
-interface = wlp8s0f3u1
+interface = wlp2s0
 interval = 3.0
 
 format-connected = <ramp-signal> <label-connected>
-label-connected = %essid% ▼%downspeed:9%  ▲%upspeed:9%
+label-connected = %essid%  ▼%downspeed:9%  ▲%upspeed:9%
 
 format-disconnected =
 
@@ -200,16 +200,29 @@ battery = BAT0
 adapter = AC0
 full-at = 98
 
-format-charging = pwr <label-charging>
+format-prefix-foreground = ${colors.foreground-alt}
 
-format-discharging = bat <label-discharging>
+format-charging-prefix = "pwr "
+format-discharging-prefix = "bat "
+format-full-prefix = "pwr "
+format-charging-prefix-foreground = ${self.format-prefix-foreground}
+format-discharging-prefix-foreground = ${self.format-prefix-foreground}
+format-full-prefix-foreground = ${self.format-prefix-foreground}
+format-charging = <ramp-capacity> <label-charging>
+format-discharging = <ramp-capacity> <label-discharging>
+format-full = <label-full>
+label-charging = %time%
+label-discharging = %time%
+time-format = %H:%M
 
-format-full = "pwr <label-full>"
-
-ramp-capacity-0 = 
-ramp-capacity-1 = 
-ramp-capacity-2 = 
-ramp-capacity-foreground = ${colors.foreground-alt}
+ramp-capacity-0 = %{F#e60053}▁%{F-}
+ramp-capacity-1 = %{F#e60053}▂%{F-}
+ramp-capacity-2 = ▃
+ramp-capacity-3 = ▄
+ramp-capacity-4 = ▅
+ramp-capacity-5 = ▆
+ramp-capacity-6 = ▇
+ramp-capacity-7 = █
 
 [module/date]
 type = internal/date
