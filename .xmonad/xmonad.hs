@@ -2,8 +2,6 @@
 -- https://hackage.haskell.org/package/xmonad-contrib-0.13/docs/XMonad-Actions-Navigation2D.html
 
 import XMonad
-import Data.Monoid
-import System.Exit
 import XMonad.Hooks.ManageDocks (avoidStruts,docks,manageDocks)
 import XMonad.Hooks.ManageHelpers
 import XMonad.Hooks.EwmhDesktops (ewmh, ewmhDesktopsLogHook, ewmhDesktopsEventHook)
@@ -13,6 +11,9 @@ import XMonad.Layout.NoBorders (smartBorders)
 import XMonad.Actions.CycleWS
 import XMonad.Layout.MultiToggle
 import XMonad.Layout.MultiToggle.Instances
+import Data.Monoid
+import Control.Monad
+import System.Exit
 
 import qualified XMonad.StackSet as W
 import qualified Data.Map        as M
@@ -135,15 +136,16 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     ]
     ++
  
-    --
     -- mod-[1..9], Switch to workspace N
-    --
-    -- mod-[1..9], Switch to workspace N
-    -- mod-shift-[1..9], Move client to workspace N
-    --
-    [((m .|. modm, k), windows $ f i)
+    -- mod-shift-[1..9], Move client to workspace N and follow
+    -- mod-shif-ctrlt-[1..9], Move client to workspace N
+    [((m, k), windows $ f i)
         | (i, k) <- zip (XMonad.workspaces conf) [xK_1 .. xK_9]
-        , (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask)]]
+        , (f, m) <- [ (W.greedyView, modm)
+                    , (liftM2 (.) W.greedyView W.shift, modm .|. shiftMask)
+                    , (W.shift, modm .|. shiftMask .|. controlMask)
+                    ]
+    ]
     -- ++
  
     --
