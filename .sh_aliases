@@ -2,7 +2,6 @@
 alias qrscan='LD_PRELOAD=/usr/lib/libv4l/v4l1compat.so zbarcam --raw /dev/video0'
 alias photoshop='wine ~/.wine/drive_c/Program\ Files\ \(x86\)/Adobe/Photoshop\ 7.0/Photoshop.exe'
 alias gparted='gksudo gparted'
-alias skype='gksudo "systemctl start docker"; skype'
 alias teamviewer='gksudo "systemctl start teamviewerd"; sleep 5; teamviewer'
 alias signal='chromium --app-id=bikioccmkafdpakkkcpdbppfkghcmihk'
 
@@ -32,6 +31,8 @@ alias vvp="$DOTFILES_GIT vim ~/.vimrc_plugins"
 alias vvc="$DOTFILES_GIT vim ~/.vimrc_custom"
 alias vvk="$DOTFILES_GIT vim ~/.vimrc_keybindings"
 alias vvs="$DOTFILES_GIT vim ~/.vimrc_statusline"
+alias vx="vim ~/.xmonad/xmonad.hs"
+alias vb="vim ~/.config/polybar/config"
 alias vn="vim /etc/nixos/configuration.nix"
 alias ns="nix-shell --run zsh"
 

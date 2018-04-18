@@ -54,10 +54,11 @@ vmap \ ?
 map Y y$
 
 " don't overwrite register when pasting over selection
-vnoremap p pgvy
+" vnoremap p pgvy
 
 " paste over rest of line
-nnoremap <leader>p v$<Left>pgvy
+" nnoremap <leader>p v$<Left>pgvy
+nnoremap <leader>p v$<Left>p
 
 " don't lose selection when indenting
 vnoremap < <gv
