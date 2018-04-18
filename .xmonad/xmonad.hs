@@ -12,7 +12,6 @@
 -- myDoFullFloat = doF W.focusDown <+> doFullFloat
 
 -- TODO: focus stealing: https://github.com/xmonad/xmonad/issues/45
-
 import XMonad
 import XMonad.Hooks.ManageDocks (avoidStruts,docks,manageDocks)
 import XMonad.Hooks.ManageHelpers
@@ -240,8 +239,7 @@ myPP = def {
   ppOutput            = \wsStr -> appendFile "/tmp/.xmonad-workspace-log" (wsStr ++ "\n")
 } where clickable = \w -> "%{A:xdotool key alt+" ++ w ++ ":} " ++ w ++ " %{A}"
 
-
 myStartupHook = do
-    spawn "nitrogen --set-zoom-fill /home/felix/downloads/wallpapers/wallhaven-48976.jpg"
+    spawn "nitrogen --set-zoom-fill ~/downloads/wallpapers/3iwdilj2vgs01.jpg"
     safeSpawn "mkfifo" ["/tmp/.xmonad-workspace-log"]
     spawn "statusbar"
