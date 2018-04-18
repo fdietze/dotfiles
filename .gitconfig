@@ -34,7 +34,7 @@
 
 [rebase]
     autoStash = true
-    autoSquash = true
+    autoSquash = true # useful for `git commit --fixup <hash>` (https://fle.github.io/git-tip-keep-your-branch-clean-with-fixup-and-autosquash.html)
 
 [status]
     showUntrackedFiles = all
@@ -62,6 +62,7 @@
     amend = commit --amend
     unstage = reset HEAD
     prev = reset HEAD~1
+    fixup = commit --fixup
     cl = clone
     br = branch
     brr = branch -r
