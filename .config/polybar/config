@@ -1,4 +1,6 @@
 ; https://github.com/jaagr/polybar/wiki
+; nmap <silent> ö :w<cr>:silent exec "!killall polybar"<cr>
+; while true; do statusbar; done
 
 [bar/example]
 ;monitor = ${env:MONITOR:HDMI-1}
@@ -170,14 +172,15 @@ ramp-signal-foreground = ${colors.foreground-alt}
 [module/volume]
 type = internal/volume
 
-format-volume-prefix = "vol "
-format-volume-prefix-foreground = ${colors.foreground-alt}
-format-volume = <ramp-volume>
+format-prefix = "%{A1:pavucontrol &:}vol%{A} "
+format-prefix-foreground = ${colors.foreground-alt}
 
-format-muted-prefix = "vol "
-format-muted-prefix-foreground = ${colors.foreground-alt}
-; format-muted-foreground = ${colors.foreground-alt}
-label-muted = "✕"
+format-volume-prefix = ${self.format-prefix}
+format-muted-prefix = ${self.format-prefix}
+format-volume-prefix-foreground = ${self.format-prefix-foreground}
+format-muted-prefix-foreground = ${self.format-prefix-foreground}
+
+format-volume = <ramp-volume>
 
 ramp-volume-0 = ${base.ramp-base-0}
 ramp-volume-1 = ${base.ramp-base-1}
@@ -187,6 +190,9 @@ ramp-volume-4 = ${base.ramp-base-4}
 ramp-volume-5 = ${base.ramp-base-5}
 ramp-volume-6 = ${base.ramp-base-6}
 ramp-volume-7 = ${base.ramp-base-7}
+
+format-muted = <label-muted>
+label-muted = "✕"
 
 [module/battery]
 type = internal/battery
