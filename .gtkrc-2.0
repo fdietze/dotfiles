@@ -2,8 +2,8 @@
 # Any customization should be done in ~/.gtkrc-2.0.mine instead.
 
 include "/home/felix/.gtkrc-2.0.mine"
-gtk-theme-name="Clearlooks"
-gtk-icon-theme-name="Mist"
+gtk-theme-name="Adwaita"
+gtk-icon-theme-name="Paper"
 gtk-font-name="Droid Sans 7"
 gtk-cursor-theme-name="Vanilla-DMZ"
 gtk-cursor-theme-size=2
@@ -15,5 +15,5 @@ gtk-enable-event-sounds=0
 gtk-enable-input-feedback-sounds=0
 gtk-xft-antialias=1
 gtk-xft-hinting=1
-gtk-xft-hintstyle="hintfull"
+gtk-xft-hintstyle="hintslight"
 gtk-xft-rgba="rgb"
