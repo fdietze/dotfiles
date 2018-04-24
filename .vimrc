@@ -112,6 +112,8 @@ endif
 " set autochdir
 autocmd vimrc BufEnter * silent! lcd %:p:h
 
+autocmd vimrc BufEnter * set noreadonly " no delay, when editing read-only files
+
 " break text automatically
 autocmd vimrc FileType text setlocal textwidth=78
 
