@@ -204,9 +204,9 @@ defaults = defaultConfig {
       -- hooks, layouts
         layoutHook         = smartBorders . avoidStruts $ myLayoutHook,
         manageHook         = manageDocks <+> (isFullscreen --> doFullFloat),
-        logHook            = ewmhDesktopsLogHook,
+        -- logHook            = ewmhDesktopsLogHook,
         startupHook        = myStartupHook,
-    handleEventHook =  ewmhDesktopsEventHook <+> handleEventHook def -- <+> fullscreenEventHook
+    handleEventHook =  handleEventHook def -- <+> fullscreenEventHook
     }
 
 myStartupHook = do

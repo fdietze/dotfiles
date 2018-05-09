@@ -14,13 +14,14 @@ foreground = ${colors.foreground}
 font-0 = Droid Sans Mono:style=Regular:size=10;2
 font-1 = Dejavu Sans Mono:size=7;1
 
-modules-left = ewmh hlwm-tags 
+modules-left = ewmh
 modules-center = xwindow
 modules-right = cpu temperature memory eth wlan volume battery date
 module-margin-left = 1
 module-margin-right = 2
 
 
+padding-right = 1
 tray-position = right
 
 [settings]
