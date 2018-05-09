@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 # let
 
 #   gnome3 = config.environment.gnome3.packageSet;
@@ -34,6 +34,7 @@
     tmpOnTmpfs = true;
 
     kernel.sysctl = {
+      "kernel.sysrq" = 1;
       "vm.swappiness" = 0;
       "fs.inotify.max_user_watches" = "409600";
     };
@@ -149,8 +150,6 @@
       BROWSER = "chromium";
       SSH_AUTH_SOCK = "%t/keyring/ssh";
     };
-
-
   };
 
   nix.buildCores = 16;
@@ -195,6 +194,7 @@
 
   services = {
     openssh = {
+      ports = [ 53292 ];
       enable = true;
       passwordAuthentication = false;
       forwardX11 = true;
@@ -226,16 +226,34 @@
       layout = "de,de";
       xkbVariant = "neo,basic";
       xkbOptions = "grp:menu_toggle";
-      displayManager.lightdm = {
+
+      displayManager = {
+        # xmonad does not set a default cursor by itself, so we have to set it explicitly when X starts.
+        sessionCommands = lib.mkAfter
+        ''
+          ${pkgs.xorg.xsetroot}/bin/xsetroot -cursor_name left_ptr
+        '';
+        lightdm = {
         enable = true;
+          autoLogin = {
+            enable = true;
+            user = "felix";
       };
-      windowManager.herbstluftwm.enable = true;
-      windowManager.i3.enable = true;
+        };
+      };
+      desktopManager.xterm.enable = false;
+      desktopManager.default      = "none";
+      windowManager.default       = "xmonad";
       windowManager.xmonad = {
         enable = true;
         enableContribAndExtras = true;
     };
+      windowManager.herbstluftwm.enable = true;
+      desktopManager.plasma5.enable = false;
+      windowManager.i3.enable = false;
     };
+
+    # Redshift adjusts the color temperature of your screen according to your surroundings. This may help your eyes hurt less if you are working in front of the screen at night.
     redshift = {
       enable = true;
       latitude = "50.77";
@@ -267,6 +285,14 @@
     psd = {
       enable = true;
       users = ["felix" "jelias"];
+    };
+
+    keybase = {
+      enable = true;
+    };
+    kbfs = {
+      enable = true;
+      mountPoint = "/keybase";
     };
 
     # clamav = {
