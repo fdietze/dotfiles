@@ -1,6 +1,18 @@
 -- https://wiki.haskell.org/Xmonad/Config_archive/Template_xmonad.hs_(0.9)
 -- https://hackage.haskell.org/package/xmonad-contrib-0.13/docs/XMonad-Actions-Navigation2D.html
 
+-- TODO:
+-- i found a gem on their mailing list.  it lets you focus the other screen and change workspaces without losing the fullscreen-ness.
+-- import XMonad.Hooks.ManageHelpers
+-- import qualified XMonad.StackSet as W
+
+-- --- add the following rule to your manageHook list: isFullscreen --> myDoFullFloat
+
+-- myDoFullFloat :: ManageHook
+-- myDoFullFloat = doF W.focusDown <+> doFullFloat
+
+-- TODO: focus stealing: https://github.com/xmonad/xmonad/issues/45
+
 import XMonad
 import XMonad.Hooks.ManageDocks (avoidStruts,docks,manageDocks)
 import XMonad.Hooks.ManageHelpers
@@ -11,9 +23,15 @@ import XMonad.Layout.NoBorders (smartBorders)
 import XMonad.Actions.CycleWS
 import XMonad.Layout.MultiToggle
 import XMonad.Layout.MultiToggle.Instances
+import XMonad.Util.Run (safeSpawn)
+import XMonad.Util.NamedWindows (getName)
 import Data.Monoid
 import Control.Monad
 import System.Exit
+import Data.List (sortBy)
+import Data.Function (on)
+import Control.Monad (forM_, join)
+import XMonad.Hooks.DynamicLog
 
 import qualified XMonad.StackSet as W
 import qualified Data.Map        as M
@@ -204,10 +222,26 @@ defaults = defaultConfig {
       -- hooks, layouts
         layoutHook         = smartBorders . avoidStruts $ myLayoutHook,
         manageHook         = manageDocks <+> (isFullscreen --> doFullFloat),
-        -- logHook            = ewmhDesktopsLogHook,
+        logHook            = dynamicLogWithPP (myPP),
         startupHook        = myStartupHook,
     handleEventHook =  handleEventHook def -- <+> fullscreenEventHook
     }
 
+-- Pipe
+myPP = def {
+  ppCurrent           = wrap "%{F#fff B#5A5B66} "   " %{F- B-}",
+  ppVisible           = wrap "%{F#cc342b}" "%{F-}" . clickable, -- xinerama
+  ppHidden            = wrap "%{F#eeeeee}" "%{F-}" . clickable,
+  ppHiddenNoWindows   = wrap "%{F#555555}" "%{F-}" . clickable,
+  ppUrgent            = wrap "%{F#CE6D00}" "%{F-}" . clickable,
+  ppSep               = "",
+  ppWsSep             = "",
+  ppOrder             = \(ws:_:_:_) -> [ws],
+  ppOutput            = \wsStr -> appendFile "/tmp/.xmonad-workspace-log" (wsStr ++ "\n")
+} where clickable = \w -> "%{A:xdotool key alt+" ++ w ++ ":} " ++ w ++ " %{A}"
+
+
 myStartupHook = do
+    spawn "nitrogen --set-zoom-fill /home/felix/downloads/wallpapers/wallhaven-48976.jpg"
+    safeSpawn "mkfifo" ["/tmp/.xmonad-workspace-log"]
     spawn "statusbar"

@@ -14,9 +14,9 @@ foreground = ${colors.foreground}
 font-0 = Droid Sans Mono:style=Regular:size=10;2
 font-1 = Dejavu Sans Mono:size=7;1
 
-modules-left = ewmh
+modules-left = workspaces-xmonad
 modules-center = xwindow
-modules-right = cpu temperature memory eth wlan volume battery date
+modules-right = cpu temperature memory eth wlan volume battery timewarrior date
 module-margin-left = 1
 module-margin-right = 2
 
@@ -87,6 +87,12 @@ label-urgent-background = #bd2c40
 ; exec = /home/felix/.config/herbstluftwm/tags.sh
 ; ; exec = herbstclient --idle
 ; tail = true
+
+[module/workspaces-xmonad]
+type = custom/script
+exec = tail -F /tmp/.xmonad-workspace-log
+exec-if = [ -a /tmp/.xmonad-workspace-log ]
+tail = true
 
 [module/xwindow]
 type = internal/xwindow
@@ -224,6 +230,14 @@ ramp-capacity-4 = ▅
 ramp-capacity-5 = ▆
 ramp-capacity-6 = ▇
 ramp-capacity-7 = █
+
+[module/timewarrior]
+type = custom/script
+exec = echo "$(timew get dom.active.tag.1) $(timew | awk '/Total/ { print $2 }')"
+exec-if = [ $(timew get dom.active) == 1 ]
+interval = 5
+format-prefix = "track "
+format-prefix-foreground = ${colors.foreground-alt}
 
 [module/date]
 type = internal/date
