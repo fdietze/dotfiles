@@ -11,6 +11,8 @@
 -- myDoFullFloat :: ManageHook
 -- myDoFullFloat = doF W.focusDown <+> doFullFloat
 
+-- https://hackage.haskell.org/package/X11-1.9/docs/Graphics-X11-Types.html
+
 -- TODO: focus stealing: https://github.com/xmonad/xmonad/issues/45
 import XMonad
 import XMonad.Hooks.ManageDocks (avoidStruts,docks,manageDocks)
@@ -63,7 +65,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm, xK_f), sendMessage $ Toggle FULL)
  
      -- Rotate through the available layout algorithms
-    , ((modm,               xK_h ), sendMessage NextLayout)
+    -- , ((modm,               xK_h ), sendMessage NextLayout)
  
     --  Reset the layouts on the current workspace to default
     , ((modm .|. shiftMask, xK_space ), setLayout $ XMonad.layoutHook conf)
@@ -132,11 +134,20 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     -- , ((modm .|. shiftMask, xK_w), shiftToNext >> toggleWS)
 
 
-    -- , ((modm, xK_ü     ), spawn "playerctl previous  ")
-    -- , ((modm, xK_ö     ), spawn "playerctl play      ")
-    -- , ((modm, xK_ä     ), spawn "playerctl play-pause")
-    , ((modm, xK_p     ), spawn "playerctl stop      ")
-    , ((modm, xK_z     ), spawn "playerctl next      ")
+    , ((modm, xK_udiaeresis {- ü -} ), spawn "playerctl previous")
+    , ((modm, xK_odiaeresis {- ö -} ), spawn "playerctl play")
+    , ((modm, xK_adiaeresis {- ä -} ), spawn "playerctl play-pause")
+    , ((modm, xK_p                  ), spawn "playerctl stop")
+    , ((modm, xK_z                  ), spawn "playerctl next")
+
+    , ((modm .|. controlMask, xK_h     ), spawn "pamixer --increase 5")
+    , ((modm .|. controlMask, xK_n     ), spawn "pamixer --decrease 5")
+    , ((modm .|. controlMask, xK_m     ), spawn "pamixer --toggle-mute")
+
+    , ((modm .|. controlMask, xK_g     ), spawn "/run/wrappers/bin/light -A 5")
+    , ((modm .|. controlMask, xK_r     ), spawn "/run/wrappers/bin/light -U 5")
+    , ((modm .|. controlMask .|. shiftMask, xK_g     ), spawn "/run/wrappers/bin/light -A 1")
+    , ((modm .|. controlMask .|. shiftMask, xK_r     ), spawn "/run/wrappers/bin/light -U 1")
 
     , ((modm, xK_k     ), spawn "xkill")
 
