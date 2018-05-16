@@ -179,9 +179,7 @@ alias mvi='interactive-mv'
 alias mcp='noglob zmv -C -W'
 alias mln='noglob zmv -L -W'
 alias mmv='noglob zmv -W'
-o() { xdg-open $@ > /dev/null 2>&1; }
-of() { xdg-open "$(fzf)" > /dev/null 2>&1; }
-ot() { xdg-open "$(ls -tr1 --group-directories-first | fzf --tac --no-sort)" > /dev/null 2>&1; } # least modified files
+alias o='mimeo' # Open files using MIME-type and custom user associations
 
 # change directories
 alias cdd='cd ~/downloads'
