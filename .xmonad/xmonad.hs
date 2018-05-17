@@ -12,8 +12,8 @@
 -- myDoFullFloat = doF W.focusDown <+> doFullFloat
 
 -- https://hackage.haskell.org/package/X11-1.9/docs/Graphics-X11-Types.html
-
 -- TODO: focus stealing: https://github.com/xmonad/xmonad/issues/45
+
 import XMonad
 import XMonad.Hooks.ManageDocks (avoidStruts,docks,manageDocks)
 import XMonad.Hooks.ManageHelpers
@@ -33,11 +33,22 @@ import Data.List (sortBy)
 import Data.Function (on)
 import Control.Monad (forM_, join)
 import XMonad.Hooks.DynamicLog
+import XMonad.Hooks.UrgencyHook
 
 import qualified XMonad.StackSet as W
 import qualified Data.Map        as M
 
-main = xmonad $ fullscreenSupport $ docks $ ewmh $ withNavigation2DConfig def $ defaults
+main = xmonad $ fullscreenSupport
+              $ docks
+              $ ewmh
+              $ withUrgencyHook NoUrgencyHook -- trigger highlighting of urgent workspaces
+              $ withNavigation2DConfig def
+              $ defaults
+
+myStartupHook = do
+    spawn "nitrogen --set-zoom-fill /home/felix/downloads/wallpapers/bluhen-blume-blute-159056.jpg"
+    safeSpawn "mkfifo" ["/tmp/.xmonad-workspace-log"]
+    spawn "statusbar"
 
 myTerminal      = "termite"
 
@@ -137,9 +148,8 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm, xK_udiaeresis {- ü -} ), spawn "playerctl previous")
     , ((modm, xK_odiaeresis {- ö -} ), spawn "playerctl play")
     , ((modm, xK_adiaeresis {- ä -} ), spawn "playerctl play-pause")
-    , ((modm, xK_p                  ), spawn "playerctl stop")
-    , ((modm, xK_z                  ), spawn "playerctl next")
-
+    , ((modm, xK_p     ), spawn "playerctl stop      ")
+    , ((modm, xK_z     ), spawn "playerctl next      ")
     , ((modm .|. controlMask, xK_h     ), spawn "pamixer --increase 5")
     , ((modm .|. controlMask, xK_n     ), spawn "pamixer --decrease 5")
     , ((modm .|. controlMask, xK_m     ), spawn "pamixer --toggle-mute")
@@ -243,14 +253,10 @@ myPP = def {
   ppVisible           = wrap "%{F#cc342b}" "%{F-}" . clickable, -- xinerama
   ppHidden            = wrap "%{F#eeeeee}" "%{F-}" . clickable,
   ppHiddenNoWindows   = wrap "%{F#555555}" "%{F-}" . clickable,
-  ppUrgent            = wrap "%{F#CE6D00}" "%{F-}" . clickable,
+  ppUrgent            = wrap "%{B#CE6D00}" "%{B-}" . clickable,
   ppSep               = "",
   ppWsSep             = "",
   ppOrder             = \(ws:_:_:_) -> [ws],
   ppOutput            = \wsStr -> appendFile "/tmp/.xmonad-workspace-log" (wsStr ++ "\n")
 } where clickable = \w -> "%{A:xdotool key alt+" ++ w ++ ":} " ++ w ++ " %{A}"
 
-myStartupHook = do
-    spawn "nitrogen --set-zoom-fill ~/downloads/wallpapers/3iwdilj2vgs01.jpg"
-    safeSpawn "mkfifo" ["/tmp/.xmonad-workspace-log"]
-    spawn "statusbar"
