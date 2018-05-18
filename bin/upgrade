@@ -4,53 +4,35 @@ set -e # stops on first failure
 . /etc/os-release # load linux distribution information
 case $NAME in
     NixOS )
+        echo "upgrading system"
+        echo "channels:"
+        sudo nix-channel --list
         sudo nixos-rebuild switch --upgrade
+        echo "updating user space"
+        echo "channels:"
+        nix-channel --list
         nix-channel --update
         nix-env --upgrade
         ;;
 esac
 
-# echo "upgrading installed packages..."
-# sudo rm -rf /tmp/yaourt-tmp-$USER /tmp/makepkg
-# yaourt -Syu --noconfirm
-# yaourt -Syua --devel --noconfirm
-# sudo rm -rf /tmp/yaourt-tmp-$USER /tmp/makepkg
 
-# echo "cleaning package cache..."
-# paccache -r && paccache -ruk0
-
-# echo "updating package search database..."
-# sudo pkgfile -u
-
-# echo "optimizing pacman database..."
-# sudo pacman-optimize
-
+echo "updating vim plugins..."
+nvim +PlugUpgrade +PlugInstall +PlugUpdate +PlugClean! +qall
 
 
 echo "updating zgen plugins..."
 source "${HOME}/.zgen/zgen.zsh" && zgen update
 
-echo "updating vim plugins..."
-nvim +PlugUpgrade +PlugInstall +PlugUpdate +PlugClean! +qall
-
 # echo "updating ruby gems..."
 # gem update
 
-# echo "updating global npm packages"
-# npm -g update
+echo "updating global npm packages"
+npm -g update
 
 # echo "updating rust installation"
 # multirust update
 
-# echo "updating git repos"
-# mr update
-
-
-
-# echo "updating mlocate database..."
-# sudo updatedb
-
-# sudo btrfs filesystem defragment /
 sync
 
 # backup-home
