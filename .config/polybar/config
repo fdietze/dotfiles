@@ -234,7 +234,7 @@ ramp-capacity-7 = █
 [module/timewarrior]
 type = custom/script
 ; exec = echo "$(timew get dom.active.tag.1) $(timew | awk '/Total/ { print $2 }')"
-exec = echo "$(timew get dom.active.tag.1) $(timew get dom.active.duration)"
+exec = echo "$(timew get dom.active.tag.1) $(timew get dom.active.duration | ~/bin/human-duration.py )"
 exec-if = [ $(timew get dom.active) == 1 ]
 interval = 5
 format-prefix = "track "
