@@ -16,7 +16,7 @@ font-1 = Dejavu Sans Mono:size=7;1
 
 modules-left = workspaces-xmonad
 modules-center = xwindow
-modules-right = cpu temperature memory eth wlan volume battery timewarrior date
+modules-right = cpu process temperature memory eth wlan volume battery timewarrior date
 module-margin-left = 1
 module-margin-right = 2
 
@@ -36,7 +36,6 @@ foreground = #eee
 foreground-alt = #999
 primary = #ffb52a
 warn = #e60053
-alert = #bd2c40
 
 [base]
 ramp-base-0 = %{F#999}▁%{F-}
@@ -96,7 +95,8 @@ tail = true
 
 [module/xwindow]
 type = internal/xwindow
-label = %title:0:110:...%
+label = %{A2:xdotool getwindowfocus windowkill:}%title:0:110:...%%{A}
+
 
 [module/cpu]
 type = internal/cpu
@@ -104,7 +104,6 @@ interval = 2
 format = <ramp-coreload>
 format-prefix = "cpu "
 format-prefix-foreground = ${colors.foreground-alt}
-format-underline = #f90000
 ramp-coreload-0 = ${base.ramp-base-0}
 ramp-coreload-1 = ${base.ramp-base-1}
 ramp-coreload-2 = ${base.ramp-base-2}
@@ -113,6 +112,14 @@ ramp-coreload-4 = ${base.ramp-base-4}
 ramp-coreload-5 = ${base.ramp-base-5}
 ramp-coreload-6 = ${base.ramp-base-6}
 ramp-coreload-7 = ${base.ramp-base-7}
+
+[module/process]
+type = custom/script
+exec = ps -eo comm --sort=-%cpu | head -2 | tail +2
+exec-if = (( $(ps -eo pcpu --sort=-%cpu | head -2 | tail +2) > 85 ))
+interval = 5
+format-foreground = #FFD9C1
+click-middle = kill $(ps -eo pid --sort=-%cpu | head -2 | tail +2)
 
 [module/temperature]
 type = internal/temperature
