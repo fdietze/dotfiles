@@ -132,6 +132,8 @@ call plug#end()
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " plugin configuration
 
+let g:scala_scaladoc_indent = 1 " enable indentation standard as recommended for Scaladoc comments (from http://docs.scala-lang.org/style/scaladoc.html, since Scaladoc2)
+
 " fzf
 let g:fzf_layout = {} " default to full screen
 
