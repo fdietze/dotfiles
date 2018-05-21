@@ -30,7 +30,7 @@ throttle-output = 5
 throttle-output-for = 10
 
 [colors]
-background = #1B1B1B
+background = #282A2E
 background-alt = #444
 foreground = #eee
 foreground-alt = #999
