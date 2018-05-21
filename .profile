@@ -9,10 +9,6 @@ export PATH=$HOME/bin:$PATH
 # export RUST_SRC_PATH=~/projects/rust/src
 # export RUST_BACKTRACE=1
 
-export EDITOR=nvim
-export BROWSER=firefox
-export DE=gnome
-
 export NIX_AUTO_INSTALL=true # automatically installs and runs non-installed software in nix-shell (requires `programs.command-not-found.enable = true`)
 
 # fix java apps in tiling window managers
