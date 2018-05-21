@@ -40,6 +40,7 @@ BackTab  "${terminfo[kcbt]}"
 )
 
 
+fry bell-on-precmd
 fry completion
 fry ncserve
 fry alias-usage-analysis
