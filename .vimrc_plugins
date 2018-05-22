@@ -85,10 +85,10 @@ Plug 'zah/nim.vim', {'for': 'nim'}
 Plug 'cespare/vim-toml', {'for': 'toml'} " TOML (used for Rust project configuration)
 Plug 'LaTeX-Box-Team/LaTeX-Box', {'for': 'tex'} " LaTeX
 Plug 'vim-scripts/gnuplot.vim', {'for': 'gnuplot'}
-Plug 'gorodinskiy/vim-coloresque' " Preview colors in css
 Plug 'shmup/vim-sql-syntax'
 Plug 'LnL7/vim-nix' " nixos syntax
 Plug 'rhysd/vim-gfm-syntax' " Github flavoured markdown with embedded language support
+Plug 'chrisbra/Colorizer' " color hex codes and color-names
 
 
 
@@ -134,6 +134,8 @@ call plug#end()
 " plugin configuration
 
 let g:scala_scaladoc_indent = 1 " enable indentation standard as recommended for Scaladoc comments (from http://docs.scala-lang.org/style/scaladoc.html, since Scaladoc2)
+
+let g:colorizer_auto_filetype='css,html,dosini'
 
 " fzf
 let g:fzf_layout = {} " default to full screen
