@@ -88,6 +88,7 @@ Plug 'vim-scripts/gnuplot.vim', {'for': 'gnuplot'}
 Plug 'gorodinskiy/vim-coloresque' " Preview colors in css
 Plug 'shmup/vim-sql-syntax'
 Plug 'LnL7/vim-nix' " nixos syntax
+Plug 'rhysd/vim-gfm-syntax' " Github flavoured markdown with embedded language support
 
 
 
@@ -197,6 +198,9 @@ let g:gitgutter_sign_modified_removed = '⌇✕'
 
 " Languagetool
 let g:languagetool_jar=$HOME."/local/languagetool/languagetool-commandline.jar"
+
+" Github flavoured markdown
+let g:markdown_fenced_languages = ['scala', 'javascript', 'json', 'bash=sh']
 
 " Autoformat
 let g:autoformat_autoindent = 0
