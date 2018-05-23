@@ -95,7 +95,8 @@ Plug 'chrisbra/Colorizer' " color hex codes and color-names
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " statusline
 Plug 'itchyny/lightline.vim'
-Plug 'taohex/lightline-buffer'
+" Plug 'taohex/lightline-buffer'
+Plug 'mgee/lightline-bufferline'
 
 
 

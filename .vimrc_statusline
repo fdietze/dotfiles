@@ -8,7 +8,7 @@ set noshowmode
 let g:lightline = {
       \ 'colorscheme': 'wombat',
       \ 'active': {
-      \   'left': [ [ 'mode' ], ['gitbranch'], [ 'bufferbefore', 'buffercurrent', 'bufferafter' ]],
+      \   'left': [ [ 'mode' ], ['gitbranch'], [ 'buffers' ]],
       \   'right': [  ['scrollbar'], [ 'filetype' ] ]
       \ },
       \ 'inactive': {
@@ -19,27 +19,19 @@ let g:lightline = {
       \ 'gitbranch': 'BarGitBranch',
       \ 'filename' : 'BarFilename',
       \ 'scrollbar': 'BarScrollbar',
-      \   'bufferinfo': 'lightline#buffer#bufferinfo'
       \ },
       \ 'component_expand': {
-      \   'buffercurrent': 'lightline#buffer#buffercurrent',
-      \   'bufferbefore': 'lightline#buffer#bufferbefore',
-      \   'bufferafter': 'lightline#buffer#bufferafter'
+      \   'buffers': 'lightline#bufferline#buffers'
       \ },
       \ 'component_type': {
-      \   'buffercurrent': 'tabsel',
-      \   'bufferbefore': 'raw',
-      \   'bufferafter': 'raw',
+      \   'buffers': 'tabsel'
       \ },
       \ 'separator': { 'left': '', 'right': '' },
-      \ 'subseparator': { 'left': '▍', 'right': '▐' }
+      \ 'subseparator': { 'left': '', 'right': '' }
       \ }
 
-let g:lightline_buffer_show_bufnr = 0
-let g:lightline_buffer_expand_left_icon = ''
-let g:lightline_buffer_expand_right_icon = ''
-let g:lightline_buffer_active_buffer_left_icon = ''
-let g:lightline_buffer_active_buffer_right_icon = ''
+let g:lightline#bufferline#modified = '*'
+autocmd BufWritePost,TextChanged,TextChangedI * call lightline#update() " https://github.com/mgee/lightline-bufferline/issues/5
 
 
 function! BarScrollbar()
@@ -101,12 +93,6 @@ function! BarFilename()
        \ ('' != BarReadonly() ? BarReadonly() . ' ' : '') .
        \ ('' != BarModified() ? BarModified() : '')
 endfunction
-
-let g:bufferline_echo = 0
-let g:bufferline_active_buffer_left = ''
-let g:bufferline_active_buffer_right = ''
-let g:bufferline_show_bufnr = 0
-
 
 func! Update_Scrollbar_Highres(charwidth)
     " let res        = 8
