@@ -126,21 +126,14 @@ proj_ctags () {
     ctags --fields=+l --c-kinds=+p --c++-kinds=+p -f $dir/tags -R $dir
 }
 
-# alias vim="vim --servername vim-$$" # always start vim as server (for live colorscheme changing, working differently for neovim)
 nvim_command() {
     # usage: nvim_command <socket> <command>
-    # requires: https://github.com/jakm/msgpack-cli and netcat
-    # go get github.com/jakm/msgpack-cli
+    # requires: https://github.com/ludocode/msgpack-tools and netcat
 
     # https://github.com/msgpack-rpc/msgpack-rpc/blob/master/spec.md
     # msgpack-rpc is an array of [type, msgid, method, params]
     # encode and send it to nvims unix socket via netcat
-    msgpack-cli encode <(echo "[0,0,\"vim_command\",[\"$2\"]]") | nc -U $1
-}
-
-x() {
-    zsh -i -c "$@ &; disown" 
-    exit
+    echo "[0,0,\"vim_command\",[\"$2\"]]" | json2msgpack | nc -U $1 -q0
 }
 
 nvim_all_command() {
@@ -148,6 +141,12 @@ nvim_all_command() {
     for nvim in /tmp/nvim*/0; do
         nvim_command $nvim "$1"
     done
+}
+
+
+x() {
+    zsh -i -c "$@ &; disown" 
+    exit
 }
 
 # file search
