@@ -116,7 +116,7 @@ type = custom/script
 exec = ps -eo comm --sort=-%cpu | head -2 | tail +2
 exec-if = (( $(ps -eo pcpu --sort=-%cpu | head -2 | tail +2) > 85 ))
 interval = 5
-format-foreground = #FFD9C1
+format-foreground = ${env:BAR_PEAK:#FFD9C1}
 click-middle = kill $(ps -eo pid --sort=-%cpu | head -2 | tail +2)
 
 [module/temperature]
