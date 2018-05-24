@@ -21,7 +21,7 @@ filetype plugin indent on
 " Colorscheme
 set termguicolors " true color support
 syntax enable
-if filereadable($HOME."/.colors") && match(readfile($HOME."/.colors"),"light")
+if filereadable($HOME."/.theme") && match(readfile($HOME."/.theme"),"light")
     set background=dark
     colorscheme gruvbox
 else

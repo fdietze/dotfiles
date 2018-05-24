@@ -38,17 +38,35 @@ import XMonad.Hooks.UrgencyHook
 import qualified XMonad.StackSet as W
 import qualified Data.Map        as M
 
-main = xmonad $ fullscreenSupport
-              $ docks
-              $ ewmh
-              $ withUrgencyHook NoUrgencyHook -- trigger highlighting of urgent workspaces
-              $ withNavigation2DConfig def
-              $ defaults
+data Theme = Light | Dark
+instance Show Theme where
+    show Light = "light"
+    show Dark = "dark"
 
-myStartupHook = do
-    spawn "nitrogen --set-zoom-fill /home/felix/downloads/wallpapers/bluhen-blume-blute-159056.jpg"
+instance Read Theme where
+    readsPrec _ "dark" = [(Dark, "")]
+    readsPrec _ _ = [(Light, "")]
+
+readTheme :: IO Theme
+readTheme = do
+    contents <- readFile "/home/felix/.theme"
+    let theme = (read (trim contents))
+    return theme
+
+main = do
+    theme <- readTheme
+    xmonad $ fullscreenSupport
+           $ docks
+           $ ewmh
+           $ withUrgencyHook NoUrgencyHook -- trigger highlighting of urgent workspaces
+           $ withNavigation2DConfig def
+           $ defaults theme
+    
+
+
+myStartupHook theme = do
     safeSpawn "mkfifo" ["/tmp/.xmonad-workspace-log"]
-    spawn "statusbar"
+    spawn ("theme " ++ (show theme))
 
 myTerminal      = "termite"
 
@@ -58,8 +76,35 @@ myBorderWidth   = 2
 
 myWorkspaces    = ["1","2","3","4","5","6","7","8","9"]
 
-myNormalBorderColor  = "#dddddd"
-myFocusedBorderColor = "#777987"
+myNormalBorderColor Light  = "#DCDDE6"
+myNormalBorderColor Dark  = "#777987"
+
+myFocusedBorderColor Light = "#777987"
+myFocusedBorderColor Dark = "#DCDDE6"
+
+myPP Dark = def {
+  ppCurrent           = wrap "%{F#ffffff B#5A5B66} "   " %{F- B-}",
+  ppVisible           = wrap "%{F#cc342b}" "%{F-}" . clickable, -- xinerama
+  ppHidden            = wrap "%{F#eeeeee}" "%{F-}" . clickable,
+  ppHiddenNoWindows   = wrap "%{F#555555}" "%{F-}" . clickable,
+  ppUrgent            = wrap "%{B#CE6D00}" "%{B-}" . clickable,
+  ppSep               = "",
+  ppWsSep             = "",
+  ppOrder             = \(ws:_:_:_) -> [ws],
+  ppOutput            = \wsStr -> appendFile "/tmp/.xmonad-workspace-log" (wsStr ++ "\n")
+} where clickable = \w -> "%{A:xdotool key alt+" ++ w ++ ":} " ++ w ++ " %{A}"
+
+myPP Light = def {
+  ppCurrent           = wrap "%{F#ffffff B#5A5B66} "   " %{F- B-}",
+  ppVisible           = wrap "%{F#cc342b}" "%{F-}" . clickable, -- xinerama
+  ppHidden            = wrap "%{F#555555}" "%{F-}" . clickable,
+  ppHiddenNoWindows   = wrap "%{F#cccccc}" "%{F-}" . clickable,
+  ppUrgent            = wrap "%{B#FFD8AC}" "%{B-}" . clickable,
+  ppSep               = "",
+  ppWsSep             = "",
+  ppOrder             = \(ws:_:_:_) -> [ws],
+  ppOutput            = \wsStr -> appendFile "/tmp/.xmonad-workspace-log" (wsStr ++ "\n")
+} where clickable = \w -> "%{A:xdotool key alt+" ++ w ++ ":} " ++ w ++ " %{A}"
 
 myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
  
@@ -148,14 +193,18 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm, xK_udiaeresis {- ü -} ), spawn "playerctl previous")
     , ((modm, xK_odiaeresis {- ö -} ), spawn "playerctl play")
     , ((modm, xK_adiaeresis {- ä -} ), spawn "playerctl play-pause")
-    , ((modm, xK_p     ), spawn "playerctl stop      ")
-    , ((modm, xK_z     ), spawn "playerctl next      ")
-    , ((modm .|. controlMask, xK_h     ), spawn "pamixer --increase 5")
-    , ((modm .|. controlMask, xK_n     ), spawn "pamixer --decrease 5")
-    , ((modm .|. controlMask, xK_m     ), spawn "pamixer --toggle-mute")
+    , ((modm, xK_p                  ), spawn "playerctl stop      ")
+    , ((modm, xK_z                  ), spawn "playerctl next      ")
 
-    , ((modm .|. controlMask, xK_g     ), spawn "/run/wrappers/bin/light -A 5")
-    , ((modm .|. controlMask, xK_r     ), spawn "/run/wrappers/bin/light -U 5")
+    , ((modm .|. controlMask, xK_k), spawn "theme light")
+    , ((modm .|. controlMask, xK_s), spawn "theme dark")
+
+    , ((modm .|. controlMask, xK_h), spawn "pamixer --increase 5")
+    , ((modm .|. controlMask, xK_n), spawn "pamixer --decrease 5")
+    , ((modm .|. controlMask, xK_m), spawn "pamixer --toggle-mute")
+
+    , ((modm .|. controlMask, xK_g), spawn "/run/wrappers/bin/light -A 5")
+    , ((modm .|. controlMask, xK_r), spawn "/run/wrappers/bin/light -U 5")
     , ((modm .|. controlMask .|. shiftMask, xK_g     ), spawn "/run/wrappers/bin/light -A 1")
     , ((modm .|. controlMask .|. shiftMask, xK_r     ), spawn "/run/wrappers/bin/light -U 1")
 
@@ -222,7 +271,7 @@ myLayoutHook = smartBorders $ mkToggle ((NOBORDERS ?? FULL ?? EOT)) $ tiled ||| 
         delta = 3/100	-- screen ratio for adjustment
 
 
-defaults = defaultConfig {
+defaults theme = defaultConfig {
       -- simple stuff
         terminal           = myTerminal,
         focusFollowsMouse  = myFocusFollowsMouse,
@@ -231,8 +280,8 @@ defaults = defaultConfig {
         -- numlockMask deprecated in 0.9.1
         -- numlockMask        = myNumlockMask,
         workspaces         = myWorkspaces,
-        normalBorderColor  = myNormalBorderColor,
-        focusedBorderColor = myFocusedBorderColor,
+        normalBorderColor  = myNormalBorderColor theme,
+        focusedBorderColor = myFocusedBorderColor theme,
         clickJustFocuses = False,
  
       -- key bindings
@@ -242,21 +291,9 @@ defaults = defaultConfig {
       -- hooks, layouts
         layoutHook         = smartBorders . avoidStruts $ myLayoutHook,
         manageHook         = manageDocks <+> (isFullscreen --> doFullFloat),
-        logHook            = dynamicLogWithPP (myPP),
-        startupHook        = myStartupHook,
+        logHook            = dynamicLogWithPP (myPP theme),
+        startupHook        = myStartupHook theme,
     handleEventHook =  handleEventHook def -- <+> fullscreenEventHook
     }
 
--- Pipe
-myPP = def {
-  ppCurrent           = wrap "%{F#fff B#5A5B66} "   " %{F- B-}",
-  ppVisible           = wrap "%{F#cc342b}" "%{F-}" . clickable, -- xinerama
-  ppHidden            = wrap "%{F#eeeeee}" "%{F-}" . clickable,
-  ppHiddenNoWindows   = wrap "%{F#555555}" "%{F-}" . clickable,
-  ppUrgent            = wrap "%{B#CE6D00}" "%{B-}" . clickable,
-  ppSep               = "",
-  ppWsSep             = "",
-  ppOrder             = \(ws:_:_:_) -> [ws],
-  ppOutput            = \wsStr -> appendFile "/tmp/.xmonad-workspace-log" (wsStr ++ "\n")
-} where clickable = \w -> "%{A:xdotool key alt+" ++ w ++ ":} " ++ w ++ " %{A}"
 
