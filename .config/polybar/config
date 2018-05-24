@@ -2,7 +2,7 @@
 ; nmap <silent> ö :w<cr>:silent exec "!killall polybar"<cr>
 ; while true; do statusbar; done
 
-[bar/example]
+[bar/default]
 ;monitor = ${env:MONITOR:HDMI-1}
 width = 100%
 height = 16
@@ -30,56 +30,54 @@ throttle-output = 5
 throttle-output-for = 10
 
 [colors]
-background = #282A2E
-background-alt = #444
-foreground = #eee
-foreground-alt = #999
-primary = #ffb52a
-warn = #e60053
+background = ${env:BAR_BG:#282A2E}
+foreground = ${env:BAR_FG:#aaFFaa}
+foreground-alt = ${env:BAR_FG_ALT:#999999}
+warn = ${env:BAR_WARN:#e60053}
 
 [base]
-ramp-base-0 = %{F#999}▁%{F-}
+ramp-base-0 = ${env:BAR_RAMP_0:%{F#999999}▁%{F-}}
 ramp-base-1 = ▂
 ramp-base-2 = ▃
 ramp-base-3 = ▄
 ramp-base-4 = ▅
 ramp-base-5 = ▆
 ramp-base-6 = ▇
-ramp-base-7 = %{F#FFD9C1}█%{F-}
+ramp-base-7 = ${env:BAR_RAMP_7:%{F#FFD9C1}█%{F-}}
 
 
-[module/ewmh]
-type = internal/xworkspaces
+;[module/ewmh]
+;type = internal/xworkspaces
 
-; Only show workspaces defined on the same output as the bar
-;
-; Useful if you want to show monitor specific workspaces
-; on different bars
-;
-; Default: false
-pin-workspaces = false
+;; Only show workspaces defined on the same output as the bar
+;;
+;; Useful if you want to show monitor specific workspaces
+;; on different bars
+;;
+;; Default: false
+;pin-workspaces = false
 
-; Create click handler used to focus desktop
-; Default: true
-enable-click = true
+;; Create click handler used to focus desktop
+;; Default: true
+;enable-click = true
 
-; Create scroll handlers used to cycle desktops
-; Default: true
-enable-scroll = false
+;; Create scroll handlers used to cycle desktops
+;; Default: true
+;enable-scroll = false
 
-label-empty = " %name% "
-label-empty-foreground = #555555
+;label-empty = " %name% "
+;label-empty-foreground = #555555
 
-label-occupied = " %name% "
-label-occupied-foreground = #eeeeee
+;label-occupied = " %name% "
+;label-occupied-foreground = #eeeeee
 
-label-active = " %name% "
-label-active-foreground = #ffffff
-label-active-background = #5A5B66
+;label-active = " %name% "
+;label-active-foreground = #ffffff
+;label-active-background = #5A5B66
 
-label-urgent = " %name% "
-label-urgent-foreground = #ffffff
-label-urgent-background = #bd2c40
+;label-urgent = " %name% "
+;label-urgent-foreground = #ffffff
+;label-urgent-background = #bd2c40
 
 ; [module/hlwm-tags]
 ; type = custom/script
@@ -229,8 +227,8 @@ label-charging = %time%
 label-discharging = %time%
 time-format = %H:%M
 
-ramp-capacity-0 = %{F#e60053}▁%{F-}
-ramp-capacity-1 = %{F#e60053}▂%{F-}
+ramp-capacity-0 = ${env:BAR_RAMP_WARN_0}
+ramp-capacity-1 = ${env:BAR_RAMP_WARN_1}
 ramp-capacity-2 = ▃
 ramp-capacity-3 = ▄
 ramp-capacity-4 = ▅

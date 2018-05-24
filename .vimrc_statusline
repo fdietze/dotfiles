@@ -31,7 +31,7 @@ let g:lightline = {
       \ }
 
 let g:lightline#bufferline#modified = '*'
-autocmd BufWritePost,TextChanged,TextChangedI * call lightline#update() " https://github.com/mgee/lightline-bufferline/issues/5
+autocmd vimrc BufWritePost,TextChanged,TextChangedI * call lightline#update() " https://github.com/mgee/lightline-bufferline/issues/5
 
 
 function! BarScrollbar()
