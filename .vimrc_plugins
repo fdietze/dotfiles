@@ -15,8 +15,6 @@ Plug 'tpope/vim-repeat'       " enable dot-command for Plugins
 Plug 'benjifisher/matchit.zip'     " matches not only parantheses, but also HTML-Tags and more
 Plug 'Valloric/YouCompleteMe', { 'do': './install.py' } " fuzzy autocompletion
 " https://github.com/rdnetto/YCM-Generator
-" Plug 'kshenoy/vim-signature' " display and navigate marks
-Plug 'haya14busa/incsearch.vim' " highlight all matches in incremental search (conflicts with vim-indexed-search)
 Plug 'kopischke/vim-fetch' " open files at line with filename:32
 Plug 'airblade/vim-rooter' " cd to project root
 Plug 'airblade/vim-gitgutter' " VCS change info per line (only git)
@@ -110,7 +108,6 @@ Plug 'fdietze/goodday.vim'
 " experimental
 " Plug 'scrooloose/syntastic'
 Plug 'vim-scripts/LanguageTool' " spell grammar checking
-" Plug 'severin-lemaignan/vim-minimap' " draw a sublime like minimap
 " Plug 'Raimondi/delimitMate' " automatically-close-brackets-magic
 " Plug 'vim-scripts/ColorSchemeEditor' " graphical editor for colorschemes
 " Plug 'gerw/vim-HiLinkTrace' " identify highlighting group under cursor, useful when creating colorschemes

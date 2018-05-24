@@ -24,18 +24,17 @@ alias  tigd="$DOTFILES_GIT         tig"
 alias tigdp="$DOTFILES_PRIVATE_GIT tig"
 vd() {(cd; eval $DOTFILES_GIT vim -c GitFiles);}
 alias vim="nvim"
-alias  va="$DOTFILES_GIT vim ~/.sh_aliases"
-alias  vz="$DOTFILES_GIT vim ~/.zshrc"
-alias  vp="$DOTFILES_GIT vim ~/.profile"
-alias  vv="$DOTFILES_GIT vim ~/.vimrc"
-alias vvp="$DOTFILES_GIT vim ~/.vimrc_plugins"
-alias vvc="$DOTFILES_GIT vim ~/.vimrc_custom"
-alias vvk="$DOTFILES_GIT vim ~/.vimrc_keybindings"
-alias vvs="$DOTFILES_GIT vim ~/.vimrc_statusline"
+alias  va="vim ~/.sh_aliases"
+alias  vz="vim ~/.zshrc"
+alias  vp="vim ~/.profile"
+alias  vv="vim ~/.vimrc"
+alias vvp="vim ~/.vimrc_plugins"
+alias vvc="vim ~/.vimrc_custom"
+alias vvk="vim ~/.vimrc_keybindings"
+alias vvs="vim ~/.vimrc_statusline"
 alias vx="vim ~/.xmonad/xmonad.hs"
 alias vb="vim ~/.config/polybar/config"
 alias vn="vim /etc/nixos/configuration.nix"
-alias ns="nix-shell --run zsh"
 
 # unsorted / general
 alias ssh='TERM=xterm-256color ssh'
@@ -93,18 +92,13 @@ alias wscan='nmcli dev wifi rescan > /dev/null 2>&1; true'
 alias wlist='nmcli dev wifi list'
 alias wcon='nmcli --ask dev wifi connect'
 
-# yaourt
-alias y='yaourt'
-alias yoghurt='yaourt'
-alias ys='yaourt -S' # install
-alias yss='yaourt -S --noconfirm' # install
-alias yu='yaourt -Syy' # update
-alias yr='yaourt --remove --nosave --recursive' # remove package
-alias yi='yaourt -Qi' # package info
-alias yb='yaourt -Sb' # build package
-alias yo='yaourt -Qo' # package for command
-alias yl='yaourt -Ql' # list files for package
-alias ye='yaourt -Qe --date' # list installed packages
+
+alias tw='timew'
+
+
+# nixos
+alias ns="nix-shell --run zsh"
+alias nrs="sudo nixos-rebuild switch"
 
 # vim
 alias vimt='vim $(date +"%Y-%m-%d")'
