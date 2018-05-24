@@ -45,12 +45,12 @@ set cursorline                    " highlight current line
 set number                        " enable line numbers
 " set relativenumber                " show relative numbers for all lines but the current one
 set ruler                         " show the cursor position all the time
-set incsearch                     " do incremental searching
 set inccommand=nosplit            " live substitution preview
 set ignorecase                    " smart case sensitive search
 set smartcase                     "              "
 set hls                           " hightlight search results
 set scrolloff=5 sidescrolloff=10  " keep some lines before and after the cursor visible
+set sidescroll=1                  " used when wrap is off
 set wrap                          " break long lines
 set linebreak                     " break only at word boundary
 set listchars=tab:⊳\ ,trail:·     " display whitespaces
@@ -79,7 +79,6 @@ set showcmd                       " display incomplete commands
 set wildmenu                      " better command line completion
 set wildmode=list:longest,full
 set lazyredraw                    " performance: dont redraw while executing macros
-" set ttyfast                       " allow vim to write more characters to screen
 set autoread                      " read file when changed from outside
 set confirm                       " ask to save files when closing vim
 " set exrc                          " source .vimrc from directories
@@ -112,8 +111,6 @@ endif
 " set autochdir
 autocmd vimrc BufEnter * set noreadonly " no delay, when editing read-only files
 autocmd vimrc BufEnter * silent! lcd %:p:h
-
-autocmd vimrc BufEnter * set noreadonly " no delay, when editing read-only files
 
 " break text automatically
 autocmd vimrc FileType text setlocal textwidth=78

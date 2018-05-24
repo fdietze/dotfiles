@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-if type xcwd >/dev/null
-    then true;
-    else  function xcwd { echo $HOME ;}
-fi
-exec termite -d "$(xcwd)"
