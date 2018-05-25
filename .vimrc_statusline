@@ -16,9 +16,9 @@ let g:lightline = {
       \   'right': [  ['scrollbar'] ]
       \ },
       \ 'component_function': {
-      \ 'gitbranch': 'BarGitBranch',
-      \ 'filename' : 'BarFilename',
-      \ 'scrollbar': 'BarScrollbar',
+      \   'gitbranch': 'BarGitBranch',
+      \   'filename' : 'BarFilename',
+      \   'scrollbar': 'BarScrollbar',
       \ },
       \ 'component_expand': {
       \   'buffers': 'lightline#bufferline#buffers'
@@ -31,6 +31,7 @@ let g:lightline = {
       \ }
 
 let g:lightline#bufferline#modified = '*'
+let g:lightline#bufferline#filename_modifier = ':t'
 autocmd vimrc BufWritePost,TextChanged,TextChangedI * call lightline#update() " https://github.com/mgee/lightline-bufferline/issues/5
 
 
