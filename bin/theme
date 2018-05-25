@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+THEME=$1 # light or dark
+
+case $THEME in
+    light|dark)
+        ;;
+    *)
+        echo "usage: theme <light|dark>"
+        exit 1
+        ;;
+esac
+
+echo "$THEME" > $HOME/.theme
+
+case $THEME in
+    light)
+        WALLPAPER=/home/felix/downloads/wallpapers/bluhen-blume-blute-159056.jpg
+        VIM_COLORSCHEME="goodmorning"
+        export BAR_BG=#FFFFFF
+        export BAR_FG=#000000
+        export BAR_FG_ALT=#888888
+        export BAR_WARN=#FF3F74
+        export BAR_PEAK=#00AF2B
+        export BAR_RAMP_0="%{F$BAR_FG_ALT}▁%{F-}"
+        export BAR_RAMP_7="%{F$BAR_PEAK}█%{F-}"
+        export BAR_RAMP_WARN_0="%{F$BAR_WARN}▁%{F-}"
+        export BAR_RAMP_WARN_1="%{F$BAR_WARN}▂%{F-}"
+        ;;
+    dark)
+        WALLPAPER=/home/felix/downloads/wallpapers/bluhen-blume-blute-159056.jpg
+        VIM_COLORSCHEME="gruvbox"
+        export BAR_BG=#282A2E
+        export BAR_FG=#EDEEF7
+        export BAR_FG_ALT=#9A9BA1
+        export BAR_WARN=#e60053
+        export BAR_PEAK=#9AF086
+        export BAR_RAMP_0="%{F$BAR_FG_ALT}▁%{F-}"
+        export BAR_RAMP_7="%{F$BAR_PEAK}█%{F-}"
+        export BAR_RAMP_WARN_0="%{F$BAR_WARN}▁%{F-}"
+        export BAR_RAMP_WARN_1="%{F$BAR_WARN}▂%{F-}"
+        ;;
+esac
+
+echo "xmonad..."
+ # prevents infinite loop between xmonad and this script
+if [ $(cat $HOME/.theme) != "$THEME" ]; then 
+    xmonad --restart
+fi
+
+echo "nitrogen..."
+nitrogen --set-zoom-fill "$WALLPAPER"
+
+echo "statusbar..."
+statusbar
+
+echo "termite..."
+cp $HOME/.config/termite/config{-$THEME,}
+pkill -SIGUSR1 termite
+
+echo "nvim..."
+source ~/.zgen/dottr/dottr-master/yolk/zsh/nvim-rpc.zsh
+nvim-rpc-all "set background=$THEME"
+nvim-rpc-all "colorscheme $VIM_COLORSCHEME"
+
+echo "dunst..."
+dunst &!
+
+echo "cursor..."
+xsetroot -cursor_name left_ptr
+
