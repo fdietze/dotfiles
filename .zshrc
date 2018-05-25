@@ -72,6 +72,9 @@ autoload -U zmv # renaming utils
 source ~/.zshrc.vimode
 RPROMPT='${MODE_INDICATOR}'
 
+bind2maps emacs viins vicmd -- -s '^[[1;5C' forward-word
+bind2maps emacs viins vicmd -- -s '^[[1;5D' backward-word
+
 autoload edit-command-line
 zle -N edit-command-line
 bind2maps vicmd viins -- -s '^v' edit-command-line
