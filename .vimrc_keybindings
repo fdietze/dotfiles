@@ -206,6 +206,11 @@ nmap <silent> <Leader>: <Plug>ToggleEndChar:
 nnoremap <silent> <Enter> :MultipleCursorsFind <C-R>/<CR>
 vnoremap <silent> <Enter> :MultipleCursorsFind <C-R>/<CR>
 
+" Language Server Protocol
+nnoremap <silent> gd :call LanguageClient#textDocument_definition()<CR>
+nnoremap <silent> <leader>u :call LanguageClient#textDocument_references()<CR>
+" nnoremap <silent> <C-S-n> :call LanguageClient#textDocument_rename()<CR>
+
 " FZF: Fuzzy file finding
 nmap <leader>e :ProjectFiles<CR>
 nmap <leader>E :GitFiles<CR>
@@ -271,8 +276,3 @@ nmap <S-up>    <S-v><Plug>SchleppUp
 nmap <S-down>  <S-v><Plug>SchleppDown
 nmap <S-left>  <S-v><Plug>SchleppLeft
 nmap <S-right> <S-v><Plug>SchleppRight
-
-" incsearch plugin
-" map /  <Plug>(incsearch-forward)
-" map \  <Plug>(incsearch-backward)
-" map ?  <Plug>(incsearch-backward)

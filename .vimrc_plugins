@@ -13,8 +13,6 @@ call plug#begin('~/.vim/plugged')
 Plug 'tpope/vim-sensible'     " defaults everyone can agree on
 Plug 'tpope/vim-repeat'       " enable dot-command for Plugins
 Plug 'benjifisher/matchit.zip'     " matches not only parantheses, but also HTML-Tags and more
-Plug 'Valloric/YouCompleteMe', { 'do': './install.py' } " fuzzy autocompletion
-" https://github.com/rdnetto/YCM-Generator
 Plug 'kopischke/vim-fetch' " open files at line with filename:32
 Plug 'airblade/vim-rooter' " cd to project root
 Plug 'airblade/vim-gitgutter' " VCS change info per line (only git)
@@ -87,6 +85,18 @@ Plug 'shmup/vim-sql-syntax'
 Plug 'LnL7/vim-nix' " nixos syntax
 Plug 'rhysd/vim-gfm-syntax' " Github flavoured markdown with embedded language support
 Plug 'chrisbra/Colorizer' " color hex codes and color-names
+
+" https://github.com/autozimu/LanguageClient-neovim#quick-start
+" https://github.com/gvolpe/vim-setup
+Plug 'autozimu/LanguageClient-neovim', {
+    \ 'branch': 'next',
+    \ 'do': 'bash install.sh',
+    \ }
+Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
+let g:LanguageClient_serverCommands = {
+    \ 'scala': ['~/scalameta_lsp'],
+    \ }
+let g:deoplete#enable_at_startup = 1
 
 
 
@@ -165,18 +175,6 @@ let g:easytags_languages = {
 " multiple-cursors
 let g:multi_cursor_exit_from_visual_mode = 0
 let g:multi_cursor_exit_from_insert_mode = 0
-
-" YouCompleteMe
-let g:ycm_server_python_interpreter = '/usr/bin/python3' " force ycm to use py3 - useful when multiple versions are installed
-let g:ycm_auto_trigger = 1
-let g:ycm_min_num_of_chars_for_completion = 3
-let g:ycm_key_list_previous_completion = ['<S-TAB>']
-let g:ycm_key_list_select_completion = ['<TAB>']
-let g:ycm_cache_omnifunc = 0
-let g:ycm_rust_src_path = '/home/felix/projects/rust/src'
-let g:ycm_cpp_flags = ['-Wextra', '-Werror' ]
-let g:ycm_extra_conf_vim_data = [ 'g:ycm_cpp_flags' ]
-let g:ycm_global_ycm_extra_conf = '~/.vim/global_ycm_extra_conf.py'
 
 " Goyo distraction free editing
 let g:goyo_width = 80
