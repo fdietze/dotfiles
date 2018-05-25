@@ -96,8 +96,9 @@ Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
 let g:LanguageClient_serverCommands = {
     \ 'scala': ['~/scalameta_lsp'],
     \ }
+" to create ~/scalameta_lsp:
+" coursier bootstrap org.scalameta:metaserver_2.12:a212acd7 -r bintray:scalameta/maven -r bintray:dhpcs/maven -M scala.meta.languageserver.Main -o scalameta_lsp -f --standalone
 let g:deoplete#enable_at_startup = 1
-
 
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
