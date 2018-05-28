@@ -10,6 +10,7 @@ case $THEME in
         ;;
 esac
 
+OLDTHEME=$(cat $HOME/.theme)
 echo "$THEME" > $HOME/.theme
 
 case $THEME in
@@ -43,7 +44,7 @@ esac
 
 echo "xmonad..."
  # prevents infinite loop between xmonad and this script
-if [ $(cat $HOME/.theme) != "$THEME" ]; then 
+if [ $OLDTHEME != "$THEME" ]; then 
     xmonad --restart
 fi
 
