@@ -77,10 +77,10 @@ myBorderWidth   = 2
 myWorkspaces    = ["1","2","3","4","5","6","7","8","9"]
 
 myNormalBorderColor Light  = "#DCDDE6"
-myNormalBorderColor Dark  = "#777987"
+myNormalBorderColor Dark  = "#171717"
 
 myFocusedBorderColor Light = "#777987"
-myFocusedBorderColor Dark = "#DCDDE6"
+myFocusedBorderColor Dark = "#565961"
 
 myPP Dark = def {
   ppCurrent           = wrap "%{F#ffffff B#5A5B66} "   " %{F- B-}",
