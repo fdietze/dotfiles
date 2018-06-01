@@ -33,8 +33,8 @@ case $THEME in
         export BAR_BG=#282A2E
         export BAR_FG=#EDEEF7
         export BAR_FG_ALT=#9A9BA1
-        export BAR_WARN=#e60053
-        export BAR_PEAK=#9AF086
+        export BAR_WARN=#d65d0e
+        export BAR_PEAK=#8ec07c
         export BAR_RAMP_0="%{F$BAR_FG_ALT}▁%{F-}"
         export BAR_RAMP_7="%{F$BAR_PEAK}█%{F-}"
         export BAR_RAMP_WARN_0="%{F$BAR_WARN}▁%{F-}"
