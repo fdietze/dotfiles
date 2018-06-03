@@ -141,8 +141,9 @@ s() {
 }
 
 # file listing/interaction
-alias ls='ls --group-directories-first --color=auto -h'
-alias lt='ls -ltr'
+alias ls='ls --group-directories-first --color=always --escape --human-readable --classify'
+alias lt='ls -lt --reverse'
+alias la='ls -l --almost-all'
 alias l='ls -l'
 alias t='tree -C' # -C is for color=always
 alias t2='tree -L 2 -C' # -C is for color=always
