@@ -93,7 +93,7 @@ tail = true
 
 [module/xwindow]
 type = internal/xwindow
-label = %{A2:xdotool getwindowfocus windowkill:}%title:0:110:...%%{A}
+label = %{A2:xdotool getwindowfocus windowkill:}%title:0:80:...%%{A}
 
 
 [module/cpu]
