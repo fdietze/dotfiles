@@ -119,7 +119,7 @@ let g:tex_flavor = "latex"
 
 " set spell spelllang=en_us
 
-autocmd Filetype scala setlocal expandtab tabstop=2 shiftwidth=2 softtabstop=2
+autocmd vimrc Filetype scala setlocal expandtab tabstop=2 shiftwidth=2 softtabstop=2
 
 " filetype aliases
 autocmd vimrc BufNewFile,BufRead *.sbt set filetype=scala
