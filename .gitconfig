@@ -57,6 +57,7 @@
     st = status
     co = checkout
     cob = checkout -b
+    cot = "!TEMP=$(mktemp -d); f() { git worktree prune && git worktree add $TEMP $1 && zsh -c \"cd $TEMP; zsh\";}; f" # checkout branch in temporary directory
     ci = commit
     cia = commit -a
     amend = commit --amend
