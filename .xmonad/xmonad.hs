@@ -12,7 +12,7 @@
 -- myDoFullFloat = doF W.focusDown <+> doFullFloat
 
 -- https://hackage.haskell.org/package/X11-1.9/docs/Graphics-X11-Types.html
--- TODO: focus stealing: https://github.com/xmonad/xmonad/issues/45
+-- TODO: focus stealing: https://github.com/xmonad/xmonad/issues/45 | https://wiki.haskell.org/Xmonad/Frequently_asked_questions#Prevent_new_windows_from_stealing_focus
 
 import XMonad
 import XMonad.Hooks.ManageDocks (avoidStruts,docks,manageDocks)
@@ -24,6 +24,8 @@ import XMonad.Layout.NoBorders (smartBorders)
 import XMonad.Actions.CycleWS
 import XMonad.Layout.MultiToggle
 import XMonad.Layout.MultiToggle.Instances
+import XMonad.Layout.Grid
+import XMonad.Layout.Tabbed
 import XMonad.Util.Run (safeSpawn)
 import XMonad.Util.NamedWindows (getName)
 import Data.Monoid
@@ -38,23 +40,23 @@ import XMonad.Hooks.UrgencyHook
 import qualified XMonad.StackSet as W
 import qualified Data.Map        as M
 
-data Theme = Light | Dark
-instance Show Theme where
+data ColorTheme = Light | Dark
+instance Show ColorTheme where
     show Light = "light"
     show Dark = "dark"
 
-instance Read Theme where
+instance Read ColorTheme where
     readsPrec _ "dark" = [(Dark, "")]
     readsPrec _ _ = [(Light, "")]
 
-readTheme :: IO Theme
-readTheme = do
+readColorTheme :: IO ColorTheme
+readColorTheme = do
     contents <- readFile "/home/felix/.theme"
     let theme = (read (trim contents))
     return theme
 
 main = do
-    theme <- readTheme
+    theme <- readColorTheme
     xmonad $ fullscreenSupport
            $ docks
            $ ewmh
@@ -119,9 +121,11 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm, xK_q     ), kill)
     , ((modm, xK_x     ), kill)
     , ((modm, xK_f), sendMessage $ Toggle FULL)
+    -- , ((modm, xK_f), withFocused $ \f -> windows =<< appEndo `fmap` runQuery doFullFloat f)
+
  
      -- Rotate through the available layout algorithms
-    -- , ((modm,               xK_h ), sendMessage NextLayout)
+    , ((modm .|. shiftMask,               xK_h ), sendMessage NextLayout)
  
     --  Reset the layouts on the current workspace to default
     , ((modm .|. shiftMask, xK_space ), setLayout $ XMonad.layoutHook conf)
@@ -263,7 +267,11 @@ myMouseBindings (XConfig {XMonad.modMask = modm}) = M.fromList $
     ]
 
 
-myLayoutHook = smartBorders $ mkToggle ((NOBORDERS ?? FULL ?? EOT)) $ tiled ||| Full
+myLayoutHook = id
+    $ smartBorders
+    $ avoidStruts
+    $ mkToggle (single FULL)
+    $ Grid ||| tiled ||| Full
     where
         tiled = Tall nmaster delta ratio
         nmaster = 1				-- # of windows in master pane
@@ -289,7 +297,7 @@ defaults theme = defaultConfig {
         -- mouseBindings      = myMouseBindings,
  
       -- hooks, layouts
-        layoutHook         = smartBorders . avoidStruts $ myLayoutHook,
+        layoutHook         = myLayoutHook,
         manageHook         = manageDocks <+> (isFullscreen --> doFullFloat),
         logHook            = dynamicLogWithPP (myPP theme),
         startupHook        = myStartupHook theme,
