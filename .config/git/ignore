@@ -6,5 +6,9 @@
 /.idea_modules
 *.iml
 
+# Ensime
+.ensime
+.ensime_cache
+
 # Syncthing
 .stignore
