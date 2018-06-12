@@ -28,7 +28,7 @@ addCommandAlias("du", "dependencyUpdates")
 addCommandAlias("coverageAll", ";clean ;coverage ;test ;coverageReport")
 addCommandAlias("opt", """set scalacOptions ++= Seq("-Xdisable-assertions", "-optimize", "-Yinline")""")
 
-maxErrors := 4
+/* maxErrors := 4 */
 
 // ctrl+c does not quit
 // cancelable in Global := true
@@ -38,3 +38,6 @@ initialize ~= (_ => if (ConsoleLogger.formatEnabled) sys.props("scala.color") = 
 
 triggeredMessage in ThisBuild := Watched.clearWhenTriggered
 
+reporterConfig := reporterConfig.value.withReverseOrder(true)
+
+clippyColorsEnabled := true
