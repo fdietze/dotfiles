@@ -51,6 +51,7 @@ instance Read ColorTheme where
 
 readColorTheme :: IO ColorTheme
 readColorTheme = do
+    spawn "touch /home/felix/.theme"
     contents <- readFile "/home/felix/.theme"
     let theme = (read (trim contents))
     return theme
