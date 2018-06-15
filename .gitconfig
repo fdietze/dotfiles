@@ -78,6 +78,7 @@
     peng = push --force-with-lease
     wupp = push
     up = pull --rebase --autostash
+    u = up
     f = fetch
     fa = fetch --all
     po = "!git push --set-upstream origin \"$(git rev-parse --abbrev-ref HEAD)\"" # push current branch to origin

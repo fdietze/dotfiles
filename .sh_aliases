@@ -85,6 +85,14 @@ movie-godzilla() {
     done <<< "$selection"
 }
 
+untilon() {
+    until ping -c 1 $1 -W 2; do sleep 1; done;
+}
+
+alias fffon='ssh remotekiwi sudo etherwake -i eth0 1c:1b:0d:9d:e2:1a && ssh remotekiwi "until ping -q -c 1 192.168.123.155 -W 2; do sleep 1; done"'
+alias fffoff='ssh rfff sudo poweroff'
+alias fffdev='fffon; cd ~/projects/wust2; REMOTEHOST=rfff ./remotedev.sh'
+
 # wifi with networkmanager
 alias won='nmcli radio wifi on; wscan'
 alias woff='nmcli radio wifi off'

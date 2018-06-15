@@ -13,7 +13,7 @@ call plug#begin('~/.vim/plugged')
 Plug 'tpope/vim-sensible'     " defaults everyone can agree on
 Plug 'tpope/vim-repeat'       " enable dot-command for Plugins
 Plug 'benjifisher/matchit.zip'     " matches not only parantheses, but also HTML-Tags and more
-Plug 'kopischke/vim-fetch' " open files at line with filename:32
+Plug 'wsdjeg/vim-fetch' " open files at line with filename:32
 Plug 'airblade/vim-rooter' " cd to project root
 Plug 'airblade/vim-gitgutter' " VCS change info per line (only git)
 Plug 'zirrostig/vim-smart-swap' " handle vim swap files, delete older and identical swap files
