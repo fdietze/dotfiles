@@ -12,7 +12,9 @@ application/x-extension-xhtml=chromium-browser.desktop
 application/x-extension-xht=chromium-browser.desktop
 application/pdf=evince.desktop
 x-scheme-handler/mailto=chromium-browser.desktop
-image/svg+xml=inkscape.desktop
+
+application/x-gzip=org.gnome.FileRoller.desktop;
+application/x-zip-compressed=org.gnome.FileRoller.desktop;
 
 [Added Associations]
 x-scheme-handler/http=chromium-browser.desktop;
@@ -28,7 +30,7 @@ application/x-extension-xhtml=chromium-browser.desktop;
 application/x-extension-xht=chromium-browser.desktop;
 application/pdf=atril.desktop;evince.desktop;
 application/vnd.oasis.opendocument.spreadsheet=calc.desktop;
-image/png=imv.desktop;feh.desktop;
+image/png=feh.desktop;
 application/vnd.ms-excel=calc.desktop;
 application/msword=writer.desktop;
 text/plain=nvim.desktop;
