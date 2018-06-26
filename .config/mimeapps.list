@@ -12,6 +12,7 @@ application/x-extension-xhtml=chromium-browser.desktop
 application/x-extension-xht=chromium-browser.desktop
 application/pdf=evince.desktop
 x-scheme-handler/mailto=chromium-browser.desktop
+image/svg+xml=inkscape.desktop
 
 [Added Associations]
 x-scheme-handler/http=chromium-browser.desktop;
@@ -27,7 +28,12 @@ application/x-extension-xhtml=chromium-browser.desktop;
 application/x-extension-xht=chromium-browser.desktop;
 application/pdf=atril.desktop;evince.desktop;
 application/vnd.oasis.opendocument.spreadsheet=calc.desktop;
-image/png=feh.desktop;
+image/png=imv.desktop;feh.desktop;
 application/vnd.ms-excel=calc.desktop;
 application/msword=writer.desktop;
 text/plain=nvim.desktop;
+image/svg+xml=inkscape.desktop;
+image/jpeg=imv.desktop;
+
+[Removed Associations]
+image/svg+xml=imv.desktop;atril.desktop;
