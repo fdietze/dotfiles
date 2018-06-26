@@ -194,6 +194,11 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm .|. shiftMask, xK_v),   shiftToPrev >> prevWS)
     -- , ((modm .|. shiftMask, xK_w), shiftToNext >> toggleWS)
 
+    , ((modm,               xK_u),  spawn "lock")
+
+    , ((modm .|. controlMask, xK_q),   spawn "nmcli radio wifi on")
+    , ((modm .|. controlMask, xK_d),   spawn "nmcli radio wifi off")
+    , ((modm .|. controlMask .|. shiftMask, xK_d),   spawn "networkmanager_dmenu")
 
     , ((modm, xK_udiaeresis {- ü -} ), spawn "playerctl previous")
     , ((modm, xK_odiaeresis {- ö -} ), spawn "playerctl play")
