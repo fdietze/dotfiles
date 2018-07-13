@@ -278,9 +278,8 @@ myMouseBindings (XConfig {XMonad.modMask = modm}) = M.fromList $
 
 myLayoutHook = id
     $ smartBorders
-    $ avoidStruts
     $ mkToggle (single FULL)
-    $ Grid ||| tiled ||| Full
+    $ (avoidStruts (Grid ||| tiled)) ||| Full
     where
         tiled = Tall nmaster delta ratio
         nmaster = 1				-- # of windows in master pane
