@@ -64,7 +64,7 @@ fry nvim-rpc
 setopt nonomatch # avoid the zsh "no matches found" / allows sbt ~compile
 setopt hash_list_all # rehash command path and completions on completion attempt
 setopt transient_rprompt # hide earlier rprompts
-unsetopt flow_control # we don't want no flow control, Ctrl-s / Ctrl-q, this allows vim to map <C-s>
+unsetopt flow_control # we dont want no flow control, Ctrl-s / Ctrl-q, this allows vim to map <C-s>
 stty -ixon # (belongs to flow control option)
 autoload -U zmv # renaming utils
 
