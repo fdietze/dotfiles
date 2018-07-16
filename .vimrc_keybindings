@@ -207,8 +207,8 @@ nnoremap <silent> <Enter> :MultipleCursorsFind <C-R>/<CR>
 vnoremap <silent> <Enter> :MultipleCursorsFind <C-R>/<CR>
 
 " Language Server Protocol
-nnoremap <silent> gd :call LanguageClient#textDocument_definition()<CR>
-nnoremap <silent> <leader>u :call LanguageClient#textDocument_references()<CR>
+" nnoremap <silent> gd :call LanguageClient#textDocument_definition()<CR>
+" nnoremap <silent> <leader>u :call LanguageClient#textDocument_references()<CR>
 " nnoremap <silent> <C-S-n> :call LanguageClient#textDocument_rename()<CR>
 inoremap <silent><expr> <TAB>
             \ pumvisible() ? "\<C-n>" :
