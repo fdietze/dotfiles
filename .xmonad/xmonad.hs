@@ -87,7 +87,7 @@ myFocusedBorderColor Dark = "#565961"
 
 myPP Dark = def {
   ppCurrent           = wrap "%{F#ffffff B#5A5B66} "   " %{F- B-}",
-  ppVisible           = wrap "%{F#cc342b}" "%{F-}" . clickable, -- xinerama
+  ppVisible           = wrap "%{B#3F4047}" "%{B-}" . clickable, -- xinerama
   ppHidden            = wrap "%{F#eeeeee}" "%{F-}" . clickable,
   ppHiddenNoWindows   = wrap "%{F#555555}" "%{F-}" . clickable,
   ppUrgent            = wrap "%{B#CE6D00}" "%{B-}" . clickable,
@@ -99,7 +99,7 @@ myPP Dark = def {
 
 myPP Light = def {
   ppCurrent           = wrap "%{F#ffffff B#5A5B66} "   " %{F- B-}",
-  ppVisible           = wrap "%{F#cc342b}" "%{F-}" . clickable, -- xinerama
+  ppVisible           = wrap "%{B#B4B6CC}" "%{B-}" . clickable, -- xinerama
   ppHidden            = wrap "%{F#555555}" "%{F-}" . clickable,
   ppHiddenNoWindows   = wrap "%{F#cccccc}" "%{F-}" . clickable,
   ppUrgent            = wrap "%{B#FFD8AC}" "%{B-}" . clickable,
@@ -194,7 +194,8 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm .|. shiftMask, xK_v),   shiftToPrev >> prevWS)
     -- , ((modm .|. shiftMask, xK_w), shiftToNext >> toggleWS)
 
-    , ((modm,               xK_u),  spawn "lock")
+    -- , ((modm,               0xfe52),  spawn "lock") -- dead circumflex
+    , ((modm,               xK_Escape),  spawn "lock") -- dead circumflex
 
     , ((modm .|. controlMask, xK_q),   spawn "nmcli radio wifi on")
     , ((modm .|. controlMask, xK_d),   spawn "nmcli radio wifi off")
@@ -246,15 +247,15 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
                     , (W.shift, modm .|. shiftMask .|. controlMask)
                     ]
     ]
-    -- ++
+    ++
  
     --
     -- mod-{w,e,r}, Switch to physical/Xinerama screens 1, 2, or 3
     -- mod-shift-{w,e,r}, Move client to screen 1, 2, or 3
     --
-    -- [((m .|. modm, key), screenWorkspace sc >>= flip whenJust (windows . f))
-    --     | (key, sc) <- zip [xK_w, xK_e, xK_r] [0..]
-    --     , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]
+    [((m .|. modm, key), screenWorkspace sc >>= flip whenJust (windows . f))
+        | (key, sc) <- zip [xK_u, xK_o] [0..]
+        , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]
 
 ------------------------------------------------------------------------
 -- Mouse bindings: default actions bound to mouse events
@@ -279,7 +280,7 @@ myMouseBindings (XConfig {XMonad.modMask = modm}) = M.fromList $
 myLayoutHook = id
     $ smartBorders
     $ mkToggle (single FULL)
-    $ (avoidStruts (Grid ||| tiled)) ||| Full
+    $ (avoidStruts $ (Grid ||| tiled)) ||| Full
     where
         tiled = Tall nmaster delta ratio
         nmaster = 1				-- # of windows in master pane
