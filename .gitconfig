@@ -70,6 +70,7 @@
     lg = fry one-line-log-colors
     lga = fry branch-topology
     df  = fry word-based-diff
+    dfm  = fry word-based-diff master
     dfs  = fry word-based-diff --staged
     diff = diff --irreversible-delete --find-copies  --find-copies-harder --ignore-space-at-eol --ignore-space-change --ignore-all-space
     diffs = diff --irreversible-delete --find-copies  --find-copies-harder --ignore-space-at-eol --ignore-space-change --ignore-all-space --staged
@@ -92,6 +93,7 @@
     sp = stash pop
 
     rb = rebase
+    rbm = rebase master
     rba = rebase --abort
     rbs = rebase --skip
     rbc = rebase --continue
