@@ -94,10 +94,13 @@
 
     rb = rebase
     rbm = rebase master
+    rbom = rebase origin/master
     rba = rebase --abort
     rbs = rebase --skip
     rbc = rebase --continue
     rbi = rebase -i
+    rbim = rebase -i master
+    rbiom = rebase -i origin/master
 
     m = merge
     mra = merge --abort
