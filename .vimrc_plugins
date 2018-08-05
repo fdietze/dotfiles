@@ -199,7 +199,7 @@ let g:gitgutter_sign_modified_removed = '⌇✕'
 let g:languagetool_jar=$HOME."/local/languagetool/languagetool-commandline.jar"
 
 " Github flavoured markdown
-let g:markdown_fenced_languages = ['scala', 'javascript', 'json', 'bash=sh']
+let g:markdown_fenced_languages = ['scala', 'tut=scala', 'javascript', 'json', 'bash=sh']
 
 " Autoformat
 let g:autoformat_autoindent = 0
