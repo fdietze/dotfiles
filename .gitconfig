@@ -78,7 +78,7 @@
     pf = push --force-with-lease
     peng = push --force-with-lease
     wupp = push
-    up = pull --rebase --autostash
+    up = pull
     u = up
     f = fetch
     fa = fetch --all
