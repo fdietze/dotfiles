@@ -5,6 +5,16 @@ alias gparted='gksudo gparted'
 alias teamviewer='gksudo "systemctl start teamviewerd"; sleep 5; teamviewer'
 alias suspend='systemctl suspend'
 
+alias start='./start'
+wu() {
+    cd ~/projects/wust2
+    if [ -z "$(git status --porcelain)" ]; then 
+        # Working directory clean
+        git pull
+    fi 
+    ./start nsbt
+}
+
 
 # fix highdpi for chromium
 alias chromium='chromium --high-dpi-support=1 --force-device-scale-factor=1'
