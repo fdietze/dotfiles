@@ -6,6 +6,10 @@ killall -q polybar
 # Wait until the processes have been shut down
 # while pgrep -u $UID -x polybar >/dev/null; do sleep 1; done
 
-polybar default &
+MONITORS=$(polybar --list-monitors | sed -e 's/:.*$//g')
+for m in $MONITORS; do
+    export MONITOR=$m
+    polybar default &
+done
 
 
