@@ -20,8 +20,9 @@ function zsh-vi-precmd {
 }
 add-zsh-hook precmd zsh-vi-precmd
 
-# on mode switch, update mode indicator
-function zle-keymap-select {
+
+# on mode switch, update mode indicator and cursor shape
+function zle-line-init zle-keymap-select {
     case $KEYMAP in
         main|viins  ) MODE_INDICATOR="%{$bg[green]%}%{$fg[white]%}%B I %{$reset_color%}" ;;
         vicmd       ) MODE_INDICATOR="%{$bg[blue]%}%{$fg[white]%}%B N %{$reset_color%}" ;;
@@ -29,11 +30,25 @@ function zle-keymap-select {
         virep       ) MODE_INDICATOR="%{$bg[red]%}%{$fg[white]%}%B R %{$reset_color%}" ;;
     esac
     zle reset-prompt
+
+
+    if [[ "$SSH_CONNECTION" == '' ]] {
+        case $KEYMAP {
+            vicmd)
+                printf '\e[0 q' # Box.
+                ;;
+
+            viins|main)
+                printf '\e[6 q' # Vertical bar.
+                ;;
+            }
+        }
 }
+zle -N zle-line-init
 zle -N zle-keymap-select
 
 
-
+bindkey -M vicmd "^V" edit-command-line # edit command in vim
 
 bind2maps emacs viins vicmd -- "Home" beginning-of-line
 bind2maps emacs viins vicmd -- "End" end-of-line
