@@ -20,6 +20,11 @@ function zsh-vi-precmd {
 }
 add-zsh-hook precmd zsh-vi-precmd
 
+function zsh-vi-preexec {
+    printf '\e[2 q' # reset to steady block cursor
+}
+add-zsh-hook preexec zsh-vi-preexec
+
 
 # on mode switch, update mode indicator and cursor shape
 function zle-line-init zle-keymap-select {
@@ -35,11 +40,11 @@ function zle-line-init zle-keymap-select {
     if [[ "$SSH_CONNECTION" == '' ]] {
         case $KEYMAP {
             vicmd)
-                printf '\e[0 q' # Box.
+                printf '\e[2 q' # steady block
                 ;;
 
             viins|main)
-                printf '\e[6 q' # Vertical bar.
+                printf '\e[6 q' # steady bar
                 ;;
             }
         }
