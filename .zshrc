@@ -90,7 +90,8 @@ bind2maps emacs viins vicmd -- "Up" up-line-or-search
 bind2maps emacs viins vicmd -- "Down" down-line-or-search
 
 if [ -n "${commands[fzf-share]}" ]; then
-  source "$(fzf-share)/key-bindings.zsh"
+    source "$(fzf-share)/key-bindings.zsh"
+    source "$(fzf-share)/completion.zsh"
 fi
 
 source ~/.sh_aliases
