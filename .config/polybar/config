@@ -5,13 +5,13 @@
 [bar/default]
 ;monitor = ${env:MONITOR:HDMI-1}
 width = 100%
-height = 16
+height = 20
 fixed-center = false
 
 background = ${colors.background}
 foreground = ${colors.foreground}
 
-font-0 = Droid Sans Mono:style=Regular:size=10;2
+font-0 = Roboto Mono:style=Regular:size=11;2
 font-1 = Dejavu Sans Mono:size=7;1
 
 modules-left = workspaces-xmonad

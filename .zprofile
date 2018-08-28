@@ -19,5 +19,6 @@ export LESS_TERMCAP_ue=$(printf "\33[0m")       # end underline
 export LESS_TERMCAP_us=$(printf "\33[01;35m")   # begin underline
 
 # fzf fuzzy file finder
+# .git is ignored via ~/.agignore
 export FZF_DEFAULT_COMMAND='ag --hidden -g ""'
 export FZF_DEFAULT_OPTS="-x -m --ansi --exit-0 --select-1" # extended match and multiple selections

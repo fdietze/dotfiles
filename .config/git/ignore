@@ -2,7 +2,8 @@
 /tags
 
 # Intellij IDEA
-/.idea
+/.idea/*
+!/.idea/codeStyles
 /.idea_modules
 *.iml
 

@@ -51,6 +51,7 @@ Plug 'PeterRincker/vim-argumentative'  " text object ',' / also provides argumen
 Plug 'tpope/vim-fugitive' " git support
 Plug 'junegunn/vim-easy-align'
 Plug 'tpope/vim-eunuch' " unix commands
+Plug 'lambdalisue/suda.vim' " temporary fix for eunch not working in neovim https://github.com/neovim/neovim/issues/1716
 Plug 'junegunn/goyo.vim' " distraction-free writing
 Plug 'terryma/vim-smooth-scroll' " redraw some intermediate steps when using PageUp/Down
 " Plug 'luochen1990/rainbow' " color parantheses depending on their depth
