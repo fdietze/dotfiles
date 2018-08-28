@@ -39,10 +39,10 @@ nnoremap <silent> L :bprev<CR>
 vnoremap <silent> L :bprev<CR>
 
 " efficient one-button save/close bindings
-nnoremap ö :update<CR>
+nnoremap ö :w<CR>
 vnoremap ö <esc>:update<CR>gv
-nnoremap Ö :SudoWrite<CR>
-vnoremap Ö <esc>:SudoWrite<CR>gv
+nnoremap Ö :w suda://%<CR>
+vnoremap Ö <esc>:w suda://%<CR>gv
 nnoremap <Leader>ö :update<CR>
 nnoremap ä :q<CR>
 vnoremap ä <esc>:q<CR>
