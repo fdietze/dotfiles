@@ -298,6 +298,7 @@ low-traffic() {
     sys stop btsync > /dev/null 2>&1
     sys stop syncthing > /dev/null 2>&1
     sys stop dropbox > /dev/null 2>&1
+    sys stop nixos-upgrade.timer > /dev/null 2>&1
     sys stop nixos-upgrade > /dev/null 2>&1
 }
 
