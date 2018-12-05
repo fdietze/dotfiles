@@ -4,6 +4,7 @@ alias photoshop='wine ~/.wine/drive_c/Program\ Files\ \(x86\)/Adobe/Photoshop\ 7
 alias gparted='gksudo gparted'
 alias teamviewer='gksudo "systemctl start teamviewerd"; sleep 5; teamviewer'
 alias suspend='systemctl suspend'
+alias start='cd ~/projects/wust2; ./start'
 
 alias start='./start'
 wu() {
