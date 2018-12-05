@@ -12,7 +12,6 @@ application/x-extension-xhtml=chromium-browser.desktop
 application/x-extension-xht=chromium-browser.desktop
 application/pdf=evince.desktop
 x-scheme-handler/mailto=chromium-browser.desktop
-
 application/x-gzip=org.gnome.FileRoller.desktop;
 application/x-zip-compressed=org.gnome.FileRoller.desktop;
 
@@ -36,6 +35,7 @@ application/msword=writer.desktop;
 text/plain=nvim.desktop;
 image/svg+xml=inkscape.desktop;
 image/jpeg=imv.desktop;
+application/vnd.oasis.opendocument.presentation=impress.desktop;
 
 [Removed Associations]
 image/svg+xml=imv.desktop;atril.desktop;
