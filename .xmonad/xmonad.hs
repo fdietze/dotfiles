@@ -58,7 +58,7 @@ readColorTheme = do
 
 main = do
     theme <- readColorTheme
-    xmonad $ fullscreenSupport
+    xmonad -- $ fullscreenSupport
            $ docks
            $ ewmh
            $ withUrgencyHook NoUrgencyHook -- trigger highlighting of urgent workspaces
