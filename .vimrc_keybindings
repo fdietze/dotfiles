@@ -203,8 +203,8 @@ nmap <silent> <Leader>: <Plug>ToggleEndChar:
 " multiple cursors
 " TODO: highlight all matches before starting multiple-cursors
 " nmap <C-n> :call HighlightCurrentWord()<CR>:!redraw<CR>:call multiple_cursors#new("n",1)<CR>
-nnoremap <silent> <Enter> :MultipleCursorsFind <C-R>/<CR>
-vnoremap <silent> <Enter> :MultipleCursorsFind <C-R>/<CR>
+nnoremap <silent> <c-N> :MultipleCursorsFind <C-R>/<CR>
+vnoremap <silent> <c-N> :MultipleCursorsFind <C-R>/<CR>
 
 inoremap <silent><expr> <TAB>
             \ pumvisible() ? "\<C-n>" :
