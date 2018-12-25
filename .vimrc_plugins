@@ -87,19 +87,17 @@ Plug 'LnL7/vim-nix' " nixos syntax
 Plug 'rhysd/vim-gfm-syntax' " Github flavoured markdown with embedded language support
 Plug 'chrisbra/Colorizer' " color hex codes and color-names
 
-" https://github.com/autozimu/LanguageClient-neovim#quick-start
-" https://github.com/gvolpe/vim-setup
-Plug 'autozimu/LanguageClient-neovim', {
-    \ 'branch': 'next',
-    \ 'do': 'bash install.sh',
-    \ }
 Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
-let g:LanguageClient_serverCommands = {
-    \ 'scala': ['~/scalameta_lsp'],
-    \ }
-" to create ~/scalameta_lsp:
-" coursier bootstrap org.scalameta:metaserver_2.12:a212acd7 -r bintray:scalameta/maven -r bintray:dhpcs/maven -M scala.meta.languageserver.Main -o scalameta_lsp -f --standalone
 let g:deoplete#enable_at_startup = 1
+
+Plug 'natebosch/vim-lsc'
+let g:lsc_enable_autocomplete = v:false
+let g:lsc_server_commands = {
+  \ 'scala': 'metals-vim'
+  \}
+let g:lsc_auto_map = {
+    \ 'GoToDefinition': 'gd',
+    \}
 
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
