@@ -142,6 +142,10 @@
     status-show-untracked-dirs = false
 
 [tig "bind"]
+    ; ? ask
+    ; ! don't ask
+    ; @ run in background
+
     ;NEO
     generic = ä Quit
     generic = ü view-close
@@ -156,6 +160,8 @@
     generic = P !git push
     status = A !git commit --amend
     status = F !git fixup
+    status = D ?@rm %(file) ; remove files
+    status = I !@git ignore "%(file)" ; add files to .gitignore
     stage = u stage-update-line
     stage = <Home> stage-update-line ; NEO AltGr+u
     stage = U status-update
