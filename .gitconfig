@@ -64,6 +64,7 @@
     unstage = reset HEAD
     prev = reset HEAD~1
     fixup = "!zsh -ic 'git commit --fixup $(git-select-commit)'"
+    ignore = "!f() { echo \"$1\" >> .gitignore; }; f"
     cl = clone
     br = branch
     brr = branch -r
@@ -74,6 +75,7 @@
     dfs  = fry word-based-diff --staged
     diff = diff --irreversible-delete --find-copies  --find-copies-harder --ignore-space-at-eol --ignore-space-change --ignore-all-space
     diffs = diff --irreversible-delete --find-copies  --find-copies-harder --ignore-space-at-eol --ignore-space-change --ignore-all-space --staged
+    sdf = show --color-words
     p = push
     pf = push --force-with-lease
     peng = push --force-with-lease
@@ -107,6 +109,7 @@
     mrs = merge --skip
     mrc = merge --continue
 
+    cp = cherry-pick
     cpa = cherry-pick --abort
     cps = cherry-pick --skip
     cpc = cherry-pick --continue
