@@ -7,6 +7,10 @@
 /.idea_modules
 *.iml
 
+# Scala Metals
+.metals/
+.bloop/
+
 # Ensime
 .ensime
 .ensime_cache
