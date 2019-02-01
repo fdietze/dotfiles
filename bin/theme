@@ -15,7 +15,7 @@ echo "$THEME" > $HOME/.theme
 
 case $THEME in
     light)
-        WALLPAPER=/home/felix/downloads/wallpapers/bluhen-blume-blute-159056.jpg
+        WALLPAPER=/home/felix/downloads/wallpapers/e1qBfv2.jpg
         VIM_COLORSCHEME="goodmorning"
         export BAR_BG=#FFFFFF
         export BAR_FG=#000000
@@ -28,7 +28,7 @@ case $THEME in
         export BAR_RAMP_WARN_1="%{F$BAR_WARN}▂%{F-}"
         ;;
     dark)
-        WALLPAPER=/home/felix/downloads/wallpapers/bluhen-blume-blute-159056.jpg
+        WALLPAPER=/home/felix/downloads/wallpapers/bhSibUd.jpg
         VIM_COLORSCHEME="gruvbox"
         export BAR_BG=#282A2E
         export BAR_FG=#EDEEF7
@@ -49,7 +49,9 @@ if [ $OLDTHEME != "$THEME" ]; then
 fi
 
 echo "nitrogen..."
-nitrogen --set-zoom-fill "$WALLPAPER"
+nitrogen --head=0 --set-zoom-fill "$WALLPAPER"
+nitrogen --head=1 --set-zoom-fill "$WALLPAPER"
+nitrogen --head=2 --set-zoom-fill "$WALLPAPER"
 
 echo "statusbar..."
 statusbar
