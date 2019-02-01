@@ -45,6 +45,14 @@ ramp-base-5 = ▆
 ramp-base-6 = ▇
 ramp-base-7 = ${env:BAR_RAMP_7:%{F#FFD9C1}█%{F-}}
 
+ramp-warn-0 = ▁
+ramp-warn-1 = ▂
+ramp-warn-2 = ▃
+ramp-warn-3 = ▄
+ramp-warn-4 = ▅
+ramp-warn-5 = ▆
+ramp-warn-6 = ▇
+ramp-warn-7 = █
 
 ;[module/ewmh]
 ;type = internal/xworkspaces
@@ -138,11 +146,10 @@ ramp-foreground = ${colors.foreground-alt}
 [module/memory]
 type = internal/memory
 interval = 2
-format = <label>
-label = %percentage_used%%
-; format = <ramp-free> 
 format-prefix = "mem "
 format-prefix-foreground = ${colors.foreground-alt}
+; format = <ramp-used><ramp-swap-used>
+format = <ramp-used>
 
 ramp-used-0 = ${base.ramp-base-0}
 ramp-used-1 = ${base.ramp-base-1}
@@ -152,6 +159,16 @@ ramp-used-4 = ${base.ramp-base-4}
 ramp-used-5 = ${base.ramp-base-5}
 ramp-used-6 = ${base.ramp-base-6}
 ramp-used-7 = ${base.ramp-base-7}
+
+ramp-swap-used-foreground = ${colors.warn}
+ramp-swap-used-0 = ""
+ramp-swap-used-1 = ${base.ramp-warn-1}
+ramp-swap-used-2 = ${base.ramp-warn-2}
+ramp-swap-used-3 = ${base.ramp-warn-3}
+ramp-swap-used-4 = ${base.ramp-warn-4}
+ramp-swap-used-5 = ${base.ramp-warn-5}
+ramp-swap-used-6 = ${base.ramp-warn-6}
+ramp-swap-used-7 = ${base.ramp-warn-7}
 
 [module/eth]
 type = internal/network
