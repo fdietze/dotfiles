@@ -148,8 +148,8 @@ type = internal/memory
 interval = 2
 format-prefix = "mem "
 format-prefix-foreground = ${colors.foreground-alt}
-; format = <ramp-used><ramp-swap-used>
-format = <ramp-used>
+format = <ramp-used><ramp-swap-used>
+; format = <ramp-used>
 
 ramp-used-0 = ${base.ramp-base-0}
 ramp-used-1 = ${base.ramp-base-1}
@@ -161,7 +161,7 @@ ramp-used-6 = ${base.ramp-base-6}
 ramp-used-7 = ${base.ramp-base-7}
 
 ramp-swap-used-foreground = ${colors.warn}
-ramp-swap-used-0 = ""
+ramp-swap-used-0 = 
 ramp-swap-used-1 = ${base.ramp-warn-1}
 ramp-swap-used-2 = ${base.ramp-warn-2}
 ramp-swap-used-3 = ${base.ramp-warn-3}
