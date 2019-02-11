@@ -158,7 +158,7 @@ ramp-used-3 = ${base.ramp-base-3}
 ramp-used-4 = ${base.ramp-base-4}
 ramp-used-5 = ${base.ramp-base-5}
 ramp-used-6 = ${base.ramp-base-6}
-ramp-used-7 = ${base.ramp-base-7}
+ramp-used-7 = ${base.ramp-warn-7}
 
 ramp-swap-used-foreground = ${colors.warn}
 ramp-swap-used-0 = 
@@ -266,8 +266,8 @@ format-prefix-foreground = ${colors.foreground-alt}
 type = internal/date
 interval = 5
 
-date = %Y-%m-%d"
-date-alt = " %A"
+date = %Y-%m-%d
+date-alt = %A
 
 time = %H:%M
 time-alt = %H:%M
