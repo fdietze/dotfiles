@@ -1,3 +1,5 @@
 #!/usr/bin/env bash
-java -jar ~/local/scalariform/cli/target/scala-2.11/cli-assembly-0.2.0-SNAPSHOT.jar  -f -q +alignParameters +alignSingleLineCaseStatements +preserveSpaceBeforeArguments -danglingCloseParenthesis=Force --stdin --stdout
+# unset _JAVA_OPTIONS
+# java -jar ~/local/scalariform/cli/target/scala-2.12/cli-assembly-0.2.7-SNAPSHOT.jar  -f -q +alignSingleLineCaseStatements +preserveSpaceBeforeArguments -danglingCloseParenthesis=Force --stdin --stdout
+~/local/scalariform/cli/target/scala-2.12/cli-assembly-0.2.7-SNAPSHOT  -f -q +alignSingleLineCaseStatements +preserveSpaceBeforeArguments -danglingCloseParenthesis=Force --stdin --stdout
 
