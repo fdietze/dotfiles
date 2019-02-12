@@ -205,9 +205,9 @@ let g:autoformat_autoindent = 0
 let g:autoformat_retab = 0
 let g:autoformat_remove_trailing_spaces = 1
 
-let g:formatdef_scalariform ='"ng-scalariform"'
+let g:formatdef_scalariform ='"scalariform"'
 let g:formatdef_scalafmt ='"ng-scalafmt --stdin"'
-let g:formatters_scala = ['scalariform', 'scalafmt']
+let g:formatters_scala = ['scalariform']
 
 let g:formatdef_htmltidy ='"html-beautify -s 2"'
 let g:formatdef_jsbeautify ='"js-beautify -s 2"'
