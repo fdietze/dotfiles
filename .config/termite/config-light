@@ -50,7 +50,7 @@ foreground_bold = #000000
 
 # black
 color0          = #000000
-color8          = #000000
+color8          = #999999
 
 # red
 color1          = #DF0076
