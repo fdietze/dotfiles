@@ -1,18 +1,23 @@
-set gdefault                      " substitute all occurrences in line per default
-set history=10000                  " keep x lines of command line history
+" List of all actions: https://gist.github.com/zchee/9c78f91cc5ad771c1f5d
+
+set number                        " line numbers
+
 set hlsearch                      " highlight search occurrences
 set ignorecase                    " ignore case in search patterns
 set smartcase                     " no ignore case when pattern is uppercase
 set incsearch                     " show search results while typing
 set wrapscan                      " searches wrap around the end of the file
-set number                        " line numbers
+
+set gdefault                      " substitute all occurrences in line per default
+set history=10000                 " keep x lines of command line history
 set scrolloff=5 sidescrolloff=10  " keep some lines before and after the cursor visible
 set clipboard=unnamedplus,unnamed " integrate with system clipboard
+
 set surround                      " emulate vim-surround plugin
+
 
 " set <leader> to <space>
 let mapleader = " "
-
 
 " edit ideavim config
 nnoremap <leader>vv :e ~/.ideavimrc<CR>
@@ -36,17 +41,6 @@ vnoremap ß @q
 nnoremap Q @f
 vnoremap Q @f
 
-" j: jump to mark
-nnoremap j `
-vnoremap j `
-
-
-" search backwards with backslash
-nmap \ ?
-vmap \ ?
-
-
-
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
 " Fix some vim annoyances
 
@@ -54,7 +48,7 @@ vmap \ ?
 map Y y$
 
 " don't overwrite register when pasting over selection
-" vnoremap p pgvy
+vnoremap p pgvy
 
 " paste over rest of line
 " nnoremap <leader>p v$<Left>pgvy
@@ -65,34 +59,23 @@ vnoremap < <gv
 vnoremap > >gv
 vnoremap = =gv
 
-" delete/edit whole word backwards
-" (can confilict with multiple cursors)
-nnoremap db xdb
-nnoremap cb xcb
-
 " TODO: smart home
-
+nmap <Home> ^
+imap <silent> <Home> <C-O>^
 
 
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""
 " Custom bindings
 
-" Mark with Shift-m
-" use m to jump to mark
-" M was: place cursor in the center of screen
-" nnoremap M m
-" nnoremap m `
-
-
 " clear search highlighting
-nnoremap <leader>/ <esc>:nohls<return><esc>
+nnoremap <leader>/ :nohls<return><esc>
 
-" TODO: toggle chars at end of line
+" " TODO: toggle chars at end of line
 nnoremap <leader>, mZA,<Esc>`Z
 nnoremap <leader>; mZA;<Esc>`Z
 
-" highlight current word
+" " highlight current word
 nnoremap h mZ*`Z
 
 
@@ -108,57 +91,38 @@ nmap <leader>= :action EditorResetFontSize<CR>
 " code navigation
 nmap <leader>e :action GotoFile<CR>
 nmap <leader>a :action FindInPath<CR>
-nmap <leader>r :action RecentFiles<CR>
 
 nmap l :action NextTab<CR>
 nmap L :action PreviousTab<CR>
 
-nmap <C-o> :action Back<CR>
-nmap <C-i> :action Forward<CR>
-nmap gD :action GotoImplementation<CR>
-nmap <leader>u :action ShowUsages<CR>
-nmap <leader>U :action FindUsages<CR>
-nmap gq :action QuickJavaDoc<CR>
+nmap gr :action ShowUsages<CR>
 nmap <C-p> :action ParameterInfo<CR>
 imap <C-p> <C-o>:action ParameterInfo<CR>
 nmap <leader>n :action GotoNextError<CR>
-" nmap <leader>n :action NextOccurence<CR>
+
 
 " editing / refactoring
-nmap gcc Vgc
-vnoremap gc :<bs><bs><bs><bs><bs>action VimVisualSwapSelections<cr>:action CommentByLineComment<cr>
-nmap <leader>f :action ReformatCode<CR>
+nmap gcc :action CommentByLineComment<CR>:action EditorUp<CR>
+vnoremap gc :action CommentByLineComment<cr>
 
- " like in vim-multiple-cursors
+nmap <leader>ri :action Inline<CR>
+nmap <leader>rv :action IntroduceVariable<CR>
+nmap <leader>rm :action Move<CR>
+nmap <leader>ro :action OptimizeImports<CR>
+nmap <leader>rG :action Generate<CR>
+
+
+" rename like in vim-multiple-cursors:
 nmap <C-n> :action RenameElement<CR>
+
+" multiple cursors (not working yet...)
+" set multiple-cursors              " emulate vim-multiple-cursors
+" map <C-n> <A-n>
+" map <C-x> <A-x>
+" map <C-p> <A-p>
+
 nmap <, :action MoveElementLeft<CR>
 nmap >, :action MoveElementRight<CR>
 
-nmap <leader>i :action Inline<CR>
-nmap <leader>R :action Refactorings.QuickListPopupAction<CR>
-nmap <leader>o :action OptimizeImports<CR>
-nmap <leader>G :action Generate<CR>
 nmap <leader>gr :action Vcs.RollbackChangedLines<CR>
-
-nmap <leader>t :action RunClass<CR>
-nmap <leader>T :action Run<CR>
-
-nmap <Home> ^
-imap <silent> <Home> <C-O>^
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
