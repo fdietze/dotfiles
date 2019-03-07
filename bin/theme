@@ -15,7 +15,7 @@ echo "$THEME" > $HOME/.theme
 
 case $THEME in
     light)
-        WALLPAPER=/home/felix/downloads/wallpapers/e1qBfv2.jpg
+        WALLPAPER=/home/felix/downloads/wallpapers/android-wallpaper-hd-wallpaper-iphone-wallpaper-8633.jpg
         VIM_COLORSCHEME="goodmorning"
         export BAR_BG=#FFFFFF
         export BAR_FG=#000000
@@ -28,7 +28,7 @@ case $THEME in
         export BAR_RAMP_WARN_1="%{F$BAR_WARN}▂%{F-}"
         ;;
     dark)
-        WALLPAPER=/home/felix/downloads/wallpapers/bhSibUd.jpg
+        WALLPAPER=/home/felix/downloads/wallpapers/4k-wallpaper-dammerung-felsen-1655528.jpg
         VIM_COLORSCHEME="gruvbox"
         export BAR_BG=#282A2E
         export BAR_FG=#EDEEF7
