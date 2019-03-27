@@ -17,14 +17,14 @@
 import XMonad
 import XMonad.Hooks.ManageDocks (avoidStruts,docks,manageDocks)
 import XMonad.Hooks.ManageHelpers
-import XMonad.Hooks.EwmhDesktops (ewmh, ewmhDesktopsLogHook, ewmhDesktopsEventHook)
+import XMonad.Hooks.EwmhDesktops (ewmh, ewmhDesktopsLogHook, ewmhDesktopsEventHook, fullscreenEventHook)
 import XMonad.Actions.Navigation2D
-import XMonad.Layout.Fullscreen
+import XMonad.Layout.Fullscreen (fullscreenFloat)
 import XMonad.Layout.NoBorders (smartBorders)
 import XMonad.Actions.CycleWS
 import XMonad.Layout.MultiToggle
 import XMonad.Layout.MultiToggle.Instances
-import XMonad.Layout.Grid
+import XMonad.Layout.HintedGrid
 import XMonad.Layout.Tabbed
 import XMonad.Util.Run (safeSpawn)
 import XMonad.Util.NamedWindows (getName)
@@ -58,7 +58,7 @@ readColorTheme = do
 
 main = do
     theme <- readColorTheme
-    xmonad -- $ fullscreenSupport
+    xmonad -- $ fullscreenSupport -- https://hackage.haskell.org/package/xmonad-contrib-0.15/docs/XMonad-Layout-Fullscreen.html#v:fullscreenSupport
            $ docks
            $ ewmh
            $ withUrgencyHook NoUrgencyHook -- trigger highlighting of urgent workspaces
@@ -193,6 +193,11 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm .|. shiftMask, xK_c), shiftToNext >> nextWS)
     , ((modm .|. shiftMask, xK_v),   shiftToPrev >> prevWS)
     -- , ((modm .|. shiftMask, xK_w), shiftToNext >> toggleWS)
+    --
+    , ((modm,               xK_o),  nextScreen)
+    , ((modm,               xK_u),    prevScreen)
+    , ((modm .|. shiftMask, xK_o), shiftNextScreen >> nextScreen)
+    , ((modm .|. shiftMask, xK_u),   shiftPrevScreen >> prevScreen)
 
     -- , ((modm,               0xfe52),  spawn "lock") -- dead circumflex
     , ((modm,               xK_Escape),  spawn "lock") -- dead circumflex
@@ -222,6 +227,9 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((0,    xK_Print     ), spawn "scrot 'screenshots/%Y-%m-%d_%H-%M-%S_$wx$h.png'")
     , ((modm, xK_Print     ), spawn "scrot 'screenshots/%Y-%m-%d_%H-%M-%S_$wx$h.png' --focused")
 
+    , ((modm .|. shiftMask .|. controlMask, xK_z     ), spawn "movietime")
+    , ((modm .|. shiftMask .|. controlMask, xK_p     ), spawn "reset-screen")
+
     , ((modm, xK_k     ), spawn "xkill")
 
     -- Quit xmonad
@@ -247,19 +255,19 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
                     , (W.shift, modm .|. shiftMask .|. controlMask)
                     ]
     ]
-    ++
+    -- ++
  
     --
     -- mod-{w,e,r}, Switch to physical/Xinerama screens 1, 2, or 3
     -- mod-shift-{w,e,r}, Move client to screen 1, 2, or 3
     --
-    [((m, key), screenWorkspace sc >>= flip whenJust (windows . f))
-        | (key, sc) <- zip [xK_u, xK_o] [0..]
-        , (f, m) <- [ (W.view, modm)
-                    , (liftM2 (.) W.view W.shift, modm .|. shiftMask)
-                    , (W.shift, modm .|. shiftMask .|. controlMask)
-                    ]
-    ]
+    -- [((m, key), screenWorkspace sc >>= flip whenJust (windows . f))
+    --     | (key, sc) <- zip [xK_u, xK_o] [0..]
+    --     , (f, m) <- [ (W.view, modm) -- focus
+    --                 , (liftM2 (.) W.view W.shift, modm .|. shiftMask) -- shift window + focus
+    --                 , (W.shift, modm .|. shiftMask .|. controlMask) -- only shift window
+    --                 ]
+    -- ]
 
 ------------------------------------------------------------------------
 -- Mouse bindings: default actions bound to mouse events
@@ -282,14 +290,16 @@ myMouseBindings (XConfig {XMonad.modMask = modm}) = M.fromList $
 
 
 myLayoutHook = id
+    $ fullscreenFloat -- Hackish layout modifier that makes floating fullscreened windows fill the entire screen.
     $ smartBorders
     $ mkToggle (single FULL)
-    $ (avoidStruts $ (Grid ||| tiled)) ||| Full
+    $ (avoidStruts $ (myGrid ||| tiled))
     where
         tiled = Tall nmaster delta ratio
-        nmaster = 1				-- # of windows in master pane
-        ratio = 1/2				-- ratio master/non-master
-        delta = 3/100	-- screen ratio for adjustment
+        nmaster = 1    -- # of windows in master pane
+        ratio = 1/2    -- ratio master/non-master
+        delta = 3/100 -- screen ratio for adjustment
+        myGrid = GridRatio (4/3) False
 
 
 defaults theme = defaultConfig {
@@ -311,10 +321,10 @@ defaults theme = defaultConfig {
  
       -- hooks, layouts
         layoutHook         = myLayoutHook,
-        manageHook         = manageDocks <+> (isFullscreen --> doFullFloat),
+        manageHook         = manageDocks <+> (isFullscreen --> doFullFloat) <+> manageHook defaultConfig,
         logHook            = dynamicLogWithPP (myPP theme),
         startupHook        = myStartupHook theme,
-    handleEventHook =  handleEventHook def -- <+> fullscreenEventHook
+        handleEventHook =  handleEventHook def <+> fullscreenEventHook
     }
 
 
