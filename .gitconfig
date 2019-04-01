@@ -130,50 +130,6 @@
     changed = yellow
     untracked = blue
 
-[tig]
-    vertical-split = true
-    tab-size = 4
-    ignore-space = all
-    ignore-case = true ; search
-    ; wrap-lines = true ; conflicts with stage-update-line
-    editor-line-number = true
-    mouse-scroll = true
-    show-changes = true
-    status-show-untracked-dirs = false
-
-[tig "bind"]
-    ; ? ask
-    ; ! don't ask
-    ; @ run in background
-
-    ;NEO
-    generic = ä Quit
-    generic = ü view-close
-    generic = 8 move-up ; NEO right hand analog to arrow up
-    generic = 5 move-down ; NEO right hand analog to arrow down
-
-    generic = g move-first-line
-    generic = G move-last-line
-    main = G move-last-line ; overwrites default keybinding
-    main = C !git checkout %(commit) ; overwrites default keybinding
-    generic = F !git fetch
-    generic = P !git push
-    status = A !git commit --amend
-    status = F !git fixup
-    status = D ?@rm %(file) ; remove files
-    status = I !@git ignore "%(file)" ; add files to .gitignore
-    stage = u stage-update-line
-    stage = <Home> stage-update-line ; NEO AltGr+u
-    stage = U status-update
-    status = U status-update
-    stage = A !git commit --amend
-    stage = C !git commit
-    status = w !git fry word-based-diff
-    status = W !git fry word-based-diff --staged
-    stage = w !git fry word-based-diff %(file)
-    stage = W !git fry word-based-diff --staged %(file)
-    ; generic = C !git cherry-pick %(commit)
-
 [filter "lfs"]
 	clean = git-lfs clean -- %f
 	smudge = git-lfs smudge -- %f
