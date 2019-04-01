@@ -7,7 +7,7 @@ case $NAME in
         echo "upgrading system"
         echo "channels:"
         sudo nix-channel --list
-        sudo nixos-rebuild switch --upgrade
+        sudo nixos-rebuild boot --upgrade
         echo "updating user space"
         echo "channels:"
         nix-channel --list
