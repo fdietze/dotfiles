@@ -1,0 +1,45 @@
+set vertical-split = true
+set tab-size = 4
+set ignore-space = all
+set ignore-case = true # search
+# set wrap-lines = true # conflicts with stage-update-line
+set editor-line-number = true
+set mouse-scroll = true
+set show-changes = true
+set status-show-untracked-dirs = true
+set line-graphics = utf-8
+set refresh-mode = auto
+
+# ? ask
+# ! don't ask
+# @ run in background
+
+#NEO
+bind generic ä Quit
+bind generic ü view-close
+bind generic 8 move-up # NEO right hand analog to arrow up
+bind generic 5 move-down # NEO right hand analog to arrow down
+
+bind generic g move-first-line
+bind generic G move-last-line
+bind main G move-last-line # overwrites default keybinding
+bind main C !git checkout %(commit) # overwrites default keybinding
+bind generic F !git fetch
+bind generic P !git push
+bind status A !git commit --amend
+bind status F !git fixup
+bind status D ?@rm %(file) # remove files
+bind status I !@git ignore "%(file)" # add files to .gitignore
+bind stage u stage-update-line
+bind stage <Home> stage-update-line # NEO AltGr+u
+bind stage U status-update
+bind status U status-update
+bind stage A !git commit --amend
+bind stage C !git commit
+bind status w !git fry word-based-diff
+bind status W !git fry word-based-diff --staged
+bind stage w !git fry word-based-diff %(file)
+bind stage W !git fry word-based-diff --staged %(file)
+# bind generic = C !git cherry-pick %(commit)
+
+# vim: ft=gitconfig

@@ -1,0 +1,9 @@
+source ~/.config/tig/config
+
+set status-show-untracked-dirs = false
+set status-show-untracked-files = true
+
+bind stage C !git -c core.excludesfile=~/.gitignore-dotfiles commit
+bind status C !git -c core.excludesfile=~/.gitignore-dotfiles commit
+
+# vim: ft=gitconfig

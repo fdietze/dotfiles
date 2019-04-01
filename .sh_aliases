@@ -26,12 +26,13 @@ alias vim='nvim'
 # dotfile management
 DOTFILES_GIT='GIT_DIR=$HOME/projects/dotfiles GIT_WORK_TREE=$HOME'
 DOTFILES_PRIVATE_GIT='GIT_DIR=$HOME/projects/dotfiles-private GIT_WORK_TREE=$HOME'
+DOTFILES_TIG='TIGRC_USER=$HOME/.config/tig/config-dotfiles'
 alias     d="$DOTFILES_GIT         git -c core.excludesfile=~/.gitignore-dotfiles"
 alias    dp="$DOTFILES_PRIVATE_GIT git -c core.excludesfile=~/.gitignore-dotfiles-private"
 # which yadm > /dev/null && alias     d='yadm --yadm-repo $HOME/projects/dotfiles         -c core.excludesfile=~/.gitignore-dotfiles'
 # which yadm > /dev/null && alias    dp='yadm --yadm-repo $HOME/projects/dotfiles-private -c core.excludesfile=~/.gitignore-dotfiles-private'
-alias  tigd="$DOTFILES_GIT         tig"
-alias tigdp="$DOTFILES_PRIVATE_GIT tig"
+alias  tigd="$DOTFILES_GIT $DOTFILES_TIG         tig"
+alias tigdp="$DOTFILES_PRIVATE_GIT $DOTFILES_TIG tig"
 vd() {(cd; eval $DOTFILES_GIT vim -c GitFiles);}
 alias vim="nvim"
 alias  va="vim ~/.sh_aliases"
