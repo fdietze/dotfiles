@@ -2,7 +2,7 @@
 # generate the native image using something like:
 # cd ~/local/scalariform
 # sbt ++2.12.8 "project cli" "assembly"
-# nix-shell -p graalvm8 --run "native-image -jar cli/target/*/cli-assembly-*.jar"
-# cp cli-assembly-0.2.7 scalariform-native
+# nix-shell -p graalvm8 --run "native-image -jar cli/target/scala-2.12/cli-assembly-0.2.8.jar"
+# cp cli-assembly-0.2.8 scalariform-native
 ~/local/scalariform/scalariform-native  -f -q +alignSingleLineCaseStatements +preserveSpaceBeforeArguments -danglingCloseParenthesis=Force --stdin --stdout
 
