@@ -15,5 +15,10 @@
 .ensime
 .ensime_cache
 
+# Metals
+.metals/
+.bloop/
+.metaserver/
+
 # Syncthing
 .stignore
