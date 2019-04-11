@@ -89,14 +89,18 @@ Plug 'chrisbra/Colorizer' " color hex codes and color-names
 
 Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
 let g:deoplete#enable_at_startup = 1
-
 Plug 'natebosch/vim-lsc'
-let g:lsc_enable_autocomplete = v:false
 let g:lsc_server_commands = {
-  \ 'scala': 'metals-vim'
+  \ 'scala': 'metals-vim',
   \}
+let g:lsc_enable_autocomplete = v:true
+let g:lsc_preview_split_direction = 'below'
 let g:lsc_auto_map = {
     \ 'GoToDefinition': 'gd',
+    \ 'FindReferences': 'gr',
+    \ 'ShowHover': v:true,
+    \ 'SignatureHelp': 'gm',
+    \ 'Completion': 'completefunc',
     \}
 
 
