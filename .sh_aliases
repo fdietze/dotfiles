@@ -173,7 +173,6 @@ alias t='tree -C' # -C is for color=always
 alias t2='tree -L 2 -C' # -C is for color=always
 alias t3='tree -L 3 -C' # -C is for color=always
 alias ta='tree -a'
-alias df='df -h'
 alias md='mkdir -p'
 alias mdcd='mkdir-cd'
 alias mvi='interactive-mv'
