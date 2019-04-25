@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-
-# http://paramitech.com/how-to-improve-performance-of-java-using-nailgun-server/
-
-ng ng-cp $HOME/local/scalariform/cli/target/scala-2.12/cli-assembly-0.2.7-SNAPSHOT.jar
