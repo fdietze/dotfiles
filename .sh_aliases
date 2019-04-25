@@ -190,6 +190,8 @@ alias ...='cd ../..'
 alias ....='cd ../../..'
 alias vm='vim $(git-select-dirty-files)'
 
+alias rcp='rsync --archive --partial --info=progress2 --human-readable'
+
 # start X
 alias sx='startx'
 alias xkodi='/usr/bin/xinit /usr/bin/dbus-launch --exit-with-session /usr/bin/kodi-standalone -- :0 -nolisten tcp vt1'
