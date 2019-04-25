@@ -111,6 +111,8 @@ nmap <leader>rm :action Move<CR>
 nmap <leader>ro :action OptimizeImports<CR>
 nmap <leader>rG :action Generate<CR>
 
+nmap <leader>f  :action ReformatCode<CR>
+
 
 " rename like in vim-multiple-cursors:
 nmap <C-n> :action RenameElement<CR>
