@@ -6,6 +6,10 @@ alias teamviewer='gksudo "systemctl start teamviewerd"; sleep 5; teamviewer'
 alias suspend='systemctl suspend'
 alias start='cd ~/projects/wust2; ./start'
 
+# https://github.com/chenkelmann/neo2-awt-hack
+# wget https://github.com/chenkelmann/neo2-awt-hack/blob/master/releases/neo2-awt-hack-0.4-java8oracle.jar\?raw\=true -O ~/local/neo2-awt-hack-0.4-java8oracle.jar
+alias idea-community='_JAVA_OPTIONS="-Dawt.useSystemAAFontSettings=lcd -Xbootclasspath/p:$HOME/local/neo2-awt-hack-0.4-java8oracle.jar" idea-community'
+
 alias start='./start'
 wu() {
     cd ~/projects/wust2
