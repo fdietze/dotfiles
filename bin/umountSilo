@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+sudo umount /dev/mapper/silo
+sudo cryptsetup close silo
+

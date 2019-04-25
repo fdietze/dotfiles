@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+sudo cryptsetup open UUID=1fc2115d-ce5b-4300-b989-076beecdf8ce silo
+sudo mkdir -p /media/silo
+sudo mount /dev/mapper/silo /media/silo
+
