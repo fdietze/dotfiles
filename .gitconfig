@@ -47,6 +47,12 @@
     indentHeuristic = true
     wordRegex=[A-Z][a-z]*|[a-z]+|[^[:space:]] # see camel case as separate words
 
+[diff "scala"]
+    xfuncname = "^\\s*(.*(def|object|class|trait) .*)$"
+
+[diff "markdown"]
+    xfuncname = "^#+.*$"
+
 [commit]
     verbose = true
 
