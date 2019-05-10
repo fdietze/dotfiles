@@ -29,12 +29,12 @@ case $THEME in
         ;;
     dark)
         WALLPAPER=/home/felix/downloads/wallpapers/4k-wallpaper-dammerung-felsen-1655528.jpg
-        VIM_COLORSCHEME="gruvbox"
-        export BAR_BG=#282A2E
-        export BAR_FG=#EDEEF7
-        export BAR_FG_ALT=#9A9BA1
-        export BAR_WARN=#d65d0e
-        export BAR_PEAK=#8ec07c
+        VIM_COLORSCHEME="palenight"
+        export BAR_BG=#191C26
+        export BAR_FG=#BFC7D5
+        export BAR_FG_ALT=#4B5263
+        export BAR_WARN=#FF5370
+        export BAR_PEAK=#DDFFA7
         export BAR_RAMP_0="%{F$BAR_FG_ALT}▁%{F-}"
         export BAR_RAMP_7="%{F$BAR_PEAK}█%{F-}"
         export BAR_RAMP_WARN_0="%{F$BAR_WARN}▁%{F-}"

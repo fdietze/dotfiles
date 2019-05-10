@@ -83,7 +83,7 @@ myNormalBorderColor Light  = "#DCDDE6"
 myNormalBorderColor Dark  = "#171717"
 
 myFocusedBorderColor Light = "#777987"
-myFocusedBorderColor Dark = "#565961"
+myFocusedBorderColor Dark = "#82AAFF"
 
 myPP Dark = def {
   ppCurrent           = wrap "%{F#ffffff B#5A5B66} "   " %{F- B-}",

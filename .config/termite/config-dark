@@ -9,8 +9,8 @@ allow_bold = true
 dynamic_title = true
 urgent_on_bell = true
 clickable_url = true
-font = Roboto Mono 8
-scrollback_lines = 10000
+font = Range Mono 8
+scrollback_lines = 100000
 search_wrap = true
 decorated = false
 #icon_name = terminal
@@ -40,42 +40,45 @@ cursor_shape = block
 # http://terminal.sexy/#ACs2g5SWBzZC3DIvhZkAtYkAJovS0zaCKqGY7ujVACs2y0sWWG51ZXuDg5SWbHHEk6Gh_fbj (solarized)
 
 [colors]
-# hard contrast: background = #1d2021
-background = #282828
-# soft contrast: background = #32302f
-foreground = #ebdbb2
-foreground_bold = #ebdbb2
 
-# dark0 + gray
-color0 = #282828
-color8 = #928374
+# special
+foreground      = #959dcb
+foreground_bold = #959dcb
+cursor          = #959dcb
+background      = #292d3e
 
-# neutral_red + bright_red
-color1 = #cc241d
-color9 = #fb4934
+# black
+color0  = #292d3e
+color8  = #434758
 
-# neutral_green + bright_green
-color2 = #98971a
-color10 = #b8bb26
+# red
+color1  = #f07178
+color9  = #ff8b92
 
-# neutral_yellow + bright_yellow
-color3 = #d79921
-color11 = #fabd2f
+# green
+color2  = #c3e88d
+color10 = #ddffa7
 
-# neutral_blue + bright_blue
-color4 = #458588
-color12 = #83a598
+# yellow
+color3  = #ffcb6b
+color11 = #ffe585
 
-# neutral_purple + bright_purple
-color5 = #b16286
-color13 = #d3869b
+# blue
+color4  = #82aaff
+color12 = #9cc4ff
 
-# neutral_aqua + faded_aqua
-color6 = #689d6a
-color14 = #8ec07c
+# magenta
+color5  = #c792ea
+color13 = #e1acff
 
-# light4 + light1
-color7 = #a89984
-color15 = #ebdbb2
+# cyan
+color6  = #89ddff
+color14 = #a3f7ff
+
+# white
+color7  = #d0d0d0
+color15 = #ffffff
+
+
 
 # vim: ft=dosini cms=#%s

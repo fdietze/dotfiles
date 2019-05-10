@@ -116,6 +116,9 @@ Plug 'mgee/lightline-bufferline'
 " colorschemes
 Plug 'morhetz/gruvbox'
 Plug 'fdietze/goodday.vim'
+Plug 'drewtempelmeyer/palenight.vim'
+" Italics for my favorite color scheme
+let g:palenight_terminal_italics=1
 
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
