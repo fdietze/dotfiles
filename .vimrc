@@ -23,7 +23,7 @@ set termguicolors " true color support
 syntax enable
 if filereadable($HOME."/.theme") && match(readfile($HOME."/.theme"),"light")
     set background=dark
-    colorscheme gruvbox
+    colorscheme palenight
 else
     set background=light
     colorscheme goodmorning

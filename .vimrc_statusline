@@ -6,7 +6,7 @@ set laststatus=2
 set noshowmode
 
 let g:lightline = {
-      \ 'colorscheme': 'wombat',
+      \ 'colorscheme': 'palenight',
       \ 'active': {
       \   'left': [ [ 'mode' ], ['gitbranch'], [ 'buffers' ]],
       \   'right': [  ['scrollbar'], [ 'filetype' ] ]
