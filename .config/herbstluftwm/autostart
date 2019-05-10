@@ -25,7 +25,7 @@ hc keybind $Mod-Ctrl-Shift-x spawn poweroff
 hc keybind $Mod-Shift-y reload
 hc keybind $Mod-Ctrl-Shift-y spawn reboot
 hc keybind $Mod-k spawn xkill
-hc keybind $Mod-d spawn termitexcwd
+hc keybind $Mod-d spawn termite
 hc keybind $Mod-j spawn dmenu-web
 hc keybind $Mod-y spawn launcher
 
@@ -235,7 +235,7 @@ zsh -i -c "autocolors nopanel"
 monitor=${1:-0}
 panel_height=15
 hc pad $monitor $panel_height
-$HOME/.config/polybar/launch.sh
+$HOME/bin/statusbar
 
 # switch keyboard backlight off
 # keyboardbacklightoff &
