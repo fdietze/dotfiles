@@ -5,13 +5,13 @@
 [bar/default]
 ;monitor = ${env:MONITOR:HDMI-1}
 width = 100%
-height = 20
+height = 24
 fixed-center = false
 
 background = ${colors.background}
 foreground = ${colors.foreground}
 
-font-0 = Roboto Mono:style=Regular:size=11;2
+font-0 = Range Mono:style=Regular:size=11;2
 font-1 = Dejavu Sans Mono:size=7;1
 
 modules-left = workspaces-xmonad
@@ -129,7 +129,21 @@ click-middle = kill $(ps -eo pid --sort=-%cpu | head -2 | tail +2)
 
 [module/temperature]
 type = internal/temperature
-thermal-zone = 7
+
+; Thermal zone to use
+; To list all the zone types, run 
+; $ for i in /sys/class/thermal/thermal_zone*; do echo "$i: $(<$i/type)"; done
+; Default: 0
+thermal-zone = 0
+
+; Full path of temperature sysfs path
+; Use `sensors` to find preferred temperature source, then run
+; $ for i in /sys/class/hwmon/hwmon*/temp*_input; do echo "$(<$(dirname $i)/name): $(cat ${i%_*}_label 2>/dev/null || echo $(basename ${i%_*})) $(readlink -f $i)"; done
+; to find path to desired file
+; Default reverts to thermal zone setting
+hwmon-path = /sys/devices/platform/coretemp.0/hwmon/hwmon3/temp1_input
+
+
 interval = 2
 
 warn-temperature = 90
@@ -172,7 +186,7 @@ ramp-swap-used-7 = ${base.ramp-warn-7}
 
 [module/eth]
 type = internal/network
-interface = enp4s0
+interface = enp0s31f6
 interval = 3.0
 
 format-connected-prefix = "eth "
