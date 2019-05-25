@@ -81,7 +81,7 @@ alias kp='keepass-dmenu --database ~/.keepass/passwords.kdbx --password "$(secre
 alias cups='sudo systemctl start cups-browsed.service'
 alias kodi='AE_SINK=ALSA kodi'
 alias rm='rm -v'
-alias lsblk='lsblk -o NAME,RM,FSTYPE,LABEL,MOUNTPOINT,RO,SIZE,UUID'
+alias lsblk='lsblk -o NAME,RM,SIZE,FSTYPE,LABEL,MOUNTPOINT,RO,UUID'
 alias sys='sudo systemctl'
 alias sysu='systemctl --user'
 addusertogroup() { sudo usermod -a -G ${2-$USER} $1; }
