@@ -6,7 +6,7 @@
     name = Felix Dietze
 
 [core]
-    pager = less
+    pager = diff-so-fancy | less --tabs=4 -RFX
     excludesfile=~/.config/git/ignore # needed for ag
 
 [push]
@@ -30,7 +30,7 @@
     tool = meld
 
 [rerere]
-	enabled = 1 # Reuse recorded resolution of conflicted merges: https://git-scm.com/docs/git-rerere
+    enabled = 1 # Reuse recorded resolution of conflicted merges: https://git-scm.com/docs/git-rerere
 
 [rebase]
     autoStash = true
@@ -79,8 +79,8 @@
     df  = fry word-based-diff
     dfm  = fry word-based-diff master
     dfs  = fry word-based-diff --staged
-    diff = diff --irreversible-delete --find-copies  --find-copies-harder --ignore-space-at-eol --ignore-space-change --ignore-all-space
-    diffs = diff --irreversible-delete --find-copies  --find-copies-harder --ignore-space-at-eol --ignore-space-change --ignore-all-space --staged
+    dfl = diff --irreversible-delete --find-copies  --find-copies-harder --ignore-space-at-eol --ignore-space-change --ignore-all-space --ignore-blank-lines
+    dfls = diff --staged
     sdf = show --color-words
     p = push
     pf = push --force-with-lease
@@ -126,10 +126,15 @@
     branch = auto
     diff = auto
     status = auto
+    ui = true
 
 [color "diff"]
-    old = red
-    new = green
+    old = red bold
+    new = green bold
+    meta = yellow
+    frag = magenta bold
+    commit = yellow bold
+    whitespace = red reverse
 
 [color "status"]
     added = green
@@ -137,7 +142,14 @@
     untracked = blue
 
 [filter "lfs"]
-	clean = git-lfs clean -- %f
-	smudge = git-lfs smudge -- %f
-	process = git-lfs filter-process
-	required = true
+    clean = git-lfs clean -- %f
+    smudge = git-lfs smudge -- %f
+    process = git-lfs filter-process
+    required = true
+[color "diff-highlight"]
+    oldNormal = red bold
+    oldHighlight = red bold 52
+    newNormal = green bold
+    newHighlight = green bold 22
+[diff-so-fancy]
+    first-run = false
