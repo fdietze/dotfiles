@@ -225,6 +225,7 @@ nmap <leader>l :Locate<space>
 " nmap <leader>t :BTags<CR>
 nmap <leader>t :Tags<CR>
 nmap <leader>a :Rooter<CR>:Ag<space>
+nmap <leader>A :Rooter<CR>:Ag<space><c-r><c-w><CR>
 " johannes
 nmap <leader>s :Rooter<CR>:Ag<space>  
 
