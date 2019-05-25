@@ -1,79 +1,48 @@
 { config, pkgs, lib, ... }:
-# let
 
-#   gnome3 = config.environment.gnome3.packageSet;
-
-# in
+let
+  # how to use unstable packages: https://gist.github.com/LnL7/e645b9075933417e7fd8f93207787581
+  # Import unstable channel.
+  # sudo nix-channel --add https://nixos.org/channels/nixpkgs-unstable nixpkgs-unstable
+  # sudo nix-channel --update nixpkgs-unstable
+  unstable = import <nixpkgs-unstable> {};
+in
 
 {
   imports =
-  [
-    ./hardware-configuration.nix
+  [ # Include the results of the hardware scan.
+  ./hardware-configuration.nix
   ];
 
-  boot = {
-    loader = {
-      # Use the systemd-boot EFI boot loader
-      systemd-boot.enable = true;
-      efi.canTouchEfiVariables = true;
+  # Use the systemd-boot EFI boot loader.
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
 
-      grub = {
-        efiSupport = true;
-        device = "/dev/nvme0n1";
-        memtest86.enable = true;
-      };
-    };
+  # Howto: Installation of NixOS with encrypted root
+  # https://gist.github.com/martijnvermaat/76f2e24d0239470dd71050358b4d5134
+  boot.initrd.luks.devices = [
+    {
+      name = "root";
+      device = "/dev/disk/by-uuid/81409765-5560-4b29-8f5c-235f27b58f85";
+      preLVM = true;
+      allowDiscards = true;
+    }
+  ];
 
-    kernelParams = ["processor.max_cstate=1"]; # fix for ryzen freeze?
-
-    kernelPackages = pkgs.linuxPackages_4_15;
-    # kernelPackages = pkgs.linuxPackages_latest;
-    blacklistedKernelModules = [ "pinctrl-amd" ]; # else: kernel panic with ryzen
-
-
-    tmpOnTmpfs = true;
-
-    kernel.sysctl = {
+  # boot.kernelPackages = pkgs.linuxPackages_latest;
+  boot.kernelParams = [
+    # "acpi_backlight=vendor"
+    # "acpi.ec_no_wakeup=1"
+    # "psmouse.synaptics_intertouch=1" # https://wiki.archlinux.org/index.php/Lenovo_ThinkPad_X1_Carbon_(Gen_5)#Bug:_Trackpoint.2FTrackpad_not_working
+  ];
+  boot.kernel.sysctl = {
       "kernel.sysrq" = 1;
       "vm.swappiness" = 0;
       "fs.inotify.max_user_watches" = "409600";
-    };
   };
-
-
-
-  nixpkgs.config = {
-    allowUnfree = true;
-    chromium = {
-      # enablePepperFlash = true;
-      enablePepperPDF = true;
-      enableWideVine = false;
-    };
-    #  --param l1-cache-line-size=64 --param l2-cache-size=8192 -mtune=nehalem
-    # stdenv.userHook = ''
-    #   NIX_CFLAGS_COMPILE+="-march=native"
-    # '';
-
-    programs.qt5ct.enable = true;
-
-  };
-
-  # nix.extraOptions = ''
-  #   auto-optimise-store = true
-  #   build-fallback = true
-  # '';
-
-  hardware = {
-    pulseaudio.enable = true;
-    pulseaudio.support32Bit = true; # This might be needed for Steam games
-    opengl.driSupport32Bit = true;
-    sane.enable = true;
-
-    cpu.amd.updateMicrocode = true;
-  };
-
-  networking.hostName = "fff";
-  networking.wireless.enable = true;
+  # zramSwap.enable = true;
+  # boot.cleanTmpDir = true;
+  boot.tmpOnTmpfs = true;
 
   i18n = {
     #consoleFont = "Lat2-Terminus16";
@@ -81,164 +50,217 @@
     defaultLocale = "en_US.UTF-8";
   };
 
+
+  networking = {
+    hostName = "gurke";
+    # wireless.enable = true;  # Enables wireless support via wpa_supplicant.
+    # connman.enable = true;
+    networkmanager.enable = true;
+  };
+
+  # networking.firewall.allowedUDPPortRanges = [ { from = 60000; to = 61000; } ]; # for mosh
+  networking.firewall.allowedTCPPorts = [ 12345 ]; # woost webpack devserver
+
   time.timeZone = "Europe/Berlin";
 
-  # List packages installed in system profile. To search by name, run:
-  # $ nix-env -qaP | grep wget
+  hardware = {
+    pulseaudio.enable = true;
+    # pulseaudio.support32Bit = true; # This might be needed for Steam games
+    # opengl.driSupport32Bit = true;
+    sane.enable = true;
+
+    cpu.intel.updateMicrocode = true;
+  };
+
+
+  powerManagement = {
+    enable = true;
+    # powertop.enable = true;
+  };
+
+  nixpkgs.config = {
+    allowUnfree = true;
+    chromium = {
+      # enablePepperFlash = true;
+      enablePepperPDF = true;
+      enableWideVine = true;
+    };
+    oraclejdk.accept_license = true;
+  };
+
   environment = {
     systemPackages = with pkgs; [
-      wirelesstools
-      wget pv htop atop git netcat nmap xorg.xkill psmisc lm_sensors calc tree gparted gksu ntfs3g inotify-tools unzip
-      ncdu fzf fasd silver-searcher tig ctags xclip tmate pmount scrot nix-zsh-completions haskellPackages.yeganesh
-      termite xcwd nitrogen unclutter-xfixes grc #cope
-      dzen2 dmenu rofi conky lua lua51Packages.luafilesystem trayer polybar # panel
-      chromium firefox
-      jdk scala sbt maven visualvm
-      gnumake cmake clang gcc autoconf automake
-      meld
-      nodejs yarn
-      docker docker_compose
-      # rust.rustc rust.cargo
-      nim
-      texlive.combined.scheme-full
-      biber
+      # system tools
+      pciutils usbutils hdparm gparted ntfs3g lm_sensors 
+      xorg.xkill psmisc wirelesstools pmount
+      acpi samba cifs-utils
 
-      boost
-      wine winetricks mono
+      # defaults
+      wget curl htop atop git netcat nmap calc tree inotify-tools unzip
+      pavucontrol light mimeo xclip xdotool
 
-      libreoffice-fresh hunspell hunspellDicts.en-us languagetool mythes
-      samba cifs-utils
+      # tools
+      ncdu pv fzf silver-searcher tig ctags tmate scrot nix-zsh-completions haskellPackages.yeganesh termite mosh playerctl pamixer
 
-      neovim
-      python2
-      python2Packages.neovim # ensime
-      python2Packages.websocket_client # ensime
-      python2Packages.sexpdata # ensime
-      python3
-      python3Packages.neovim
 
-      mosh
-
-      mate.atril inkscape gimp
-      sane-frontends
-      mpv vlc playerctl pamixer imv
-
-      vulkan-loader
-
-      xdg_utils
+      # desktop
+      gnome3.gnome_themes_standard nitrogen grc slock gksu 
+      dzen2 dmenu networkmanager_dmenu networkmanagerapplet polybar
+      xcwd
+      libnotify dunst
       shared_mime_info # file-type associations?
-      desktop_file_utils
-
-      gnome3.dconf # needed for meld
-      gnome3.nautilus gnome3.gvfs gnome3.file-roller
+      gnome3.dconf # needed for meld / networkmanager(?)
+      gnome3.nautilus gnome3.gvfs mtpfs jmtpfs
+      gnome3.file-roller
       gnome3.gnome_keyring gnome3.seahorse libsecret
-
-      gnome3.adwaita-icon-theme
+      # gnome3.gnome_keyring gnome3.seahorse libsecret
       paper-icon-theme
       vanilla-dmz
+
+
+      # applications
+      keepassxc
+      firefox
+      virtualbox
+      mate.atril inkscape gimp
+      # sane-frontends
+      mpv vlc imv
+      # wine winetricks mono
+      # libreoffice-fresh hunspell hunspellDicts.en-us languagetool mythes
+      
+      # development
+      neovim
+      msgpack-tools # for neovim
+      scala sbt maven visualvm
+      gnumake
+      meld
+      docker docker_compose
+      jdk8
+      python2
+      python3
+      # rust.rustc rust.cargo
+      # nim
+      texlive.combined.scheme-full
+      # biber
+
     ];
 
     shellAliases = {
       l = "ls -l";
-      t = "tree -C"; # -C is for color=always
-      vn = "vim /etc/nixos/configuration.nix";
+      t = "${pkgs.neovim}/bin/tree -C"; # -C is for color=always
+      vn = "${pkgs.neovim}/bin/nvim /etc/nixos/configuration.nix";
+      rcp = "${pkgs.rsync}/bin/rsync --archive --partial --info=progress2 --human-readable";
     };
 
-    variables = {
+    sessionVariables = {
       SUDO_EDITOR = "nvim";
       EDITOR = "nvim";
       BROWSER = "chromium";
-      SSH_AUTH_SOCK = "%t/keyring/ssh";
+    };
+
+    # variables = {
+    #   XCURSOR_THEME = "Vanilla-DMZ";
+    # };
+  };
+
+  nix.gc.automatic = true;
+  nix.gc.dates = "monthly";
+  nix.gc.options = "--delete-older-than 7d";
+  nix.daemonIONiceLevel = 7;
+  nix.daemonNiceLevel = 19;
+  system.autoUpgrade.enable = true;
+
+  programs = {
+    zsh = {
+      enable = true;
+      syntaxHighlighting.enable = true;
+      autosuggestions.enable = true;
+      interactiveShellInit = ''
+        source "${pkgs.grc}/etc/grc.zsh"
+        source "${pkgs.fzf}/share/fzf/completion.zsh"
+        source "${pkgs.fzf}/share/fzf/key-bindings.zsh"
+      '';
     };
   };
 
-  nix.buildCores = 16;
-
-  nix.gc.automatic = true;
-  nix.gc.dates = "23:00";
-  nix.gc.options = "--delete-older-than 7d";
-  system.autoUpgrade.enable = true;
-  system.autoUpgrade.dates = "23:15";
-
-  programs.zsh.enable = true;
-  programs.zsh.enableCompletion = true;
   programs.command-not-found.enable = true;
-  users.defaultUserShell = "/run/current-system/sw/bin/zsh";
-
-
+  # programs.gnupg.agent = { enable = true; enableSSHSupport = true; };
   programs.adb.enable = true;
 
+  programs.xss-lock.enable = true;
+  programs.xss-lock.lockerCommand = "i3lock";
+
   security = {
-    # pam.services = [
-    #   {
-    #     name = "gnome_keyring";
-    #     text = ''
-    #       auth     optional    ${gnome3.gnome_keyring}/lib/security/pam_gnome_keyring.so
-    #       session  optional    ${gnome3.gnome_keyring}/lib/security/pam_gnome_keyring.so auto_start
-    #       password optional    ${gnome3.gnome_keyring}/lib/security/pam_gnome_keyring.so
-    #     '';
-    #   }
-    # ];
     wrappers = {
       pmount.source = "${pkgs.pmount}/bin/pmount";
       pumount.source = "${pkgs.pmount}/bin/pumount";
       eject.source = "${pkgs.eject}/bin/eject";
+      light.source = "${pkgs.light}/bin/light";
+      slock.source = "${pkgs.slock}/bin/slock";
     };
     sudo = {
       enable = true;
-      wheelNeedsPassword = false;
+      wheelNeedsPassword = true;
     };
   };
 
-  networking.firewall.allowedUDPPortRanges = [ { from = 60000; to = 61000; } ]; # for mosh
-
   services = {
-    openssh = {
-      ports = [ 53292 ];
-      enable = true;
-      passwordAuthentication = false;
-      forwardX11 = true;
-    };
+    fstrim.enable = true;
+    locate.enable = true;
+
+    upower.enable  = true;
+    gnome3.gvfs.enable  = true;
+    gnome3.gnome-keyring.enable = true;
+    udisks2.enable = true;
+
+    # usbmuxd.enable = true; # ios debugging
 
     journald = {
       extraConfig =
       ''
-        Storage=persist
-        Compress=yes
-        SystemMaxUse=128M
-        RuntimeMaxUse=8M
+      Storage=persist
+      Compress=yes
+      SystemMaxUse=128M
+      RuntimeMaxUse=8M
       '';
     };
 
-    fstrim.enable = true;
+    openssh = {
+      enable = false;
+      passwordAuthentication = false;
+      forwardX11 = true;
+    };
 
-    printing = {
+    avahi = {
       enable = true;
-      drivers = [ pkgs.gutenprint pkgs.hplip pkgs.epson-escpr ];
+      nssmdns = true;
+      publish.enable = true;
+      publish.addresses = true;
     };
 
     xserver = {
+      videoDrivers = ["intel"]; # modesetting cannot arrange 4k monitors in a row yet. (max 8192x8192 virtual screen size)
+      dpi = 210;
       enable = true;
-      videoDrivers = [ "nvidia" ];
-      screenSection = ''
-        Option "metamodes" "nvidia-auto-select +0+0 {ForceCompositionPipeline=On}"
-      '';
       layout = "de,de";
       xkbVariant = "neo,basic";
       xkbOptions = "grp:menu_toggle";
 
-      displayManager = {
-        # xmonad does not set a default cursor by itself, so we have to set it explicitly when X starts.
-        sessionCommands = lib.mkAfter
-        ''
-          ${pkgs.xorg.xsetroot}/bin/xsetroot -cursor_name left_ptr
-        '';
-        lightdm = {
+      libinput = {
         enable = true;
+        scrollMethod = "twofinger";
+        disableWhileTyping = true;
+        tapping = false;
+        accelSpeed = "0.9";
+      };
+
+      displayManager = {
+        lightdm = {
+          enable = true;
           autoLogin = {
             enable = true;
             user = "felix";
-      };
+          };
         };
       };
       desktopManager.xterm.enable = false;
@@ -247,8 +269,8 @@
       windowManager.xmonad = {
         enable = true;
         enableContribAndExtras = true;
-    };
-      windowManager.herbstluftwm.enable = true;
+      };
+      windowManager.herbstluftwm.enable = false;
       desktopManager.plasma5.enable = false;
       windowManager.i3.enable = false;
     };
@@ -263,12 +285,29 @@
     # hide mouse after some seconds of no movement
     unclutter-xfixes.enable = true;
 
+    acpid.enable = true;
+    udev.extraRules = ''
+      SUBSYSTEM=="power_supply", ATTR{status}=="Discharging", ATTR{capacity}=="[0-7]", RUN+="${pkgs.systemd}/bin/systemctl hibernate"
+    '';
+
+    psd = {
+      enable = true;
+    };
 
     syncthing = {
       enable = true;
       user = "felix";
       dataDir = "/home/felix/.config/syncthing";
       openDefaultPorts = true;
+      package = unstable.syncthing;
+    };
+
+    keybase = {
+      enable = true;
+    };
+    kbfs = {
+      enable = true;
+      mountPoint = "/keybase"; # mountpoint important for keybase-gui
     };
 
     # btsync = {
@@ -277,41 +316,77 @@
     #   package = pkgs.bittorrentSync20;
     # };
 
-    locate = {
-      enable = true;
-      interval = "22:00";
-    };
 
-    psd = {
-      enable = true;
-      users = ["felix" "jelias"];
-    };
-
-    keybase = {
-      enable = true;
-    };
-    kbfs = {
-      enable = true;
-      mountPoint = "/keybase";
-    };
-
-    # clamav = {
-    #   daemon.enable   = true;
-    #   daemon.extraConfig = ''
-    #     TCPAddr   127.0.0.1
-    #     TCPSocket 3310
-    #   '';
-    #   updater.enable  = true;
-    # };
-
-    upower.enable  = true;
-    gnome3.gvfs.enable  = true;
-    gnome3.gnome-keyring.enable = true;
-    udisks2.enable = true;
+    #clamav = {
+    #  daemon.enable   = true;
+    #  daemon.extraConfig = ''
+    #    TCPAddr   127.0.0.1
+    #    TCPSocket 3310
+    #  '';
+    #  updater.enable  = true;
+    #};
 
     # ipfs = {
     #   enable = true;
     # };
+
+
+    printing = {
+      enable = true;
+      drivers = [ pkgs.gutenprint pkgs.hplip pkgs.epson-escpr ];
+    };
+  };
+
+  systemd.services.delayedHibernation = {
+    description = "Delayed hibernation trigger";
+    documentation = [ "https://wiki.archlinux.org/index.php/Power_management#Delayed_hibernation_service_file" ];
+    conflicts = ["hibernate.target" "hybrid-sleep.target"];
+    before = ["sleep.target"];
+    # stopWhenUnneeded = true; # TODO
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = "yes";
+      Environment = [ "WAKEALARM=/sys/class/rtc/rtc0/wakealarm" "SLEEPLENGTH=+2hour" ];
+      ExecStart = "-/usr/bin/sh -c 'echo -n \"alarm set for \"; date +%%s -d$SLEEPLENGTH | tee $WAKEALARM'";
+      ExecStop = ''
+        -/usr/bin/sh -c '\
+          alarm=$(cat $WAKEALARM); \
+          now=$(date +%%s); \
+          if [ -z "$alarm" ] || [ "$now" -ge "$alarm" ]; then \
+             echo "hibernate triggered"; \
+             systemctl hibernate; \
+          else \
+             echo "normal wakeup"; \
+          fi; \
+          echo 0 > $WAKEALARM; \
+        '
+      '';
+    };
+
+    wantedBy = [ "sleep.target" ];
+  };
+
+  systemd.services.delayedHibernation.enable = true;
+
+  systemd.user = {
+    # https://vdirsyncer.pimutils.org/en/stable/tutorials/systemd-timer.html
+    services.vdirsyncer = {
+      description = "Synchronize calendars and contacts";
+      serviceConfig = {
+        Type = "oneshot";
+        ExecStart = "${pkgs.vdirsyncer}/bin/vdirsyncer sync";
+      };
+    };
+    timers.vdirsyncer = {
+      description = "Synchronize vdirs";
+
+      timerConfig = {
+        OnBootSec = "5m";
+        OnUnitActiveSec = "15m";
+        AccuracySec = "5m";
+      };
+      wantedBy = [ "timers.target" ];
+    };
   };
 
   fonts = {
@@ -326,33 +401,30 @@
     ];
     fontconfig = {
       includeUserConf = false;
-      defaultFonts.monospace = [ "Inconsolata" "DejaVu Sans Mono" ];
+      defaultFonts.monospace = [ "Roboto Mono" "DejaVu Sans Mono" ];
     };
   };
 
   virtualisation.virtualbox.host.enable = true;
-  nixpkgs.config.virtualbox.enableExtensionPack = true;
+  virtualisation.virtualbox.host.enableExtensionPack = true;
   virtualisation.docker.enable = true;
 
-  #users.mutableUsers = false;
   users.extraUsers.felix = {
     isNormalUser = true;
-    extraGroups = ["wheel" "vboxusers" "docker" "scanner" "adbusers"];
-    useDefaultShell = true;
+    extraGroups = ["wheel" "networkmanager" "vboxusers" "docker" "adbusers"];
+    shell = pkgs.zsh;
     openssh.authorizedKeys.keys = [
-      "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDU3dAvm/F8DksvT2fQ1804/ScajO20OxadixGD8lAPINLbCj7mRpLJmgnVjdJSSHQpaJXsDHjLul4Z4nuvgcOG2cjtI+/Z2d1AC+j5IDTJNs6yGgyzkRalPYWXKpzrOa/yQcVpJyGsliKyPuyc9puLJIQ0vvosVAUxN6TLMfnrgdtnZMsuQecToJ8AgyEgsGedOnYC2/1ELUJEdh2v2LMr2saWJW/HTptTotbS8Fwz+QWZPAxXWlEbH5r5LEma3xpn/7oiE4JKr7DL7bE4jWVgW0yrOZL0EAVm771oigqcS/ekTqLutVoFmcH0ysInsWKjnuT02+PIjDJdGODwlE5P felix@beef"
-      "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDEgFHPfX2zAgJvTYxRN9/M5rRyR2G3MKA7ZDA6qGTYX7eH7qIvBN1krGe+A6PVf2WOlftDQru0Ws3YWgLUfbzXdB5esshvjO1MtkwlwBi6EO7scDDTkcxswQLcpa10fUdkwlqeaPes8oxsA1RMoaYiVx2l+JAXsNhzchCOLkcve6zr8vA5RcWIqd4E9Z0ZJewghJgPSpthdaV8/dJY1Xumz43dbDvJVAs92YiZiaBkMIJeH+sWhhWL1YuQ/WtgtTh+s32DtkCmvyffbs4/5sE+yhZwHcbZcDZ77WVw7EmzNNfGBbS4ABK+T355qSGwbToOiWN2e/ZFKrucSpbCTZgH cornerman@genius"
-      "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCuuJUpJb/RaaGtng74AwZngADO5tDBUoDj4gfnDl1C2E6jpzF4iZtIhiSzqKxvmPWYGhsQrdptRH1sQqRaTEODhCThDJ4Z0CkiVk7oVVNM+qD+Z6RMsxRda/aHqnqQuarK3kVhoWQJNj1gjyk9aHmg1Cx0LCpGscH7CPv7H1+qBbwxOgzDYeHP773Lc1tmXicMKGZopfBEgDYVgApnuDU2A9nljAMndBqNS6D3xi0eCaPynESMAHfcZakNuhglsEw8Vmzq3ug0POy1xgWvyBl1KF+XZF/IFmSVRr4wBjW3r0qKdaOZ/0ZLKG5eSHoD+Pkr/x5cTsUWIJlZGJelamNr9X+291Msps6iGXlgY6UncnCqGSJxMXB0JHboXYl1XkX4DjChQg9fL6Qij3HsDHj5JFbP4NGzKirVBmppYB8EKboXCi3BGepPPuNRl965Yx9R8yGoP4daoKVZ63kRxM3k4wQMPS2mBfIrK3kjk5JmAeUxaE9geZS1uey77LFBD9rEx7qQ+afnmhxREARCtIPSZt+onqxOarEJkby6MXZpbCpvD6hk+D0rK7gSixw0YTzUXcwPTWrCVKwViEYN7MjlkvUzXKEiWrwai+AvBX0GdN460vrvSNQttRkYzdr1OFhPAkugsRr+Lff2SYnPmG5jX1cVt5A1dgEOdPinzx/mMQ== felix@neptun"
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIILlPXr5xNU6DlafZwUQHOUHtr9FK9qObMn2oxrK+PtW felix@cloud"
     ];
   };
 
-  users.extraUsers.jelias = {
-    isNormalUser = true;
-    extraGroups = ["wheel" "vboxusers" "docker" "scanner" "adbusers"];
-    useDefaultShell = true;
-    openssh.authorizedKeys.keys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM+BIE+0anEEYK0fBIEpjedblyGW0UnuYBCDtjZ5NW6P jelias@merkur"
-    ];
-  };
+
+
+
+
+  # This value determines the NixOS release with which your system is to be
+  # compatible, in order to avoid breaking some software such as database
+  # servers. You should change this only after NixOS release notes say you
+  # should.
+  system.stateVersion = "18.03"; # Did you read the comment?
+
 }
