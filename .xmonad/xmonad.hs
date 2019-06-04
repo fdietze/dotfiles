@@ -224,8 +224,8 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm .|. controlMask .|. shiftMask, xK_g     ), spawn "/run/wrappers/bin/light -A 1")
     , ((modm .|. controlMask .|. shiftMask, xK_r     ), spawn "/run/wrappers/bin/light -U 1")
 
-    , ((0,    xK_Print     ), spawn "scrot 'screenshots/%Y-%m-%d_%H-%M-%S_$wx$h.png'")
-    , ((modm, xK_Print     ), spawn "scrot 'screenshots/%Y-%m-%d_%H-%M-%S_$wx$h.png' --focused")
+    , ((0,    xK_Print     ), spawn "scrot 'screenshots/%Y-%m-%d_%H-%M-%S_$wx$h.png' --focused --exec 'notify-send --expire-time=2000 \"Screenshot Saved.\"'")
+    , ((modm, xK_Print     ), spawn "scrot 'screenshots/%Y-%m-%d_%H-%M-%S_$wx$h.png' --select --exec 'notify-send --expire-time=2000 \"Screenshot Saved.\"'")
 
     , ((modm .|. shiftMask .|. controlMask, xK_z     ), spawn "movietime")
     , ((modm .|. shiftMask .|. controlMask, xK_p     ), spawn "reset-screen")
