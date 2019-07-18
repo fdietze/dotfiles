@@ -6,12 +6,12 @@
     name = Felix Dietze
 
 [core]
-    pager = diff-so-fancy | less --tabs=4 -RFX
+    pager = diff-so-fancy | less --tabs=4 --RAW-CONTROL-CHARS
     excludesfile=~/.config/git/ignore # needed for ag
 
 [push]
     default = simple
-    followTags = true
+    followTags = true # Automatically pushes annotated tags (but not leightweight tags!)
 
 [pull]
     ff = only
@@ -94,10 +94,10 @@
     dbr = "!f() { git branch -D $1; git push origin :$1;}; f" # delete local and remote branch
     dtag = "!f() { git tag -d $1; git push origin :$1;}; f" # delete local and remote tag
     wip = "!git add -A; git commit --message='wip'"
-    wipbr = "!f() { git cob $1; git wip; git po;}; f" # push current branch to origin
+    wipbr = "!f() { git cob $1; git wip; git po;}; f" # commit and push everything on a new branch
 
-    ss = stash save
-    ssu = stash save --include-untracked
+    ss = stash save --include-untracked
+    sski = stash save --include-untracked --keep-index
     sp = stash pop
 
     rb = rebase
