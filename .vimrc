@@ -21,12 +21,12 @@ filetype plugin indent on
 " Colorscheme
 set termguicolors " true color support
 syntax enable
-if filereadable($HOME."/.theme") && match(readfile($HOME."/.theme"),"light")
-    set background=dark
-    colorscheme palenight
-else
+if filereadable($HOME."/.theme") && match(readfile($HOME."/.theme"),"light") == 0
     set background=light
     colorscheme goodmorning
+else
+    set background=dark
+    colorscheme palenight
 endif
 
 
@@ -120,6 +120,7 @@ let g:tex_flavor = "latex"
 " set spell spelllang=en_us
 
 autocmd vimrc Filetype scala setlocal expandtab tabstop=2 shiftwidth=2 softtabstop=2
+autocmd vimrc FileType yaml setlocal expandtab tabstop=2 shiftwidth=2 softtabstop=2
 
 " filetype aliases
 autocmd vimrc BufNewFile,BufRead *.sbt set filetype=scala
@@ -127,7 +128,7 @@ autocmd vimrc BufNewFile,BufRead *.gdb set filetype=sh
 autocmd vimrc BufNewFile,BufRead *.jad set filetype=java
 
 " on save, autoformat - also removes trailing spaces
-" au BufWritePre * call AutoformatFixedUndo()
+" au BufWritePre *.scala call AutoformatFixedUndo()
 
 function! AutoformatFixedUndo()
     " inspired by http://vim.wikia.com/wiki/Restore_the_cursor_position_after_undoing_text_change_made_by_a_script
