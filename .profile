@@ -4,6 +4,8 @@ export PATH=$HOME/.zgen/dottr/dottr-master/pan.git:$PATH
 export PATH=$HOME/.cargo/bin:$PATH
 export PATH=$HOME/go/bin:$PATH
 export PATH=$HOME/bin:$PATH
+export PATH=$HOME/.local/bin:$PATH
+export PATH=$HOME/.bloop:$PATH
 
 # export GOPATH=~/go
 # export RUST_SRC_PATH=~/projects/rust/src
@@ -19,4 +21,4 @@ export _JAVA_AWT_WM_NONREPARENTING=1
 export AWT_TOOLKIT=MToolkit
 export GDK_USE_XFT=1
 
-export SBT_OPTS="-Xms32M -Xmx1200M -Xss1M -XX:+CMSClassUnloadingEnabled -XX:+UseConcMarkSweepGC"
+export SBT_OPTS="-Xms1G -Xmx8G -Xss16M -XX:+CMSClassUnloadingEnabled -XX:+UseConcMarkSweepGC"

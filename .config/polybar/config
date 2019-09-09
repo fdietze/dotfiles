@@ -3,7 +3,7 @@
 ; while true; do statusbar; done
 
 [bar/default]
-;monitor = ${env:MONITOR:HDMI-1}
+monitor = ${env:MONITOR:eDP1}
 width = 100%
 height = 24
 fixed-center = false
@@ -11,12 +11,11 @@ fixed-center = false
 background = ${colors.background}
 foreground = ${colors.foreground}
 
-font-0 = Range Mono:style=Regular:size=11;2
-font-1 = Dejavu Sans Mono:size=7;1
+font-0 = Dejavu Sans Mono:style=Regular:size=10;2
 
 modules-left = workspaces-xmonad
 modules-center = xwindow
-modules-right = cpu process temperature memory eth wlan volume battery timewarrior date
+modules-right = cpu cpufreq temperature process memory eth wlan volume battery timewarrior date
 module-margin-left = 1
 module-margin-right = 2
 
@@ -121,11 +120,16 @@ ramp-coreload-7 = ${base.ramp-base-7}
 
 [module/process]
 type = custom/script
-exec = ps -eo comm --sort=-%cpu | head -2 | tail +2
-exec-if = (( $(ps -eo pcpu --sort=-%cpu | head -2 | tail +2) > 85 ))
+exec = ps -eo comm --sort=-%cpu | tail -n +2 | head -n -1
+; exec-if = (( $(ps -eo pcpu --sort=-%cpu | tail -n +2 | head -n -1) > 10 ))
 interval = 5
 format-foreground = ${env:BAR_PEAK:#FFD9C1}
-click-middle = kill $(ps -eo pid --sort=-%cpu | head -2 | tail +2)
+click-middle = kill $(ps -eo pid --sort=-%cpu | tail -n +2 | head -n -1)
+
+[module/cpufreq]
+type = custom/script
+exec = cpupower frequency-info -fm | grep -oP '(?<=frequency: )([^ ]+ [^ ]+)'
+interval = 5
 
 [module/temperature]
 type = internal/temperature

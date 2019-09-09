@@ -2,13 +2,12 @@
 alias qrscan='LD_PRELOAD=/usr/lib/libv4l/v4l1compat.so zbarcam --raw /dev/video0'
 alias photoshop='wine ~/.wine/drive_c/Program\ Files\ \(x86\)/Adobe/Photoshop\ 7.0/Photoshop.exe'
 alias gparted='gksudo gparted'
-alias teamviewer='gksudo "systemctl start teamviewerd"; sleep 5; teamviewer'
 alias suspend='systemctl suspend'
 alias start='cd ~/projects/wust2; ./start'
 
 # https://github.com/chenkelmann/neo2-awt-hack
 # wget https://github.com/chenkelmann/neo2-awt-hack/blob/master/releases/neo2-awt-hack-0.4-java8oracle.jar\?raw\=true -O ~/local/neo2-awt-hack-0.4-java8oracle.jar
-alias idea-community='_JAVA_OPTIONS="-Dawt.useSystemAAFontSettings=lcd -Xbootclasspath/p:$HOME/local/neo2-awt-hack-0.4-java8oracle.jar" idea-community'
+# alias idea-community='_JAVA_OPTIONS="-Dawt.useSystemAAFontSettings=lcd -Xbootclasspath/p:$HOME/local/neo2-awt-hack-0.4-java8oracle.jar" idea-community'
 
 alias start='./start'
 wu() {
@@ -23,7 +22,7 @@ wu() {
 
 # fix highdpi for chromium
 alias chromium='chromium --high-dpi-support=1 --force-device-scale-factor=1'
-alias chromium-continuous-bin='chromium-continuous-bin --high-dpi-support=1 --force-device-scale-factor=1'
+alias chromium-no-plugins='chromium --disable-extensions --disable-plugins'
 
 alias vim='nvim'
 
@@ -133,17 +132,7 @@ v() {
         [[ -n $file ]] && nvim "$file"
     );
 }
-# v() { echo $@ | vim -c Rooter -c Files }
 vr() { vim -c "History $*"; }
-vt() { vim -c "Tags $*"; }
-
-proj_ctags () {
-    cd-git-root
-    dir=$(realpath .)
-    touch $dir/tags
-    ctags --fields=+l --c-kinds=+p --c++-kinds=+p -f $dir/tags -R $dir
-}
-
 
 x() {
     zsh -i -c "$@ &; disown" 
@@ -165,7 +154,7 @@ s() {
 }
 
 # file listing/interaction
-alias ls='ls --group-directories-first --color=always --escape --human-readable --classify'
+alias ls='grc ls --group-directories-first --color=always --escape --human-readable --classify'
 alias lt='ls -lt --reverse'
 alias la='ls -l --almost-all'
 alias l='ls -l'
@@ -202,10 +191,10 @@ alias xkodi='/usr/bin/xinit /usr/bin/dbus-launch --exit-with-session /usr/bin/ko
 
 # git
 alias g='git'
-alias gs='git status'
+alias gs='git st'
 alias gu='git up'
-alias gp='git push'
-alias gpf='git push --force-with-lease'
+alias gp='git p'
+alias gpf='git pf'
 alias gl='git lg'
 alias gla='git lga'
 alias gsc='git-select-commit'
@@ -290,18 +279,24 @@ autocolors() {
 
 low() {
     # save energy
-    xbacklight -set 10 -time 0
-    keyboardbacklightoff
+    # xbacklight -set 10 -time 0
+    # keyboardbacklightoff
+    touch /tmp/low-power-mode # a marker for other apps to detect if in low-power mode
 
     low-traffic
 
-    light
+    echo "powersave governor..."
+    sudo cpupower frequency-set -g powersave
+    echo "max-frequency: 2GHz..."
+    sudo cpupower frequency-set --max 2GHz
 
+    echo "switching off wifi/bluetooth..."
     nmcli radio wifi off
     sudo rfkill block all
 }
 
 low-traffic() {
+    echo "stopping network-heavy services..."
     sys stop ipfs > /dev/null 2>&1
     sys stop btsync > /dev/null 2>&1
     sys stop syncthing > /dev/null 2>&1

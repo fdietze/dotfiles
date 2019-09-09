@@ -28,7 +28,7 @@ bind generic F !git fetch
 bind generic P !git push
 bind status A !git commit --amend
 bind status F !git fixup
-bind status D ?@rm %(file) # remove files
+bind status D ?@rm -r %(file) # remove files
 bind status I !@git ignore "%(file)" # add files to .gitignore
 bind stage u stage-update-line
 bind stage <Home> stage-update-line # NEO AltGr+u
