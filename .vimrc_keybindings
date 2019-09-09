@@ -203,8 +203,6 @@ nmap <silent> <Leader>: <Plug>ToggleEndChar:
 " multiple cursors
 " TODO: highlight all matches before starting multiple-cursors
 " nmap <C-n> :call HighlightCurrentWord()<CR>:!redraw<CR>:call multiple_cursors#new("n",1)<CR>
-nnoremap <silent> <c-N> :MultipleCursorsFind <C-R>/<CR>
-vnoremap <silent> <c-N> :MultipleCursorsFind <C-R>/<CR>
 
 inoremap <silent><expr> <TAB>
             \ pumvisible() ? "\<C-n>" :
@@ -214,6 +212,8 @@ function! s:check_back_space() abort "{{{
     let col = col('.') - 1
     return !col || getline('.')[col - 1]  =~ '\s'
 endfunction "}}}
+nnoremap <silent> <leader><c-n> :MultipleCursorsFind <C-R>/<CR>
+vnoremap <silent> <leader><c-n> :MultipleCursorsFind <C-R>/<CR>
 
 " FZF: Fuzzy file finding
 nmap <leader>e :ProjectFiles<CR>
@@ -234,7 +234,7 @@ nmap <leader>gn <Plug>GitGutterNextHunk
 nmap <leader>gN <Plug>GitGutterPrevHunk
 nmap <leader>ga <Plug>GitGutterStageHunk
 nmap <leader>gu <Plug>GitGutterStageHunk
-nmap <leader>gr <Plug>GitGutterUndoHunk
+nmap <leader>gr <Plug>GitGutterUndoHunk<Plug>GitGutterAll
 
 " surround with S
 nmap S ys

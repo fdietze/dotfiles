@@ -1,14 +1,11 @@
 [[ -e ~/.profile ]] && emulate sh -c 'source ~/.profile'
 
-# color wrappers for common commands
-which cope_path > /dev/null && export PATH=$(cope_path):$PATH
-
 # colorful file listings
 eval $(dircolors ~/.dir_colors)
 
 # vimpager instead of less
 # export PAGER=/usr/bin/vimpager
-export PAGER="less -R -F"
+export PAGER="less --RAW-CONTROL-CHARS"
 
 # colorize manpages (when using less as pager)
 export LESS_TERMCAP_mb=$(printf "\33[01;34m")   # begin blinking
