@@ -1,11 +1,2 @@
 #!/usr/bin/env bash
-# sflock -c ' ' -f "-*-Droid Sans Mono-*-*-*-*-16-*-*-*-*-*-*-*"
-# sflock -c ' ' -h -f "-*-Droid Sans Mono-*-*-*-*-20-*-*-*-*-*-*-*"
-i3lock --color=EEEEEE --nofork &
-# slock &
-# LOCKPID=$!
-# nohup sh -c "while [ -e /proc/$LOCKPID ]
-# do
-#     sleep 1
-# done
-# ~/bin/autocolors" &
+i3lock --color=292D3E --nofork
