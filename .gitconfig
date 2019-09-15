@@ -94,7 +94,7 @@
     po = "!git push --set-upstream origin \"$(git rev-parse --abbrev-ref HEAD)\"" # push current branch to origin
     dbr = "!f() { git branch -D $1; git push origin :$1;}; f" # delete local and remote branch
     dtag = "!f() { git tag -d $1; git push origin :$1;}; f" # delete local and remote tag
-    wip = "!git add -A; git commit --message='wip'"
+    wip = "!git add -A; git commit --message=\"WIP: `git diff --name-only --staged | xargs -l basename | paste -sd \",\"`\""
     wipbr = "!f() { git cob $1; git wip; git po;}; f" # commit and push everything on a new branch
 
     ss = stash save --include-untracked
