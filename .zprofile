@@ -1,7 +1,9 @@
 [[ -e ~/.profile ]] && emulate sh -c 'source ~/.profile'
 
 # colorful file listings
-eval $(dircolors ~/.dir_colors)
+if [ -n "${commands[dircolors]}" ]; then
+    eval $(dircolors ~/.dir_colors)
+fi
 
 # vimpager instead of less
 # export PAGER=/usr/bin/vimpager
