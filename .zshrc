@@ -36,15 +36,14 @@ SPACESHIP_PROMPT_ORDER=(
   # php           # PHP section
   rust          # Rust section
   haskell       # Haskell Stack section
-  # julia         # Julia section
-  docker        # Docker section
+  julia         # Julia section
+  # docker        # Docker section
   aws           # Amazon Web Services section
   venv          # virtualenv section
   conda         # conda virtualenv section
   pyenv         # Pyenv section
   # dotnet        # .NET section
   # ember         # Ember.js section
-  kubecontext   # Kubectl context section
   # terraform     # Terraform workspace section
   exec_time     # Execution time
   line_sep      # Line break
