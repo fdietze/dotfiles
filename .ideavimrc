@@ -1,4 +1,4 @@
-" List of all actions: https://gist.github.com/zchee/9c78f91cc5ad771c1f5d
+" search for actions: :actionlist <patter>
 
 set number                        " line numbers
 
@@ -11,8 +11,10 @@ set wrapscan                      " searches wrap around the end of the file
 set gdefault                      " substitute all occurrences in line per default
 set history=10000                 " keep x lines of command line history
 set scrolloff=5 sidescrolloff=10  " keep some lines before and after the cursor visible
-set clipboard=unnamedplus,unnamed " integrate with system clipboard
+set clipboard=unnamedplus,unnamed,ideaput " integrate with system clipboard
 
+" set multiple-cursors
+set commentary
 set surround                      " emulate vim-surround plugin
 
 
@@ -28,7 +30,7 @@ nnoremap <leader>vr :source ~/.ideavimrc<CR>
 " NEO-Layout
 
 " simple closing and saving
-nnoremap ö :w<CR>
+nnoremap ö :action SaveAll<CR>:action Flutter.Toolbar.ReloadAction<CR>
 nnoremap ä :action Exit<CR>
 nnoremap ü :q<CR>
 nnoremap <leader>ü :action CloseAllEditorsButActive<CR>
@@ -91,37 +93,28 @@ nmap <leader>= :action EditorResetFontSize<CR>
 " code navigation
 nmap <leader>e :action GotoFile<CR>
 nmap <leader>a :action FindInPath<CR>
+nmap gr :action ShowUsages<CR>
+nmap gi :action GotoImplementation<CR>
+nmap gs :action GotoSuperMethod<CR>
 
 nmap l :action NextTab<CR>
 nmap L :action PreviousTab<CR>
 
-nmap gr :action ShowUsages<CR>
 nmap <C-p> :action ParameterInfo<CR>
 imap <C-p> <C-o>:action ParameterInfo<CR>
 nmap <leader>n :action GotoNextError<CR>
 
 
-" editing / refactoring
-nmap gcc :action CommentByLineComment<CR>:action EditorUp<CR>
-vnoremap gc :action CommentByLineComment<cr>
-
 nmap <leader>ri :action Inline<CR>
-nmap <leader>rv :action IntroduceVariable<CR>
+nmap <leader>rr :action RenameElement<CR>
+nmap <leader>rev :action IntroduceVariable<CR>
+nmap <leader>rem :action ExtractMethod<CR>
+vmap <leader>rem :action ExtractMethod<CR>
 nmap <leader>rm :action Move<CR>
 nmap <leader>ro :action OptimizeImports<CR>
 nmap <leader>rG :action Generate<CR>
 
 nmap <leader>f  :action ReformatCode<CR>
-
-
-" rename like in vim-multiple-cursors:
-nmap <C-n> :action RenameElement<CR>
-
-" multiple cursors (not working yet...)
-" set multiple-cursors              " emulate vim-multiple-cursors
-" map <C-n> <A-n>
-" map <C-x> <A-x>
-" map <C-p> <A-p>
 
 nmap <, :action MoveElementLeft<CR>
 nmap >, :action MoveElementRight<CR>
