@@ -6,6 +6,9 @@ export PATH=$HOME/go/bin:$PATH
 export PATH=$HOME/bin:$PATH
 export PATH=$HOME/.local/bin:$PATH
 export PATH=$HOME/.bloop:$PATH
+export PATH=$HOME/development/flutter/bin:$PATH
+export PATH=$HOME/homebrew/bin:${PATH}
+if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi
 
 # export GOPATH=~/go
 # export RUST_SRC_PATH=~/projects/rust/src
