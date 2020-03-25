@@ -132,3 +132,5 @@ bind2maps emacs viins vicmd -- "Down" down-line-or-search
 # fi
 
 source ~/.sh_aliases
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
