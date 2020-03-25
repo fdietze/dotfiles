@@ -154,7 +154,17 @@ s() {
 }
 
 # file listing/interaction
-alias ls='grc ls --group-directories-first --color=always --escape --human-readable --classify'
+if [ "$(uname 2> /dev/null)" != "Linux" ]; then
+    # for Mac
+    alias ls='ls -hFG'
+else
+	if [ -n "${commands[grc]}" ]; then
+	    alias ls='grc ls --group-directories-first --color=always --escape --human-readable --classify'
+	else
+	    alias ls='ls --group-directories-first --color=always --escape --human-readable --classify'
+	fi
+fi
+
 alias lt='ls -lt --reverse'
 alias la='ls -l --almost-all'
 alias l='ls -l'
