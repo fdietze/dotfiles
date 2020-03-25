@@ -76,7 +76,7 @@ search_path_filter = False
 
 # Default pager.
 # By default 'PAGER' environment variable is used
-# pager = less -SRXF
+pager = cat
 
 # Timing of sql statments and table rendering.
 timing = True
@@ -104,7 +104,7 @@ vi = True
 on_error = STOP
 
 # Set threshold for row limit prompt. Use 0 to disable prompt.
-row_limit = 1000
+row_limit = 100
 
 # Skip intro on startup and goodbye on exit
 less_chatty = True
