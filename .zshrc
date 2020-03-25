@@ -3,6 +3,7 @@
 export DISABLE_AUTO_UPDATE="true" # disable oh-my-zsh auto-update
 export DISABLE_UPDATE_PROMPT="true" # disable oh-my-zsh update prompt
 export ZSH_THEME="" # disable oh-my-zsh themes
+ZSH_DISABLE_COMPFIX=true
 
 source "${HOME}/.zgen/zgen.zsh"
 if ! zgen saved; then
