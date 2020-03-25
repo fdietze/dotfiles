@@ -21,7 +21,7 @@ wu() {
 
 
 # fix highdpi for chromium
-alias chromium='chromium --high-dpi-support=1 --force-device-scale-factor=1'
+alias chromium='chromium --high-dpi-support=1 --force-device-scale-factor=1.5'
 alias chromium-no-plugins='chromium --disable-extensions --disable-plugins'
 
 alias vim='nvim'
@@ -64,12 +64,21 @@ dockerhost() {
     sshforward $1 2375 &
 }
 
+try() {
+    until zsh -ic "$@"
+    do
+        echo "$@"
+        sleep 1
+    done
+}
 
 alias hc='herbstclient'
-alias watch='watch -c -d COPE=1 ' # force cope colors, and leave one space to trigger alias expansion in command
+alias watch='watch -c -d'
 alias w='watch '
-alias online='ping -c 1 8.8.8.8 -W 5 && ping -c 1 google.com -W 5' # -W timout
-alias on='w online'
+ONLINECMD='ping -c 1 8.8.8.8 -W 5 && ping -c 1 google.com -W 5'
+alias online="$ONLINECMD" # -c <retries>  -W <timout>
+alias online-wait='until online; do; sleep 3; done; espeak "online online online"'
+alias on="w --interval=1 '$ONLINECMD'"
 alias hd='hexdump -C'
 alias fucking='sudo'
 alias speakerup='amixer -c 0 sset Speaker 100%'
