@@ -1,7 +1,6 @@
 
 ```bash
-# install: zsh, yeganesh or dmenu, termite, xcwd, unclutter-xfixes, redshift, cope
-# for panel: conky-cli with lua (lua-filesystem), ttf-droid
+# install: zsh, termite, xcwd, unclutter-xfixes, redshift, 
 mkdir -p ~/projects
 git clone --bare git@github.com:fdietze/dotfiles.git projects/dotfiles
 GIT_DIR=$HOME/projects/dotfiles GIT_WORK_TREE=$HOME git checkout master
