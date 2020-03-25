@@ -119,15 +119,6 @@ nnoremap cb xcb
 noremap <expr> <silent> <Home> col('.') == match(getline('.'),'\S')+1 ? '0' : '^'
 imap <silent> <Home> <C-O><Home>
 
-" exit insert mode when navigating
-" be careful: this is also triggered in vim-multiple-cursors
-" inoremap  <Left>   <Esc>
-" inoremap  <Right>  <Esc>2<Right>
-" inoremap  <Up>     <Esc><Up>
-" inoremap  <Down>   <Esc><Down>
-" imap  <Home>   <Esc><Home>
-" imap  <End>    <Esc><End>
-
 " navigate through wrapped lines
 nnoremap <C-Up> g<Up>
 nnoremap <C-Down> g<Down>
@@ -203,17 +194,17 @@ nmap <silent> <Leader>: <Plug>ToggleEndChar:
 " multiple cursors
 " TODO: highlight all matches before starting multiple-cursors
 " nmap <C-n> :call HighlightCurrentWord()<CR>:!redraw<CR>:call multiple_cursors#new("n",1)<CR>
-
-inoremap <silent><expr> <TAB>
-            \ pumvisible() ? "\<C-n>" :
-            \ <SID>check_back_space() ? "\<TAB>" :
-            \ deoplete#mappings#manual_complete()
-function! s:check_back_space() abort "{{{
-    let col = col('.') - 1
-    return !col || getline('.')[col - 1]  =~ '\s'
-endfunction "}}}
 nnoremap <silent> <leader><c-n> :MultipleCursorsFind <C-R>/<CR>
 vnoremap <silent> <leader><c-n> :MultipleCursorsFind <C-R>/<CR>
+
+" inoremap <silent><expr> <TAB>
+"             \ pumvisible() ? "\<C-n>" :
+"             \ <SID>check_back_space() ? "\<TAB>" :
+"             \ deoplete#mappings#manual_complete()
+" function! s:check_back_space() abort "{{{
+"     let col = col('.') - 1
+"     return !col || getline('.')[col - 1]  =~ '\s'
+" endfunction "}}}
 
 " FZF: Fuzzy file finding
 nmap <leader>e :ProjectFiles<CR>
@@ -221,7 +212,6 @@ nmap <leader>E :GitFiles<CR>
 nmap <leader>b :Buffers<CR>
 nmap <leader>m :GitFiles?<CR>
 nmap <leader>r :History<CR>
-nmap <leader>l :Locate<space>
 " nmap <leader>t :BTags<CR>
 nmap <leader>t :Tags<CR>
 nmap <leader>a :Rooter<CR>:Ag<space>
@@ -230,11 +220,10 @@ nmap <leader>A :Rooter<CR>:Ag<space><c-r><c-w><CR>
 nmap <leader>s :Rooter<CR>:Ag<space>  
 
 " Git
-nmap <leader>gn <Plug>GitGutterNextHunk
-nmap <leader>gN <Plug>GitGutterPrevHunk
-nmap <leader>ga <Plug>GitGutterStageHunk
-nmap <leader>gu <Plug>GitGutterStageHunk
-nmap <leader>gr <Plug>GitGutterUndoHunk<Plug>GitGutterAll
+nmap <leader>gn <Plug>GitGutter(NextHunk)
+nmap <leader>gN <Plug>GitGutter(PrevHunk)
+nmap <leader>gu <Plug>GitGutter(StageHunk)
+nmap <leader>gr :GitGutterUndoHunk<cr>
 
 " surround with S
 nmap S ys
@@ -242,7 +231,7 @@ nmap S ys
 if has('nvim')
     nmap <leader>gs :nohlsearch<CR>:term tig status<CR>i
 else
-    nmap <leader>gs :nohlsearch<CR>:silent !tig status<CR>:GitGutterAll<CR>:redraw!<CR>
+    nmap <leader>gs :nohlsearch<CR>:silent !tig status<CR>:GitGutter(All)<CR>:redraw!<CR>
 endif
 
 :tnoremap <C-Esc> <C-\><C-n>

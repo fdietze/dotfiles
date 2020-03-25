@@ -13,7 +13,7 @@ call plug#begin('~/.vim/plugged')
 Plug 'tpope/vim-sensible'     " defaults everyone can agree on
 Plug 'tpope/vim-repeat'       " enable dot-command for Plugins
 Plug 'benjifisher/matchit.zip'     " matches not only parantheses, but also HTML-Tags and more
-Plug 'kopischke/vim-fetch' " open files at line with filename:32
+Plug 'bogado/file-line' " open files at line with filename:32
 Plug 'airblade/vim-rooter' " cd to project root
 Plug 'airblade/vim-gitgutter' " VCS change info per line (only git)
 Plug 'zirrostig/vim-smart-swap' " handle vim swap files, delete older and identical swap files
@@ -44,7 +44,6 @@ Plug 'PeterRincker/vim-argumentative'  " text object ',' / also provides argumen
 
 
 
-
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " helpful tools providing functions and commands
 " which need to be called/activated/mapped explicitly
@@ -69,13 +68,15 @@ Plug 'zirrostig/vim-schlepp' " Move selections / lines
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " file type plugins
 " Plug 'sheerun/vim-polyglot' " Lots of filetypes
-Plug 'leafgarland/typescript-vim'
+Plug 'HerringtonDarkholme/yats.vim'
 Plug 'xolox/vim-easytags', {'on': 'Tags'} | Plug 'xolox/vim-misc', {'on': 'Tags'}
 Plug 'derekwyatt/vim-scala', {'for': 'scala'} " Scala programming language
 Plug 'othree/html5.vim', {'for': 'html'} " HTML
 Plug 'Valloric/MatchTagAlways', {'for': 'html'} " Highlight matching/surrounding html tags
 Plug 'othree/yajs.vim', {'for': 'javascript'} " New JavaScript Standard Ecmascript 6
 Plug 'othree/javascript-libraries-syntax.vim', {'for': 'javascript'}
+Plug 'dart-lang/dart-vim-plugin', {'for': 'dart'}
+Plug 'JuliaEditorSupport/julia-vim'
 Plug 'neo4j-contrib/cypher-vim-syntax', {'for' : 'cypher'} " Neo4j Cypher query language
 " Plug 'vim-scripts/JavaDecompiler.vim' " decompile java .class files on the fly
 Plug 'rust-lang/rust.vim', {'for': 'rust'} " Rust programming language by Mozilla
@@ -184,9 +185,11 @@ autocmd FileType cypher setlocal commentstring=//\ %s
 let g:gitgutter_map_keys = 0 " no default mappings
 let g:gitgutter_sign_added = '+'
 let g:gitgutter_sign_modified = '⌇'
-let g:gitgutter_sign_removed = '✕'
-let g:gitgutter_sign_removed_first_line = '⌅'
-let g:gitgutter_sign_modified_removed = '⌇✕'
+let g:gitgutter_sign_removed = '-'
+let g:gitgutter_sign_removed_first_line = '-'
+let g:gitgutter_sign_modified_removed = '⌇'
+let g:gitgutter_diff_args = '-w' " ignore whitespace
+autocmd BufWritePost * GitGutter
 
 " Languagetool
 let g:languagetool_jar=$HOME."/local/languagetool/languagetool-commandline.jar"
