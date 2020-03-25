@@ -10,6 +10,7 @@ export PATH=$HOME/.bloop:$PATH
 # export GOPATH=~/go
 # export RUST_SRC_PATH=~/projects/rust/src
 # export RUST_BACKTRACE=1
+export EDITOR=nvim
 
 export NIX_AUTO_INSTALL=true # automatically installs and runs non-installed software in nix-shell (requires `programs.command-not-found.enable = true`)
 
