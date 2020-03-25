@@ -58,6 +58,7 @@ set list
 set breakindent                   " indent wrapped lines
 set breakindentopt=shift:2
 set display=lastline,uhex         " if last line does not fit on screen, display it anyways
+set synmaxcol=10000               " stop syntax highlighting for lines of this length
 
 " editing
 set gdefault                      " substitute all occurrences in line per default
