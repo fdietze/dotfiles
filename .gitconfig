@@ -71,7 +71,7 @@
     unstage = reset HEAD
     prev = reset HEAD~1
     fixup = "!zsh -ic 'git commit --fixup $(git-select-commit)'"
-    ignore = "!f() { echo \"$1\" >> .gitignore; }; f"
+    ignore = "!cd -- ${GIT_PREFIX:-.}; f() { echo \"$1\" >> .gitignore; }; f" # add to .gitignore in current directory
     cl = clone
     br = branch
     brr = branch -r
