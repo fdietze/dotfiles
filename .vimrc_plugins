@@ -68,6 +68,7 @@ Plug 'zirrostig/vim-schlepp' " Move selections / lines
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " file type plugins
 " Plug 'sheerun/vim-polyglot' " Lots of filetypes
+Plug 'keith/swift.vim'
 Plug 'HerringtonDarkholme/yats.vim'
 Plug 'xolox/vim-easytags', {'on': 'Tags'} | Plug 'xolox/vim-misc', {'on': 'Tags'}
 Plug 'derekwyatt/vim-scala', {'for': 'scala'} " Scala programming language
