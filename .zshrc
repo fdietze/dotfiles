@@ -11,11 +11,12 @@ if ! zgen saved; then
     zgen oh-my-zsh # oh-my-zsh default settings
 
     zgen load rupa/z # jump to most used directories
+    zgen load dottr/dottr
 
     zgen load denysdovhan/spaceship-prompt spaceship
     zgen load b4b4r07/zsh-vimode-visual
-
-    zgen load dottr/dottr
+    zgen load zsh-users/zsh-autosuggestions
+    zgen load zsh-users/zsh-syntax-highlighting # must be loaded last (https://github.com/zsh-users/zsh-syntax-highlighting#why-must-zsh-syntax-highlightingzsh-be-sourced-at-the-end-of-the-zshrc-file)
 
     zgen save
 fi
@@ -56,6 +57,8 @@ SPACESHIP_PROMPT_ORDER=(
 )
 SPACESHIP_CHAR_SYMBOL="❯ "
 SPACESHIP_GIT_STATUS_STASHED=""
+
+ZSH_AUTOSUGGEST_STRATEGY=(history completion)
 
 # needed for bind2maps
 typeset -A key
@@ -134,3 +137,5 @@ bind2maps emacs viins vicmd -- "Down" down-line-or-search
 source ~/.sh_aliases
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+source /home/felix/.config/broot/launcher/bash/br
