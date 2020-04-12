@@ -138,4 +138,7 @@ source ~/.sh_aliases
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
-source /home/felix/.config/broot/launcher/bash/br
+
+if [ -n "${commands[br]}" ]; then
+    source /home/felix/.config/broot/launcher/bash/br
+fi
