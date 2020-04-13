@@ -174,8 +174,8 @@ else
 	fi
 fi
 
-alias lt='ls -lt --reverse'
-alias la='ls -l --almost-all'
+alias lt='ls -ltr' # only shorthands are mac-compatible
+alias la='ls -lA' # only shorthands are mac-compatible
 alias l='ls -l'
 alias t='tree -C' # -C is for color=always
 alias t2='tree -L 2 -C' # -C is for color=always
