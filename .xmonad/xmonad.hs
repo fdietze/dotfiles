@@ -69,7 +69,7 @@ main = do
 
 myStartupHook theme = do
     safeSpawn "mkfifo" ["/tmp/.xmonad-workspace-log"]
-    spawn ("theme " ++ (show theme))
+    spawn ("~/bin/theme " ++ (show theme))
 
 myTerminal      = "termite"
 
@@ -85,24 +85,24 @@ myNormalBorderColor Dark  = "#171717"
 myFocusedBorderColor Light = "#777987"
 myFocusedBorderColor Dark = "#82AAFF"
 
-myPP Dark = def {
-  ppCurrent           = wrap "%{F#ffffff B#5A5B66} "   " %{F- B-}",
-  ppVisible           = wrap "%{B#3F4047}" "%{B-}" . clickable, -- xinerama
-  ppHidden            = wrap "%{F#eeeeee}" "%{F-}" . clickable,
-  ppHiddenNoWindows   = wrap "%{F#555555}" "%{F-}" . clickable,
-  ppUrgent            = wrap "%{B#CE6D00}" "%{B-}" . clickable,
-  ppSep               = "",
-  ppWsSep             = "",
-  ppOrder             = \(ws:_:_:_) -> [ws],
-  ppOutput            = \wsStr -> appendFile "/tmp/.xmonad-workspace-log" (wsStr ++ "\n")
-} where clickable = \w -> "%{A:xdotool key alt+" ++ w ++ ":} " ++ w ++ " %{A}"
-
 myPP Light = def {
   ppCurrent           = wrap "%{F#ffffff B#5A5B66} "   " %{F- B-}",
   ppVisible           = wrap "%{B#B4B6CC}" "%{B-}" . clickable, -- xinerama
   ppHidden            = wrap "%{F#555555}" "%{F-}" . clickable,
   ppHiddenNoWindows   = wrap "%{F#cccccc}" "%{F-}" . clickable,
   ppUrgent            = wrap "%{B#FFD8AC}" "%{B-}" . clickable,
+  ppSep               = "",
+  ppWsSep             = "",
+  ppOrder             = \(ws:_:_:_) -> [ws],
+  ppOutput            = \wsStr -> appendFile "/tmp/.xmonad-workspace-log" (wsStr ++ "\n")
+} where clickable = \w -> "%{A:xdotool key alt+" ++ w ++ ":} " ++ w ++ " %{A}"
+
+myPP Dark = def {
+  ppCurrent           = wrap "%{F#ffffff B#5A5B66} "   " %{F- B-}",
+  ppVisible           = wrap "%{B#3F4047}" "%{B-}" . clickable, -- xinerama
+  ppHidden            = wrap "%{F#eeeeee}" "%{F-}" . clickable,
+  ppHiddenNoWindows   = wrap "%{F#555555}" "%{F-}" . clickable,
+  ppUrgent            = wrap "%{B#CE6D00}" "%{B-}" . clickable,
   ppSep               = "",
   ppWsSep             = "",
   ppOrder             = \(ws:_:_:_) -> [ws],
@@ -116,7 +116,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     -- , ((modm,               xK_Return     ), spawn $ XMonad.terminal conf)
  
     -- launch dmenu
-    , ((modm,               xK_y     ), spawn "launcher")
+    , ((modm,               xK_y     ), spawn "~/bin/launcher")
  
     -- close focused window
     , ((modm, xK_q     ), kill)
@@ -200,7 +200,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm .|. shiftMask, xK_u),   shiftPrevScreen >> prevScreen)
 
     -- , ((modm,               0xfe52),  spawn "lock") -- dead circumflex
-    , ((modm,               xK_Escape),  spawn "lock") -- dead circumflex
+    , ((modm,               xK_Escape),  spawn "~/bin/lock") -- dead circumflex
 
     , ((modm .|. controlMask, xK_q),   spawn "nmcli radio wifi on")
     , ((modm .|. controlMask, xK_d),   spawn "nmcli radio wifi off")
@@ -212,8 +212,8 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm, xK_p                  ), spawn "playerctl stop      ")
     , ((modm, xK_z                  ), spawn "playerctl next      ")
 
-    , ((modm .|. controlMask, xK_k), spawn "theme light")
-    , ((modm .|. controlMask, xK_s), spawn "theme dark")
+    , ((modm .|. controlMask, xK_k), spawn "~/bin/theme light")
+    , ((modm .|. controlMask, xK_s), spawn "~/bin/theme dark")
 
     , ((modm .|. controlMask, xK_h), spawn "pamixer --increase 5")
     , ((modm .|. controlMask, xK_n), spawn "pamixer --decrease 5")
@@ -228,8 +228,8 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm .|. controlMask,    xK_Print     ), spawn "scrot 'screenshots/%Y-%m-%d_%H-%M-%S_$wx$h.png' --select --exec 'notify-send --expire-time=2000 \"Area Screenshot Saved.\"'")
     , ((modm, xK_Print     ), spawn "scrot 'screenshots/%Y-%m-%d_%H-%M-%S_$wx$h.png' --focused --exec 'notify-send --expire-time=2000 \"Window screenshot Saved.\"'")
 
-    , ((modm .|. shiftMask .|. controlMask, xK_z     ), spawn "movietime")
-    , ((modm .|. shiftMask .|. controlMask, xK_p     ), spawn "reset-screen")
+    , ((modm .|. shiftMask .|. controlMask, xK_z     ), spawn "~/bin/movietime")
+    , ((modm .|. shiftMask .|. controlMask, xK_p     ), spawn "~/bin/reset-screen")
 
     , ((modm, xK_k     ), spawn "xkill")
 

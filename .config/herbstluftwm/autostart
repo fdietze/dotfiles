@@ -2,6 +2,11 @@
 
 # this is a simple config for herbstluftwm
 
+pwd > /tmp/hc-pwd
+echo $PATH > /tmp/hc-path
+
+
+
 hc() {
     herbstclient "$@"
 }
@@ -26,10 +31,8 @@ hc keybind $Mod-Shift-y reload
 hc keybind $Mod-Ctrl-Shift-y spawn reboot
 hc keybind $Mod-k spawn xkill
 hc keybind $Mod-d spawn termite
-hc keybind $Mod-j spawn dmenu-web
-hc keybind $Mod-y spawn launcher
+hc keybind $Mod-y spawn $HOME/bin/launcher
 
-hc keybind $Mod-Shift-d spawn networkmanager_dmenu
 hc keybind $Mod-Shift-z spawn zsh -i -c movietime # alias from .sh_aliases
 hc keybind $Mod-Shift-p spawn zsh -i -c reset-screen # alias from .sh_aliases
 
@@ -40,18 +43,20 @@ hc keybind XF86MonBrightnessDown spawn /run/wrappers/bin/light -U 5
 hc keybind XF86MonBrightnessUp   spawn /run/wrappers/bin/light -A 5
 # hc keybind XF86Display spawn
 hc keybind XF86TouchpadToggle    spawn touchpadtoggle
-hc keybind XF86AudioRaiseVolume  chain , spawn pamixer --increase 5 , emit_hook panel_refresh
-hc keybind XF86AudioLowerVolume  chain , spawn pamixer --decrease 5 , emit_hook panel_refresh
-hc keybind XF86AudioMute         chain , spawn pamixer -t , emit_hook panel_refresh
+hc keybind XF86AudioRaiseVolume  spawn pamixer --increase 5
+hc keybind XF86AudioLowerVolume  spawn pamixer --decrease 5
+hc keybind XF86AudioMute         spawn pamixer -t
 
 mkdir -p $HOME/screenshots
-hc keybind Print                 spawn scrot 'screenshots/%Y-%m-%d_%H-%M-%S_$wx$h.png'
-hc keybind $Mod+Print           spawn scrot 'screenshots/%Y-%m-%d_%H-%M-%S_$wx$h.png' --focused
+hc keybind Print                 spawn scrot 'screenshots/%Y-%m-%d_%H-%M-%S_$wx$h.png'           --exec 'notify-send --expire-time=2000 "Fullscreen Screenshot Saved."'
+hc keybind $Mod-Print            spawn scrot 'screenshots/%Y-%m-%d_%H-%M-%S_$wx$h.png' --focused --exec 'notify-send --expire-time=2000 "Window screenshot Saved."'
+hc keybind $Mod-Ctrl-Print       spawn scrot 'screenshots/%Y-%m-%d_%H-%M-%S_$wx$h.png' --select  --exec 'notify-send --expire-time=2000 "Area Screenshot Saved."'
+
 
 # adjust volume
-hc keybind $Mod-Ctrl-h chain , spawn pamixer --increase 5 , emit_hook panel_refresh
-hc keybind $Mod-Ctrl-n chain , spawn pamixer --decrease 5 , emit_hook panel_refresh
-hc keybind $Mod-Ctrl-m chain , spawn pamixer -t , emit_hook panel_refresh
+hc keybind $Mod-Ctrl-h spawn pamixer --increase 5
+hc keybind $Mod-Ctrl-n spawn pamixer --decrease 5
+hc keybind $Mod-Ctrl-m spawn pamixer -t
 
 # adjust screen brightness
 hc keybind $Mod-Ctrl-g spawn /run/wrappers/bin/light -A 5
@@ -60,15 +65,15 @@ hc keybind $Mod-Ctrl-Shift-g spawn /run/wrappers/bin/light -A 1
 hc keybind $Mod-Ctrl-Shift-r spawn /run/wrappers/bin/light -U 1
 
 # switch color scheme
-hc keybind $Mod-Ctrl-k spawn light
-hc keybind $Mod-Ctrl-s spawn dark
+hc keybind $Mod-Ctrl-k spawn $HOME/bin/theme light
+hc keybind $Mod-Ctrl-s spawn $HOME/bin/theme dark
 
 # adjust keyboard backlight brightness
 hc keybind $Mod-Ctrl-f spawn keyboardbacklightmax
 hc keybind $Mod-Ctrl-t spawn keyboardbacklightoff
 
 # lock screen
-hc keybind $Mod-u spawn lock
+hc keybind $Mod-esc spawn lock
 
 # control media players with yxcvb (üöäpz on NEO)
 hc keybind $Mod-udiaeresis spawn playerctl previous
@@ -153,21 +158,33 @@ hc keybind $Mod-w use_previous
 hc keybind $Mod-comma remove
 hc keybind $Mod-Shift-comma remove
 hc keybind $Mod-Shift-h cycle_layout 1
-hc keybind $Mod-h floating toggle
 hc keybind $Mod-f fullscreen toggle
-#hc keybind $Mod-p pseudotile toggle
+hc keybind $Mod-h set_attr clients.focus.floating toggle
 
 # mouse
 hc mouseunbind --all
 hc mousebind $Mod-Button1 move
-hc mousebind $Mod-Button2 zoom
 hc mousebind $Mod-Button3 resize
+hc mousebind Mod4-Button1 resize # easier resize for touchpads
+hc mousebind $Mod-Button2 zoom # middle click: resize in all directions
 
 # focus
-hc keybind $Mod-BackSpace   cycle_monitor
+hc keybind $Mod-o   focus_monitor +1
+hc keybind $Mod-u   focus_monitor -1
+
+hc keybind $Mod-Shift-o          chain , shift_to_monitor +1 , focus_monitor +1
+hc keybind $Mod-Shift-u          chain , shift_to_monitor -1 , focus_monitor -1
+hc keybind $Mod-Shift-Ctrl-o     chain , shift_to_monitor +1
+hc keybind $Mod-Shift-Ctrl-u     chain , shift_to_monitor -1
+
+
+
+
 hc keybind $Mod-Tab cycle
 hc keybind $Mod-b jumpto urgent
 
+
+hc set focus_crosses_monitor_boundaries true
 
 
 hc set always_show_frame 0
@@ -182,29 +199,23 @@ hc set frame_padding 0
 hc set smart_window_surroundings 1
 hc set smart_frame_surroundings 1
 
-# hc set frame_border_width 2
-# hc set frame_border_normal_color '#343434'
-# hc set frame_border_active_color '#37BAFF'
-
-# hc set window_border_width 2
-# hc set window_border_normal_color '#343434'
-# hc set window_border_active_color '#37BAFF'
 
 
 # rules
 hc unrule -F
 hc set focus_stealing_prevention 1
+hc rule focus=on # normally focus new clients
 #hc rule class=XTerm tag=3 # move all xterms to tag 3
-hc rule focus=on # normally do not focus new clients
 # give focus to most common terminals
 hc rule class~'(.*[Rr]xvt.*|.*[Tt]erm|Konsole|termite)' focus=on
-# hc rule windowtype~'_NET_WM_WINDOW_TYPE_(DIALOG|UTILITY|SPLASH)' pseudotile=on
-hc rule windowtype~'_NET_WM_WINDOW_TYPE_(DIALOG|UTILITY|SPLASH)' manage=off focus=on
-# hc rule windowtype='_NET_WM_WINDOW_TYPE_DIALOG' focus=on
-# hc rule windowtype~'_NET_WM_WINDOW_TYPE_(NOTIFICATION|DOCK)' manage=off
-hc rule windowtype~'_NET_WM_WINDOW_TYPE_(NOTIFICATION|DOCK)' manage=off focus=off
+hc rule windowtype~'_NET_WM_WINDOW_TYPE_(DIALOG|UTILITY|SPLASH)' floating=on focus=off
+hc rule windowtype='_NET_WM_WINDOW_TYPE_DIALOG' focus=on
+hc rule windowtype~'_NET_WM_WINDOW_TYPE_(NOTIFICATION|DOCK|DESKTOP)' manage=off
 
-hc rule class=Spotify  tag=9
+hc rule class="Signal"  tag=1
+hc rule class="VirtualBox Manager"  tag=6
+hc rule class="KeePassXC"  tag=8
+hc rule class="Spotify"  tag=9
 
 
 
@@ -217,26 +228,9 @@ herbstclient set tree_style '╾│ ├└╼─┐'
 # hc set_monitors 1280x1024+0+0 1280x1024+1280+0
 # or simply:
 hc detect_monitors
+hc set auto_detect_monitors true
 hc set mouse_recenter_gap 1
 
 
-# set dark terminal and vim colors if not set
-# xsetroot -solid '#000000' # black background
-rm ~/.colors
-zsh -i -c "autocolors nopanel"
-
-# find the panel
-# panel=~/.config/herbstluftwm/panel.sh
-# for monitor in $(herbstclient list_monitors | cut -d: -f1) ; do
-#     # start it on each monitor
-#     "$panel" $monitor &
-# done
-
-monitor=${1:-0}
-panel_height=15
-hc pad $monitor $panel_height
-$HOME/bin/statusbar
-
-# switch keyboard backlight off
-# keyboardbacklightoff &
-
+$HOME/bin/theme light
+nm-applet
