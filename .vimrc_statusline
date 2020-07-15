@@ -15,7 +15,7 @@ let g:lightline = {
       \ 'colorscheme': status_colorscheme,
       \ 'active': {
       \   'left': [ [ 'mode' ], ['gitbranch'], [ 'buffers' ]],
-      \   'right': [  ['scrollbar'], [ 'filetype' ] ]
+      \   'right': [  ['scrollbar'], [ 'filetype', 'cocstatus', 'currentfunction' ] ]
       \ },
       \ 'inactive': {
       \   'left': [ ['filename'] ],
@@ -25,6 +25,8 @@ let g:lightline = {
       \   'gitbranch': 'BarGitBranch',
       \   'filename' : 'BarFilename',
       \   'scrollbar': 'BarScrollbar',
+      \   'cocstatus': 'coc#status',
+      \   'currentfunction': 'CocCurrentFunction',
       \ },
       \ 'component_expand': {
       \   'buffers': 'lightline#bufferline#buffers'
@@ -40,6 +42,9 @@ let g:lightline#bufferline#modified = '*'
 let g:lightline#bufferline#filename_modifier = ':t'
 autocmd vimrc BufWritePost,TextChanged,TextChangedI * call lightline#update() " https://github.com/mgee/lightline-bufferline/issues/5
 
+function! CocCurrentFunction()
+    return get(b:, 'coc_current_function', '')
+endfunction
 
 function! BarScrollbar()
     return winwidth(0) > 70 ? Scrollbar_Highres(20) : Scrollbar_SingleChar()

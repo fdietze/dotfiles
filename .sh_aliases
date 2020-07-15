@@ -77,7 +77,7 @@ alias watch='watch -c -d'
 alias w='watch '
 ONLINECMD='ping -c 1 8.8.8.8 -W 5 && ping -c 1 google.com -W 5'
 alias online="$ONLINECMD" # -c <retries>  -W <timout>
-alias online-wait='until online; do; sleep 3; done; espeak "online online online"'
+alias online-wait='until online; do; sleep 3; done; espeak -p 30 "online"; espeak -p 80 "online"; espeak -p 50 "online"'
 alias on="w --interval=1 '$ONLINECMD'"
 alias hd='hexdump -C'
 alias fucking='sudo'
@@ -133,7 +133,10 @@ alias ns="nix-shell --run zsh"
 alias nrs="sudo nixos-rebuild switch"
 
 # vim
-alias vimt='vim $(date +"%Y-%m-%d")'
+note() {
+    vim $(date +"%Y-%m-%d-$1.md")
+}
+
 v() {
     (
         cd-git-root > /dev/null
