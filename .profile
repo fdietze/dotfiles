@@ -1,4 +1,4 @@
-export PATH=$HOME/.node_modules/bin:$PATH
+export PATH=$HOME/.npm-packages/bin:$PATH
 # export PATH=$HOME/.gem/ruby/2.3.0/bin:$PATH
 export PATH=$HOME/.zgen/dottr/dottr-master/pan.git:$PATH
 export PATH=$HOME/.cargo/bin:$PATH
