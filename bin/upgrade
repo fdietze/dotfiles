@@ -19,6 +19,7 @@ esac
 
 echo "updating vim plugins..."
 nvim +PlugUpgrade +PlugInstall +PlugUpdate +PlugClean! +qall
+nvim -c 'CocUpdateSync|q'
 
 
 echo "updating zgen plugins..."
@@ -28,6 +29,7 @@ source "${HOME}/.zgen/zgen.zsh" && zgen update
 # gem update
 
 echo "updating global npm packages"
+yarn global upgrade
 npm -g update
 
 # echo "updating rust installation"
