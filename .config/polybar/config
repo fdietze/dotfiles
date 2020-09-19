@@ -14,7 +14,7 @@ foreground = ${colors.foreground}
 font-0 = Dejavu Sans Mono:style=Regular:size=10;2
 
 ; modules-left = workspaces-xmonad
-modules-left = hlwm-tags
+modules-left = hlwm-tags workspaces-xmonad
 modules-center = xwindow
 modules-right = filesystem process cpu cpufreq temperature memory eth wlan volume battery date
 module-margin-left = 1
@@ -131,6 +131,7 @@ type = internal/xworkspaces
 [module/hlwm-tags]
 type = custom/script
 exec = /home/felix/.config/herbstluftwm/tags.sh ${MONITOR_HLWM:-0}
+exec-if = herbstclient version
 tail = true
 
 [module/workspaces-xmonad]
