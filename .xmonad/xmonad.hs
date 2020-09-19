@@ -70,6 +70,7 @@ main = do
 myStartupHook theme = do
     safeSpawn "mkfifo" ["/tmp/.xmonad-workspace-log"]
     spawn ("~/bin/theme " ++ (show theme))
+    spawn ("nm-applet")
 
 myTerminal      = "termite"
 
