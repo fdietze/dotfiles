@@ -73,7 +73,7 @@ hc keybind $Mod-Ctrl-f spawn keyboardbacklightmax
 hc keybind $Mod-Ctrl-t spawn keyboardbacklightoff
 
 # lock screen
-hc keybind $Mod-esc spawn lock
+hc keybind $Mod-esc spawn $HOME/bin/lock
 
 # control media players with yxcvb (üöäpz on NEO)
 hc keybind $Mod-udiaeresis spawn playerctl previous
