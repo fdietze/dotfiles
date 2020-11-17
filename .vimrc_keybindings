@@ -169,9 +169,9 @@ nnoremap <Leader>va :e ~/.sh_aliases<CR>
 nnoremap <silent> <Leader><Leader> :nohlsearch<CR>
 nnoremap <silent> <Leader>/ :nohlsearch<CR>
 
-" quickfix navigation
-nnoremap <leader>n :cnext<CR>
-nnoremap <leader>N :cprev<CR>
+" error navigation
+nmap <silent> <space>N :call CocAction('diagnosticPrevious')<cr>
+nmap <silent> <space>n :call CocAction('diagnosticNext')<cr>
 
 " toggle local spell checking
 nnoremap <leader>ts :setlocal spell! spell?<CR>
@@ -214,10 +214,10 @@ nmap <leader>m :GitFiles?<CR>
 nmap <leader>r :History<CR>
 " nmap <leader>t :BTags<CR>
 nmap <leader>t :Tags<CR>
-nmap <leader>a :Rooter<CR>:Ag<space>
-nmap <leader>A :Rooter<CR>:Ag<space><c-r><c-w><CR>
+nmap <leader>a :Rooter<CR>:Rg<space>
+nmap <leader>A :Rooter<CR>:Rg<space><c-r><c-w><CR>
 " johannes
-nmap <leader>s :Rooter<CR>:Ag<space>  
+nmap <leader>s :Rooter<CR>:Rg<space>  
 
 " Git
 nmap <leader>gn <Plug>GitGutter(NextHunk)
@@ -248,7 +248,8 @@ vmap <Leader>le <Plug>LatexWrapSelection
 vmap <buffer>lo <Plug>LatexEnvWrapSelection
 
 " Autoformat
-nmap <leader>f :Autoformat<CR>
+" nmap <leader>f :Autoformat<CR>
+nmap <leader>f <Plug>(coc-format)
 
 " toggle distraction free writing
 nnoremap <silent> <leader>tg :Goyo<CR>

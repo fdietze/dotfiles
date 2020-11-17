@@ -19,7 +19,7 @@ export LESS_TERMCAP_us=$(printf "\33[01;35m")   # begin underline
 
 # fzf fuzzy file finder
 # .git is ignored via ~/.agignore
-export FZF_DEFAULT_COMMAND='ag --hidden -g ""'
+export FZF_DEFAULT_COMMAND='rg --files'
 export FZF_DEFAULT_OPTS="-x -m --ansi --exit-0 --select-1" # extended match and multiple selections
 
 export DISABLE_AUTO_UPDATE="true" # disable oh-my-zsh auto-update
@@ -66,6 +66,8 @@ SPACESHIP_PROMPT_ORDER=(
   venv          # virtualenv section
   conda         # conda virtualenv section
   pyenv         # Pyenv section
+  ubunix
+  nixshell
   # dotnet        # .NET section
   # ember         # Ember.js section
   # terraform     # Terraform workspace section
@@ -79,6 +81,41 @@ SPACESHIP_PROMPT_ORDER=(
 )
 SPACESHIP_CHAR_SYMBOL="❯ "
 SPACESHIP_GIT_STATUS_STASHED=""
+
+# ubunix spaceship prompt
+SPACESHIP_UBUNIX_SHOW="${SPACESHIP_UBUNIX_SHOW=true}"
+SPACESHIP_UBUNIX_PREFIX="${SPACESHIP_UBUNIX_PREFIX="in "}"
+SPACESHIP_UBUNIX_SUFFIX="${SPACESHIP_UBUNIX_SUFFIX="$SPACESHIP_PROMPT_DEFAULT_SUFFIX"}"
+SPACESHIP_UBUNIX_SYMBOL="${SPACESHIP_UBUNIX_SYMBOL="UBUNIX "}"
+spaceship_ubunix() {
+  [[ $SPACESHIP_UBUNIX_SHOW == false ]] && return
+
+  [[ -z $UBUNIX ]] && return
+
+  spaceship::section \
+    "yellow" \
+    "$SPACESHIP_UBUNIX_PREFIX" \
+    "$SPACESHIP_UBUNIX_SYMBOL" \
+    "$SPACESHIP_UBUNIX_SUFFIX"
+}
+
+
+# nix shell spaceship prompt
+SPACESHIP_NIXSHELL_SHOW="${SPACESHIP_NIXSHELL_SHOW=true}"
+SPACESHIP_NIXSHELL_PREFIX="${SPACESHIP_NIXSHELL_PREFIX="Nix-Shell "}"
+SPACESHIP_NIXSHELL_SUFFIX="${SPACESHIP_NIXSHELL_SUFFIX="$SPACESHIP_PROMPT_DEFAULT_SUFFIX"}"
+SPACESHIP_NIXSHELL_SYMBOL="${SPACESHIP_NIXSHELL_SYMBOL="$IN_NIX_SHELL "}"
+spaceship_nixshell() {
+  [[ $SPACESHIP_NIXSHELL_SHOW == false ]] && return
+
+  [[ -z $IN_NIX_SHELL ]] && return
+
+  spaceship::section \
+    "yellow" \
+    "$SPACESHIP_NIXSHELL_PREFIX" \
+    "$SPACESHIP_NIXSHELL_SYMBOL" \
+    "$SPACESHIP_NIXSHELL_SUFFIX"
+}
 
 ZSH_AUTOSUGGEST_STRATEGY=(history)
 
@@ -160,8 +197,9 @@ source ~/.sh_aliases
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
+[ -f ~/projects/ubunix/ubunix.sh ] && source ~/projects/ubunix/ubunix.sh
 
 if [ -n "${commands[br]}" ]; then
-    source /home/felix/.config/broot/launcher/bash/br
+source /home/felix/.config/broot/launcher/bash/br
 fi
 
