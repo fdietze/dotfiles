@@ -57,7 +57,8 @@ sshforward() {
     REMOTEHOST=$1
     REMOTELOCALPORT=$2
     LOCALPORT=${3:-$2}
-    ssh -NL ${LOCALPORT}:localhost:${REMOTELOCALPORT} ${REMOTEHOST}
+    shift 3
+    ssh -NL ${LOCALPORT}:localhost:${REMOTELOCALPORT} ${REMOTEHOST} $@
 }
 dockerhost() {
     # export DOCKER_HOST=localhost
@@ -141,7 +142,7 @@ v() {
     (
         cd-git-root > /dev/null
         file="$(fzf --query="$(echo $@ | tr ' ' '\ ' )")"
-        [[ -n $file ]] && nvim "$file"
+        [[ -n $file ]] && $EDITOR "$file"
     );
 }
 vr() { vim -c "History $*"; }
