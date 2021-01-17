@@ -5,21 +5,6 @@ alias gparted='gksudo gparted'
 alias suspend='systemctl suspend'
 alias start='cd ~/projects/wust2; ./start'
 
-# https://github.com/chenkelmann/neo2-awt-hack
-# wget https://github.com/chenkelmann/neo2-awt-hack/blob/master/releases/neo2-awt-hack-0.4-java8oracle.jar\?raw\=true -O ~/local/neo2-awt-hack-0.4-java8oracle.jar
-# alias idea-community='_JAVA_OPTIONS="-Dawt.useSystemAAFontSettings=lcd -Xbootclasspath/p:$HOME/local/neo2-awt-hack-0.4-java8oracle.jar" idea-community'
-
-alias start='./start'
-wu() {
-    cd ~/projects/wust2
-    if [ -z "$(git status --porcelain)" ]; then 
-        # Working directory clean
-        git pull
-    fi 
-    ./start nsbt
-}
-
-
 # fix highdpi for chromium
 alias chromium='chromium --high-dpi-support=1 --force-device-scale-factor=1.5'
 alias chromium-no-plugins='chromium --disable-extensions --disable-plugins'
@@ -27,9 +12,9 @@ alias chromium-no-plugins='chromium --disable-extensions --disable-plugins'
 alias vim='nvim'
 
 # dotfile management
-DOTFILES_GIT='GIT_DIR=$HOME/projects/dotfiles GIT_WORK_TREE=$HOME'
-DOTFILES_PRIVATE_GIT='GIT_DIR=$HOME/projects/dotfiles-private GIT_WORK_TREE=$HOME'
-DOTFILES_TIG='TIGRC_USER=$HOME/.config/tig/config-dotfiles'
+DOTFILES_GIT="GIT_DIR=$HOME/projects/dotfiles GIT_WORK_TREE=$HOME"
+DOTFILES_PRIVATE_GIT="GIT_DIR=$HOME/projects/dotfiles-private GIT_WORK_TREE=$HOME"
+DOTFILES_TIG="TIGRC_USER=$HOME/.config/tig/config-dotfiles"
 alias     d="$DOTFILES_GIT         git -c core.excludesfile=~/.gitignore-dotfiles"
 alias    dp="$DOTFILES_PRIVATE_GIT git -c core.excludesfile=~/.gitignore-dotfiles-private"
 # which yadm > /dev/null && alias     d='yadm --yadm-repo $HOME/projects/dotfiles         -c core.excludesfile=~/.gitignore-dotfiles'
@@ -68,8 +53,9 @@ dockerhost() {
 try() {
     until zsh -ic "$@"
     do
-        echo "$@"
+        echo "failed: $@"
         sleep 1
+        echo "trying again..."
     done
 }
 

@@ -28,7 +28,7 @@ nvim -c 'CocUpdateSync|q'
 
 
 echo "updating zgen plugins..."
-zsh -c "source ~/.zgen/zgen.zsh && zgen update"
+zsh -c "source ~/.zgen/zgen.zsh && zgen selfupdate && zgen update"
 
 # echo "updating ruby gems..."
 # gem update

@@ -66,3 +66,10 @@ bind2maps viins -- "Backspace" backward-delete-char
 bind2maps viins -- "Delete" delete-char
 bindkey -M viins "^W" backward-kill-word
 
+RPROMPT='${MODE_INDICATOR}'
+
+
+# autoload edit-command-line
+zle -N edit-command-line
+bind2maps vicmd viins -- -s '^v' edit-command-line
+
