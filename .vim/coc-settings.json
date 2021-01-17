@@ -1,18 +1,65 @@
 {
-  "languageserver": {
-    "metals": {
-      "command": "metals-vim",
-      "rootPatterns": ["build.sbt"],
-      "filetypes": ["scala", "sbt"]
-    }
-  },
-  "rust-client" : {
-    "disableRustup" : true
-  },
-  "diagnostic-languageserver.filetypes": {
-    "sh": "shellcheck"
-  },
-  "diagnostic-languageserver.formatFiletypes": {
-    "sh": "shfmt"
-  }
+    "languageserver": {
+        "metals": {
+            "command": "metals-vim",
+            "rootPatterns": [
+                "build.sbt"
+            ],
+            "filetypes": [
+                "scala",
+                "sbt"
+            ]
+        },
+        "purescript": {
+            "command": "purescript-language-server",
+            "args": [
+                "--stdio"
+            ],
+            "filetypes": [
+                "purescript"
+            ],
+            "trace.server": "off",
+            "rootPatterns": [
+                "bower.json",
+                "psc-package.json",
+                "spago.dhall"
+            ],
+            "settings": {
+                "purescript": {
+                    "addSpagoSources": true
+                }
+            }
+        },
+        "elmLS": {
+            "command": "elm-language-server",
+            "filetypes": [
+                "elm"
+            ],
+            "rootPatterns": [
+                "elm.json"
+            ],
+            "initializationOptions": {
+                "elmFormatPath": "elm-format",
+                "elmTestPath": "elm-test"
+            }
+        }
+    },
+    "rust-client": {
+        "disableRustup": true
+    },
+    "diagnostic-languageserver.filetypes": {
+        "sh": "shellcheck"
+    },
+    "diagnostic-languageserver.formatFiletypes": {
+        "sh": "shfmt"
+    },
+    "coc.preferences.formatOnSaveFiletypes": [
+        "html",
+        "css",
+        "typescript",
+        "svelte",
+        "rust",
+        "elm"
+    ],
+    "codeLens.enable": true
 }
