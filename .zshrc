@@ -1,11 +1,5 @@
 [[ -e ~/.profile ]] && emulate sh -c 'source ~/.profile'
 
-
-# colorful file listings
-if [ -n "${commands[dircolors]}" ]; then
-    eval $(dircolors ~/.dir_colors)
-fi
-
 export PAGER="less --RAW-CONTROL-CHARS" # less with colors
 
 # colorize manpages (when using less as pager)
@@ -17,10 +11,6 @@ export LESS_TERMCAP_so=$(printf "\33[44;1;37m") # begin standout-mode - info box
 export LESS_TERMCAP_ue=$(printf "\33[0m")       # end underline
 export LESS_TERMCAP_us=$(printf "\33[01;35m")   # begin underline
 
-# fzf fuzzy file finder
-# .git is ignored via ~/.agignore
-export FZF_DEFAULT_COMMAND='rg --files'
-export FZF_DEFAULT_OPTS="-x -m --ansi --exit-0 --select-1" # extended match and multiple selections
 
 export DISABLE_AUTO_UPDATE="true" # disable oh-my-zsh auto-update
 export DISABLE_UPDATE_PROMPT="true" # disable oh-my-zsh update prompt
@@ -36,9 +26,12 @@ if ! zgen saved; then
     zgen load dottr/dottr
 
     zgen load denysdovhan/spaceship-prompt spaceship
-    zgen load b4b4r07/zsh-vimode-visual
+    zgen load joel-porquet/zsh-dircolors-solarized.git
     zgen load zsh-users/zsh-autosuggestions
-    zgen load zsh-users/zsh-syntax-highlighting # must be loaded last (https://github.com/zsh-users/zsh-syntax-highlighting#why-must-zsh-syntax-highlightingzsh-be-sourced-at-the-end-of-the-zshrc-file)
+    zgen load zsh-users/zsh-syntax-highlighting # order is important (https://github.com/zsh-users/zsh-syntax-highlighting#why-must-zsh-syntax-highlightingzsh-be-sourced-at-the-end-of-the-zshrc-file)
+    # zgen load jeffreytse/zsh-vi-mode
+    zgen load kutsan/zsh-system-clipboard
+    zgen load b4b4r07/zsh-vimode-visual
 
     zgen save
 fi
@@ -102,9 +95,9 @@ spaceship_ubunix() {
 
 # nix shell spaceship prompt
 SPACESHIP_NIXSHELL_SHOW="${SPACESHIP_NIXSHELL_SHOW=true}"
-SPACESHIP_NIXSHELL_PREFIX="${SPACESHIP_NIXSHELL_PREFIX="Nix-Shell "}"
-SPACESHIP_NIXSHELL_SUFFIX="${SPACESHIP_NIXSHELL_SUFFIX="$SPACESHIP_PROMPT_DEFAULT_SUFFIX"}"
-SPACESHIP_NIXSHELL_SYMBOL="${SPACESHIP_NIXSHELL_SYMBOL="$IN_NIX_SHELL "}"
+SPACESHIP_NIXSHELL_PREFIX="${SPACESHIP_NIXSHELL_PREFIX=""}"
+SPACESHIP_NIXSHELL_SUFFIX="${SPACESHIP_NIXSHELL_SUFFIX="($IN_NIX_SHELL) $SPACESHIP_PROMPT_DEFAULT_SUFFIX"}"
+SPACESHIP_NIXSHELL_SYMBOL="${SPACESHIP_NIXSHELL_SYMBOL="Nix-Shell "}"
 spaceship_nixshell() {
   [[ $SPACESHIP_NIXSHELL_SHOW == false ]] && return
 
@@ -120,43 +113,43 @@ spaceship_nixshell() {
 ZSH_AUTOSUGGEST_STRATEGY=(history)
 
 # needed for bind2maps
-typeset -A key
-key=(
-Home     "${terminfo[khome]}"
-End      "${terminfo[kend]}"
-Insert   "${terminfo[kich1]}"
-Delete   "${terminfo[kdch1]}"
-Backspace "^?"
-Up       "${terminfo[kcuu1]}"
-Down     "${terminfo[kcud1]}"
-Left     "${terminfo[kcub1]}"
-Right    "${terminfo[kcuf1]}"
-PageUp   "${terminfo[kpp]}"
-PageDown "${terminfo[knp]}"
-BackTab  "${terminfo[kcbt]}"
-)
+# typeset -A key
+# key=(
+# Home     "${terminfo[khome]}"
+# End      "${terminfo[kend]}"
+# Insert   "${terminfo[kich1]}"
+# Delete   "${terminfo[kdch1]}"
+# Backspace "^?"
+# Up       "${terminfo[kcuu1]}"
+# Down     "${terminfo[kcud1]}"
+# Left     "${terminfo[kcub1]}"
+# Right    "${terminfo[kcuf1]}"
+# PageUp   "${terminfo[kpp]}"
+# PageDown "${terminfo[knp]}"
+# BackTab  "${terminfo[kcbt]}"
+# )
 
 
-fry bell-on-precmd
-fry completion
-fry ncserve
-fry alias-usage-analysis
-fry print-expanded-alias
-# fry vim-open-files-at-lines
-fry search-select-edit
-fry git-select-commit
-fry git-onstage
-fry github-clone
-fry interactive-mv
-fry cd-tmp
-fry cd-git-root
-fry mkdir-cd
-fry screencapture
-fry transcode-video
+# fry bell-on-precmd
+# fry completion
+# fry ncserve
+# fry alias-usage-analysis
+# fry print-expanded-alias
+# # fry vim-open-files-at-lines
+# fry search-select-edit
+# fry git-select-commit
+# fry git-onstage
+# fry github-clone
+# fry interactive-mv
+# fry cd-tmp
+# fry cd-git-root
+# fry mkdir-cd
+# fry screencapture
+# fry transcode-video
 fry bind2maps
-fry git-dirty-files-command
-fry watchdo
-fry nvim-rpc
+# fry git-dirty-files-command
+# fry watchdo
+# fry nvim-rpc
 
 setopt nonomatch # avoid the zsh "no matches found" / allows sbt ~compile
 setopt hash_list_all # rehash command path and completions on completion attempt
@@ -165,41 +158,28 @@ unsetopt flow_control # we dont want no flow control, Ctrl-s / Ctrl-q, this allo
 stty -ixon # (belongs to flow control option)
 autoload -U zmv # renaming utils
 
-# activate vi modes and display mode indicator in prompt
 source ~/.zshrc.vimode
-RPROMPT='${MODE_INDICATOR}'
+source ~/.zshrc.fzf
 
-bind2maps emacs viins vicmd -- -s '^[[1;5C' forward-word
-bind2maps emacs viins vicmd -- -s '^[[1;5D' backward-word
-
-autoload edit-command-line
-zle -N edit-command-line
-bind2maps vicmd viins -- -s '^v' edit-command-line
+# bind2maps emacs viins vicmd -- -s '^[[1;5C' forward-word
+# bind2maps emacs viins vicmd -- -s '^[[1;5D' backward-word
 
 autoload bashcompinit && bashcompinit
 
 # history prefix search
 autoload -U history-search-end # have the cursor placed at the end of the line once you have selected your desired command
+
 # zle -N history-beginning-search-backward-end history-search-end
 # zle -N history-beginning-search-forward-end history-search-end
 # bind2maps emacs viins vicmd -- "Up" history-substring-search-up
 # bind2maps emacs viins vicmd -- "Down" history-substring-search-down
 
-bind2maps emacs viins vicmd -- "Up" up-line-or-search
-bind2maps emacs viins vicmd -- "Down" down-line-or-search
-
-# if [ -n "${commands[fzf-share]}" ]; then
-#     source "$(fzf-share)/key-bindings.zsh"
-#     source "$(fzf-share)/completion.zsh"
-# fi
+# bind2maps emacs viins vicmd -- "Up" up-line-or-search
+# bind2maps emacs viins vicmd -- "Down" down-line-or-search
 
 source ~/.sh_aliases
 
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 [ -f ~/projects/ubunix/ubunix.sh ] && source ~/projects/ubunix/ubunix.sh
 
-if [ -n "${commands[br]}" ]; then
-source /home/felix/.config/broot/launcher/bash/br
-fi
 

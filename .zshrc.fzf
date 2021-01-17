@@ -1,0 +1,14 @@
+export FZF_DEFAULT_COMMAND='rg --files'
+export FZF_DEFAULT_OPTS="-x -m --ansi --exit-0 --select-1" # extended match and multiple selections
+if [[ $(uname) == "Darwin" ]]; then
+	# dirname on OS X behaves funky, get gdirname via
+	# brew install coreutils
+	export dirname_command="gdirname"
+else
+	export dirname_command="dirname"
+fi
+_fzf_compgen_dir() {
+	rg --hidden --files --null "$1" 2>/dev/null | xargs -0 "$dirname_command" | awk '!h[$0]++'
+}
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
