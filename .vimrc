@@ -92,6 +92,7 @@ set clipboard=unnamedplus
 set swapfile
 set backup
 set undofile
+set backupcopy=yes " fix file watching (e.g. parcel) https://stackoverflow.com/a/59227891
 
 set undodir=~/.vim/tmp/undo//     " undo files
 set backupdir=~/.vim/tmp/backup// " backups
