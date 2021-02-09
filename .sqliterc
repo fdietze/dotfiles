@@ -1,0 +1,21 @@
+.mode column
+.headers on
+.nullvalue NULL
+
+.eqp on
+pragma foreign_keys = ON;
+
+-- first prompt is MAIN, then CONTINUE
+-- neither prompt can exceed 20 characters
+-- .prompt "\033[36msql\033[33m>\033[0m " "\033[33m ...\033[0m "
+
+.print "Databases:"
+.databases
+.print "\nTables:"
+.tables
+.print "\n"
+
+
+.changes on
+.timer on
+
