@@ -5,28 +5,28 @@ monitor=$1
 THEME=$(cat $HOME/.theme || echo "light")
 
 
-# case $THEME in
-    # light)
-        # ;;
+case $THEME in
+    light)
         default_bg="#ffffff"
         used_fg="#555555"
         empty_fg="#CCCCCC"
-        fgcolordim="#909090"
-        fgcolorbad="#FF3F74"
+        # fgcolordim="#909090"
+        # fgcolorbad="#FF3F74"
         bgcolorsel="#5A5B66"
         fgcolorsel="#ffffff"
         bgcolorurgent="#FFD8AC"
-    # dark)
-        # default_bg="#ffffff"
-        # used_fg="#EFEFEF"
-        # empty_fg="#444444"
+        ;;
+    dark)
+        default_bg="#191C26"
+        used_fg="#EFEFEF"
+        empty_fg="#555555"
         # fgcolordim="#909090"
         # fgcolorbad="#FF3F74"
-        # bgcolorsel="#37BAFF"
-        # fgcolorsel="#000000"
-        # bgcolorurgent="#CE6D00"
-        # ;;
-# esac
+        bgcolorsel="#5A5B66"
+        fgcolorsel="#ffffff"
+        bgcolorurgent="#CE6D00"
+        ;;
+esac
 
 tag_status() {
     IFS=$'\t' read -ra tags <<< "$(hc tag_status $monitor)"
