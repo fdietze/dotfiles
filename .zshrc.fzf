@@ -1,5 +1,6 @@
-export FZF_DEFAULT_COMMAND='rg --files'
+export FZF_DEFAULT_COMMAND='rg --files --hidden --glob "!.git"'
 export FZF_DEFAULT_OPTS="-x -m --ansi --exit-0 --select-1" # extended match and multiple selections
+
 if [[ $(uname) == "Darwin" ]]; then
 	# dirname on OS X behaves funky, get gdirname via
 	# brew install coreutils
