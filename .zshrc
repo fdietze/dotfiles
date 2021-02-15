@@ -15,6 +15,7 @@ export LESS_TERMCAP_us=$(printf "\33[01;35m")   # begin underline
 export DISABLE_AUTO_UPDATE="true" # disable oh-my-zsh auto-update
 export DISABLE_UPDATE_PROMPT="true" # disable oh-my-zsh update prompt
 export ZSH_THEME="" # disable oh-my-zsh themes
+export DISABLE_MAGIC_FUNCTIONS=true # fix slow paste in zsh
 ZSH_DISABLE_COMPFIX=true
 
 source "${HOME}/.zgen/zgen.zsh"
@@ -112,24 +113,6 @@ spaceship_nixshell() {
 
 ZSH_AUTOSUGGEST_STRATEGY=(history)
 
-# needed for bind2maps
-# typeset -A key
-# key=(
-# Home     "${terminfo[khome]}"
-# End      "${terminfo[kend]}"
-# Insert   "${terminfo[kich1]}"
-# Delete   "${terminfo[kdch1]}"
-# Backspace "^?"
-# Up       "${terminfo[kcuu1]}"
-# Down     "${terminfo[kcud1]}"
-# Left     "${terminfo[kcub1]}"
-# Right    "${terminfo[kcuf1]}"
-# PageUp   "${terminfo[kpp]}"
-# PageDown "${terminfo[knp]}"
-# BackTab  "${terminfo[kcbt]}"
-# )
-
-
 # fry bell-on-precmd
 # fry completion
 # fry ncserve
@@ -141,8 +124,8 @@ ZSH_AUTOSUGGEST_STRATEGY=(history)
 # fry git-onstage
 # fry github-clone
 # fry interactive-mv
-# fry cd-tmp
-# fry cd-git-root
+fry cd-tmp
+fry cd-git-root
 # fry mkdir-cd
 # fry screencapture
 # fry transcode-video
@@ -154,6 +137,7 @@ fry bind2maps
 setopt nonomatch # avoid the zsh "no matches found" / allows sbt ~compile
 setopt hash_list_all # rehash command path and completions on completion attempt
 setopt transient_rprompt # hide earlier rprompts
+setopt hist_ignore_dups # don't save consecutive duplicate commands
 unsetopt flow_control # we dont want no flow control, Ctrl-s / Ctrl-q, this allows vim to map <C-s>
 stty -ixon # (belongs to flow control option)
 autoload -U zmv # renaming utils
@@ -161,23 +145,14 @@ autoload -U zmv # renaming utils
 source ~/.zshrc.vimode
 source ~/.zshrc.fzf
 
-# bind2maps emacs viins vicmd -- -s '^[[1;5C' forward-word
-# bind2maps emacs viins vicmd -- -s '^[[1;5D' backward-word
-
 autoload bashcompinit && bashcompinit
 
 # history prefix search
 autoload -U history-search-end # have the cursor placed at the end of the line once you have selected your desired command
 
-# zle -N history-beginning-search-backward-end history-search-end
-# zle -N history-beginning-search-forward-end history-search-end
-# bind2maps emacs viins vicmd -- "Up" history-substring-search-up
-# bind2maps emacs viins vicmd -- "Down" history-substring-search-down
-
-# bind2maps emacs viins vicmd -- "Up" up-line-or-search
-# bind2maps emacs viins vicmd -- "Down" down-line-or-search
-
 source ~/.sh_aliases
+
+
 
 
 [ -f ~/projects/ubunix/ubunix.sh ] && source ~/projects/ubunix/ubunix.sh
