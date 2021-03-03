@@ -13,11 +13,10 @@ let
   # };
 
   # nixpkgsUnstable = import nixpkgsUnstableSrc {
-    # config = config.nixpkgs.config;
+  # config = config.nixpkgs.config;
   # };
-in
 
-{
+in {
   # This value determines the NixOS release with which your system is to be
   # compatible, in order to avoid breaking some software such as database
   # servers. You should change this only after NixOS release notes say you
@@ -57,9 +56,9 @@ in
     # "psmouse.synaptics_intertouch=1" # https://wiki.archlinux.org/index.php/Lenovo_ThinkPad_X1_Carbon_(Gen_5)#Bug:_Trackpoint.2FTrackpad_not_working
   ];
   boot.kernel.sysctl = {
-      "kernel.sysrq" = 1;
-      "vm.swappiness" = 0;
-      "fs.inotify.max_user_watches" = "4096000";
+    "kernel.sysrq" = 1;
+    "vm.swappiness" = 0;
+    "fs.inotify.max_user_watches" = "4096000";
   };
   # zramSwap.enable = true;
   # boot.cleanTmpDir = true;
@@ -75,24 +74,18 @@ in
     extraLocaleSettings = { LC_TIME = "de_DE.UTF-8"; };
   };
 
-
   networking = {
     hostName = "gurke";
     # wireless.enable = true;  # Enables wireless support via wpa_supplicant.
     networkmanager.enable = true;
+    # networkmanager.dns = "none";
 
-    nameservers = [ "1.1.1.1" "1.0.0.1" "2606:4700:4700::1111" "2606:4700:4700::1001" ];
+    nameservers =
+      [ "1.1.1.1" "1.0.0.1" "2606:4700:4700::1111" "2606:4700:4700::1001" ];
   };
 
   # networking.firewall.allowedUDPPortRanges = [ { from = 60000; to = 61000; } ]; # for mosh
   networking.firewall.allowedTCPPorts = [ 12345 5000 ]; # devserver
-
-  # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-  time.timeZone = "Atlantic/Azores";
-  # time.timeZone = "Europe/Lisbon";
-  # time.timeZone = "Europe/Berlin";
-  # time.timeZone = "America/Guadeloupe";
-  # time.timeZone = "Chile/Continental";
 
   hardware = {
     pulseaudio = {
@@ -111,18 +104,15 @@ in
     cpu.intel.updateMicrocode = true;
   };
 
-
   powerManagement = {
     enable = true;
-  #   cpuFreqGovernor = "powersave"; # not working: https://github.com/NixOS/nixpkgs/issues/64368
-  #   # powertop.enable = true;
+    #   cpuFreqGovernor = "powersave"; # not working: https://github.com/NixOS/nixpkgs/issues/64368
+    #   # powertop.enable = true;
   };
 
   nixpkgs.config = {
     packageOverrides = pkgs: {
-      unstable = import <nixos-unstable> {
-        config = config.nixpkgs.config;
-      };
+      unstable = import <nixos-unstable> { config = config.nixpkgs.config; };
     };
 
     allowUnfree = true;
@@ -138,50 +128,114 @@ in
     systemPackages = with pkgs; [
       # system tools
       man
-      pciutils usbutils hdparm gparted ntfs3g ntfsprogs testdisk exfat lm_sensors linuxPackages.cpupower
-      xorg.xkill psmisc wirelesstools pmount xorg.xbacklight
-      acpi samba cifs-utils
+      pciutils
+      usbutils
+      hdparm
+      gparted
+      ntfs3g
+      ntfsprogs
+      testdisk
+      exfat
+      lm_sensors
+      linuxPackages.cpupower
+      xorg.xkill
+      psmisc
+      wirelesstools
+      pmount
+      xorg.xbacklight
+      acpi
+      samba
+      cifs-utils
 
       # defaults
-      wget curl htop atop git git-fire netcat nmap calc tree inotify-tools unzip
-      pavucontrol light mimeo xsel xclip xdotool
+      wget
+      curl
+      htop
+      atop
+      git
+      git-fire
+      netcat
+      nmap
+      calc
+      tree
+      inotify-tools
+      unzip
+      pavucontrol
+      light
+      mimeo
+      xsel
+      xclip
+      xdotool
 
       # tools
-      ncdu pv pkgs.unstable.fzf ripgrep tig ctags tmate scrot nix-zsh-completions haskellPackages.yeganesh termite mosh playerctl pamixer
-      
-
+      ncdu
+      pv
+      pkgs.unstable.fzf
+      ripgrep
+      tig
+      ctags
+      tmate
+      scrot
+      nix-zsh-completions
+      haskellPackages.yeganesh
+      termite
+      mosh
+      playerctl
+      pamixer
 
       # desktop
-      gnome3.gnome_themes_standard nitrogen grc slock gksu
-      dzen2 dmenu networkmanager_dmenu networkmanagerapplet polybar
+      gnome3.gnome_themes_standard
+      nitrogen
+      grc
+      slock
+      gksu
+      dzen2
+      dmenu
+      networkmanager_dmenu
+      networkmanagerapplet
+      polybar
       xcwd
-      libnotify dunst
+      libnotify
+      dunst
       shared_mime_info # file-type associations?
       gnome3.dconf # needed for meld / networkmanager(?)
-      gnome3.nautilus gnome3.gvfs mtpfs jmtpfs
+      gnome3.nautilus
+      gnome3.gvfs
+      mtpfs
+      jmtpfs
       gnome3.file-roller
-      gnome3.gnome_keyring gnome3.seahorse libsecret
+      gnome3.gnome_keyring
+      gnome3.seahorse
+      libsecret
       # gnome3.gnome_keyring gnome3.seahorse libsecret
       paper-icon-theme
       vanilla-dmz
 
-
       # applications
       keepassxc
       firefox
-      mate.atril inkscape gimp
+      mate.atril
+      inkscape
+      gimp
       # sane-frontends
-      mpv vlc imv
+      mpv
+      vlc
+      imv
+      kvirc
       # wine winetricks mono
       # libreoffice-fresh hunspell hunspellDicts.en-us languagetool mythes
 
       # development
       # neovim
       msgpack-tools # for neovim
-      scala sbt maven visualvm
+      scala
+      sbt
+      maven
+      visualvm
       gnumake
       meld
-      docker docker_compose
+      docker
+      docker_compose
       jdk11
       python2
       python3
@@ -196,7 +250,8 @@ in
       l = "ls -l";
       t = "${pkgs.tree}/bin/tree -C"; # -C is for color=always
       # vn = "${neovim}/bin/nvim /etc/nixos/configuration.nix";
-      rcp = "${pkgs.rsync}/bin/rsync --archive --partial --info=progress2 --human-readable";
+      rcp =
+        "${pkgs.rsync}/bin/rsync --archive --partial --info=progress2 --human-readable";
       sys = "sudo systemctl";
       sysu = "systemctl --user";
     };
@@ -254,6 +309,32 @@ in
     };
   };
 
+  location = {
+    # provider = "geoclue2";
+
+    # Azores
+    latitude = 37.7412;
+    longitude = 25.6756;
+    # Lisbon
+    # latitude = 38.72;
+    # longitude = -9.15;
+    # Aachen
+    # latitude = 50.77;
+    # longitude = 6.08;
+    # Montreal
+    # latitude = "45.50";
+    # longitude = "-73.56";
+    # Guadeloupe
+    # latitude = 16.2411;
+    # longitude = -61.5331;
+  };
+
+  # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+  time.timeZone = "Atlantic/Azores";
+  # time.timeZone = "Europe/Lisbon";
+  # time.timeZone = "Europe/Berlin";
+  # time.timeZone = "America/Guadeloupe";
+  # time.timeZone = "Chile/Continental";
 
   security = {
     wrappers = {
@@ -265,7 +346,7 @@ in
     };
     sudo = {
       enable = true;
-      wheelNeedsPassword = true;
+      wheelNeedsPassword = false;
     };
   };
 
@@ -277,10 +358,9 @@ in
 
   users.extraUsers.felix = {
     isNormalUser = true;
-    extraGroups = ["wheel" "networkmanager" "vboxusers" "docker" "adbusers"];
+    extraGroups = [ "wheel" "networkmanager" "vboxusers" "docker" "adbusers" ];
     shell = pkgs.zsh;
-    openssh.authorizedKeys.keys = [
-    ];
+    openssh.authorizedKeys.keys = [ ];
   };
   };
 
@@ -288,8 +368,8 @@ in
     fstrim.enable = true;
     locate.enable = true;
 
-    upower.enable  = true;
-    gvfs.enable  = true;
+    upower.enable = true;
+    gvfs.enable = true;
     gnome3.gnome-keyring.enable = true;
     udisks2.enable = true;
 
@@ -305,29 +385,27 @@ in
       '';
     };
 
-    # logind = {
-    #   lidSwitch = "ignore";
-    #   lidSwitchExternalPower = "ignore";
-    #   lidSwitchDocked = "ignore";
-    # };
+    logind = {
+      extraConfig = ''
+        RuntimeDirectorySize=3G
+      '';
+    };
 
     # # usbmuxd.enable = true; # ios debugging
 
     # # https://github.com/NixOS/nixpkgs/issues/41189#issuecomment-491757154
-  # vsliveshare = {
-  #   enable = true;
-  #   extensionsDir = "$HOME/.vscode/extensions";
-  #   nixpkgs = fetchTarball "https://github.com/NixOS/nixpkgs/tarball/61cc1f0dc07c2f786e0acfd07444548486f4153b";
-  # };
-
+    # vsliveshare = {
+    #   enable = true;
+    #   extensionsDir = "$HOME/.vscode/extensions";
+    #   nixpkgs = fetchTarball "https://github.com/NixOS/nixpkgs/tarball/61cc1f0dc07c2f786e0acfd07444548486f4153b";
+    # };
 
     journald = {
-      extraConfig =
-      ''
-      Storage=persist
-      Compress=yes
-      SystemMaxUse=128M
-      RuntimeMaxUse=8M
+      extraConfig = ''
+        Storage=persist
+        Compress=yes
+        SystemMaxUse=128M
+        RuntimeMaxUse=8M
       '';
     };
 
@@ -345,7 +423,7 @@ in
     };
 
     xserver = {
-      videoDrivers = ["modesetting"];
+      videoDrivers = [ "modesetting" ];
       useGlamor = true; # Glamor module for 2D acceleration
       dpi = 210;
       enable = true;
@@ -367,9 +445,7 @@ in
           user = "felix";
         };
         defaultSession = "none+herbstluftwm";
-        lightdm = {
-          enable = true;
-        };
+        lightdm = { enable = true; };
         # lock on suspend
         sessionCommands = ''
           ${pkgs.xss-lock}/bin/xss-lock -- ${pkgs.i3lock}/bin/i3lock -c 292D3E &
@@ -410,9 +486,7 @@ in
       package = pkgs.unstable.syncthing;
     };
 
-    keybase = {
-      enable = false;
-    };
+    keybase = { enable = false; };
     kbfs = {
       enable = false;
       mountPoint = "/keybase"; # mountpoint important for keybase-gui
@@ -423,7 +497,6 @@ in
     ##   enableWebUI = true;
     ##   package = pkgs.bittorrentSync20;
     ## };
-
 
     ##clamav = {
     ##  daemon.enable   = true;
@@ -437,7 +510,6 @@ in
     ## ipfs = {
     ##   enable = true;
     ## };
-
 
     #printing = {
     #  enable = true;
@@ -477,77 +549,77 @@ in
   # systemd.services.delayedHibernation.enable = true;
 
   # systemd.user = {
-    # https://vdirsyncer.pimutils.org/en/stable/tutorials/systemd-timer.html
-    # services.vdirsyncer = {
-    #   description = "Synchronize calendars and contacts";
-    #   serviceConfig = {
-    #     Type = "oneshot";
-    #     ExecStart = "${pkgs.vdirsyncer}/bin/vdirsyncer sync";
-    #   };
-    # };
-    # timers.vdirsyncer = {
-    #   description = "Synchronize vdirs";
+  # https://vdirsyncer.pimutils.org/en/stable/tutorials/systemd-timer.html
+  # services.vdirsyncer = {
+  #   description = "Synchronize calendars and contacts";
+  #   serviceConfig = {
+  #     Type = "oneshot";
+  #     ExecStart = "${pkgs.vdirsyncer}/bin/vdirsyncer sync";
+  #   };
+  # };
+  # timers.vdirsyncer = {
+  #   description = "Synchronize vdirs";
 
-    #   timerConfig = {
-    #     OnBootSec = "5m";
-    #     OnUnitActiveSec = "60m";
-    #     AccuracySec = "5m";
-    #   };
-    #   wantedBy = [ "timers.target" ];
-    # };
+  #   timerConfig = {
+  #     OnBootSec = "5m";
+  #     OnUnitActiveSec = "60m";
+  #     AccuracySec = "5m";
+  #   };
+  #   wantedBy = [ "timers.target" ];
+  # };
 
-    # services.tmate = {
-    #   description = "tmate reverse tunnel";
-    #   serviceConfig = {
-    #     Type = "oneshot";
-    #   };
-    #   path = [pkgs.bash pkgs.tmate pkgs.hostname];
-    #   script = ''
-    #     TOKENPATH=/media/external/tmate
-    #     [[ -n "$TOKENPATH" ]] || (echo "no token path given"; exit 1)
-    #     HOST=$(hostname)
+  # services.tmate = {
+  #   description = "tmate reverse tunnel";
+  #   serviceConfig = {
+  #     Type = "oneshot";
+  #   };
+  #   path = [pkgs.bash pkgs.tmate pkgs.hostname];
+  #   script = ''
+  #     TOKENPATH=/media/external/tmate
+  #     [[ -n "$TOKENPATH" ]] || (echo "no token path given"; exit 1)
+  #     HOST=$(hostname)
 
-    #     TOKENFILE="$TOKENPATH/connect-$HOST"
-    #     SOCKET=/tmp/tmate.sock
+  #     TOKENFILE="$TOKENPATH/connect-$HOST"
+  #     SOCKET=/tmp/tmate.sock
 
-    #     function ssh-command() {
-    #         tmate -S $SOCKET display -p '#{tmate_ssh}'
-    #     }
-    #     function init() {
-    #         echo "opening new session"
-    #         tmate -S $SOCKET new-session -d
-    #     }
-    #     function wait-tmate-ready() {
-    #         tmate -S /tmp/tmate.sock wait tmate-ready
-    #     }
+  #     function ssh-command() {
+  #         tmate -S $SOCKET display -p '#{tmate_ssh}'
+  #     }
+  #     function init() {
+  #         echo "opening new session"
+  #         tmate -S $SOCKET new-session -d
+  #     }
+  #     function wait-tmate-ready() {
+  #         tmate -S /tmp/tmate.sock wait tmate-ready
+  #     }
 
-    #     function write-token-file() {
-    #         mkdir -p $TOKENPATH
-    #         ssh-command > $TOKENFILE
-    #     }
+  #     function write-token-file() {
+  #         mkdir -p $TOKENPATH
+  #         ssh-command > $TOKENFILE
+  #     }
 
-    #     echo "writing ssh command to $TOKENFILE..."
-    #     if ! write-token-file; then
-    #         echo "failed."
-    #         echo "opening new session"
-    #         init
-    #         echo "waiting until tmate is ready..."
-    #         wait-tmate-ready
-    #         write-token-file && echo "written to $TOKENFILE"
-    #     else
-    #         echo "successful."
-    #     fi
-    #   '';
-    # };
-    # timers.tmate = {
-    #   description = "tmate reverse tunnel";
+  #     echo "writing ssh command to $TOKENFILE..."
+  #     if ! write-token-file; then
+  #         echo "failed."
+  #         echo "opening new session"
+  #         init
+  #         echo "waiting until tmate is ready..."
+  #         wait-tmate-ready
+  #         write-token-file && echo "written to $TOKENFILE"
+  #     else
+  #         echo "successful."
+  #     fi
+  #   '';
+  # };
+  # timers.tmate = {
+  #   description = "tmate reverse tunnel";
 
-    #   timerConfig = {
-    #     OnBootSec = "5m";
-    #     OnUnitActiveSec = "60m";
-    #     AccuracySec = "5m";
-    #   };
-    #   wantedBy = [ "timers.target" ];
-    # };
+  #   timerConfig = {
+  #     OnBootSec = "5m";
+  #     OnUnitActiveSec = "60m";
+  #     AccuracySec = "5m";
+  #   };
+  #   wantedBy = [ "timers.target" ];
+  # };
   # };
 }
