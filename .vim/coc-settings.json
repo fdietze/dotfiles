@@ -1,15 +1,5 @@
 {
     "languageserver": {
-        "metals": {
-            "command": "metals-vim",
-            "rootPatterns": [
-                "build.sbt"
-            ],
-            "filetypes": [
-                "scala",
-                "sbt"
-            ]
-        },
         "purescript": {
             "command": "purescript-language-server",
             "args": [
@@ -51,15 +41,22 @@
         "sh": "shellcheck"
     },
     "diagnostic-languageserver.formatFiletypes": {
-        "sh": "shfmt"
+        "sh": "shfmt",
+        "nix": "nixfmt"
     },
+    "diagnostic.checkCurrentLine": true,
     "coc.preferences.formatOnSaveFiletypes": [
         "html",
         "css",
         "typescript",
+        "typescriptreact",
         "svelte",
         "rust",
-        "elm"
+        "elm",
+        "scala",
+        "nix",
+        "dart",
+        "vue"
     ],
     "codeLens.enable": true
 }
