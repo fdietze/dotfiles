@@ -7,10 +7,10 @@
 
 [core]
     pager = diff-so-fancy | less --tabs=4 --RAW-CONTROL-CHARS
-    excludesfile=~/.config/git/ignore # needed for ag
+    excludesfile = ~/.config/git/ignore # needed for ag
 
 [push]
-    default = simple
+    default = current
     followTags = true # Automatically pushes annotated tags (but not leightweight tags!)
 
 [pull]
@@ -45,10 +45,10 @@
 [diff]
     algorithm = histogram
     indentHeuristic = true
-    wordRegex=[A-Z][a-z]*|[a-z]+|[^[:space:]] # see camel case as separate words
+    wordRegex = [A-Z][a-z]*|[a-z]+|[^[:space:]] # see camel case as separate words
 
 [diff "scala"]
-    xfuncname = "^\\s*(.*(def|object|class|trait) .*)$"
+    xfuncname = ^\\s*(.*(def|object|class|trait) .*)$
 
 [diff "markdown"]
     xfuncname = "^#+.*$"
@@ -70,16 +70,16 @@
     amend = commit --amend
     unstage = reset HEAD
     prev = reset HEAD~1
-    fixup = "!zsh -ic 'git commit --fixup $(git-select-commit)'"
+    fixup = !zsh -ic 'git commit --fixup $(git-select-commit)'
     ignore = "!cd -- ${GIT_PREFIX:-.}; f() { echo \"$1\" >> .gitignore; }; f" # add to .gitignore in current directory
     cl = clone
     br = branch
     brr = branch -r
     lg = fry one-line-log-colors
     lga = fry branch-topology
-    df  = fry word-based-diff
-    dfm  = fry word-based-diff master
-    dfs  = fry word-based-diff --staged
+    df = fry word-based-diff
+    dfm = fry word-based-diff master
+    dfs = fry word-based-diff --staged
     dfl = diff --irreversible-delete --find-copies  --find-copies-harder --ignore-space-at-eol --ignore-space-change --ignore-all-space --ignore-blank-lines
     dfls = diff --staged
     sdf = show --color-words
@@ -91,7 +91,7 @@
     u = up
     f = fetch
     fa = fetch --all
-    po = "!git push --set-upstream origin \"$(git rev-parse --abbrev-ref HEAD)\"" # push current branch to origin
+    po = !git push --set-upstream origin \"$(git rev-parse --abbrev-ref HEAD)\" # push current branch to origin
     dbr = "!f() { git branch -D $1; git push origin :$1;}; f" # delete local and remote branch
     dtag = "!f() { git tag -d $1; git push origin :$1;}; f" # delete local and remote tag
     wip = "!git add -A; git commit --message=\"WIP: `git diff --name-only --staged | xargs -l basename | paste -sd \",\"`\""
