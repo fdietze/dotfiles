@@ -22,3 +22,5 @@
 
 # Syncthing
 .stignore
+
+.envrc
