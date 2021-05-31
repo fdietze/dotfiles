@@ -157,4 +157,5 @@ source ~/.sh_aliases
 
 [ -f ~/projects/ubunix/ubunix.sh ] && source ~/projects/ubunix/ubunix.sh
 
+eval "$(direnv hook zsh)" # load environment vars depending on directory https://direnv.net/docs/hook.html#zsh
 
