@@ -19,31 +19,25 @@ vim +PlugInstall
 ssh-keygen -t ed25519
 ```
 
-# Things I'm very happy with
-## managing dotfiles with pure git + external worktree in $HOME
-## fzf over dotfiles: vd
-## Neo keyboard layout
-## Vim and keybindings
-### toggle ; at end of line
-## quickly edit dotfiles with vim: vv
-## fzf for editing dotfiles
-## zsh bell after every command
-## v for fzf+vim in current git repo
-## Tiling Window Manager keybindings
-## NixOS
-## Dark and Light color scheme switching
-## Tools
-### tig
-### fzf
-### redshift
-### unclutter
-## Scala
-### reverse compilation errors
+* managing dotfiles with pure git + external worktree in $HOME
+* fzf over dotfiles: vd
+* Neo keyboard layout
+* Vim and keybindings
+ * toggle ; at end of line
+* quickly edit dotfiles with vim: vv
+* fzf for editing dotfiles
+* git alias: g
+* zsh bell after every command
+* v for fzf+vim in current git repo
+* Tiling Window Manager keybindings
+* NixOS
+* Dark and Light color scheme switching
+* Tools
+ * tig
+ * fzf
+ * redshift
+ * unclutter
+ * zeal
 
-# zeal
-
-# Things I like
-
-
-# Things I didn't really figure out yet
-## XMonad
+* Scala
+ * reverse compilation errors
