@@ -11,7 +11,7 @@ case $NAME in
         sudo nix-channel --list
         # sudo nixos-rebuild boot --upgrade
         CHANNEL=$(sudo nix-channel --list | grep -oP "[0-9]{2}\.[0-9]{2}")
-        (cd "$HOME/projects/nixpkgs" && git checkout "nixos-$CHANNEL" && git pull)
+        (cd "$HOME/projects/nixpkgs" && git fetch && git checkout "nixos-$CHANNEL" && git pull)
         sudo nixos-rebuild boot -I nixpkgs="$HOME/projects/nixpkgs"
         echo "updating user space"
         echo "channels:"
