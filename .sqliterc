@@ -2,6 +2,7 @@
 .headers on
 .nullvalue NULL
 
+-- always explain query plan
 .eqp on
 pragma foreign_keys = ON;
 
