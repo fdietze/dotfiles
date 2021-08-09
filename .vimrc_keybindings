@@ -116,7 +116,18 @@ nnoremap db xdb
 nnoremap cb xcb
 
 " smart home
-noremap <expr> <silent> <Home> col('.') == match(getline('.'),'\S')+1 ? '0' : '^'
+function! SmartHome()
+  " https://vim.fandom.com/wiki/Smart_home
+  let first_nonblank = match(getline('.'), '\S') + 1
+  if first_nonblank == 0
+    return col('.') + 1 >= col('$') ? '0' : '^'
+  endif
+  if col('.') == first_nonblank
+    return '0'  " if at first nonblank, go to start line
+  endif
+  return &wrap && wincol() > 1 ? 'g^' : '^'
+endfunction
+noremap <expr> <silent> <Home> SmartHome()
 imap <silent> <Home> <C-O><Home>
 
 " navigate through wrapped lines
@@ -220,9 +231,9 @@ nmap <leader>A :Rooter<CR>:Rg<space><c-r><c-w><CR>
 nmap <leader>s :Rooter<CR>:Rg<space>  
 
 " Git
-nmap <leader>gn <Plug>GitGutter(NextHunk)
-nmap <leader>gN <Plug>GitGutter(PrevHunk)
-nmap <leader>gu <Plug>GitGutter(StageHunk)
+nmap <leader>gn :GitGutterNextHunk<cr>
+nmap <leader>gN :GitGutterPrevHunk<cr>
+nmap <leader>gu :GitGutterStageHunk<cr>
 nmap <leader>gr :GitGutterUndoHunk<cr>
 
 " surround with S

@@ -45,7 +45,9 @@ set cursorline                    " highlight current line
 set number                        " enable line numbers
 " set relativenumber                " show relative numbers for all lines but the current one
 set ruler                         " show the cursor position all the time
-set inccommand=nosplit            " live substitution preview
+if has("nvim") 
+    set inccommand=nosplit            " live substitution preview
+endif
 set ignorecase                    " smart case sensitive search
 set smartcase                     "              "
 set hls                           " hightlight search results
@@ -63,9 +65,9 @@ set synmaxcol=10000               " stop syntax highlighting for lines of this l
 " editing
 set gdefault                      " substitute all occurrences in line per default
 set backspace=indent,eol,start    " allow backspacing over everything in insert mode
-set tabstop=4                     " size of a hard tabstop
-set shiftwidth=4                  " size of an "indent"
-set softtabstop=4                 " a combination of spaces and tabs are used to simulate tab stops at a width
+set tabstop=2                     " size of a hard tabstop
+set shiftwidth=2                  " size of an "indent"
+set softtabstop=2                 " a combination of spaces and tabs are used to simulate tab stops at a width
 set smarttab                      " make "tab" insert indents instead of tabs at the beginning of a line
 set expandtab                     " always uses spaces instead of tab characters
 set virtualedit=block,onemore
@@ -123,13 +125,21 @@ let g:tex_flavor = "latex"
 
 autocmd vimrc Filetype scala setlocal expandtab tabstop=2 shiftwidth=2 softtabstop=2
 autocmd vimrc FileType yaml setlocal expandtab tabstop=2 shiftwidth=2 softtabstop=2
+autocmd vimrc FileType javascript setlocal expandtab tabstop=2 shiftwidth=2 softtabstop=2
+autocmd vimrc FileType typescript.tsx setlocal expandtab tabstop=2 shiftwidth=2 softtabstop=2
+autocmd vimrc FileType typescript setlocal expandtab tabstop=2 shiftwidth=2 softtabstop=2
 
 " filetype aliases
 autocmd vimrc BufNewFile,BufRead *.sbt set filetype=scala
 autocmd vimrc BufNewFile,BufRead *.gdb set filetype=sh
 autocmd vimrc BufNewFile,BufRead *.jad set filetype=java
+autocmd vimrc BufNewFile,BufRead Fastfile set filetype=ruby
+autocmd vimrc BufNewFile,BufRead Appfile set filetype=ruby
+autocmd vimrc BufNewFile,BufRead Matchfile set filetype=ruby
 
 " on save, autoformat - also removes trailing spaces
+" au BufWritePre *.dart :Autoformat
+" au BufWritePre *.rs :Autoformat
 " au BufWritePre *.scala call AutoformatFixedUndo()
 
 function! AutoformatFixedUndo()
