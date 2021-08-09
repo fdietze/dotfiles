@@ -1,62 +1,70 @@
 {
-    "languageserver": {
+  "languageserver": {
+    "purescript": {
+      "command": "purescript-language-server",
+      "args": ["--stdio"],
+      "filetypes": ["purescript"],
+      "trace.server": "off",
+      "rootPatterns": ["bower.json", "psc-package.json", "spago.dhall"],
+      "settings": {
         "purescript": {
-            "command": "purescript-language-server",
-            "args": [
-                "--stdio"
-            ],
-            "filetypes": [
-                "purescript"
-            ],
-            "trace.server": "off",
-            "rootPatterns": [
-                "bower.json",
-                "psc-package.json",
-                "spago.dhall"
-            ],
-            "settings": {
-                "purescript": {
-                    "addSpagoSources": true
-                }
-            }
-        },
-        "elmLS": {
-            "command": "elm-language-server",
-            "filetypes": [
-                "elm"
-            ],
-            "rootPatterns": [
-                "elm.json"
-            ],
-            "initializationOptions": {
-                "elmFormatPath": "elm-format",
-                "elmTestPath": "elm-test"
-            }
+          "addSpagoSources": true
         }
+      }
     },
-    "rust-client": {
-        "disableRustup": true
-    },
-    "diagnostic-languageserver.filetypes": {
-        "sh": "shellcheck"
-    },
-    "diagnostic-languageserver.formatFiletypes": {
-        "sh": "shfmt",
-        "nix": "nixfmt"
-    },
-    "diagnostic.checkCurrentLine": true,
-    "coc.preferences.formatOnSaveFiletypes": [
-        "html",
-        "css",
-        "typescript",
-        "typescriptreact",
-        "svelte",
-        "rust",
-        "elm",
-        "scala",
-        "nix",
-        "dart",
-        "vue"
-    ],
-    "codeLens.enable": true
+    "elmLS": {
+      "command": "elm-language-server",
+      "filetypes": ["elm"],
+      "rootPatterns": ["elm.json"],
+      "initializationOptions": {
+        "elmFormatPath": "elm-format",
+        "elmTestPath": "elm-test"
+      }
+    }
+  },
+  "metals": {
+    "serverProperties": ["-Xmx1G"]
+  },
+  "rust-client": {
+    "disableRustup": true
+  },
+  "diagnostic-languageserver.filetypes": {
+    "sh": "shellcheck"
+  },
+  "diagnostic-languageserver.formatFiletypes": {
+    "sh": "shfmt",
+    "nix": "nixfmt"
+  },
+  "terraform": {
+    "command": "terraform-ls",
+    "args": ["serve"],
+    "filetypes": ["terraform", "tf"],
+    "initializationOptions": {},
+    "settings": {}
+  },
+  "tailwindCSS": {
+    "jsLanguages": [
+      "javascript",
+      "javascriptreact",
+      "reason",
+      "typescriptreact",
+      "scala"
+    ]
+  },
+  "diagnostic.checkCurrentLine": true,
+  "coc.preferences.formatOnSaveFiletypes": [
+    "html",
+    "css",
+    "scss",
+    "typescript",
+    "typescriptreact",
+    "svelte",
+    "rust",
+    "elm",
+    "scala",
+    "nix",
+    "dart",
+    "vue"
+  ],
+  "codeLens.enable": true
 }
