@@ -240,10 +240,10 @@ let g:colorizer_auto_filetype='css,html,dosini'
 " fzf
 let g:fzf_layout = {} " default to full screen
 
+" https://github.com/junegunn/fzf.vim/issues/47#issuecomment-160237795
 function! s:find_git_root()
   return system('git rev-parse --show-toplevel 2> /dev/null')[:-2]
 endfunction
-
 command! ProjectFiles execute 'Files' s:find_git_root()
 
 " easytags
