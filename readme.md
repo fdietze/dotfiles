@@ -2,12 +2,13 @@
 
 ```bash
 # install:
-# zsh, ag, fzf, diff-so-fancy
+# zsh, neovim, rg, fzf, diff-so-fancy, direnv
 # termite, xcwd, unclutter-xfixes, redshift
 
 mkdir -p ~/projects
 git clone --bare git@github.com:fdietze/dotfiles.git projects/dotfiles
-GIT_DIR=$HOME/projects/dotfiles GIT_WORK_TREE=$HOME git checkout master
+alias config="GIT_DIR=$HOME/projects/dotfiles GIT_WORK_TREE=$HOME git -c status.showUntrackedFiles=no"
+config checkout master
 
 git clone https://github.com/tarjoilija/zgen.git "${HOME}/.zgen"
 chsh -s /bin/zsh
