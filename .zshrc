@@ -30,9 +30,9 @@ if ! zgen saved; then
     zgen load joel-porquet/zsh-dircolors-solarized.git
     zgen load zsh-users/zsh-autosuggestions
     zgen load zsh-users/zsh-syntax-highlighting # order is important (https://github.com/zsh-users/zsh-syntax-highlighting#why-must-zsh-syntax-highlightingzsh-be-sourced-at-the-end-of-the-zshrc-file)
-    # zgen load jeffreytse/zsh-vi-mode
-    zgen load kutsan/zsh-system-clipboard
-    zgen load b4b4r07/zsh-vimode-visual
+    zgen load jeffreytse/zsh-vi-mode
+    # zgen load kutsan/zsh-system-clipboard
+    # zgen load b4b4r07/zsh-vimode-visual
 
     zgen save
 fi
@@ -113,16 +113,16 @@ spaceship_nixshell() {
 
 ZSH_AUTOSUGGEST_STRATEGY=(history)
 
-# fry bell-on-precmd
+fry bell-on-precmd
 # fry completion
 # fry ncserve
 # fry alias-usage-analysis
-# fry print-expanded-alias
+fry print-expanded-alias
 # # fry vim-open-files-at-lines
-# fry search-select-edit
-# fry git-select-commit
+fry search-select-edit
+fry git-select-commit
 # fry git-onstage
-# fry github-clone
+fry github-clone
 # fry interactive-mv
 fry cd-tmp
 fry cd-git-root
@@ -141,16 +141,26 @@ setopt hist_ignore_dups # don't save consecutive duplicate commands
 unsetopt flow_control # we dont want no flow control, Ctrl-s / Ctrl-q, this allows vim to map <C-s>
 stty -ixon # (belongs to flow control option)
 autoload -U zmv # renaming utils
-
-source ~/.zshrc.vimode
-source ~/.zshrc.fzf
-
 autoload bashcompinit && bashcompinit
-
 # history prefix search
 autoload -U history-search-end # have the cursor placed at the end of the line once you have selected your desired command
 
+# source ~/.zshrc.vimode
+# map HOME/END in vi mode
+bindkey -M viins "^[[H" beginning-of-line
+bindkey -M viins  "^[[F" end-of-line
+bindkey -M vicmd "^[[H" beginning-of-line
+bindkey -M vicmd "^[[F" end-of-line
+bindkey -M visual "^[[H" beginning-of-line
+bindkey -M visual "^[[F" end-of-line
+
+
+
 source ~/.sh_aliases
+
+# fix fzf with zsh-vi-mode
+# https://github.com/jeffreytse/zsh-vi-mode/issues/4#issuecomment-757234569
+zvm_after_init_commands+=('source ~/.zshrc.fzf')
 
 
 
@@ -161,3 +171,5 @@ eval "$(direnv hook zsh)" # load environment vars depending on directory https:/
 
 export LC_ALL=en_US.UTF-8
 export LANG=en_US.UTF-8  
+
+

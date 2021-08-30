@@ -19,10 +19,10 @@ vnoremap <silent> h :<C-U>call HighlightSelection()<CR>:set hlsearch<CR>
 nnoremap <Leader>th :if AutoHighlightToggle()<Bar>set hls<Bar>endif<CR>
 
 " j: jump to mark
-nnoremap j `
-vnoremap j `
+" nnoremap j `
+" vnoremap j `
 " jump to tag (for example in help files)
-nnoremap <leader>j <C-]>
+" nnoremap <leader>j <C-]>
 
 " k: (nothing yet)
 nnoremap K zg  " add current word to spellfile
@@ -106,15 +106,6 @@ vnoremap < <gv
 vnoremap > >gv
 vnoremap = =gv
 
-" search backwards with backslash
-nmap \ ?
-vmap \ ?
-
-" delete/edit whole word backwards
-" (can confilict with multiple cursors)
-nnoremap db xdb
-nnoremap cb xcb
-
 " smart home
 function! SmartHome()
   " https://vim.fandom.com/wiki/Smart_home
@@ -130,22 +121,6 @@ endfunction
 noremap <expr> <silent> <Home> SmartHome()
 imap <silent> <Home> <C-O><Home>
 
-" navigate through wrapped lines
-nnoremap <C-Up> g<Up>
-nnoremap <C-Down> g<Down>
-vnoremap <C-Up> g<Up>
-vnoremap <C-Down> g<Down>
-
-nnoremap <C-Home> g<Home>
-nnoremap <C-End> g<End>
-vnoremap <C-Home> g<Home>
-vnoremap <C-End> g<End>
-
-inoremap <C-Up> <Esc>g<Up>
-inoremap <C-Down> <Esc>g<Down>
-inoremap <C-Left> <Esc><C-Left>
-inoremap <C-Right> <Esc><Right><C-Right>
-
 " remap unused vim commands
 nnoremap go <C-o>  " original: jump to the n-th byte in the file
 nnoremap gi <C-i>  " original: insert mode at the last insert position
@@ -155,14 +130,6 @@ nnoremap gi <C-i>  " original: insert mode at the last insert position
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " custom bindings
 
-" insert TODO
-inoremap <C-t> // TODO:<space>
-
-" Mark with Shift-m
-" use m to jump to mark
-" M was: place cursor in the center of screen
-nnoremap M m
-nnoremap m `
 
 " fast way to edit ~/.vimrc*, reload, install plugins
 nnoremap <Leader>vv :e ~/.vimrc<CR>
