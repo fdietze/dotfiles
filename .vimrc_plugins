@@ -1,10 +1,11 @@
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " using plugin manager vim-plug.
-" auto-install if not found
-if empty(glob('~/.vim/autoload/plug.vim'))
-  silent !curl -fLo ~/.vim/autoload/plug.vim --create-dirs
-    \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-  autocmd VimEnter * PlugInstall | source $MYVIMRC
+" automatic installation
+" https://github.com/junegunn/vim-plug/wiki/tips#automatic-installation
+let data_dir = has('nvim') ? stdpath('data') . '/site' : '~/.vim'
+if empty(glob(data_dir . '/autoload/plug.vim'))
+  silent execute '!curl -fLo '.data_dir.'/autoload/plug.vim --create-dirs  https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
+  autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
 endif
 
 call plug#begin('~/.vim/plugged')
@@ -204,6 +205,7 @@ Plug 'fdietze/goodday.vim'
 Plug 'drewtempelmeyer/palenight.vim'
 " Italics for my favorite color scheme
 let g:palenight_terminal_italics=1
+" hi Visual guifg=#FFFFFF guibg=#4088FF " higher visual mode contrast 
 
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -302,13 +304,19 @@ let g:autoformat_remove_trailing_spaces = 1
 let g:formatdef_scalariform ='"scalariform"'
 let g:formatdef_scalafmt ='"ng-scalafmt --stdin"'
 let g:formatters_scala = ['scalariform']
+" let g:autoformat_verbosemode=1
 
 let g:formatdef_htmltidy ='"html-beautify -s 2"'
 let g:formatdef_jsbeautify ='"js-beautify -s 2"'
+let g:formatdef_prettier ='"prettier --parser typescript --print-width 120"'
 let g:formatdef_jsonbeautify ='"underscore print --outfmt json"'
+let g:formatdef_dartfmt = '"dartfmt --line-length=140"'
+
 let g:formatters_html = ['htmltidy']
 let g:formatters_javascript = ['jsbeautify']
+let g:formatters_typescript = ['prettier']
 let g:formatters_json = ['jsonbeautify']
+let g:formatters_dart = ['dartfmt']
 
 
 " vim schlepp
