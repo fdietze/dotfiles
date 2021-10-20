@@ -129,8 +129,8 @@ inoremap <silent><expr> <c-space> coc#refresh()
 " Coc only does snippet and additional edit on confirm.
 inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
 
-nmap <silent> <space>N :call CocAction('diagnosticPrev')<cr>
-nmap <silent> <space>n :call CocAction('diagnosticNext')<cr>
+nmap <silent> <space>N :call CocActionAsync('diagnosticPrev')<cr>
+nmap <silent> <space>n :call CocActionAsync('diagnosticNext')<cr>
 
 " Remap keys for gotos
 nmap <silent> gd <Plug>(coc-definition)
