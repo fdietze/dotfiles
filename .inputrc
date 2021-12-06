@@ -1,7 +1,12 @@
+# https://wiki.archlinux.org/title/readline
+# changing the cursor requires readline version >= 7
+
 set editing-mode vi
 set show-mode-in-prompt on
+
 #  set the cursor style to reflect the mode
 #  The Virtual Console uses different escape codes, so you should check first which term is being used:
+# https://wiki.archlinux.org/title/ readline#Mode_indicator_in_prompt
 $if term=linux
 	set vi-ins-mode-string \1\e[?0c\2
 	set vi-cmd-mode-string \1\e[?8c\2
