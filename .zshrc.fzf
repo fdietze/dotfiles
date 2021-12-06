@@ -1,15 +1,11 @@
 export FZF_DEFAULT_COMMAND='rg --files --hidden --glob "!.git"'
 export FZF_DEFAULT_OPTS="-x -m --ansi --exit-0 --select-1" # extended match and multiple selections
 
-if [[ $(uname) == "Darwin" ]]; then
-	# dirname on OS X behaves funky, get gdirname via
-	# brew install coreutils
-	export dirname_command="gdirname"
-else
-	export dirname_command="dirname"
-fi
+# directory completion
+# https://github.com/junegunn/fzf/issues/1067#issuecomment-334290961
 _fzf_compgen_dir() {
-	rg --hidden --files --null "$1" 2>/dev/null | xargs -0 "$dirname_command" | awk '!h[$0]++'
+	rg --hidden --files . 2>/dev/null | awk 'function dirname(fn) { if (fn == "") return ".";  if (fn !~ "[^/]") return "/"; sub("/*$", "", fn); if (fn !~ "/") return "."; sub("/[^/]*$", "", fn); if (fn == "") fn = "/"; return fn } {$0 = dirname($0)} !a[$0]++'
 }
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
