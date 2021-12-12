@@ -10,6 +10,8 @@
 # Scala Metals
 .metals/
 .bloop/
+/**/project/metals.sbt
+.bsp/sbt.json
 
 # Ensime
 .ensime
