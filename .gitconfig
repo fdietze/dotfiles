@@ -54,7 +54,7 @@
     xfuncname = "^#+.*$"
 
 [commit]
-    verbose = true
+    verbose = true # show diff in editor when committing
 
 [apply]
     ignoreWhitespace = change # do not produce whitespace conflicts
