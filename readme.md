@@ -1,24 +1,40 @@
 # How I use my computer
 
+
+## My Installation
+**WARNING**: These are the installation instructions for myself, not for you. You should have your own repository and get inspired by this one.
 ```bash
+
 # install:
-# zsh, neovim, rg, fzf, diff-so-fancy, direnv
-# termite, xcwd, unclutter-xfixes, redshift
+# zsh, neovim, rg, fzf, diff-so-fancy, direnv, grc
+# alacritty, xcwd, unclutter-xfixes, redshift
 
 mkdir -p ~/projects
 git clone --bare git@github.com:fdietze/dotfiles.git projects/dotfiles
-alias config="GIT_DIR=$HOME/projects/dotfiles GIT_WORK_TREE=$HOME git -c status.showUntrackedFiles=no"
-config checkout master
+alias dt="GIT_DIR=$HOME/projects/dotfiles GIT_WORK_TREE=$HOME git -c status.showUntrackedFiles=no"
+dt checkout master
 
-git clone https://github.com/tarjoilija/zgen.git "${HOME}/.zgen"
-chsh -s /bin/zsh
 
+# ZSH plugin manager
+git clone https://github.com/jandamm/zgenom.git "${HOME}/.zgenom"
+chsh -s /bin/zsh # make zsh the default shell
+
+
+# make vim/nvim config compatible
 ln -sf $HOME/.vim $HOME/.config/nvim
 ln -sf $HOME/.vimrc $HOME/.vim/init.vim
 vim +PlugInstall
 
+
 ssh-keygen -t ed25519
 ```
+
+# Resources
+
+* How to manage dotfiles with git: https://www.atlassian.com/git/tutorials/dotfiles
+* What are `.zshrc` / `.zshenv` / `.zprofile`? https://unix.stackexchange.com/questions/71253/what-should-shouldnt-go-in-zshenv-zshrc-zlogin-zprofile-zlogout
+
+# Notes
 
 * managing dotfiles with pure git + external worktree in $HOME
 * fzf over dotfiles: vd
