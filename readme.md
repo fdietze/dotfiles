@@ -2,7 +2,7 @@
 
 
 ## My Installation
-**WARNING**: These are the installation instructions for myself, not for you. You should have your own repository and get inspired by this one.
+**WARNING**: These are the installation instructions for myself, not for you. You should have your own repository and get inspired by this one. If you have any questions, feel free to open issues.
 ```bash
 
 # install:
@@ -33,6 +33,7 @@ ssh-keygen -t ed25519
 
 * How to manage dotfiles with git: https://www.atlassian.com/git/tutorials/dotfiles
 * What are `.zshrc` / `.zshenv` / `.zprofile`? https://unix.stackexchange.com/questions/71253/what-should-shouldnt-go-in-zshenv-zshrc-zlogin-zprofile-zlogout
+* Better bash functions: https://cuddly-octo-palm-tree.com/posts/2021-10-31-better-bash-functions/
 
 # Notes
 
