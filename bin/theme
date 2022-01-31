@@ -15,8 +15,9 @@ echo "$THEME" > $HOME/.theme
 
 case $THEME in
     light)
-        WALLPAPER=/home/felix/downloads/wallpapers/Artistic-Landscape-4K-Wallpaper-3840x2160.jpg
+        WALLPAPER="/home/felix/downloads/wallpapers/Vladstudio - Bird Bird Bird Bird Bird - 3840x2160.jpg"
         VIM_COLORSCHEME="goodmorning"
+        ALACRITTY_COLORSCHEME="light"
         export BAR_BG="#FFFFFF"
         export BAR_FG="#000000"
         export BAR_FG_ALT="#888888"
@@ -26,12 +27,13 @@ case $THEME in
         export BAR_RAMP_7="%{F$BAR_PEAK}█%{F-}"
         export BAR_RAMP_WARN_0="%{F$BAR_WARN}▁%{F-}"
         export BAR_RAMP_WARN_1="%{F$BAR_WARN}▂%{F-}"
-        export WM_BORDER_NORMAL="#DCDDE6"
+        export WM_BORDER_NORMAL="#E8E9F2"
         export WM_BORDER_FOCUSED="#777987"
         ;;
     dark)
-        WALLPAPER=/home/felix/downloads/wallpapers/chile_zSTV2k.jpg
+        WALLPAPER="/home/felix/downloads/wallpapers/Vladstudio - Magic of Music- Piano - 3840x2160.jpg"
         VIM_COLORSCHEME="palenight"
+        ALACRITTY_COLORSCHEME="dark"
         export BAR_BG="#191C26"
         export BAR_FG="#BFC7D5"
         export BAR_FG_ALT="#4B5263"
@@ -46,11 +48,19 @@ case $THEME in
         ;;
 esac
 
-echo "xmonad..."
-prevents infinite loop between xmonad and this script
-if [ $OLDTHEME != "$THEME" ]; then 
-    xmonad --restart
-fi
+
+echo "alacritty..."
+yq e ".colors alias = \"$ALACRITTY_COLORSCHEME\"" -i ~/.config/alacritty/alacritty.yml
+
+echo "nvim..."
+source "/home/felix/.zgenom/sources/dottr/dottr/___/yolk/zsh/nvim-rpc.zsh"
+nvim-rpc-all "set background=$THEME"
+nvim-rpc-all "colorscheme $VIM_COLORSCHEME"
+
+
+echo "cursor..."
+xsetroot -cursor_name left_ptr
+
 
 
 echo "herbstluftwm..."
@@ -77,21 +87,20 @@ nitrogen --head=1 --set-zoom-fill "$WALLPAPER"
 nitrogen --head=2 --set-zoom-fill "$WALLPAPER"
 # xwinwrap -ov -g 2560x1440+0+0 -- mpv -wid WID $HOME/downloads/Baraka\ 1992\ BRRip\ qalbalesad\ rash@gmail\ com-y68wz51WvjM.mkv --no-osc --no-osd-bar --loop-file --player-operation-mode=cplayer --no-audio --panscan=1.0 --no-input-default-bindings --start="$(( $RANDOM % 100 ))%" &
 
+
+
 # echo "statusbar..."
-$HOME/bin/statusbar
+"$HOME/bin/statusbar"
 
-echo "termite..."
-cp $HOME/.config/termite/config{-$THEME,}
-pkill -SIGUSR1 termite
-
-echo "nvim..."
-source ~/.zgen/dottr/dottr-master/yolk/zsh/nvim-rpc.zsh
-nvim-rpc-all "set background=$THEME"
-nvim-rpc-all "colorscheme $VIM_COLORSCHEME"
-
-echo "dunst..."
-dunst &!
-
-echo "cursor..."
-xsetroot -cursor_name left_ptr
+echo "git config delta..."
+case $THEME in
+    light)
+        git config --global delta.dark "false"
+        git config --global delta.light "true"
+        ;;
+    dark)
+        git config --global delta.dark "true"
+        git config --global delta.light "false"
+        ;;
+esac
 
