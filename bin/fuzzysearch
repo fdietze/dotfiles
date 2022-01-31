@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-# uses tre-agrep for fuzzy search
-dir=$1
-shift 1
-title=$*
-ag --search-files --follow -g '.' "$dir" | agrep -i -6 --show-cost "$title" | sort -t':' -r -g | cut -d ':' -f2 | tail -20

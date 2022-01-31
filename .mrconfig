@@ -1,3 +1,0 @@
-
-[local/zgen]
-checkout = git clone 'https://github.com/tarjoilija/zgen' 'zgen'
