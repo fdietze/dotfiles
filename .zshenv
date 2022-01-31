@@ -24,6 +24,7 @@ export BROWSER=firefox
 
 # automatically installs and runs non-installed software in nix-shell (requires `programs.command-not-found.enable = true`)
 export NIX_AUTO_INSTALL=true 
+export NIX_AUTO_RUN=true
 
 # fix java apps in tiling window managers
 export _JAVA_AWT_WM_NONREPARENTING=1
