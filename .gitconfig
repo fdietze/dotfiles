@@ -46,6 +46,7 @@
     algorithm = histogram # https://luppeng.wordpress.com/2020/10/10/when-to-use-each-of-the-git-diff-algorithms/
     indentHeuristic = true
     wordRegex = [A-Z][a-z]*|[a-z]+|[^[:space:]] # see camel case as separate words
+    colorMoved = zebra
 
 [diff "scala"]
     xfuncname = ^\\s*(.*(def|object|class|trait) .*)$
