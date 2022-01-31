@@ -11,6 +11,7 @@ case $NAME in
         sudo nix-channel --list
         # sudo nixos-rebuild boot --upgrade
         CHANNEL=$(sudo nix-channel --list | grep -oP "[0-9]{2}\.[0-9]{2}")
+        sudo nix-channel --update
         (cd "$HOME/projects/nixpkgs" && git fetch && git checkout "nixos-$CHANNEL" && git pull)
         sudo nixos-rebuild boot -I nixpkgs="$HOME/projects/nixpkgs"
         echo "updating user space"
@@ -28,7 +29,7 @@ nvim -c 'CocUpdateSync|q'
 
 
 echo "updating zgen plugins..."
-zsh -c "source ~/.zgen/zgen.zsh && zgen selfupdate && zgen update"
+zsh -c "source ~/.zgenom/zgenom.zsh && zgenom selfupdate && zgenom update"
 
 # echo "updating ruby gems..."
 # gem update
