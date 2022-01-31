@@ -27,17 +27,23 @@ hc keybind $Mod-Ctrl-Shift-x spawn poweroff
 hc keybind $Mod-Shift-y reload
 hc keybind $Mod-Ctrl-Shift-y spawn reboot
 hc keybind $Mod-k spawn xkill
-hc keybind $Mod-d spawn termite
+hc keybind $Mod-d spawn sh -c 'alacritty --working-directory $($HOME/bin/xcwd-home)' # alias from .sh_aliases
+hc keybind $Mod-j spawn firefox
 hc keybind $Mod-y spawn $HOME/bin/launcher
+hc keybind $Mod-period spawn sh -c 'alacritty -e zsh -ic "clippaste | vipe | clipcopy"' # https://vi.stackexchange.com/questions/21446/how-can-i-edit-the-contents-of-my-clipboard-in-vim
 
-hc keybind $Mod-Shift-z spawn zsh -i -c movietime    # alias from .sh_aliases
+
+hc keybind $Mod-0 spawn sh -c 'xprop >> ~/propslog'
+
+hc keybind $Mod-Shift-m spawn zsh -i -c display-projector    # alias from .sh_aliases
 hc keybind $Mod-Shift-p spawn zsh -i -c reset-screen # alias from .sh_aliases
+hc keybind Mod4-q spawn zsh -i -c toggle-monitor # alias from .sh_aliases
 
 # fn+Fxx keys
 hc keybind XF86KbdBrightnessDown spawn keyboardbacklightoff
 hc keybind XF86KbdBrightnessUp spawn keyboardbacklightmax
-hc keybind XF86MonBrightnessDown spawn /run/wrappers/bin/light -U 5
-hc keybind XF86MonBrightnessUp spawn /run/wrappers/bin/light -A 5
+hc keybind XF86MonBrightnessDown spawn light -U 5
+hc keybind XF86MonBrightnessUp spawn light -A 5
 # hc keybind XF86Display spawn
 hc keybind XF86TouchpadToggle spawn touchpadtoggle
 hc keybind XF86AudioRaiseVolume spawn pamixer --increase 5
@@ -55,10 +61,10 @@ hc keybind $Mod-Ctrl-n spawn pamixer --decrease 5
 hc keybind $Mod-Ctrl-m spawn pamixer -t
 
 # adjust screen brightness
-hc keybind $Mod-Ctrl-g spawn /run/wrappers/bin/light -A 5
-hc keybind $Mod-Ctrl-r spawn /run/wrappers/bin/light -U 5
-hc keybind $Mod-Ctrl-Shift-g spawn /run/wrappers/bin/light -A 1
-hc keybind $Mod-Ctrl-Shift-r spawn /run/wrappers/bin/light -U 1
+hc keybind $Mod-Ctrl-g spawn light -A 5
+hc keybind $Mod-Ctrl-r spawn light -U 5
+hc keybind $Mod-Ctrl-Shift-g spawn light -A 1
+hc keybind $Mod-Ctrl-Shift-r spawn light -U 1
 
 # switch color scheme
 hc keybind $Mod-Ctrl-k spawn $HOME/bin/theme light
@@ -189,15 +195,16 @@ hc set window_gap 0
 hc set frame_padding 0
 hc set smart_window_surroundings 1
 hc set smart_frame_surroundings 1
+hc set focus_stealing_prevention 0 # zoom problems
 
 # rules
 hc unrule -F
-hc set focus_stealing_prevention 1
+hc rule floatplacement=smart
 hc rule focus=on # normally focus new clients
 #hc rule class=XTerm tag=3 # move all xterms to tag 3
 # give focus to most common terminals
-hc rule class~'(.*[Rr]xvt.*|.*[Tt]erm|Konsole|termite)' focus=on
-hc rule windowtype~'_NET_WM_WINDOW_TYPE_(DIALOG|UTILITY|SPLASH)' floating=on focus=off
+hc rule class~'(.*[Rr]xvt.*|.*[Tt]erm|Konsole|alacritty)' focus=on
+# hc rule windowtype~'_NET_WM_WINDOW_TYPE_(DIALOG|UTILITY|SPLASH)' floating=on focus=off
 # hc rule windowtype='_NET_WM_WINDOW_TYPE_DIALOG' focus=on
 hc rule windowtype~'_NET_WM_WINDOW_TYPE_(NOTIFICATION|DOCK|DESKTOP)' manage=off
 
@@ -218,6 +225,8 @@ hc detect_monitors
 hc set auto_detect_monitors true
 hc set mouse_recenter_gap 1
 
-$HOME/bin/theme light
-nm-applet
-blueman-applet
+"$HOME/bin/theme" dark
+
+(nm-applet & disown)
+(blueman-applet & disown)
+(megasync & disown)

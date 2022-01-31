@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+# for opening terminals in current folder
+
+DIR=$(xcwd)
+
+find-git-root() (
+  cd "$1"
+  GITROOT=$(git rev-parse --show-toplevel 2>/dev/null)
+  if [[ $? == 0 ]]; then
+    echo "$GITROOT"
+  else
+    echo "$1"
+  fi
+)
+
+case $DIR/ in
+$HOME/*) ;;     # in home
+*) DIR=$HOME ;; # not in home
+esac
+find-git-root "$DIR"
