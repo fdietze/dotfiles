@@ -4,18 +4,17 @@
 
 DIR=$(xcwd)
 
-find-git-root() (
-  cd "$1"
-  GITROOT=$(git rev-parse --show-toplevel 2>/dev/null)
-  if [[ $? == 0 ]]; then
-    echo "$GITROOT"
-  else
-    echo "$1"
-  fi
-)
-
+# outside of home?
 case $DIR/ in
 $HOME/*) ;;     # in home
-*) DIR=$HOME ;; # not in home
+*) echo $HOME; exit 0 ;; # not in home
 esac
-find-git-root "$DIR"
+
+# inside a git repo?
+cd "$DIR"
+GITROOT=$(git rev-parse --show-toplevel 2>/dev/null)
+if [[ $? == 0 ]]; then
+  echo "$GITROOT"; exit 0 # inside git repo
+fi
+  
+echo "$DIR"
