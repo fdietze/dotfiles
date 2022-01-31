@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+# flushing awk: https://unix.stackexchange.com/a/83853
+iotop -d 3 -ob | grep 'Total DISK' --line-buffered | awk '{print $12,$13; system("")}'

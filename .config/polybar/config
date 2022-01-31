@@ -13,10 +13,9 @@ foreground = ${colors.foreground}
 
 font-0 = Dejavu Sans Mono:style=Regular:size=10;2
 
-; modules-left = workspaces-xmonad
-modules-left = hlwm-tags workspaces-xmonad
-modules-center = xwindow
-modules-right = filesystem process cpu cpufreq temperature memory eth wlan volume battery date
+modules-left = hlwm-tags xwindow
+modules-center = 
+modules-right = filesystem process cpu cpufreq freqmenu temperature memory ioread iowrite eth wlan volume battery timewarrior date
 module-margin-left = 1
 module-margin-right = 2
 
@@ -142,7 +141,7 @@ tail = true
 
 [module/xwindow]
 type = internal/xwindow
-label = %{A2:xdotool getwindowfocus windowkill:}%title:0:80:...%%{A}
+label = %{A2:xdotool getwindowfocus windowkill:}%title:0:60:...%%{A}
 
 
 [module/cpu]
@@ -167,10 +166,50 @@ tail = true
 format-foreground = ${env:BAR_PEAK:#FFD9C1}
 ; click-middle = kill $(ps -eo pid --sort=-%cpu | tail -n +2 | head -n -1)
 
+[module/ioread]
+type = custom/script
+exec = bash -c "sudo ~/bin/topioread | sed --unbuffered 's/^\(.*[MG]\/s.*\)$/%{F${BAR_PEAK}}\1%{F-}/' | sed --unbuffered 's/^\(.*[^MG]\/s.*\)$/%{F${BAR_FG}}\1%{F-}/'"
+tail = true
+label = %output:27%
+format-prefix = "read "
+format-prefix-foreground = ${colors.foreground-alt}
+
+[module/iowrite]
+type = custom/script
+exec = bash -c "sudo ~/bin/topioread | sed --unbuffered 's/^\(.*[MG]\/s.*\)$/%{F${BAR_PEAK}}\1%{F-}/' | sed --unbuffered 's/^\(.*[^MG]\/s.*\)$/%{F${BAR_FG}}\1%{F-}/'"
+tail = true
+label = %output:27%
+format-prefix = "write "
+format-prefix-foreground = ${colors.foreground-alt}
+
+[module/freqmenu]
+type = custom/menu
+
+expand-right = true
+label-open = ""
+label-close = "x"
+label-separator = " | "
+menu-0-0 = 800MHz
+menu-0-0-exec = sudo cpupower frequency-set -u 800MHz
+menu-0-1 = 2GHz
+menu-0-1-exec = sudo cpupower frequency-set -u 2GHz
+menu-0-2 = 3GHz
+menu-0-2-exec = sudo cpupower frequency-set -u 3GHz
+menu-0-3 = 4GHz
+menu-0-3-exec = sudo cpupower frequency-set -u 4GHz
+menu-0-4 = powersave
+menu-0-4-exec = sudo cpupower frequency-set -g powersave
+menu-0-5 = performance
+menu-0-5-exec = sudo cpupower frequency-set -g performance
+
 [module/cpufreq]
 type = custom/script
 exec = cpupower frequency-info -fm | grep -oP '(?<=frequency: )([^ ]+ [^ ]+)'
+label = %output:8...%
 interval = 5
+click-left = #freqmenu.open.0
+
+
 
 [module/temperature]
 type = internal/temperature
@@ -179,14 +218,14 @@ type = internal/temperature
 ; To list all the zone types, run 
 ; $ for i in /sys/class/thermal/thermal_zone*; do echo "$i: $(<$i/type)"; done
 ; Default: 0
-thermal-zone = 0
+thermal-zone = 5
 
 ; Full path of temperature sysfs path
 ; Use `sensors` to find preferred temperature source, then run
 ; $ for i in /sys/class/hwmon/hwmon*/temp*_input; do echo "$(<$(dirname $i)/name): $(cat ${i%_*}_label 2>/dev/null || echo $(basename ${i%_*})) $(readlink -f $i)"; done
 ; to find path to desired file
 ; Default reverts to thermal zone setting
-hwmon-path = /sys/devices/platform/coretemp.0/hwmon/hwmon5/temp1_input
+; hwmon-path = /sys/devices/platform/coretemp.0/hwmon/hwmon3/temp1_input
 
 
 interval = 2
@@ -318,8 +357,9 @@ type = custom/script
 exec = echo "$(timew get dom.active.tag.1) $(timew get dom.active.duration | ~/bin/human-duration.py )"
 exec-if = [ $(timew get dom.active) == 1 ]
 interval = 5
-format-prefix = "track "
+format-prefix = "tw "
 format-prefix-foreground = ${colors.foreground-alt}
+format-foreground = ${env:BAR_PEAK:#FFD9C1}
 
 [module/date]
 type = internal/date

@@ -8,23 +8,29 @@ THEME=$(cat $HOME/.theme || echo "light")
 case $THEME in
     light)
         default_bg="#ffffff"
-        used_fg="#555555"
         empty_fg="#CCCCCC"
+        used_fg="#555555"
+        selected_fg="#ffffff"
+        urgent_bg="#FFD8AC"
+        focus_bg="#5A5B66"
+        focus_other_bg="#BDBFD6"
+        unfocus_bg="#A2A4B8"
+        unfocus_other_bg=#DFE1FC
         # fgcolordim="#909090"
         # fgcolorbad="#FF3F74"
-        bgcolorsel="#5A5B66"
-        fgcolorsel="#ffffff"
-        bgcolorurgent="#FFD8AC"
         ;;
     dark)
         default_bg="#191C26"
-        used_fg="#EFEFEF"
         empty_fg="#555555"
+        used_fg="#EFEFEF"
+        selected_fg="#ffffff"
+        urgent_bg="#CE6D00"
+        focus_bg="#5A5B66"
+        focus_other_bg="#393940"
+        unfocus_bg="#393940"
+        unfocus_other_bg=#29292E
         # fgcolordim="#909090"
         # fgcolorbad="#FF3F74"
-        bgcolorsel="#5A5B66"
-        fgcolorsel="#ffffff"
-        bgcolorurgent="#CE6D00"
         ;;
 esac
 
@@ -34,23 +40,23 @@ tag_status() {
 
     for i in "${tags[@]}" ; do
         case ${i:0:1} in
-            ':') # the tag is used (not empty).
-                echo -n "%{B$default_bg F$used_fg}"
+            '#') # Focused monitor: the tag is viewed on this monitor
+                echo -n "%{B$focus_bg F$selected_fg}"
                 ;;
-            '+') # the tag is viewed on the specified MONITOR, but this monitor is not focused.
-                echo -n "%{B#A2A4B8 F$fgcolorsel}"
+            '-') # Focused monitor: the tag is viewed on other monitor
+                echo -n "%{B$focus_other_bg F#$used_fg}"
                 ;;
-            '#') # the tag is viewed on the specified MONITOR and it is focused.
-                echo -n "%{B$bgcolorsel F$fgcolorsel}"
+            '+') # Unfocused monitor: the tag is viewed on this monitor
+                echo -n "%{B$unfocus_bg F$selected_fg}"
                 ;;
-            '-') # the tag is viewed on a different MONITOR, but this monitor is not focused.
-                echo -n "%{B#BDBFD6 F#$used_fg}"
-                ;;
-            '%') # the tag is viewed on a different MONITOR and it is focused.
-                echo -n "%{B#DFE1FC F$used_fg}"
+            '%') # Unfocused monitor: the tag is viewed on other monitor
+                echo -n "%{B$unfocus_other_bg F$used_fg}"
                 ;;
             '!') # the tag contains an urgent window
-                echo -n "%{B$bgcolorurgent F$used_fg}"
+                echo -n "%{B$urgent_bg F$used_fg}"
+                ;;
+            ':') # the tag is used (not empty).
+                echo -n "%{B$default_bg F$used_fg}"
                 ;;
             *)
                 echo -n "%{B$default_bg F$empty_fg}"
