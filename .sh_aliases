@@ -1,14 +1,3 @@
-# launch helpers
-alias qrscan='LD_PRELOAD=/usr/lib/libv4l/v4l1compat.so zbarcam --raw /dev/video0'
-alias photoshop='wine ~/.wine/drive_c/Program\ Files\ \(x86\)/Adobe/Photoshop\ 7.0/Photoshop.exe'
-alias gparted='gksudo gparted'
-alias suspend='systemctl suspend'
-
-# fix highdpi for chromium
-alias chromium='chromium --high-dpi-support=1 --force-device-scale-factor=1.5'
-alias chromium-no-plugins='chromium --disable-extensions --disable-plugins'
-
-
 # dotfile management
 DOTFILES_GIT="GIT_DIR=$HOME/projects/dotfiles GIT_WORK_TREE=$HOME"
 DOTFILES_TIG="TIGRC_USER=$HOME/.config/tig/config-dotfiles"
@@ -16,21 +5,91 @@ alias dt="$DOTFILES_GIT git -c status.showUntrackedFiles=no -c core.excludesfile
 alias tigd="$DOTFILES_GIT $DOTFILES_TIG tig"
 vd() ( $EDITOR "$HOME/$(dt ls-tree --full-tree --name-only -r HEAD | fzf)"; )
 
-alias vim="nvim"
+
+# listing files
+alias l='ls -l'
+alias la='ls -lA' # only shorthands are mac-compatible
+alias lt='ls -ltr' # only shorthands are mac-compatible
+alias t='tree -C' # -C is for color=always
+alias t2='t -L 2'
+alias t3='t -L 3'
+alias ta='t -a'
+tg() { rg --files "$@" | command tree --fromfile; }
+
+
+# quickly open common dotfiles
+alias vim="\$EDITOR"
 alias  va="\$EDITOR ~/.sh_aliases"
 alias  vz="\$EDITOR ~/.zshrc"
-alias  vp="\$EDITOR ~/.profile"
+alias  ve="\$EDITOR ~/.zshenv"
 alias  vv="\$EDITOR ~/.vimrc"
 alias vvp="\$EDITOR ~/.vimrc_plugins"
-alias vvc="\$EDITOR ~/.vimrc_custom"
 alias vvk="\$EDITOR ~/.vimrc_keybindings"
-alias vvs="\$EDITOR ~/.vimrc_statusline"
-alias vx="\$EDITOR ~/.xmonad/xmonad.hs"
 alias vb="\$EDITOR ~/.config/polybar/config"
 alias vn="\$EDITOR /etc/nixos/configuration.nix"
 
-# unsorted / general
-alias ssh='TERM=xterm-256color ssh'
+
+
+# aliases
+alias rm='rm -v'
+alias ssh='TERM=xterm-256color ssh' # fix colors in some ssh connections
+alias rg="rg --hidden --glob '!.git' --ignore-case" # https://github.com/BurntSushi/ripgrep/issues/623
+alias hd='hexdump -C'
+alias lsblk='lsblk -o NAME,RM,SIZE,FSTYPE,LABEL,MOUNTPOINT,RO,UUID'
+alias sys='sudo systemctl'
+alias sysu='systemctl --user'
+alias hc='herbstclient'
+alias watch='watch -c -d'
+alias w='watch '
+alias vclip='clippaste | vipe | clipcopy' # https://vi.stackexchange.com/questions/21446/how-can-i-edit-the-contents-of-my-clipboard-in-vim
+alias chromium='chromium --high-dpi-support=1 --force-device-scale-factor=1.5' # fix highdpi for chromium
+alias chromium-no-plugins='chromium --disable-extensions --disable-plugins'
+alias qrscan='LD_PRELOAD=/usr/lib/libv4l/v4l1compat.so zbarcam --raw /dev/video0'
+alias gparted='gksudo gparted'
+alias startmac='VBoxManage startvm "macOS" --type headless'
+alias tclip='tmate display -p "#{tmate_ssh}" | xclip -selection clipboard'  # tmate session token to clipboard
+alias tw=timew
+
+
+
+# nixos
+alias ns="nix-shell --run zsh"
+alias nrs="sudo nixos-rebuild switch"
+fni() {
+  local packages package
+  packages=$(nix search "$1" | tr -d '\n' | sed 's/  / /g' | sed s/*/\\n/g | sed 's/^ //g' | grep '\S') &&
+  package=$(echo "$packages" | fzf --ansi | cut -f1 -d ' ') &&
+  nix-env -iA "$package"
+}
+
+
+# online checking tools
+ONLINECMD='ping -c 1 8.8.8.8 -W 5 && ping -c 1 google.com -W 5'
+alias online="$ONLINECMD" # -c <retries>  -W <timout>
+alias online-wait='until online; do; sleep 3; done; espeak -p 30 "online"; espeak -p 80 "online"; espeak -p 50 "online"'
+alias on="w --interval=1 '$ONLINECMD'"
+
+
+
+find-git-root() (
+  cd "$1"
+  GITROOT=$(git rev-parse --show-toplevel 2> /dev/null)
+  if [[ $? == 0 ]]; then
+    echo "$GITROOT"
+  else
+    echo "$1"
+  fi
+)
+
+v() ( # open files with fzf
+    cd "$(find-git-root "$PWD")"
+    file="$(fzf --query="$(echo $@ | tr ' ' '\ ' )")"
+    [[ -n $file ]] && $EDITOR "$file"
+)
+vr() { vim -c "History $*"; } # open recently used files with vim
+
+
+
 sshforward() {
     # usage: sshforward host remoteport [localport]
     REMOTEHOST=$1
@@ -39,71 +98,42 @@ sshforward() {
     shift 3
     ssh -NL ${LOCALPORT}:localhost:${REMOTELOCALPORT} ${REMOTEHOST} $@
 }
-dockerhost() {
-    # export DOCKER_HOST=localhost
-    sshforward "$1" 2375 &
+
+
+parentfolder-withfile() (
+  local file=$1
+  local DIR=$(pwd)
+
+  while [ -n "$DIR" ] && [ ! -f "$DIR/$file" ]; do
+    DIR="${DIR%\/*}"
+  done
+
+  if [ -z "$DIR" ]; then
+    pwd
+  else
+    echo "$DIR"
+  fi
+)
+
+sbt() (
+  DIR=$(parentfolder-withfile build.sbt)
+  [[ "$DIR" == "$PWD" ]] || echo "$(tput setaf 2)Running sbt in $DIR$(tput sgr0)"
+  cd "$DIR" || exit
+  env sbt $@
+)
+
+x() { # open a gui command and close the terminal
+    zsh -i -c "$@ &; disown" 
+    exit
 }
 
-try() {
-    until zsh -ic "$@"
-    do
-        echo "failed: $@"
-        sleep 1
-        echo "trying again..."
-    done
-}
 
-alias hc='herbstclient'
-alias watch='watch -c -d'
-alias w='watch '
-ONLINECMD='ping -c 1 8.8.8.8 -W 5 && ping -c 1 google.com -W 5'
-alias online="$ONLINECMD" # -c <retries>  -W <timout>
-alias online-wait='until online; do; sleep 3; done; espeak -p 30 "online"; espeak -p 80 "online"; espeak -p 50 "online"'
-alias on="w --interval=1 '$ONLINECMD'"
-alias hd='hexdump -C'
-alias fucking='sudo'
-alias speakerup='amixer -c 0 sset Speaker 100%'
-alias defrag='sudo btrfs filesystem defragment -r -v -f -clzo'
-alias iotop='sudo iotop'
-alias keepass='secret-tool lookup keepass password | keepassxc $HOME/.keepass/passwords.kdbx --pw-stdin'
-alias kp='keepass-dmenu --database ~/.keepass/passwords.kdbx --password "$(secret-tool lookup keepass password)" --fn "Droid Sans Mono-8" --nb "#FFFFFF" --nf "#000000" --sb "#00D7FF" --sf "#101010" > /dev/null'
-alias cups='sudo systemctl start cups-browsed.service'
-alias kodi='AE_SINK=ALSA kodi'
-alias rm='rm -v'
-alias lsblk='lsblk -o NAME,RM,SIZE,FSTYPE,LABEL,MOUNTPOINT,RO,UUID'
-alias sys='sudo systemctl'
-alias sysu='systemctl --user'
-
-untilon() {
-    until ping -c 1 $1 -W 2; do sleep 1; done;
-}
-
-alias localfffon='ssh kiwi sudo etherwake -i eth0 1c:1b:0d:9d:e2:1a && ssh kiwi "until ping -q -c 1 192.168.123.155 -W 2; do sleep 1; done"'
-alias fffon='ssh remotekiwi sudo etherwake -i eth0 1c:1b:0d:9d:e2:1a && ssh remotekiwi "until ping -q -c 1 192.168.123.155 -W 2; do sleep 1; done"'
-alias fffoff='ssh rfff sudo poweroff'
-alias fffdev='fffon; cd ~/projects/wust2; REMOTEHOST=rfff ./remotedev.sh'
-
-# wifi with networkmanager
-alias won='nmcli radio wifi on; wscan'
-alias woff='nmcli radio wifi off'
-alias wscan='nmcli dev wifi rescan > /dev/null 2>&1; true'
-alias wlist='nmcli dev wifi list'
-alias wcon='nmcli --ask dev wifi connect'
-
-
-alias tw='timew'
-
-
-# nixos
-alias ns="nix-shell --run zsh"
-alias nrs="sudo nixos-rebuild switch"
-
-note() {
+note() { # simple notetaking
     $EDITOR "$(date +"$HOME/notes/%Y-%m-%d-$1.md")"
 }
 
 
-notes() {
+notes() { # browse notes with fzf
     (
         cd "$HOME/notes" || exit
         file="$(rg --files --sort modified | fzf --no-sort --tac --query="$(echo $@ | tr ' ' '\ ' )")"
@@ -111,59 +141,30 @@ notes() {
     )
 }
 
-v() {
-    (
-        cd-git-root > /dev/null
-        file="$(fzf --query="$(echo $@ | tr ' ' '\ ' )")"
-        [[ -n $file ]] && $EDITOR "$file"
-    );
-}
-vr() { vim -c "History $*"; }
 
-x() {
-    zsh -i -c "$@ &; disown" 
-    exit
-}
+
 
 # file search
-alias lo='locate -i'
 alias vag="search-select-edit"
-alias conflicts="vag ======="
-alias rg="rg --hidden --glob '!.git'" # https://github.com/BurntSushi/ripgrep/issues/623
-s() {
-    # interactively select a line from stdin and execute command
-    # example usage: find /var/log/Xorg* | s less
-    # if no stdin is given, match on all files in current dir
-    fzf | while read -r line; do $@ "$line"; done
-}
 
 # file listing/interaction
 if [ "$(uname 2> /dev/null)" != "Linux" ]; then
     # for Mac
     alias ls='ls -hFG'
 else
+  alias ls='ls --group-directories-first --color=always --escape --human-readable --classify'
 	if [ -n "${commands[grc]}" ]; then
 	    alias ls='grc ls --group-directories-first --color=always --escape --human-readable --classify'
-	else
-	    alias ls='ls --group-directories-first --color=always --escape --human-readable --classify'
-	fi
+  fi
 fi
 
-alias lt='ls -ltr' # only shorthands are mac-compatible
-alias la='ls -lA' # only shorthands are mac-compatible
-alias l='ls -l'
-alias t='tree -C' # -C is for color=always
-alias t2='t -L 2' # -C is for color=always
-alias t3='t -L 3' # -C is for color=always
-alias ta='t -a'
-tg() { rg --files "$@" | command tree --fromfile; }
 alias md='mkdir -p'
-alias mdcd='mkdir-cd'
-alias mvi='interactive-mv'
 alias mcp='noglob zmv -C -W'
 alias mln='noglob zmv -L -W'
 alias mmv='noglob zmv -W'
+
 alias o='mimeo' # Open files using MIME-type and custom user associations
+# alias cat='bat --theme=ansi-light'
 
 # change directories
 alias cdd='cd ~/downloads'
@@ -171,17 +172,12 @@ alias cdp='cd ~/projects '
 alias cdt='cd-tmp'
 alias cdg='cd-git-root'
 p() { cd ~/projects/"$(ls -t ~/projects | fzf --query="$(echo $@ | tr ' ' '\ ' )")";}
-alias pp='cd ~/projects/$(ls -t ~/projects | head -1)'
 alias ..='cd ..'
 alias ...='cd ../..'
 alias ....='cd ../../..'
 alias vm='vim $(git-select-dirty-files)'
 
 alias rcp='rsync --archive --partial --info=progress2 --human-readable'
-
-# start X
-alias sx='startx'
-alias xkodi='/usr/bin/xinit /usr/bin/dbus-launch --exit-with-session /usr/bin/kodi-standalone -- :0 -nolisten tcp vt1'
 
 # git
 alias g='git'
@@ -193,74 +189,31 @@ alias gl='git lg'
 alias gla='git lga'
 alias gsc='git-select-commit'
 alias gdf='git df --no-index'
-alias onstage='git-onstage'
-# alias gclp='github-clone'
+
 if [ -n "$ZSH_VERSION" ]; then
     alias -g GSC='$(git-select-commit)'
     alias -g GSCA='$(git-select-commit --all)'
     alias -g GSD='$(git-select-dirty-files)'
 fi
 
-# dotfiles git
-alias ds='d status'
-alias dps='dp status'
-
 # dev
 alias m='make'
 alias mc='make clean'
-alias scala='scala -Dscala.color -deprecation -unchecked -explaintypes -language:_'
-alias jsb='underscore print --color --outfmt json' # beautify json, package: npm -g install underscore-cli
-# alias nquery='neo4j-query'
-# alias nclear='neo4j-clear'
-# alias nall='neo4j-all'
-alias cg='cargo'
 
-# docker
-docker-aliases() {
-    alias d='docker'
-    alias dm='docker-machine'
-    alias dc='docker-compose'
-}
-
-# pipes
+# global aliases
 if [ -n "$ZSH_VERSION" ]; then
     alias -g G=' | grep -i'
-    alias -g GV=' | grep -iv'
     alias -g H=' | head'
     alias -g T=' | tail'
     alias -g L=' | less'
-    alias -g X=' | xargs -I{}'
-    alias -g C=' | xclip'
     alias -g N="\"\$(\ls -tp | grep -v '\/$' | head -1)\""
     alias -g F='"$(fzf)"'
     alias oo='o N'
 fi
 
-cgw() {
-    cargo $1
-    cargo watch $1
-}
 
-sbt() { (
 
-    # TODO: search tree upwards for build.sbt
-    if [ ! -f build.sbt ]; then
-        cd-git-root
-    fi
-    env sbt $@
-    )
-}
 
-alias sbt1="sbt -sbt-version 1.1.1"
-alias sbt0="sbt -sbt-version 0.13.17"
-
-nstart() {
-    hc use_index 7
-    (sleep 1; hc use_previous) &
-    termite -e "$HOME/local/neo4j/bin/neo4j console"
-}
-
-# other
 autocolors() {
     if type sunwait >/dev/null; then 
         if [ $(sunwait poll 50.77N 6.08W) == "DAY" ]
@@ -269,6 +222,11 @@ autocolors() {
         fi
         else ~/bin/theme light $@
     fi
+}
+
+airplane() {
+    nmcli radio wifi off
+    sudo rfkill block all
 }
 
 low() {
@@ -285,8 +243,7 @@ low() {
     sudo cpupower frequency-set --max 2GHz
 
     echo "switching off wifi/bluetooth..."
-    nmcli radio wifi off
-    sudo rfkill block all
+    airplane
 }
 
 low-traffic() {
@@ -297,13 +254,7 @@ low-traffic() {
     sys stop dropbox > /dev/null 2>&1
     sys stop nixos-upgrade.timer > /dev/null 2>&1
     sys stop nixos-upgrade > /dev/null 2>&1
-}
-
-high() {
-    xbacklight -set 100
-
-    systemctl --user start btsync
-    systemctl --user start syncthing
+    pkill megasync
 }
 
 stayawake() {
@@ -313,14 +264,24 @@ stayawake() {
     xset -dpms
 }
 
-movietime() {
+toggle-monitor() (
+  intern=eDP-1
+  extern=HDMI-1
+
+  if xrandr | grep "$extern disconnected"; then
+    xrandr --output "$extern" --off --output "$intern" --auto
+  else
+    xrandr --output "$intern" --off --output "$extern" --auto
+  fi
+)
+
+display-projector() {
     sysu stop redshift
     # xrandr --output HDMI-1  --auto --primary --output VGA-1 --off --output eDP-1 --off
-    xrandr --output HDMI1  --auto --primary --output VGA1 --off --output eDP1 --off
-    xmonad --restart
+    xrandr --output HDMI-1  --auto --primary --output eDP-1 --off
 
     pacmd set-sink-mute 0 0 # unmute
-    xsetroot -solid '#ffffff'
+    # xsetroot -solid '#ffffff'
 
     stayawake
 }
@@ -328,17 +289,14 @@ movietime() {
 reset-screen() {
     sysu start redshift
     # xrandr --output eDP-1  --auto --primary --output VGA-1 --off --output HDMI-1 --off
-    xrandr --output eDP1  --auto --primary --output VGA1 --off --output HDMI1 --off
-    xmonad --restart
+    xrandr --output eDP-1  --auto --primary --output HDMI-1 --off --output DP-2 --off
+
+    herbstclient reload
 
     # enable screensaver
     xset s blank
     xset s on
     xset +dpms
-
-    sleep 3
-    rm -f ~/.colors
-    autocolors
 }
 
 
@@ -348,6 +306,24 @@ search-select-edit () {
     [[ -z "$selected" ]] && return 0
     uniquefileswithlines=$(echo -E $selected | tac | sed '$!N; /^\([^:]*\):.*\n\1:.*$/!P; D' | tac | cut -d: -f1-3) 
     eval "vim $(echo -E $uniquefileswithlines | xargs -I'{}' echo -E -n '"{}" ')"
+}
+
+try() {
+    until zsh -ic "$@"
+    do
+        echo "failed: $@"
+        sleep 1
+        echo "trying again..."
+    done
+}
+
+
+
+
+
+
+untilon() {
+    until ping -c 1 $1 -W 2; do sleep 1; done;
 }
 
 # vim: ft=sh
