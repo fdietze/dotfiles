@@ -43,11 +43,18 @@ export RUST_BACKTRACE=1
 
 export PAGER="less --RAW-CONTROL-CHARS" # less with colors
 
-# colorize manpages (when using less as pager)
-export LESS_TERMCAP_mb=$'\e[01;34m"'   # begin blinking
-export LESS_TERMCAP_md=$'\e[01;34m"'   # begin bold
-export LESS_TERMCAP_me=$'\e[0m"'       # end mode
-export LESS_TERMCAP_se=$'\e[0m"'       # end standout-mode
-export LESS_TERMCAP_so=$'\e[44;1;37m"' # begin standout-mode - info box
-export LESS_TERMCAP_ue=$'\e[0m"'       # end underline
-export LESS_TERMCAP_us=$'\e[01;35m"'   # begin underline
+# colorize less
+export LESS_TERMCAP_mb=$(tput bold; tput setaf 6)
+export LESS_TERMCAP_md=$(tput bold; tput setaf 2)
+export LESS_TERMCAP_me=$(tput sgr0)
+export LESS_TERMCAP_so=$(tput bold; tput setaf 0; tput setab 6)
+export LESS_TERMCAP_se=$(tput rmso; tput sgr0)
+export LESS_TERMCAP_us=$(tput smul; tput bold; tput setaf 3)
+export LESS_TERMCAP_ue=$(tput rmul; tput sgr0)
+export LESS_TERMCAP_mr=$(tput rev)
+export LESS_TERMCAP_mh=$(tput dim)
+export LESS_TERMCAP_ZN=$(tput ssubm)
+export LESS_TERMCAP_ZV=$(tput rsubm)
+export LESS_TERMCAP_ZO=$(tput ssupm)
+export LESS_TERMCAP_ZW=$(tput rsupm)
+export GROFF_NO_SGR=1
