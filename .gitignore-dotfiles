@@ -60,7 +60,7 @@
 /.npm-packages
 /.vim/bundle
 /.vim/tmp
-/.zgen
+/.zgenom
 /.ammonite
 /.bundle
 /.pub-cache
