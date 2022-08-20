@@ -5,7 +5,7 @@ augroup vimrc
     autocmd!
 augroup END
 
-source $HOME/.zgen/dottr/dottr-master/pan.vim
+source $HOME/.zgenom/sources/dottr/dottr/___/pan.vim
 Fry edit-multiple-files
 
 source $HOME/.vimrc_plugins
@@ -100,6 +100,8 @@ set undodir=~/.vim/tmp/undo//     " undo files
 set backupdir=~/.vim/tmp/backup// " backups
 set directory=~/.vim/tmp/swap//   " swap files
 
+set viminfo='1000,<50,s10,h " adjust vim file history https://vi.stackexchange.com/a/26037
+
 " Make those folders automatically if they don't already exist.
 if !isdirectory(expand(&undodir))
     call mkdir(expand(&undodir), "p")
@@ -128,6 +130,7 @@ autocmd vimrc FileType yaml setlocal expandtab tabstop=2 shiftwidth=2 softtabsto
 autocmd vimrc FileType javascript setlocal expandtab tabstop=2 shiftwidth=2 softtabstop=2
 autocmd vimrc FileType typescript.tsx setlocal expandtab tabstop=2 shiftwidth=2 softtabstop=2
 autocmd vimrc FileType typescript setlocal expandtab tabstop=2 shiftwidth=2 softtabstop=2
+autocmd vimrc FileType scala call rainbow#load()
 
 " filetype aliases
 autocmd vimrc BufNewFile,BufRead *.sbt set filetype=scala
