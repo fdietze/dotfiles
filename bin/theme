@@ -14,38 +14,39 @@ OLDTHEME=$(cat $HOME/.theme)
 echo "$THEME" > $HOME/.theme
 
 case $THEME in
-    light)
-        WALLPAPER="/home/felix/downloads/wallpapers/Vladstudio - Bird Bird Bird Bird Bird - 3840x2160.jpg"
-        VIM_COLORSCHEME="goodmorning"
-        ALACRITTY_COLORSCHEME="light"
-        export BAR_BG="#FFFFFF"
-        export BAR_FG="#000000"
-        export BAR_FG_ALT="#888888"
-        export BAR_WARN="#FF3F74"
-        export BAR_PEAK="#00AF2B"
-        export BAR_RAMP_0="%{F$BAR_FG_ALT}▁%{F-}"
-        export BAR_RAMP_7="%{F$BAR_PEAK}█%{F-}"
-        export BAR_RAMP_WARN_0="%{F$BAR_WARN}▁%{F-}"
-        export BAR_RAMP_WARN_1="%{F$BAR_WARN}▂%{F-}"
-        export WM_BORDER_NORMAL="#E8E9F2"
-        export WM_BORDER_FOCUSED="#777987"
-        ;;
-    dark)
-        WALLPAPER="/home/felix/downloads/wallpapers/Vladstudio - Magic of Music- Piano - 3840x2160.jpg"
-        VIM_COLORSCHEME="palenight"
-        ALACRITTY_COLORSCHEME="dark"
-        export BAR_BG="#191C26"
-        export BAR_FG="#BFC7D5"
-        export BAR_FG_ALT="#4B5263"
-        export BAR_WARN="#FF5370"
-        export BAR_PEAK="#DDFFA7"
-        export BAR_RAMP_0="%{F$BAR_FG_ALT}▁%{F-}"
-        export BAR_RAMP_7="%{F$BAR_PEAK}█%{F-}"
-        export BAR_RAMP_WARN_0="%{F$BAR_WARN}▁%{F-}"
-        export BAR_RAMP_WARN_1="%{F$BAR_WARN}▂%{F-}"
-        export WM_BORDER_NORMAL="#171717"
-        export WM_BORDER_FOCUSED="#82AAFF"
-        ;;
+  light)
+    WALLPAPER=$(shuf -n1 -e $HOME/downloads/wallpapers/light/*)
+    echo $WALLPAPER
+    VIM_COLORSCHEME="goodmorning"
+    ALACRITTY_COLORSCHEME="light"
+    export BAR_BG="#FFFFFF"
+    export BAR_FG="#000000"
+    export BAR_FG_ALT="#888888"
+    export BAR_WARN="#FF3F74"
+    export BAR_PEAK="#00AF2B"
+    export BAR_RAMP_0="%{F$BAR_FG_ALT}▁%{F-}"
+    export BAR_RAMP_7="%{F$BAR_PEAK}█%{F-}"
+    export BAR_RAMP_WARN_0="%{F$BAR_WARN}▁%{F-}"
+    export BAR_RAMP_WARN_1="%{F$BAR_WARN}▂%{F-}"
+    export WM_BORDER_NORMAL="#E8E9F2"
+    export WM_BORDER_FOCUSED="#777987"
+    ;;
+  dark)
+    WALLPAPER=$(shuf -n1 -e $HOME/downloads/wallpapers/dark/*)
+    VIM_COLORSCHEME="palenight"
+    ALACRITTY_COLORSCHEME="dark"
+    export BAR_BG="#191C26"
+    export BAR_FG="#BFC7D5"
+    export BAR_FG_ALT="#4B5263"
+    export BAR_WARN="#FF5370"
+    export BAR_PEAK="#DDFFA7"
+    export BAR_RAMP_0="%{F$BAR_FG_ALT}▁%{F-}"
+    export BAR_RAMP_7="%{F$BAR_PEAK}█%{F-}"
+    export BAR_RAMP_WARN_0="%{F$BAR_WARN}▁%{F-}"
+    export BAR_RAMP_WARN_1="%{F$BAR_WARN}▂%{F-}"
+    export WM_BORDER_NORMAL="#171717"
+    export WM_BORDER_FOCUSED="#82AAFF"
+    ;;
 esac
 
 
