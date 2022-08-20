@@ -1,11 +1,29 @@
 export FZF_DEFAULT_COMMAND='rg --files --hidden --glob "!.git"'
 export FZF_DEFAULT_OPTS="-x -m --ansi --exit-0 --select-1" # extended match and multiple selections
-
-# directory completion
-# https://github.com/junegunn/fzf/issues/1067#issuecomment-334290961
-_fzf_compgen_dir() {
-	rg --hidden --files . 2>/dev/null | awk 'function dirname(fn) { if (fn == "") return ".";  if (fn !~ "[^/]") return "/"; sub("/*$", "", fn); if (fn !~ "/") return "."; sub("/[^/]*$", "", fn); if (fn == "") fn = "/"; return fn } {$0 = dirname($0)} !a[$0]++'
-}
+export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+export FZF_CTRL_T_OPTS="--tac --height 90% --reverse --preview 'pistol {} \$FZF_PREVIEW_COLUMNS \$FZF_PREVIEW_LINES' --bind 'ctrl-d:preview-page-down,ctrl-r:reload($FZF_CTRL_T_COMMAND)"
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
+
+insertFileFromCurrentDir () {
+  files="$(\ls -tr --color=always | fzf --tac --height 90% --reverse --preview 'pistol {} $FZF_PREVIEW_COLUMNS $FZF_PREVIEW_LINES' --bind 'ctrl-d:preview-page-down,ctrl-r:reload(\ls -tr --color=always)' | sed -e 's/\(.*\)/"\1"/' | tr '\n' ' ')"
+  [[ -z "$files" ]] && return 0
+  LBUFFER+="$files"
+  local ret=$?
+  zle reset-prompt
+  return $ret
+}
+zle -N insertFileFromCurrentDir
+
+
+insertCommitHash () {
+  gitlog=$(git log --color=always --pretty=format:'%Cred%h %C(reset)%C(dim)%ad%Creset %C(blue)%an%Creset %s%C(yellow)%d%C(reset) %Cgreen(%ar)%Creset' --abbrev-commit --date-order --date="format:%F %R")
+  commits="$(echo -E $gitlog | fzf --no-sort --ansi --height 90% --reverse --preview "git show --color-words \$(echo {} | cut -d ' ' -f1)" | cut -d ' ' -f1 | tr '\n' ' ')"
+  [[ -z "$commits" ]] && return 0
+  LBUFFER+="$commits"
+  local ret=$?
+  zle reset-prompt
+  return $ret
+}
+zle -N insertCommitHash
