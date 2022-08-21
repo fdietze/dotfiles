@@ -24,6 +24,15 @@ multi_line = False
 # a command.
 multi_line_mode = psql
 
+# Destructive warning mode will alert you before executing a sql statement
+# that may cause harm to the database such as "drop table", "drop database",
+# "shutdown", "delete", or "update".
+# Possible values:
+# "all" - warn on data definition statements, server actions such as SHUTDOWN, DELETE or UPDATE
+# "moderate" - skip warning on UPDATE statements, except for unconditional updates
+# "off" - skip all warnings
+destructive_warning = off
+
 # Enables expand mode, which is similar to `\x` in psql.
 expand = False
 
