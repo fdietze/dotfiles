@@ -1,17 +1,24 @@
 #!/usr/bin/env bash
+# if [ $(cat $HOME/.theme) = "dark" ]; then
+#     style='-fn "Roboto Mono-8" -nb "#121212" -nf "#EFEFEF" -sb "#37BAFF" -sf "#101010"'
+# else
+#     style='-fn "Roboto Mono-8" -nb "#FFFFFF" -nf "#000000" -sb "#00D7FF" -sf "#101010"'
+# fi
+
+# if command -v yeganesh 2>/dev/null; then
+#     command=$(bash -c "yeganesh -x -- -i $style")
+# else 
+#     command=$(bash -c "dmenu_path | dmenu -i $style")
+# fi
+
+
+
+# # launch interactive zsh, to expand aliases
+# exec zsh -i -c "$command"
+
 if [ $(cat $HOME/.theme) = "dark" ]; then
-    style='-fn "Roboto Mono-8" -nb "#121212" -nf "#EFEFEF" -sb "#37BAFF" -sf "#101010"'
+    exec rofi -font "Monospace 32" -theme Arc-Dark -show run
 else
-    style='-fn "Roboto Mono-8" -nb "#FFFFFF" -nf "#000000" -sb "#00D7FF" -sf "#101010"'
+    exec rofi -font "Monospace 32" -theme Arc -show run
 fi
 
-if command -v yeganesh 2>/dev/null; then
-    command=$(bash -c "yeganesh -x -- -i $style")
-else 
-    command=$(bash -c "dmenu_path | dmenu -i $style")
-fi
-
-
-
-# launch interactive zsh, to expand aliases
-exec zsh -i -c "$command"

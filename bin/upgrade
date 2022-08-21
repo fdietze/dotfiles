@@ -1,19 +1,22 @@
 #!/usr/bin/env bash
-set -Eeuo pipefail # https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/#:~:text=set%20%2Du,is%20often%20highly%20desirable%20behavior.
+set -Eeuo pipefail # https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail
 # set -x # print all commands
 shopt -s expand_aliases
 
 source /etc/os-release # load linux distribution information
 case $NAME in
     NixOS )
+        echo "checking nixos configuration"
+        nix-instantiate '<nixpkgs/nixos>' -A system
         echo "upgrading system"
         echo "channels:"
         sudo nix-channel --list
         # sudo nixos-rebuild boot --upgrade
         CHANNEL=$(sudo nix-channel --list | grep -oP "[0-9]{2}\.[0-9]{2}")
         sudo nix-channel --update
-        (cd "$HOME/projects/nixpkgs" && git fetch && git checkout "nixos-$CHANNEL" && git pull)
-        sudo nixos-rebuild boot -I nixpkgs="$HOME/projects/nixpkgs"
+        # (cd "$HOME/projects/nixpkgs" && git fetch && git checkout "nixos-$CHANNEL" && git pull)
+        # sudo nixos-rebuild boot -I nixpkgs="$HOME/projects/nixpkgs"
+        sudo nixos-rebuild boot
         echo "updating user space"
         echo "channels:"
         nix-channel --list
@@ -35,14 +38,12 @@ zsh -c "source ~/.zgenom/zgenom.zsh && zgenom selfupdate && zgenom update"
 # gem update
 
 echo "updating global npm packages"
+npm -g update # installs yarn
 yarn global upgrade
-npm -g update
 
 # echo "updating rust installation"
 # multirust update
 
 sync
-
-# backup-home
 
 exit 0
