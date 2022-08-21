@@ -13,9 +13,13 @@ set history=10000                 " keep x lines of command line history
 set scrolloff=5 sidescrolloff=10  " keep some lines before and after the cursor visible
 set clipboard=unnamedplus,unnamed,ideaput " integrate with system clipboard
 
-" set multiple-cursors
+
+" https://github.com/JetBrains/ideavim/wiki/%22set%22-commands
+set multiple-cursors
 set commentary
 set surround                      " emulate vim-surround plugin
+set ideajoin
+set ideastatusicon=disabled
 
 
 " set <leader> to <space>
@@ -30,7 +34,8 @@ nnoremap <leader>vr :source ~/.ideavimrc<CR>
 " NEO-Layout
 
 " simple closing and saving
-nnoremap ö :action SaveAll<CR>:action Flutter.Toolbar.ReloadAction<CR>
+nnoremap ö :action SaveAll<CR>
+nnoremap <leader>ö :action SaveAll<CR>
 nnoremap ä :action Exit<CR>
 nnoremap ü :q<CR>
 nnoremap <leader>ü :action CloseAllEditorsButActive<CR>
@@ -50,7 +55,7 @@ vnoremap Q @f
 map Y y$
 
 " don't overwrite register when pasting over selection
-vnoremap p pgvy
+" vnoremap p pgvy
 
 " paste over rest of line
 " nnoremap <leader>p v$<Left>pgvy
@@ -108,6 +113,7 @@ nmap L :action PreviousTab<CR>
 nmap <C-p> :action ParameterInfo<CR>
 imap <C-p> <C-o>:action ParameterInfo<CR>
 nmap <leader>n :action GotoNextError<CR>
+map gh <Action>(ShowErrorDescription)
 
 
 nmap <leader>ri :action Inline<CR>
@@ -126,4 +132,3 @@ nmap <, :action MoveElementLeft<CR>
 nmap >, :action MoveElementRight<CR>
 
 nmap <leader>gr :action Vcs.RollbackChangedLines<CR>
-
