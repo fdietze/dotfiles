@@ -6,9 +6,6 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
 fi
 
 
-export DISABLE_AUTO_UPDATE="true" # disable oh-my-zsh auto-update
-export DISABLE_UPDATE_PROMPT="true" # disable oh-my-zsh update prompt
-export ZSH_THEME="" # disable oh-my-zsh themes
 export DISABLE_MAGIC_FUNCTIONS=true # fix slow paste in zsh (https://github.com/vercel/hyper/issues/1276#issuecomment-510829201)
 
 
@@ -16,12 +13,6 @@ export DISABLE_MAGIC_FUNCTIONS=true # fix slow paste in zsh (https://github.com/
 source "${HOME}/.zgenom/zgenom.zsh"
 if ! zgenom saved; then
     echo "Creating a zgenom save"
-
-    # Ohmyzsh base library
-    zgenom ohmyzsh
-
-    # Install ohmyzsh osx plugin if on macOS
-    [[ "$(uname -s)" = Darwin ]] && zgenom ohmyzsh plugins/osx
 
     # completions
     zgenom load zsh-users/zsh-completions
