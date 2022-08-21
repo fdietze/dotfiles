@@ -489,3 +489,11 @@ cursor:
 #print_events: false
 launcher:
   program: xdg-open
+window:
+  # Window padding (changes require restart)
+  #
+  # Blank space added around the window in pixels. This padding is scaled
+  # by DPI and the specified value is always added at both opposing sides.
+  padding:
+    x: 5
+    y: 5
