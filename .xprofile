@@ -1,0 +1,6 @@
+xsettingsd &
+
+nm-applet &
+blueman-applet &
+megasync &
+keepassxc &

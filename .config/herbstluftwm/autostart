@@ -225,8 +225,4 @@ hc detect_monitors
 hc set auto_detect_monitors true
 hc set mouse_recenter_gap 1
 
-"$HOME/bin/theme" dark
-
-(nm-applet & disown)
-(blueman-applet & disown)
-(megasync & disown)
+"$HOME/bin/theme" $(cat $HOME/.theme || echo dark)
