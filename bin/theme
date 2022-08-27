@@ -19,11 +19,13 @@ case $THEME in
     echo $WALLPAPER
     VIM_COLORSCHEME="goodmorning"
     ALACRITTY_COLORSCHEME="light"
+    GTK_THEME="Qogir-Light"
+    GTK_ICON_THEME="Qogir"
     export BAR_BG="#FFFFFF"
     export BAR_FG="#000000"
     export BAR_FG_ALT="#888888"
     export BAR_WARN="#FF3F74"
-    export BAR_PEAK="#00AF2B"
+    export BAR_PEAK="#1C00DE"
     export BAR_RAMP_0="%{F$BAR_FG_ALT}▁%{F-}"
     export BAR_RAMP_7="%{F$BAR_PEAK}█%{F-}"
     export BAR_RAMP_WARN_0="%{F$BAR_WARN}▁%{F-}"
@@ -35,20 +37,27 @@ case $THEME in
     WALLPAPER=$(shuf -n1 -e $HOME/downloads/wallpapers/dark/*)
     VIM_COLORSCHEME="palenight"
     ALACRITTY_COLORSCHEME="dark"
+    GTK_THEME="Qogir-Dark"
+    GTK_ICON_THEME="Qogir-Dark"
     export BAR_BG="#191C26"
     export BAR_FG="#BFC7D5"
     export BAR_FG_ALT="#4B5263"
     export BAR_WARN="#FF5370"
-    export BAR_PEAK="#DDFFA7"
+    export BAR_PEAK="#9282FF"
     export BAR_RAMP_0="%{F$BAR_FG_ALT}▁%{F-}"
     export BAR_RAMP_7="%{F$BAR_PEAK}█%{F-}"
     export BAR_RAMP_WARN_0="%{F$BAR_WARN}▁%{F-}"
     export BAR_RAMP_WARN_1="%{F$BAR_WARN}▂%{F-}"
     export WM_BORDER_NORMAL="#171717"
-    export WM_BORDER_FOCUSED="#82AAFF"
+    export WM_BORDER_FOCUSED="#9282FF"
     ;;
 esac
 
+
+echo "gtk..."
+sed -i "s/Net\/ThemeName.*/Net\/ThemeName \"$GTK_THEME\"/" ~/.config/xsettingsd/xsettingsd.conf
+sed -i "s/Net\/IconThemeName.*/Net\/IconThemeName \"$GTK_ICON_THEME\"/" ~/.config/xsettingsd/xsettingsd.conf
+killall -HUP xsettingsd
 
 echo "alacritty..."
 yq e ".colors alias = \"$ALACRITTY_COLORSCHEME\"" -i ~/.config/alacritty/alacritty.yml
@@ -58,6 +67,8 @@ source "/home/felix/.zgenom/sources/dottr/dottr/___/yolk/zsh/nvim-rpc.zsh"
 nvim-rpc-all "set background=$THEME"
 nvim-rpc-all "colorscheme $VIM_COLORSCHEME"
 
+echo "intellij... (Plugin: External LAF Switcher)"
+echo "$THEME" | nc localhost 16666
 
 echo "cursor..."
 xsetroot -cursor_name left_ptr
