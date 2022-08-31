@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail # https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail
+
+command="$@"
+logfile="$(mktemp)"
+
+echo -e "$command\n" > "$logfile"
+
+if zsh -i -c "$command" >> "$logfile" 2>&1; then
+  rm "$logfile"
+  exit 0
+else
+  alacritty -e $PAGER "$logfile"
+  rm "$logfile"
+  exit 1
+fi
+
