@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail # https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail
+
+command -v apack
+command -v rmtrash
+
+FILE=$1 # can also be a directory
+
+apack "$FILE.7z" "$FILE"
+rmtrash -rfv "$FILE"
+

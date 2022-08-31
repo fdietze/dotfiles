@@ -57,21 +57,21 @@ esac
 echo "gtk..."
 sed -i "s/Net\/ThemeName.*/Net\/ThemeName \"$GTK_THEME\"/" ~/.config/xsettingsd/xsettingsd.conf
 sed -i "s/Net\/IconThemeName.*/Net\/IconThemeName \"$GTK_ICON_THEME\"/" ~/.config/xsettingsd/xsettingsd.conf
-killall -HUP xsettingsd
+killall -HUP xsettingsd &
 
 echo "alacritty..."
-yq e ".colors alias = \"$ALACRITTY_COLORSCHEME\"" -i ~/.config/alacritty/alacritty.yml
+yq e ".colors alias = \"$ALACRITTY_COLORSCHEME\"" -i ~/.config/alacritty/alacritty.yml &
 
 echo "nvim..."
 source "/home/felix/.zgenom/sources/dottr/dottr/___/yolk/zsh/nvim-rpc.zsh"
-nvim-rpc-all "set background=$THEME"
-nvim-rpc-all "colorscheme $VIM_COLORSCHEME"
+nvim-rpc-all "set background=$THEME" &
+nvim-rpc-all "colorscheme $VIM_COLORSCHEME" &
 
 echo "intellij... (Plugin: External LAF Switcher)"
-echo "$THEME" | nc localhost 16666
+echo "$THEME" | nc localhost 16666 &
 
 echo "cursor..."
-xsetroot -cursor_name left_ptr
+xsetroot -cursor_name left_ptr &
 
 
 
@@ -93,16 +93,33 @@ hc attr theme.urgent.color orange
 hc attr theme.floating.border_width 2
 
 
+
+echo "i3..."
+# hc attr theme.tiling.reset 1
+# hc attr theme.floating.reset 1
+# hc set frame_border_active_color $WM_BORDER_FOCUSED
+# hc set frame_border_normal_color $WM_BORDER_NORMAL
+# hc set frame_border_width 3
+
+# hc set window_border_active_color $WM_BORDER_FOCUSED
+# hc set window_border_normal_color $WM_BORDER_NORMAL
+# hc set window_border_width 3
+
+# hc attr theme.urgent.color orange
+# hc attr theme.floating.border_width 2
+
+
+
 echo "wallpaper..."
-nitrogen --head=0 --set-zoom-fill "$WALLPAPER"
-nitrogen --head=1 --set-zoom-fill "$WALLPAPER"
-nitrogen --head=2 --set-zoom-fill "$WALLPAPER"
+nitrogen --head=0 --set-zoom-fill "$WALLPAPER" &
+nitrogen --head=1 --set-zoom-fill "$WALLPAPER" &
+nitrogen --head=2 --set-zoom-fill "$WALLPAPER" &
 # xwinwrap -ov -g 2560x1440+0+0 -- mpv -wid WID $HOME/downloads/Baraka\ 1992\ BRRip\ qalbalesad\ rash@gmail\ com-y68wz51WvjM.mkv --no-osc --no-osd-bar --loop-file --player-operation-mode=cplayer --no-audio --panscan=1.0 --no-input-default-bindings --start="$(( $RANDOM % 100 ))%" &
 
 
 
 # echo "statusbar..."
-"$HOME/bin/statusbar"
+"$HOME/bin/statusbar" &
 
 echo "git config delta..."
 case $THEME in

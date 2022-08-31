@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+echo "stopping network-heavy services..."
+systemctl stop ipfs > /dev/null 2>&1
+systemctl stop btsync > /dev/null 2>&1
+systemctl stop syncthing > /dev/null 2>&1
+systemctl stop dropbox > /dev/null 2>&1
+systemctl stop nixos-upgrade.timer > /dev/null 2>&1
+systemctl stop nixos-upgrade > /dev/null 2>&1
+pkill megasync

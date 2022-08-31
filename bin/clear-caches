@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail # https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail
+set -x # print all commands
+
+docker system prune -af
+nix-collect-garbage --delete-older-than 1d
+sudo nix-collect-garbage --delete-older-than 1d
+rm -rf ~/.cache/{yarn,Cypress,coursier,JetBrains,typescript,prisma,pip,mozilla,chromium,node-gyp}
+rm -rf ~/.ivy2
+trash-empty
