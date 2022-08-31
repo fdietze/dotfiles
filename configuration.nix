@@ -51,20 +51,21 @@ in {
   # boot.kernelPackages = pkgs.linuxPackages_latest;
   # boot.kernelPackages = pkgs.linuxPackages_4_19;
   boot.kernelParams = [
+    # "thermal.crt=85" # critical
+    # "thermal.act=80" # set all critical temperatures, to throttle cpu speed 
     # "acpi_backlight=vendor"
     # "acpi.ec_no_wakeup=1"
     # "psmouse.synaptics_intertouch=1" # https://wiki.archlinux.org/index.php/Lenovo_ThinkPad_X1_Carbon_(Gen_5)#Bug:_Trackpoint.2FTrackpad_not_working
   ];
   boot.kernel.sysctl = {
-    "kernel.sysrq" = 1;
-    "vm.swappiness" = 0;
+    "kernel.sysrq" = 1; # enable REISUB
+    "vm.swappiness" = 1;
     "fs.inotify.max_user_watches" = "4096000";
   };
-  # zramSwap.enable = true;
-  # boot.cleanTmpDir = true;
+  zramSwap.enable = true;
   boot.tmpOnTmpfs = true;
 
-  boot.extraModulePackages = [ config.boot.kernelPackages.exfat-nofuse ];
+  # boot.extraModulePackages = [ config.boot.kernelPackages.exfat-nofuse ];
 
   console.font = "Lat2-Terminus16";
   console.keyMap = "neo";
@@ -86,17 +87,27 @@ in {
 
   # networking.firewall.allowedUDPPortRanges = [ { from = 60000; to = 61000; } ]; # for mosh
   networking.firewall.allowedTCPPorts = [ 12345 5000 ]; # devserver
+  networking.firewall.allowedUDPPorts = [ 8123 ]; # Stream Audio from VirtualBox
+
+  # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+  # time.timeZone = "Atlantic/Azores";
+  # time.timeZone = "Europe/Lisbon";
+  time.timeZone = "Europe/Berlin";
+  # time.timeZone = "America/Mexico_City";
+  # time.timeZone = "America/Guatemala";
+  # time.timeZone = "America/Guadeloupe";
+  # time.timeZone = "Chile/Continental";
 
   hardware = {
-    pulseaudio = {
-      enable = true;
-      package = pkgs.pulseaudioFull; # bluetooth support
-    };
+    # pulseaudio = {
+    #   enable = true;
+    #   package = pkgs.pulseaudioFull; # bluetooth support
+    # };
 
     # for 32bit steam games
     opengl.driSupport32Bit = true;
     opengl.extraPackages32 = with pkgs.pkgsi686Linux; [ libva ];
-    pulseaudio.support32Bit = true;
+    # pulseaudio.support32Bit = false;
 
     sane.enable = true;
     bluetooth.enable = true;
@@ -106,7 +117,6 @@ in {
 
   powerManagement = {
     enable = true;
-    #   cpuFreqGovernor = "powersave"; # not working: https://github.com/NixOS/nixpkgs/issues/64368
     #   # powertop.enable = true;
   };
 
@@ -120,6 +130,9 @@ in {
       # enablePepperFlash = true;
       # enablePepperPDF = true;
       enableWideVine = true;
+    };
+    polybar = pkgs.polybar.override {
+      i3Support = true;
     };
     oraclejdk.accept_license = true;
   };
@@ -141,19 +154,23 @@ in {
       xorg.xkill
       psmisc
       wirelesstools
-      pmount
       xorg.xbacklight
       acpi
       samba
       cifs-utils
+      mtpfs
+      jmtpfs
+      file
 
       # defaults
+      lsof
       wget
       curl
       htop
       atop
       git
       git-fire
+      moreutils
       netcat
       nmap
       calc
@@ -173,43 +190,46 @@ in {
       pkgs.unstable.fzf
       ripgrep
       tig
-      ctags
       tmate
       scrot
       nix-zsh-completions
       haskellPackages.yeganesh
       termite
+      alacritty
       mosh
       playerctl
       pamixer
+      direnv
+      jq
+      yq-go
 
       # desktop
-      gnome3.gnome_themes_standard
+      gnome.gnome-themes-extra
+      nordic # gtk theme
+      qogir-theme # gtk theme
+      qogir-icon-theme
+      gnome3.zenity
       nitrogen
-      grc
       slock
-      gksu
       dzen2
       dmenu
       networkmanager_dmenu
       networkmanagerapplet
-      polybar
+      polybarFull
       xcwd
       libnotify
-      dunst
-      shared_mime_info # file-type associations?
-      gnome3.dconf # needed for meld / networkmanager(?)
+      shared-mime-info # file-type associations?
+      dconf # needed for meld / networkmanager(?)
       gnome3.nautilus
       gnome3.gvfs
-      mtpfs
-      jmtpfs
       gnome3.file-roller
-      gnome3.gnome_keyring
+      gnome3.gnome-keyring
       gnome3.seahorse
       libsecret
       # gnome3.gnome_keyring gnome3.seahorse libsecret
       paper-icon-theme
       vanilla-dmz
+      xsettingsd
 
       # applications
       keepassxc
@@ -224,103 +244,113 @@ in {
       kvirc
       # wine winetricks mono
       # libreoffice-fresh hunspell hunspellDicts.en-us languagetool mythes
+      libsForQt5.qtstyleplugins
+      libsForQt5.qt5ct
 
       # development
       # neovim
       msgpack-tools # for neovim
-      scala
-      sbt
-      maven
-      visualvm
-      gnumake
-      meld
-      docker
-      docker_compose
-      jdk11
-      python2
+      # scala
+      # sbt
+      # maven
+      # visualvm
+      # gnumake
+      # meld
+      # docker
+      # docker-compose
+      # jdk17
+      # python2
       python3
+      python3Packages.isodate
       # rust.rustc rust.cargo
       # nim
-      texlive.combined.scheme-full
+      # texlive.combined.scheme-full
       # biber
 
     ];
-
-    shellAliases = {
-      l = "ls -l";
-      t = "${pkgs.tree}/bin/tree -C"; # -C is for color=always
-      # vn = "${neovim}/bin/nvim /etc/nixos/configuration.nix";
-      rcp =
-        "${pkgs.rsync}/bin/rsync --archive --partial --info=progress2 --human-readable";
-      sys = "sudo systemctl";
-      sysu = "systemctl --user";
-    };
-
-    sessionVariables = {
-      SUDO_EDITOR = "nvim";
-      EDITOR = "nvim";
-      BROWSER = "chromium";
-    };
   };
   documentation.enable = true;
 
   nix.gc.automatic = true;
-  nix.gc.dates = "monthly";
+  nix.gc.dates = "weekly";
   nix.gc.options = "--delete-older-than 7d";
-  nix.daemonIONiceLevel = 7;
-  nix.daemonNiceLevel = 19;
+  nix.daemonIOSchedPriority = 7;
+  # nix.daemonCPUSchedPolicy = "idle";
   system.autoUpgrade.enable = true;
+
+  # nixdirenv requires this to stop nix from garbage collecting its stuff
+  nix.extraOptions = ''
+    keep-outputs = true
+    keep-derivations = true
+  '';
 
   programs = {
     zsh = {
       enable = true;
       interactiveShellInit = ''
+        # color output of common commands
         source "${pkgs.grc}/etc/grc.zsh"
-        source "${pkgs.fzf}/share/fzf/completion.zsh"
-        source "${pkgs.fzf}/share/fzf/key-bindings.zsh"
       '';
     };
+    java.enable = true; # otherwise, JAVA_HOME is not set
   };
 
   programs.command-not-found.enable = true;
   # programs.gnupg.agent = { enable = true; enableSSHSupport = true; };
+  programs.ssh.startAgent = true;
   programs.adb.enable = true;
+  programs.dconf.enable = true;
+  programs.light.enable = true;
 
   programs.xss-lock = {
     enable = true;
     lockerCommand = "-- ${pkgs.i3lock}/bin/i3lock -c 292D3E";
   };
 
+  programs.file-roller.enable = true;
+
+  programs.sway = {
+    enable = true;
+    wrapperFeatures.gtk = true; # so that gtk works properly
+    extraPackages = with pkgs; [
+      swaylock
+      swayidle
+      wl-clipboard
+      mako # notification daemon
+      alacritty # Alacritty is the default terminal in the config
+      dmenu # Dmenu is the default in the config but i recommend wofi since its wayland native
+    ];
+  };
+
   fonts = {
-    enableFontDir = true;
+    enableDefaultFonts = true;
     enableGhostscriptFonts = true;
     fonts = with pkgs; [
       corefonts # Arial, Verdana, ...
       vistafonts # Consolas, ...
       google-fonts # Droid Sans, Roboto, ...
       ubuntu_font_family
-      dejavu_fonts
-      symbola # unicode symbols
       powerline-fonts
     ];
     fontconfig = {
       includeUserConf = false;
-      defaultFonts.monospace = [ "Roboto Mono" "DejaVu Sans Mono" ];
+      defaultFonts.monospace = [ "Ubuntu Mono - Bront" "Noto Color Emoji" ];
     };
+    fontDir.enable = true;
   };
 
   location = {
     # provider = "geoclue2";
 
-    # Azores
-    latitude = 37.7412;
-    longitude = 25.6756;
+    # Mexico City
+    # latitude = 19.433;
+    # longitude = -99.133;
     # Lisbon
     # latitude = 38.72;
     # longitude = -9.15;
     # Aachen
-    # latitude = 50.77;
-    # longitude = 6.08;
+    latitude = 50.77;
+    longitude = 6.08;
     # Montreal
     # latitude = "45.50";
     # longitude = "-73.56";
@@ -329,20 +359,19 @@ in {
     # longitude = -61.5331;
   };
 
-  # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-  time.timeZone = "Atlantic/Azores";
-  # time.timeZone = "Europe/Lisbon";
-  # time.timeZone = "Europe/Berlin";
-  # time.timeZone = "America/Guadeloupe";
-  # time.timeZone = "Chile/Continental";
-
   security = {
     wrappers = {
-      pmount.source = "${pkgs.pmount}/bin/pmount";
-      pumount.source = "${pkgs.pmount}/bin/pumount";
-      eject.source = "${pkgs.eject}/bin/eject";
-      light.source = "${pkgs.light}/bin/light";
-      slock.source = "${pkgs.slock}/bin/slock";
+        # pmount.source = "${pkgs.pmount}/bin/pmount";
+        # pumount.source = "${pkgs.pmount}/bin/pumount";
+      #   slock.source = "${pkgs.slock}/bin/slock";
+      #   fusermount.source = "${pkgs.fuse}/bin/fusermount";
+
+      iotop = {
+        setuid = true;
+        owner = "root";
+        group = "root";
+        source = "${pkgs.iotop}/bin/iotop";
+      };
     };
     sudo = {
       enable = true;
@@ -358,19 +387,55 @@ in {
 
   users.extraUsers.felix = {
     isNormalUser = true;
+    extraGroups =
+      [ "wheel" "networkmanager" "vboxusers" "docker" "adbusers" "video" "disk" ];
+    shell = pkgs.zsh;
+    openssh.authorizedKeys.keys = [ ];
+  };
+
+  users.extraUsers.tiphanie = {
+    isNormalUser = true;
     extraGroups = [ "wheel" "networkmanager" "vboxusers" "docker" "adbusers" ];
     shell = pkgs.zsh;
     openssh.authorizedKeys.keys = [ ];
   };
+
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+    # If you want to use JACK applications, uncomment this
+    #jack.enable = true;
+  };
+
+  environment.etc = {
+    "wireplumber/bluetooth.lua.d/51-bluez-config.lua".text = ''
+      bluez_monitor.properties = {
+        ["bluez5.enable-sbc-xq"] = true,
+        ["bluez5.enable-msbc"] = true,
+        ["bluez5.enable-hw-volume"] = true,
+        ["bluez5.headset-roles"] = "[ hsp_hs hsp_ag hfp_hf hfp_ag ]"
+      }
+    '';
   };
 
   services = {
     fstrim.enable = true;
-    locate.enable = true;
+    lorri.enable = true; # faster nix-shell replacement
+    # locate.enable = true;
 
-    upower.enable = true;
+    upower = {
+      enable = true;
+      percentageLow = 20;
+      percentageCritical = 15;
+    };
+
     gvfs.enable = true;
-    gnome3.gnome-keyring.enable = true;
+    gnome = {
+      gnome-keyring.enable = true;
+      sushi.enable = true; # quick previewer for nautilus
+    };
     udisks2.enable = true;
 
     geoclue2.enable = true; # location service
@@ -378,20 +443,117 @@ in {
 
     tlp = {
       enable = true;
+      settings = {
+        tlp_DEFAULT_MODE = "BAT";
+        CPU_SCALING_GOVERNOR_ON_BAT = "powersave";
+        CPU_SCALING_GOVERNOR_ON_AC = "powersave";
+        DEVICES_TO_DISABLE_ON_STARTUP = "bluetooth";
+      };
+    };
+    throttled = {
+      # Fix Intel CPU Throttling on Linux
+      # https://github.com/erpalma/throttled
+      # default config: https://github.com/erpalma/throttled/blob/master/etc/throttled.conf
+      enable = true;
       extraConfig = ''
-        tlp_DEFAULT_MODE=BAT
-        CPU_SCALING_GOVERNOR_ON_BAT=powersave
-        CPU_SCALING_GOVERNOR_ON_AC=powersave
-      '';
+        [GENERAL]
+        # Enable or disable the script execution
+        Enabled: True
+        # SYSFS path for checking if the system is running on AC power
+        Sysfs_Power_Path: /sys/class/power_supply/AC*/online
+        # Auto reload config on changes
+        Autoreload: True
+
+        ## Settings to apply while connected to Battery power
+        [BATTERY]
+        # Update the registers every this many seconds
+        Update_Rate_s: 30
+        # Max package power for time window #1
+        PL1_Tdp_W: 29
+        # Time window #1 duration
+        PL1_Duration_s: 28
+        # Max package power for time window #2
+        PL2_Tdp_W: 44
+        # Time window #2 duration
+        PL2_Duration_S: 0.002
+        # Max allowed temperature before throttling
+        Trip_Temp_C: 70
+        # Set cTDP to normal=0, down=1 or up=2 (EXPERIMENTAL)
+        cTDP: 0
+        # Disable BDPROCHOT (EXPERIMENTAL)
+        Disable_BDPROCHOT: False
+
+        ## Settings to apply while connected to AC power
+        [AC]
+        # Update the registers every this many seconds
+        Update_Rate_s: 5
+        # Max package power for time window #1
+        PL1_Tdp_W: 44
+        # Time window #1 duration
+        PL1_Duration_s: 28
+        # Max package power for time window #2
+        PL2_Tdp_W: 44
+        # Time window #2 duration
+        PL2_Duration_S: 0.002
+        # Max allowed temperature before throttling
+        Trip_Temp_C: 90
+        # Set HWP energy performance hints to 'performance' on high load (EXPERIMENTAL)
+        # Uncomment only if you really want to use it
+        # HWP_Mode: False
+        # Set cTDP to normal=0, down=1 or up=2 (EXPERIMENTAL)
+        cTDP: 0
+        # Disable BDPROCHOT (EXPERIMENTAL)
+        Disable_BDPROCHOT: False
+
+        # All voltage values are expressed in mV and *MUST* be negative (i.e. undervolt)! 
+        [UNDERVOLT.BATTERY]
+        # CPU core voltage offset (mV)
+        CORE: 0
+        # Integrated GPU voltage offset (mV)
+        GPU: 0
+        # CPU cache voltage offset (mV)
+        CACHE: 0
+        # System Agent voltage offset (mV)
+        UNCORE: 0
+        # Analog I/O voltage offset (mV)
+        ANALOGIO: 0
+
+        # All voltage values are expressed in mV and *MUST* be negative (i.e. undervolt)!
+        [UNDERVOLT.AC]
+        # CPU core voltage offset (mV)
+        CORE: 0
+        # Integrated GPU voltage offset (mV)
+        GPU: 0
+        # CPU cache voltage offset (mV)
+        CACHE: 0
+        # System Agent voltage offset (mV)
+        UNCORE: 0
+        # Analog I/O voltage offset (mV)
+        ANALOGIO: 0
+
+        # [ICCMAX.AC]
+        # # CPU core max current (A)
+        # CORE: 
+        # # Integrated GPU max current (A)
+        # GPU: 
+        # # CPU cache max current (A)
+        # CACHE: 
+
+        # [ICCMAX.BATTERY]
+        # # CPU core max current (A)
+        # CORE: 
+        # # Integrated GPU max current (A)
+        # GPU: 
+        # # CPU cache max current (A)
+        # CACHE: 
+        '';
     };
 
     logind = {
       extraConfig = ''
-        RuntimeDirectorySize=3G
+        RuntimeDirectorySize=5G
       '';
     };
-
-    # # usbmuxd.enable = true; # ios debugging
 
     # # https://github.com/NixOS/nixpkgs/issues/41189#issuecomment-491757154
     # vsliveshare = {
@@ -423,20 +585,23 @@ in {
     };
 
     xserver = {
-      videoDrivers = [ "modesetting" ];
-      useGlamor = true; # Glamor module for 2D acceleration
-      dpi = 210;
       enable = true;
+      videoDrivers = [ "modesetting" ];
+      # useGlamor = true; # Glamor module for 2D acceleration
+      dpi = 210;
       layout = "de,de";
       xkbVariant = "neo,basic";
       xkbOptions = "grp:menu_toggle";
 
       libinput = {
         enable = true;
-        scrollMethod = "twofinger";
-        disableWhileTyping = true;
-        tapping = false;
-        accelSpeed = "0.9";
+        touchpad = {
+          disableWhileTyping = true;
+          tapping = false;
+          scrollMethod = "twofinger";
+          accelSpeed = "0.9";
+          naturalScrolling = true;
+        };
       };
 
       displayManager = {
@@ -444,8 +609,9 @@ in {
           enable = true;
           user = "felix";
         };
-        defaultSession = "none+herbstluftwm";
+        defaultSession = "none+i3";
         lightdm = { enable = true; };
+        # gdm = { enable = true; };
         # lock on suspend
         sessionCommands = ''
           ${pkgs.xss-lock}/bin/xss-lock -- ${pkgs.i3lock}/bin/i3lock -c 292D3E &
@@ -453,13 +619,14 @@ in {
       };
       desktopManager.xterm.enable = false;
       windowManager.xmonad = {
-        enable = true;
+        enable = false;
         enableContribAndExtras = true;
       };
       windowManager.herbstluftwm.enable = true;
-      windowManager.herbstluftwm.package = pkgs.unstable.herbstluftwm;
+      # windowManager.herbstluftwm.package = pkgs.unstable.herbstluftwm;
       desktopManager.plasma5.enable = false;
-      windowManager.i3.enable = false;
+      desktopManager.gnome.enable = false;
+      windowManager.i3.enable = true;
     };
 
     # picom.enable = true;
@@ -467,16 +634,13 @@ in {
     # Redshift adjusts the color temperature of your screen according to your surroundings. This may help your eyes hurt less if you are working in front of the screen at night.
     redshift.enable = true;
 
-    ## hide mouse after some seconds of no movement
+    # hide mouse after some seconds of no movement
     unclutter-xfixes.enable = true;
 
     acpid.enable = true;
-    udev.extraRules = ''
-      SUBSYSTEM=="power_supply", ATTR{status}=="Discharging", ATTR{capacity}=="[0-8]", RUN+="${pkgs.systemd}/bin/systemctl hibernate"
-    '';
 
     # cache browser profiles in ram
-    psd.enable = true;
+    # psd.enable = true;
 
     syncthing = {
       enable = true;
@@ -486,11 +650,11 @@ in {
       package = pkgs.unstable.syncthing;
     };
 
-    keybase = { enable = false; };
-    kbfs = {
-      enable = false;
-      mountPoint = "/keybase"; # mountpoint important for keybase-gui
-    };
+    # keybase = { enable = true; };
+    # kbfs = {
+    #   enable = true;
+    #   mountPoint = "/keybase"; # mountpoint important for keybase-gui
+    # };
 
     ## btsync = {
     ##   enable = true;
@@ -516,6 +680,27 @@ in {
     #  drivers = [ pkgs.gutenprint pkgs.hplip pkgs.epson-escpr ];
     #};
   };
+
+  # workaround to from https://discourse.nixos.org/t/systemd-user-units-and-no-such-path/8399
+  # systemd.user.extraConfig = ''
+  #   DefaultEnvironment="PATH=/run/current-system/sw/bin"
+  # '';
+
+  # systemd.user = {
+  #   services.megamount = {
+  #     description = "Mount mega cloud storage";
+  #     after = [ "network-online.target" ];
+  #     wants = [ "network-online.target" ];
+  #     wantedBy = [ "multi-user.target" ];
+  #     serviceConfig = {
+  #       ExecStartPre = "/run/current-system/sw/bin/mkdir -p /home/felix/mega";
+  #       ExecStart =
+  #         "/usr/bin/env PATH=$PATH:/run/wrappers/bin ${pkgs.rclone}/bin/rclone mount mega: /home/felix/mega --vfs-cache-mode full --no-modtime";
+  #       Restart = "always";
+  #       RestartSec = "10";
+  #     };
+  #   };
+  # };
 
   # systemd.services.delayedHibernation = {
   #   description = "Delayed hibernation trigger";
