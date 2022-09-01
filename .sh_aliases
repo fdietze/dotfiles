@@ -1,9 +1,14 @@
 # dotfile management
-DOTFILES_GIT="GIT_DIR=$HOME/projects/dotfiles GIT_WORK_TREE=$HOME"
+DOTFILES_GIT="GIT_DIR=$HOME/projects/dotfiles GIT_WORK_TREE=$HOME GIT_CONFIG_GLOBAL=~/.gitconfig-dotfiles"
 DOTFILES_TIG="TIGRC_USER=$HOME/.config/tig/config-dotfiles"
 alias dt="$DOTFILES_GIT git -c status.showUntrackedFiles=no -c core.excludesfile=$HOME/.gitignore-dotfiles"
 alias tigd="$DOTFILES_GIT $DOTFILES_TIG tig"
-vd() ( $EDITOR "$HOME/$(dt ls-tree --full-tree --name-only -r HEAD | fzf)"; )
+alias dtls="dt ls-tree --full-tree --name-only -r HEAD"
+vd() ( 
+  file="$(dtls | fzf --preview 'pistol {} $FZF_PREVIEW_COLUMNS $FZF_PREVIEW_LINES' --bind 'ctrl-d:preview-page-down')"
+  [[ -n $file ]] && $EDITOR "$HOME/$file"
+)
+
 
 
 # listing files
@@ -49,6 +54,7 @@ alias gparted='gksudo gparted'
 alias startmac='VBoxManage startvm "macOS" --type headless'
 alias tclip='tmate display -p "#{tmate_ssh}" | xclip -selection clipboard'  # tmate session token to clipboard
 alias tw=timew
+alias tig='tig status'
 
 
 

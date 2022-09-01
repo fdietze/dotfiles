@@ -24,5 +24,3 @@
 
 # Syncthing
 .stignore
-
-.envrc*
