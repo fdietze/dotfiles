@@ -1,6 +1,6 @@
 .mode column
 .headers on
-.nullvalue (NULL)
+.nullvalue <null>
 
 -- always explain query plan
 .eqp on
