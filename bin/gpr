@@ -1,2 +1,6 @@
 #!/usr/bin/env bash
-gh pr checkout $(GH_FORCE_TTY='50%' gh pr list | fzf --ansi --header-lines 3 --preview 'GH_FORCE_TTY=$FZF_PREVIEW_COLUMNS gh pr view {1}; GH_FORCE_TTY=$FZF_PREVIEW_COLUMNS gh pr checks {1}' | awk '{print $1}')
+gh pr checkout $(GH_FORCE_TTY='100%' gh pr list | 
+  fzf --ansi --header-lines 3 \
+  --preview '; GH_FORCE_TTY=$FZF_PREVIEW_COLUMNS gh pr checks {1}; GH_FORCE_TTY=$FZF_PREVIEW_COLUMNS gh pr view {1}' \
+  --bind 'ctrl-r:reload(GH_FORCE_TTY=''50%'' gh pr list)' | 
+  awk '{print $1}')
