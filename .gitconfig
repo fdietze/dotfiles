@@ -24,10 +24,10 @@
     autosetuprebase = always
 
 [merge]
-    ff = only
+    ; ff = only
     ignore-space-change = true
-    conflictstyle = diff3 # this allows to show 3 panes in meld
     tool = meld
+    conflictstyle = diff3 # this allows to show 3 panes in meld, https://stackoverflow.com/questions/27417656/should-diff3-be-default-conflictstyle-on-git/70387424#70387424
 
 [rerere]
     enabled = 1 # Reuse recorded resolution of conflicted merges: https://git-scm.com/docs/git-rerere
@@ -67,7 +67,6 @@
     cob = checkout -b
     cot = "!TEMP=$(mktemp -d); f() { git worktree prune && git worktree add $TEMP $1 && zsh -c \"cd $TEMP; zsh\";}; f" # checkout branch in temporary directory
     ci = commit
-    cia = commit -a
     amend = commit --amend
     unstage = reset HEAD
     prev = reset HEAD~1
@@ -88,7 +87,7 @@
     pf = push --force-with-lease
     peng = push --force-with-lease
     wupp = push
-    up = pull
+    up = pull --rebase --autostash # somehow git does not pick these up from the config automatically anymore
     u = up
     f = fetch
     fa = fetch --all
@@ -97,6 +96,10 @@
     dtag = "!f() { git tag -d $1; git push origin :$1;}; f" # delete local and remote tag
     wip = "!git add -A; git commit --message=\"WIP: `git diff --name-only --staged | xargs -L 1 basename | paste -sd \",\"`\""
     wipbr = "!f() { git cob $1; git wip; git po;}; f" # commit and push everything on a new branch
+    pr = "!f() { ! git diff --staged --quiet && git cob \"$1\" && git ci && gh pr create --fill;}; f"
+    prm = "!f() { ! git diff --staged --quiet && git cob \"$1\" && git ci && gh pr create --fill -l=\"ready-to-merge-squash\" ;}; f"
+    prd = "!f() { ! git diff --staged --quiet && git cob \"$1\" && git ci && gh pr create --fill --draft;}; f"
+    prune-local = "!git fetch -p && for branch in $(git for-each-ref --format '%(refname) %(upstream:track)' refs/heads | awk '$2 == \"[gone]\" {sub(\"refs/heads/\", \"\", $1); print $1}'); do (echo -n \"DELETE $branch? [y/N]: \"; read -r answer; [[ \"$answer\" =~ ^(y|Y) ]]) && git branch -D $branch; done"
 
     ss = stash save --include-untracked
     sski = stash save --include-untracked --keep-index
