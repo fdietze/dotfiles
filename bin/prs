@@ -2,7 +2,8 @@
 
 BRANCH="$(GH_FORCE_TTY='100%' gh pr list | 
   fzf --reverse --ansi --header-lines 3 \
-  --preview 'GH_FORCE_TTY=$FZF_PREVIEW_COLUMNS gh pr view {1}; GH_FORCE_TTY=$FZF_PREVIEW_COLUMNS gh pr checks {1}' \
+  --preview 'GH_FORCE_TTY=$FZF_PREVIEW_COLUMNS gh pr view {1}; GH_FORCE_TTY=$FZF_PREVIEW_COLUMNS gh pr checks {1}; GH_FORCE_TTY=$FZF_PREVIEW_COLUMNS gh pr diff {1};' \
+  --bind 'ctrl-d:preview-page-down,ctrl-u:preview-page-up' \
   --bind 'ctrl-r:reload(GH_FORCE_TTY=''50%'' gh pr list)' \
   --bind 'ctrl-o:execute(gh pr view {1} --web)' \
   | awk '{print $1}')"
