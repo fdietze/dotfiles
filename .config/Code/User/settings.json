@@ -1,0 +1,34 @@
+{
+    "keyboard.dispatch": "keyCode",
+    "editor.suggestSelection": "first",
+    "vsintellicode.modify.editor.suggestSelection": "automaticallyOverrodeDefaultValue",
+    "workbench.colorTheme": "Default Light+ Experimental",
+    "editor.formatOnSave": true,
+    "vim.leader": " ",
+    "vim.useSystemClipboard": true,
+    "vim.normalModeKeyBindings": [
+        {
+            "before": [
+                "ö"
+            ],
+            "commands": [
+                ":w"
+            ]
+        },
+        {
+            "before": [
+                "<leader>",
+                "n"
+            ],
+            "commands": [
+                "editor.action.marker.next"
+            ]
+        },
+    ],
+    "editor.formatOnPaste": true,
+    "window.zoomLevel": -1,
+    "editor.inlineSuggest.enabled": true,
+    "window.autoDetectColorScheme": true,
+    "workbench.preferredLightColorTheme": "Default Light+ Experimental",
+    "workbench.preferredDarkColorTheme": "Palenight Theme"
+}
