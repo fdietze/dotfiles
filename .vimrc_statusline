@@ -8,7 +8,8 @@ set noshowmode
 if filereadable($HOME."/.theme") && match(readfile($HOME."/.theme"),"light") == 0
     let status_colorscheme = 'solarized'
 else
-    let status_colorscheme = 'wombat'
+    let status_colorscheme = 'tokyonight'
+    " let status_colorscheme = 'wombat'
 endif
 
 let g:lightline = {

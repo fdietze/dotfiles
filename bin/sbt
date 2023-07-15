@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+# look in this parent folders for build.sbt
+# only launch sbt if build.sbt is found
+DIR=$(pwd)
+
+while [ -n "$DIR" ] && [ ! -f "$DIR/build.sbt" ]; do
+  DIR="${DIR%\/*}"
+done
+
+if [ -z "$DIR" ]; then
+  echo "No build.sbt found."
+  exit 1
+fi
+
+[[ "$DIR" == "$PWD" ]] || echo "$(tput setaf 2)Launching sbt in $DIR$(tput sgr0)"
+
+cd "$DIR"
+exec env sbt $@

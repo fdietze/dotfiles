@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+
+dur_to_dateadd() {
+    # https://stackoverflow.com/questions/58209182/trying-to-convert-iso-8601-duration-format-to-add-to-date-in-bash  
+
+
+    # https://en.wikipedia.org/wiki/ISO_8601#Durations
+    # PnYnMnDTnHnMnS <- we handle only this
+    <<<"$1" sed -E '
+        # it has to start with p
+        /^P/!{
+            s/.*/ERROR: Invalid input - it has to start with P: "&"/
+            q1
+        }
+        s/^P//
+
+        # add an unredable 0x01 on the end
+        # it serves as our "line separator"
+        s/$/\x01/
+
+        # parse from the beginning, add to the end after \x01
+        s/^([0-9]*([,.][0-9]*)?)Y(.*)/\3\1year /
+        s/^([0-9]*([,.][0-9]*)?)M(.*)/\3\1month /
+        s/^([0-9]*([,.][0-9]*)?)D(.*)/\3\1day /
+        /^T/{
+            s///
+            s/^([0-9]*([,.][0-9]*)?)H(.*)/\3\1h /
+            s/^([0-9]*([,.][0-9]*)?)M(.*)/\3\1m/
+            # s/^([0-9]*([,.][0-9]*)?)S(.*)/\3\1s/
+            s/^([0-9]*([,.][0-9]*)?)S(.*)/\3/
+        }
+
+        # we should have parsed it all
+        # so our separator \x01 has to be the first character
+        /^\x01/!{
+          # there is something unparsed in the input
+            s/\x01.*//
+            s/.*/ERROR: Unparsable input: "&"/
+            q1
+        }
+        # remove the \x01
+        s///
+
+        # just convert , to . in case of floats
+        s/,/./g
+    '
+}
+
+# dur_to_dateadd "P3Y6M4DT12H30M5S"
+# dur_to_dateadd "P23DT23H"
+# dur_to_dateadd "P4Y"
+# dur_to_dateadd "PT0S"
+# dur_to_dateadd "P0D"
+# dur_to_dateadd "P1M"
+# dur_to_dateadd "PT1M"
+# dur_to_dateadd "P0,5Y"
+# dur_to_dateadd "P0.5Y"
+# dur_to_dateadd "PT36H"
+# dur_to_dateadd "P1DT12H"
+# dur_to_dateadd "invalid" || echo error
+# dur_to_dateadd "P1Dinvalid" || echo error
+# dur_to_dateadd "PinvalidDT" || echo error
+
+dur_to_dateadd "$1"
+
+
+##!/usr/bin/env python3
+
+#import sys
+#from isodate import parse_duration
+
+#duration = parse_duration(sys.stdin.read())
+
+#hours, remainder = divmod(duration.total_seconds(), 3600)
+#minutes, seconds = divmod(remainder, 60)
+#if hours > 0:
+#    print('%dh %dm' % (hours, minutes))
+#elif minutes > 0: 
+#    print('%dm' % (minutes))
+#else: 
+#    print('%ds' % (seconds))

@@ -1,72 +1,11 @@
-# dotfile management
-DOTFILES_GIT="GIT_DIR=$HOME/projects/dotfiles GIT_WORK_TREE=$HOME GIT_CONFIG_GLOBAL=~/.gitconfig-dotfiles"
-DOTFILES_TIG="TIGRC_USER=$HOME/.config/tig/config-dotfiles"
-alias dt="$DOTFILES_GIT git -c status.showUntrackedFiles=no -c core.excludesfile=$HOME/.gitignore-dotfiles"
-alias tigd="$DOTFILES_GIT $DOTFILES_TIG tig"
-alias dtls="dt ls-tree --full-tree --name-only -r HEAD"
-vd() ( 
-  file="$(dtls | fzf --preview 'pistol {} $FZF_PREVIEW_COLUMNS $FZF_PREVIEW_LINES' --bind 'ctrl-d:preview-page-down')"
-  [[ -n $file ]] && $EDITOR "$HOME/$file"
-)
+source ~/.aliases
 
 
 
-# listing files
-alias l='ls -l'
-alias la='ls -lA' # only shorthands are mac-compatible
-alias lt='ls -ltr' # only shorthands are mac-compatible
-alias t='tree -C' # -C is for color=always
-alias t2='t -L 2'
-alias t3='t -L 3'
-alias ta='t -a'
-tg() { rg --files "$@" | command tree --fromfile; }
-
-
-# quickly open common dotfiles
-alias vim="\$EDITOR"
-alias  va="\$EDITOR ~/.sh_aliases"
-alias  vz="\$EDITOR ~/.zshrc"
-alias  ve="\$EDITOR ~/.zshenv"
-alias  vv="\$EDITOR ~/.vimrc"
-alias vvp="\$EDITOR ~/.vimrc_plugins"
-alias vvk="\$EDITOR ~/.vimrc_keybindings"
-alias vb="\$EDITOR ~/.config/polybar/config"
-alias vn="\$EDITOR /etc/nixos/configuration.nix"
 
 
 
-# aliases
-alias rm='rm -v'
-alias ssh='TERM=xterm-256color ssh' # fix colors in some ssh connections
-alias rg="rg --hidden --glob '!.git' --ignore-case" # https://github.com/BurntSushi/ripgrep/issues/623
-alias hd='hexdump -C'
-alias lsblk='lsblk -o NAME,RM,SIZE,FSTYPE,LABEL,MOUNTPOINT,RO,UUID'
-alias sys='sudo systemctl'
-alias sysu='systemctl --user'
-alias hc='herbstclient'
-alias watch='watch -c -d'
-alias w='watch '
-alias vclip='clippaste | vipe | clipcopy' # https://vi.stackexchange.com/questions/21446/how-can-i-edit-the-contents-of-my-clipboard-in-vim
-alias chromium='chromium --high-dpi-support=1 --force-device-scale-factor=1.5' # fix highdpi for chromium
-alias chromium-no-plugins='chromium --disable-extensions --disable-plugins'
-alias qrscan='LD_PRELOAD=/usr/lib/libv4l/v4l1compat.so zbarcam --raw /dev/video0'
-alias gparted='gksudo gparted'
-alias startmac='VBoxManage startvm "macOS" --type headless'
-alias tclip='tmate display -p "#{tmate_ssh}" | xclip -selection clipboard'  # tmate session token to clipboard
-alias tw=timew
-alias tig='tig status'
 
-
-
-# nixos
-alias ns="nix-shell --run zsh"
-alias nrs="sudo nixos-rebuild switch"
-fni() {
-  local packages package
-  packages=$(nix search "$1" | tr -d '\n' | sed 's/  / /g' | sed s/*/\\n/g | sed 's/^ //g' | grep '\S') &&
-  package=$(echo "$packages" | fzf --ansi | cut -f1 -d ' ') &&
-  nix-env -iA "$package"
-}
 
 
 # online checking tools
@@ -77,22 +16,7 @@ alias on="w --interval=1 '$ONLINECMD'"
 
 
 
-find-git-root() (
-  cd "$1"
-  GITROOT=$(git rev-parse --show-toplevel 2> /dev/null)
-  if [[ $? == 0 ]]; then
-    echo "$GITROOT"
-  else
-    echo "$1"
-  fi
-)
 
-v() ( # open files with fzf
-    cd "$(find-git-root "$PWD")"
-    file="$(fzf --query="$(echo $@ | tr ' ' '\ ' )")"
-    [[ -n $file ]] && $EDITOR "$file"
-)
-vr() { vim -c "History $*"; } # open recently used files with vim
 
 
 
@@ -105,41 +29,15 @@ sshforward() {
     ssh -NL ${LOCALPORT}:localhost:${REMOTELOCALPORT} ${REMOTEHOST} $@
 }
 
-
-parentfolder-withfile() (
-  local file=$1
-  local DIR=$(pwd)
-
-  while [ -n "$DIR" ] && [ ! -f "$DIR/$file" ]; do
-    DIR="${DIR%\/*}"
-  done
-
-  if [ -z "$DIR" ]; then
-    pwd
-  else
-    echo "$DIR"
+fassh() {
+  local instance
+	instance=$(aws ec2 describe-instances --filter Name=instance-state-name,Values=running | jq -r '.Reservations[].Instances[] | [ .InstanceId, (.Tags[] | select(.Key == "Name") | .Value) ] | @tsv' | fzf | cut -f1)
+  if [ -n "$instance" ]; then
+      ssh $instance
   fi
-)
+}
 
-sbt() (
-  # look in this parent folders for build.sbt
-  # only launch sbt if build.sbt is found
-  DIR=$(pwd)
 
-  while [ -n "$DIR" ] && [ ! -f "$DIR/build.sbt" ]; do
-    DIR="${DIR%\/*}"
-  done
-
-  if [ -z "$DIR" ]; then
-    echo "No build.sbt found."
-    exit 1
-  fi
-
-  [[ "$DIR" == "$PWD" ]] || echo "$(tput setaf 2)Launching sbt in $DIR$(tput sgr0)"
-
-  cd "$DIR"
-  exec env sbt $@
-)
 
 x() { # open a gui command and close the terminal
     zsh -i -c "$@ &; disown" 
@@ -166,6 +64,21 @@ notes() { # browse notes with fzf
 # file search
 alias vag="search-select-edit"
 
+
+vrg() (
+# https://github.com/junegunn/fzf.vim#example-advanced-ripgrep-integration
+    QUERY="${1:-}"
+    CMD_FMT='rg --column --line-number --no-heading --color=always --smart-case -- %s || true'
+    INITIAL_COMMAND=$(printf "$CMD_FMT" "$QUERY")
+    RELOAD_COMMAND=$(printf "$CMD_FMT" '{q}')
+    $INITIAL_COMMAND | fzf --bind 'change:reload: vd'
+    # let spec = {'options': ['--phony', '--query', a:query, '--bind', 'change:reload:'.reload_command]}
+    # call fzf#vim#grep(initial_command, 1, fzf#vim#with_preview(spec), a:fullscreen)
+  # endfunction
+)
+
+
+
 # file listing/interaction
 if [ "$(uname 2> /dev/null)" != "Linux" ]; then
     # for Mac
@@ -177,37 +90,15 @@ else
   fi
 fi
 
-alias md='mkdir -p'
+autoload -U zmv
 alias mcp='noglob zmv -C -W'
 alias mln='noglob zmv -L -W'
 alias mmv='noglob zmv -W'
 
-alias o='mimeo' # Open files using MIME-type and custom user associations
-# alias cat='bat --theme=ansi-light'
 
-# change directories
-alias cdd='cd ~/downloads'
-alias cdp='cd ~/projects '
+
 alias cdt='cd-tmp'
 alias cdg='cd-git-root'
-p() { cd ~/projects/"$(ls -t ~/projects | fzf --query="$(echo $@ | tr ' ' '\ ' )")";}
-alias ..='cd ..'
-alias ...='cd ../..'
-alias ....='cd ../../..'
-alias vm='vim $(git-select-dirty-files)'
-
-alias rcp='rsync --archive --partial --info=progress2 --human-readable'
-
-# git
-alias g='git'
-alias gs='git st'
-alias gu='git up'
-alias gp='git p'
-alias gpf='git pf'
-alias gl='git lg'
-alias gla='git lga'
-alias gsc='git-select-commit'
-alias gdf='git df --no-index'
 
 if [ -n "$ZSH_VERSION" ]; then
     alias -g GSC='$(git-select-commit)'
@@ -215,9 +106,6 @@ if [ -n "$ZSH_VERSION" ]; then
     alias -g GSD='$(git-select-dirty-files)'
 fi
 
-# dev
-alias m='make'
-alias mc='make clean'
 
 # global aliases
 if [ -n "$ZSH_VERSION" ]; then
@@ -226,9 +114,11 @@ if [ -n "$ZSH_VERSION" ]; then
     alias -g T=' | tail'
     alias -g L=' | less'
     alias -g N="\"\$(\ls -tp | grep -v '\/$' | head -1)\""
-    alias -g F='"$(fzf)"'
     alias oo='o N'
 fi
+
+
+
 
 
 
@@ -265,17 +155,6 @@ low() {
     airplane
 }
 
-low-traffic() {
-    echo "stopping network-heavy services..."
-    sys stop ipfs > /dev/null 2>&1
-    sys stop btsync > /dev/null 2>&1
-    sys stop syncthing > /dev/null 2>&1
-    sys stop dropbox > /dev/null 2>&1
-    sys stop nixos-upgrade.timer > /dev/null 2>&1
-    sys stop nixos-upgrade > /dev/null 2>&1
-    pkill megasync
-}
-
 stayawake() {
     # disable screensaver
     xset s noblank
@@ -307,15 +186,16 @@ display-projector() {
 
 reset-screen() {
     sysu start redshift
-    # xrandr --output eDP-1  --auto --primary --output VGA-1 --off --output HDMI-1 --off
-    xrandr --output eDP-1  --auto --primary --output HDMI-1 --off --output DP-2 --off
 
-    herbstclient reload
+    xrandr --output eDP-1  --auto --primary --output HDMI-1 --off --output DP-2 --off
 
     # enable screensaver
     xset s blank
     xset s on
     xset +dpms
+
+    sleep 3
+    "$HOME/bin/theme" &
 }
 
 
@@ -327,7 +207,7 @@ search-select-edit () {
     eval "vim $(echo -E $uniquefileswithlines | xargs -I'{}' echo -E -n '"{}" ')"
 }
 
-try() {
+retry() {
     until zsh -ic "$@"
     do
         echo "failed: $@"

@@ -1,9 +1,9 @@
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
+# if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+#   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+# fi
 
 
 export DISABLE_MAGIC_FUNCTIONS=true # fix slow paste in zsh (https://github.com/vercel/hyper/issues/1276#issuecomment-510829201)
@@ -45,6 +45,9 @@ source ~/.sh_aliases
 # fix fzf with zsh-vi-mode
 # https://github.com/jeffreytse/zsh-vi-mode/issues/4#issuecomment-757234569
 zvm_after_init_commands+=('source ~/.zshrc.fzf')
+zvm_after_init_commands+=("bindkey '^f' insertFileFromCurrentDir")
+zvm_after_init_commands+=("bindkey '^g' insertCommitHash")
+zvm_after_init_commands+=("bindkey '^p' prs")
 
 
 
@@ -65,22 +68,19 @@ fry cd-git-root
 # fry screencapture
 # fry transcode-video
 # fry bind2maps
-# fry git-dirty-files-command
+fry git-dirty-files-command
 # fry watchdo
-fry nvim-rpc # to switch color schemes
 
 eval "$(direnv hook zsh)" # load environment vars depending on directory https://direnv.net/docs/hook.html#zsh
 
 
 [[ ! -f "/etc/grc.zsh" ]] || source /etc/grc.zsh # colors outputs of commands (https://github.com/garabik/grc)
 
-
 setopt nonomatch # avoid the zsh "no matches found" / allows sbt ~compile
 
 
 export HISTSIZE=10000000
 export SAVEHIST=10000000
-
 
 # additional keybindings, compatible with zsh_vi_mode ()
 function zvm_before_init() {
@@ -97,3 +97,21 @@ function zvm_before_init() {
   zvm_bindkey viins '^[[F'  end-of-line
   zvm_bindkey vicmd '^[[F'  end-of-line
 }
+
+# zsh with pwd in window title
+function precmd {
+    term=$(echo $TERM | grep -Eo '^[^-]+')
+    print -Pn "\e]0;$term - zsh %~\a"
+}
+
+# current command with args in window title
+function preexec {
+    term=$(echo $TERM | grep -Eo '^[^-]+')
+    printf "\033]0;%s - %s\a" "$term" "$1"
+}
+
+
+# zsh autosuggestions next-word
+# zvm_after_init_commands+=("bindkey '^[[C' forward-word")
+
+

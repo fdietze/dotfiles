@@ -26,7 +26,7 @@ if filereadable($HOME."/.theme") && match(readfile($HOME."/.theme"),"light") == 
     colorscheme goodmorning
 else
     set background=dark
-    colorscheme palenight
+    colorscheme tokyonight
 endif
 
 
@@ -58,7 +58,7 @@ set linebreak                     " break only at word boundary
 set listchars=tab:⊳\ ,trail:·     " display whitespaces
 set list
 set breakindent                   " indent wrapped lines
-set breakindentopt=shift:2
+" set breakindentopt=shift:2
 set display=lastline,uhex         " if last line does not fit on screen, display it anyways
 set synmaxcol=10000               " stop syntax highlighting for lines of this length
 
@@ -100,7 +100,7 @@ set undodir=~/.vim/tmp/undo//     " undo files
 set backupdir=~/.vim/tmp/backup// " backups
 set directory=~/.vim/tmp/swap//   " swap files
 
-set viminfo='1000,<50,s10,h " adjust vim file history https://vi.stackexchange.com/a/26037
+set viminfo='10000,<50,s10,h " adjust vim file history https://vi.stackexchange.com/a/26037
 
 " Make those folders automatically if they don't already exist.
 if !isdirectory(expand(&undodir))
@@ -131,6 +131,8 @@ autocmd vimrc FileType javascript setlocal expandtab tabstop=2 shiftwidth=2 soft
 autocmd vimrc FileType typescript.tsx setlocal expandtab tabstop=2 shiftwidth=2 softtabstop=2
 autocmd vimrc FileType typescript setlocal expandtab tabstop=2 shiftwidth=2 softtabstop=2
 autocmd vimrc FileType scala call rainbow#load()
+autocmd vimrc FileType vimwiki inoremap <silent> <buffer> <expr> <CR>   pumvisible() ? "\<CR>"   : "<Esc>:VimwikiReturn 1 5<CR>"
+autocmd vimrc FileType vimwiki inoremap <silent> <buffer> <expr> <S-CR> pumvisible() ? "\<S-CR>" : "<Esc>:VimwikiReturn 2 2<CR>"
 
 " filetype aliases
 autocmd vimrc BufNewFile,BufRead *.sbt set filetype=scala
@@ -196,3 +198,6 @@ augroup BWCCreateDir
     autocmd!
     autocmd BufWritePre * :call s:MkNonExDir(expand('<afile>'), +expand('<abuf>'))
 augroup END
+
+
+

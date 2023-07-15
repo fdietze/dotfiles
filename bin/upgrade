@@ -34,12 +34,19 @@ nvim -c 'CocUpdateSync|q'
 echo "updating zgen plugins..."
 zsh -c "source ~/.zgenom/zgenom.zsh && zgenom selfupdate && zgenom update"
 
+echo "updating fish plugins..."
+fish -c "fisher update"
+
 # echo "updating ruby gems..."
 # gem update
 
 echo "updating global npm packages"
 npm -g update # installs yarn
 yarn global upgrade
+
+
+echo "updating coursier (scala)"
+cs update
 
 # echo "updating rust installation"
 # multirust update

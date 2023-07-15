@@ -1,10 +1,10 @@
 [include]
-  path = .gitconfig
+  path = /home/felix/.gitconfig
 
 [core]
   excludesfile = /home/felix/.gitignore-dotfiles
 
 [status]
-    showUntrackedFiles = all
+  showUntrackedFiles = all
 
 # vim: ft=gitconfig

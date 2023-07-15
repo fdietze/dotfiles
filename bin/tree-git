@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+
+# tree files tracked by git
+
+rg --files "$@" | command tree --fromfile
