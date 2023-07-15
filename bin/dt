@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+source dotfiles-env
+
+git -c status.showUntrackedFiles=no -c core.excludesfile="$DOTIFLES_EXCLUDESFILE" $@

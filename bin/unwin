@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+set -em
+
+lock="/tmp/.X99-lock"
+run="/run/user/$(id -u)"
+running="${run}/unwin"
+server="${running}/server"
+jobs="${running}/jobs"
+job="${jobs}/${$}"
+
+
+mainFunction () {
+	trap "cleanUp" ABRT ERR HUP INT QUIT TERM EXIT
+	startFramebuffer
+	registerJob
+	runProgram
+}
+
+
+checkArgumentQuantity () {
+	if [[ "${#args[@]}" -eq 0 ]]; then
+		echo "No command specified" >&2
+		echo "Type: unwin COMMAND"
+		exit 1
+	fi
+}
+
+
+cleanUp () {
+	rm --force "${job}"
+	
+	if dirIsEmpty "${jobs}"; then
+		if [[ -f "${server}" ]]; then
+			kill -TERM "$(cat "${server}")" || rm --recursive "${running}"
+		fi
+		
+		rm --recursive "${running}"
+	fi
+}
+
+
+dirIsEmpty () {
+	dir="${1}"
+
+	[[ -d "${dir}" ]] && [[ -z "$(ls --almost-all "${dir}")" ]]
+}
+
+
+prepareEnvironment () {
+	readarray -t args < <(args "${@}")
+	checkArgumentQuantity
+}
+
+
+registerJob () {
+	mkdir --parents "${jobs}"
+	touch "${job}"
+}
+
+
+runProgram () {
+	waitDisplay :99
+	DISPLAY=:99 "${args[@]}"
+}
+
+
+startFramebuffer () {
+	if [[ ! -f "${lock}" ]]; then
+		mkdir --parents "${running}"
+		Xvfb :99 -fbdir "${run}" &
+		echo "${!}" > "${server}"
+	fi
+}
+
+
+waitDisplay () {
+	local display="${1}"
+
+	while ! xdpyinfo -display "${display}" &>/dev/null; do
+		sleep 0.1
+	done
+}
+
+
+prepareEnvironment "${@}"
+mainFunction

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 # if [ $(cat $HOME/.theme) = "dark" ]; then
 #     style='-fn "Roboto Mono-8" -nb "#121212" -nf "#EFEFEF" -sb "#37BAFF" -sf "#101010"'
 # else
@@ -11,14 +12,23 @@
 #     command=$(bash -c "dmenu_path | dmenu -i $style")
 # fi
 
-
-
-# # launch interactive zsh, to expand aliases
+# launch interactive zsh, to expand aliases
 # exec zsh -i -c "$command"
 
-if [ $(cat $HOME/.theme) = "dark" ]; then
-    exec rofi -font "Monospace 32" -theme Arc-Dark -show run
-else
-    exec rofi -font "Monospace 32" -theme Arc -show run
-fi
+# exec rofi -theme Arc -show run
+
+# if [ $(cat $HOME/.theme) = "dark" ]; then
+#   ROFI_ICON_THEME="Qogir-dark"
+# else
+#   ROFI_ICON_THEME="Qogir"
+# fi
+
+# exec rofi \
+#   -font "Monospace 32" \
+#   -theme "$(cat $HOME/.theme)" \
+#   -icon-theme "$ROFI_ICON_THEME" \
+#   -show-icons \
+#   -show run \
+#   -run-command "zsh -ic \"{cmd}\""
+#   -run-shell-command 'alacritty -e zsh -ic "{cmd} && read"'
 

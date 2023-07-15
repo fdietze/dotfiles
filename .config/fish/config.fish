@@ -1,55 +1,49 @@
-# parse .profile
-egrep "^export " ~/.profile | while read e
-	set var (echo $e | sed -E "s/^export ([A-Z_]+)=(.*)\$/\1/")
-	set value (echo $e | sed -E "s/^export ([A-Z_]+)=(.*)\$/\2/")
-	
-	# remove surrounding quotes if existing
-	set value (echo $value | sed -E "s/^\"(.*)\"\$/\1/")
+if status is-interactive
+    # Commands to run in interactive sessions can go here
 
-	if test $var = "PATH"
-		# replace ":" by spaces. this is how PATH looks for Fish
-		set value (echo $value | sed -E "s/:/ /g")
-	
-		# use eval because we need to expand the value
-		eval set -xg $var $value
-
-		continue
-	end
-
-	# evaluate variables. we can use eval because we most likely just used "$var"
-	set value (eval echo $value)
-
-	#echo "set -xg '$var' '$value' (via '$e')"
-	set -xg $var $value
-end
+    # https://superuser.com/questions/446925/re-use-profile-for-fish/447777#447777
+    fish_add_path $HOME/bin
+    fish_add_path $HOME/.local/bin # pip
+    fish_add_path $HOME/local/bin
+    fish_add_path $HOME/.npm-packages/bin
+    fish_add_path $HOME/.cargo/bin
+    fish_add_path $HOME/go/bin
+    fish_add_path $HOME/development/flutter/bin
+    fish_add_path $HOME/.local/share/coursier/bin
+    fish_add_path $HOME/.zgenom/sources/dottr/dottr/___/pan.git # https://github.com/dottr/dottr/#installation-1
 
 
-set fish_greeting ""
+    set -gx EDITOR nvim
 
 
-source ~/.sh_aliases
+    # fzf
+    set -gx FZF_DEFAULT_COMMAND 'rg --files --hidden --glob "!.git"'
+    set -gx FZF_DEFAULT_OPTS "--extended --multi --ansi --exit-0" # extended match and multiple selections
+    set -gx FZF_CTRL_T_COMMAND "$FZF_DEFAULT_COMMAND"
+    set -gx FZF_CTRL_T_OPTS "--tac --height 90% --reverse --preview 'pistol {} \$FZF_PREVIEW_COLUMNS \$FZF_PREVIEW_LINES' --bind 'ctrl-d:preview-page-down,ctrl-r:reload($FZF_CTRL_T_COMMAND)"
 
-# activate z
-. ~/bin/z.fish
+    # direnv
+    direnv hook fish | source
 
-# colorize a huge set of commands
-set -x PATH (cope_path) $PATH
 
-# activate colorful file listings
-eval "set -x LS_COLORS" (dircolors ~/.dir_colors | grep -P "'.*'" -o)
+    # Emulates vim's cursor shape behavior
+    # https://fishshell.com/docs/current/interactive.html#vi-mode-commands
+    # Set the normal and visual mode cursors to a block
+    set fish_cursor_default block
+    # Set the insert mode cursor to a line
+    set fish_cursor_insert line
+    # Set the replace mode cursor to an underscore
+    set fish_cursor_replace_one underscore
+    # The following variable can be used to configure cursor shape in
+    # visual mode, but due to fish_cursor_default, is redundant here
+    set fish_cursor_visual block
 
-# colorize manpages
-set -x LESS_TERMCAP_mb (printf "\33[01;34m") # begin blinking
-set -x LESS_TERMCAP_md (printf "\33[01;34m") # begin bold
-set -x LESS_TERMCAP_me (printf "\33[0m")     # end mode
-set -x LESS_TERMCAP_se (printf "\33[0m")     # end standout-mode
-set -x LESS_TERMCAP_so (printf "\33[44;1;37m") # begin standout-mode - info box
-set -x LESS_TERMCAP_ue (printf "\33[0m")     # end underline
-set -x LESS_TERMCAP_us (printf "\33[01;35m") # begin underline
 
-# start X at login
-if status --is-login
-    if test -z "$DISPLAY" -a $XDG_VTNR = 1
-        # exec startx
-    end
+    
+
+    # load environment variables
+
+    # load aliases
+    # TODO: https://superuser.com/questions/1049368/add-abbreviations-in-fish-config/1688606#1688606
+    source (sed 's|alias \(\w\w*\)=\(.*\)|abbr -a \1 \2|' ~/.aliases | psub)
 end

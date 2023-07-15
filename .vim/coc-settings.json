@@ -23,7 +23,8 @@
     }
   },
   "metals": {
-    "serverProperties": ["-Xmx1G"]
+    "serverProperties": ["-Xmx1G"],
+    "statusBarEnabled": true
   },
   "rust-client": {
     "disableRustup": true
@@ -64,7 +65,11 @@
     "scala",
     "nix",
     "dart",
-    "vue"
+    "vue",
+    "terraform",
+    "prisma",
+    "go"
   ],
-  "codeLens.enable": true
+  "codeLens.enable": false,
+  "rust-analyzer.procMacro.enable": true
 }

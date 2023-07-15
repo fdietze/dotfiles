@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+# if argument "-p" is passed, print the light pixel count
+# if no argument is passed, print the theme name
+
+# preview command:
+# fzf --preview 'feh --bg-fill {}; pistol {} \$FZF_PREVIEW_COLUMNS \$FZF_PREVIEW_LINES; image-theme -p {}; pistol _lightness.png \$FZF_PREVIEW_COLUMNS \$FZF_PREVIEW_LINES'
+
+if [ "$1" = "-p" ]; then
+    print_light_pixel_count=1
+    image="$2"
+else
+    print_light_pixel_count=0
+    image="$1"
+fi
+
+pixel_brightness_threshold="65%"
+bright_pixel_count_threshold=0.20
+
+
+light_pixel_count=$(convert "$image" -colorspace gray -threshold "$pixel_brightness_threshold" -format "%[fx:mean]" info:)
+
+# output converted image
+# convert "$image" -colorspace gray -threshold "$pixel_brightness_threshold" _lightness.png
+
+
+suffix=""
+if [ $print_light_pixel_count -eq 1 ]; then
+    percentage=$(awk "BEGIN {printf \"%.2f\", $light_pixel_count * 100}")
+    suffix=" ($percentage% bright pixels)"
+fi
+
+if (( $(awk "BEGIN {print ($light_pixel_count > $bright_pixel_count_threshold)}") )); then
+    echo "light$suffix"
+else
+    echo "dark$suffix"
+fi
+
+

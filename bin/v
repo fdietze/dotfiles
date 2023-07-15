@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+# open files with fzf
+
+
+find-git-root() (
+  cd "$1"
+  GITROOT=$(git rev-parse --show-toplevel 2> /dev/null)
+  if [[ $? == 0 ]]; then
+    echo "$GITROOT"
+  else
+    echo "$1"
+  fi
+)
+
+(
+    cd "$(find-git-root "$PWD")"
+    file="$(fzf --query="$(echo $@ | tr ' ' '\ ' )" --preview='pistol {} $FZF_PREVIEW_COLUMNS $FZF_PREVIEW_LINES' --bind 'ctrl-d:preview-page-down')"
+    [[ -n $file ]] && $EDITOR "$file"
+)

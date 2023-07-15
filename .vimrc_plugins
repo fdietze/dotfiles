@@ -29,8 +29,7 @@ Plug 'tpope/vim-surround' " surround text with quotes, parantheses, ...
 Plug 'tpope/vim-speeddating' " ctrl+A/X on dates and time
 Plug 'AndrewRadev/switch.vim' " toggle true/false etc
 " Plug 'vim-scripts/ingo-library' | Plug 'vim-scripts/QuickFixCurrentNumber' " next quickfix location from current cursor position
-
-
+Plug 'm-pilia/vim-smarthome'
 
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -42,6 +41,7 @@ Plug 'whatyouhide/vim-textobj-xmlattr' " x
 " Plug 'kana/vim-textobj-function'       " f
 " Plug 'kana/vim-textobj-entire'         " e
 Plug 'PeterRincker/vim-argumentative'  " text object ',' / also provides argument movements with >, ],
+
 
 
 
@@ -63,6 +63,17 @@ Plug 'junegunn/fzf.vim', { 'do': { -> fzf#install() } } " fuzzy selector
 Plug 'junegunn/fzf' " fuzzy selector
 Plug 'zirrostig/vim-schlepp' " Move selections / lines
 Plug 'github/copilot.vim'
+Plug 'aduros/ai.vim'
+Plug 'nvim-lua/plenary.nvim' 
+Plug 'MunifTanjim/nui.nvim' 
+Plug 'dpayne/CodeGPT.nvim' 
+
+let g:ai_edits_model="code-davinci-edit-001"
+" let g:ai_completions_model="gpt-3.5-turbo"
+let g:ai_completions_model="code-davinci-002"
+let g:ai_timeout=20
+let g:ai_context_before=50
+let g:ai_context_after=50
 
 
 
@@ -98,7 +109,38 @@ Plug 'evanleck/vim-svelte', {'branch': 'main'}
 Plug 'purescript-contrib/purescript-vim'
 Plug 'andys8/vim-elm-syntax' " until https://github.com/andys8/vim-elm-syntax/issues/9
 Plug 'hashivim/vim-terraform'
+Plug 'tomlion/vim-solidity'
+Plug 'pantharshit00/vim-prisma'
+Plug 'vimwiki/vimwiki'
+Plug 'lepture/vim-jinja'
+Plug 'dag/vim-fish'
 
+
+
+
+" if !filereadable("/tmp/low-power-mode")
+"     Plug 'autozimu/LanguageClient-neovim', {
+"         \ 'branch': 'next',
+"         \ 'do': 'bash install.sh',
+"         \ }
+
+"     let g:LanguageClient_serverCommands = {
+"         \ 'scala': ['metals-vim'],
+"         \ }
+"     let g:LanguageClient_hoverPreview = 'Never'
+
+"     nnoremap <silent> gd :call LanguageClient#textDocument_definition()<CR>
+"     nnoremap <silent> gr :call LanguageClient#textDocument_references()<CR>
+"     nnoremap <silent> grr :call LanguageClient#textDocument_rename()<CR>
+"     nnoremap <space>G :call LanguageClient_contextMenu()<CR>
+
+"     " Smaller updatetime for CursorHold & CursorHoldI
+"     set updatetime=300
+"     " autocmd CursorHold * silent call LanguageClient#textDocument_hover()
+" endif
+
+
+"""""""""""""""""""""""""""""""""""""
 
 let g:rooter_patterns = ['.git']
 
@@ -200,16 +242,27 @@ inoremap <silent><expr> <Tab>
 Plug 'itchyny/lightline.vim'
 Plug 'mgee/lightline-bufferline'
 
+""""""""""""""""""""
+" vimwiki
+let g:vimwiki_key_mappings =
+  \ {
+  \ 'table_mappings': 0,
+  \ }
 
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " colorschemes
 Plug 'morhetz/gruvbox'
-Plug 'fdietze/goodday.vim'
+Plug 'freeo/vim-kalisi'
+Plug 'Haron-Prime/evening_vim'
 Plug 'drewtempelmeyer/palenight.vim'
 " Italics for my favorite color scheme
 let g:palenight_terminal_italics=1
 " hi Visual guifg=#FFFFFF guibg=#4088FF " higher visual mode contrast 
+Plug 'ayu-theme/ayu-vim'
+Plug '~/projects/goodday.vim'
+Plug 'noahfrederick/vim-noctu'
+Plug 'folke/tokyonight.nvim', { 'branch': 'main' }
 
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -257,7 +310,7 @@ command! ProjectFiles execute 'Files' s:find_git_root()
 " advanced rg
 " https://github.com/junegunn/fzf.vim#example-advanced-ripgrep-integration
 function! RipgrepFzf(query, fullscreen)
-  let command_fmt = 'rg --column --line-number --no-heading --color=always --smart-case -- %s || true'
+  let command_fmt = 'rg --hidden --glob "!.git" --column --line-number --no-heading --color=always --smart-case -- %s || true'
   let initial_command = printf(command_fmt, shellescape(a:query))
   let reload_command = printf(command_fmt, '{q}')
   let spec = {'options': ['--phony', '--query', a:query, '--bind', 'change:reload:'.reload_command]}

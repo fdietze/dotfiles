@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+export GIT_DIR="$HOME/projects/dotfiles"
+export GIT_WORK_TREE="$HOME"
+export GIT_CONFIG_GLOBAL="$HOME/.gitconfig-dotfiles"
+export DOTIFLES_EXCLUDESFILE="$HOME/.gitignore-dotfiles"
+export TIGRC_USER="$HOME/.config/tig/config-dotfiles"
