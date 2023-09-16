@@ -2,7 +2,7 @@
     "keyboard.dispatch": "keyCode",
     "editor.suggestSelection": "first",
     "vsintellicode.modify.editor.suggestSelection": "automaticallyOverrodeDefaultValue",
-    "workbench.colorTheme": "Default Light+ Experimental",
+    "workbench.colorTheme": "Palenight Theme",
     "editor.formatOnSave": true,
     "vim.leader": " ",
     "vim.useSystemClipboard": true,
@@ -17,6 +17,14 @@
         },
         {
             "before": [
+                "ü"
+            ],
+            "commands": [
+                "workbench.action.closeActiveEditor"
+            ]
+        },
+        {
+            "before": [
                 "<leader>",
                 "n"
             ],
@@ -24,11 +32,53 @@
                 "editor.action.marker.next"
             ]
         },
+        {
+            "before": [
+                "<leader>",
+                "e"
+            ],
+            "commands": [
+                "workbench.action.quickOpen"
+            ]
+        },
+        {
+            "before": [
+                "<leader>",
+                "a"
+            ],
+            "commands": [
+                "workbench.action.findInFiles"
+            ]
+        },
+        {
+            "before": [
+                "l"
+            ],
+            "commands": [
+                "workbench.action.nextEditor",
+            ]
+        },
+        {
+            "before": [
+                "L"
+            ],
+            "commands": [
+                "workbench.action.previousEditor",
+            ]
+        },
     ],
     "editor.formatOnPaste": true,
-    "window.zoomLevel": -1,
     "editor.inlineSuggest.enabled": true,
     "window.autoDetectColorScheme": true,
-    "workbench.preferredLightColorTheme": "Default Light+ Experimental",
-    "workbench.preferredDarkColorTheme": "Palenight Theme"
+    "workbench.preferredLightColorTheme": "Snazzy Light",
+    "workbench.preferredDarkColorTheme": "Palenight Theme",
+    "window.zoomLevel": -1,
+    "editor.minimap.showSlider": "always",
+    "editor.wordWrap": "on",
+    "editor.wrappingIndent": "indent",
+    "editor.fontFamily": "monospace",
+    "workbench.editor.highlightModifiedTabs": true,
+    "[python]": {
+        "editor.formatOnType": true
+    },
 }
