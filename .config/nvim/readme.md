@@ -81,11 +81,11 @@ vim.keymap.set('n', "<leader>n",
 
 -- vimplugins (* to jump to index)
 -- plugin manager: lazy.nvim
+-- https://github.com/folke/lazy.nvim (gx to open)
 -- popular plugin manager as of 2024.
 -- lazy.nvim loads plugins on demand for fast startup times.
--- events wich trigger a plugin load, may be vim-start, keybindings, filetypes, etc.
--- it also provides a nice way to configure plugins.
--- https://github.com/folke/lazy.nvim (gx to open)
+-- plugins are loaded by events: vim-start, keybindings, filetypes, etc.
+-- https://github.com/folke/lazy.nvim#lazy-loading (gx to open)
 
 -- install lazy.nvim if not installed
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
