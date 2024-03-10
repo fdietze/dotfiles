@@ -1,5 +1,6 @@
 # Starter luavim setup
 
+Another tutorial with much more explanation: https://lsp-zero.netlify.app/v3.x/tutorial.html
 
 1. Move all your old `./config/nvim` and `.vimrc` files to a backup.
 
