@@ -29,9 +29,10 @@ vim +PlugInstall
 ssh-keygen -t ed25519
 ```
 
-# Resources
+# Links
 
-* How to manage dotfiles with git: https://www.atlassian.com/git/tutorials/dotfiles
+* Migrate NixOS from channels to flakes: https://nixos-and-flakes.thiscute.world/nixos-with-flakes/nixos-with-flakes-enabled
+* Manage dotfiles with git: https://www.atlassian.com/git/tutorials/dotfiles
 * What are `.zshrc` / `.zshenv` / `.zprofile`? https://unix.stackexchange.com/questions/71253/what-should-shouldnt-go-in-zshenv-zshrc-zlogin-zprofile-zlogout
 * Better bash functions: https://cuddly-octo-palm-tree.com/posts/2021-10-31-better-bash-functions/
 
