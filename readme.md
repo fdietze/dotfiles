@@ -12,9 +12,13 @@
 - Statusbar: [Polybar](https://github.com/polybar/polybar)
 - Terminal: [Alacritty](https://github.com/alacritty/alacritty)
 - Font: [Commit Mono](https://commitmono.com/)
-- Theme: [tokyonight](https://github.com/folke/tokyonight.nvim) (dark) / [catppuccin](https://github.com/catppuccin/catppuccin)-latte with white background (light)
+- Theme: [tokyonight-storm](https://github.com/folke/tokyonight.nvim) (dark) / [catppuccin-latte](https://github.com/catppuccin/catppuccin) with white background (light)
 
-- Password Manager: Use [KeePassXC](https://keepassxc.org/) synced with [MEGA](https://mega.nz/) tocloud + android, with [Syncthing](https://syncthing.net/) - covers: SSH Agent, TOTP Authenticator, [secret service / gnome-keyring](https://c3pb.de/blog/keepassxc-secrets-service.html), scecret environment variables, like `OPENAI_API_KEY`
+- Password Manager: [KeePassXC](https://keepassxc.org/) synced with [MEGA](https://mega.nz/) to cloud + android, with [Syncthing](https://syncthing.net/) to trusted friends  - covers:
+  - SSH Agent
+  - TOTP Authenticator
+  - [secret service / gnome-keyring](https://c3pb.de/blog/keepassxc-secrets-service.html)
+  - scecret environment variables, like `OPENAI_API_KEY`
 - Screenshot tool: [Flameshot](https://flameshot.org/)
 - git TUI: [tig](https://jonas.github.io/tig/) - make precise commits by staging individual git hunks instead of whole files
 
