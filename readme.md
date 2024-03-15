@@ -1,38 +1,36 @@
 # How I use my computer
 
+[!screenshot-dark](dark mode screenshot)
+[!screenshot-light](light mode screenshot)
+
+- Linux Distribution: [NixOS](https://nixos.org/) ([with flakes](https://nixos-and-flakes.thiscute.world/nixos-with-flakes/nixos-with-flakes-enabled))
+- Dotfiles: bare [git](https://www.atlassian.com/git/tutorials/dotfiles) + [Home Manager](https://nix-community.github.io/home-manager/index.xhtml)
+- Shell: [ZSH](https://zsh.sourceforge.io/) (via Home Manager)
+- Editor: [Neovim](https://neovim.io/) + [lua config](https://lsp-zero.netlify.app/v3.x/tutorial.html) (I always use it in the terminal)
+
+- Tiling Window Manager: [Herbstluftwm](https://herbstluftwm.org/)
+- Statusbar: [Polybar](https://github.com/polybar/polybar)
+- Terminal: [Alacritty](https://github.com/alacritty/alacritty)
+- Font: [Commit Mono](https://commitmono.com/)
+- Theme: [tokyonight](https://github.com/folke/tokyonight.nvim) (dark) / [catppuccin](https://github.com/catppuccin/catppuccin)-latte with white background (light)
+
+- Password Manager: Use [KeePassXC](https://keepassxc.org/) synced with [MEGA](https://mega.nz/) tocloud + android, with [Syncthing](https://syncthing.net/) - covers: SSH Agent, TOTP Authenticator, [secret service / gnome-keyring](https://c3pb.de/blog/keepassxc-secrets-service.html), scecret environment variables, like `OPENAI_API_KEY`
+- Screenshot tool: [Flameshot](https://flameshot.org/)
+- git TUI: [tig](https://jonas.github.io/tig/) - make precise commits by staging individual git hunks instead of whole files
 
 ## My Installation
 **WARNING**: These are the installation instructions for myself, not for you. You should have your own repository and get inspired by this one. If you have any questions, feel free to open issues.
 ```bash
-
-# install:
-# zsh, neovim, rg, fzf, diff-so-fancy, direnv, grc
-# alacritty, xcwd, unclutter-xfixes, redshift
-
-mkdir -p ~/projects
-git clone --bare git@github.com:fdietze/dotfiles.git projects/dotfiles
-alias dt="GIT_DIR=$HOME/projects/dotfiles GIT_WORK_TREE=$HOME git -c status.showUntrackedFiles=no"
+# Manage dotfiles entirely with git:
+git clone --bare git@github.com:fdietze/dotfiles.git "$HOME/dotfiles.git"
+alias dt='GIT_DIR="$HOME/dotfiles.git" GIT_WORK_TREE="$HOME" git -c status.showUntrackedFiles=no'
 dt checkout master
-
-
-# ZSH plugin manager
-git clone https://github.com/jandamm/zgenom.git "${HOME}/.zgenom"
-chsh -s /bin/zsh # make zsh the default shell
-
-
-# make vim/nvim config compatible
-ln -sf $HOME/.vim $HOME/.config/nvim
-ln -sf $HOME/.vimrc $HOME/.vim/init.vim
-vim +PlugInstall
-
 
 ssh-keygen -t ed25519
 ```
 
-# Links
+# Awesome Links
 
-* Migrate NixOS from channels to flakes: https://nixos-and-flakes.thiscute.world/nixos-with-flakes/nixos-with-flakes-enabled
-* Manage dotfiles with git: https://www.atlassian.com/git/tutorials/dotfiles
 * What are `.zshrc` / `.zshenv` / `.zprofile`? https://unix.stackexchange.com/questions/71253/what-should-shouldnt-go-in-zshenv-zshrc-zlogin-zprofile-zlogout
 * Better bash functions: https://cuddly-octo-palm-tree.com/posts/2021-10-31-better-bash-functions/
 
@@ -60,3 +58,4 @@ ssh-keygen -t ed25519
 
 * Scala
  * reverse compilation errors
+
