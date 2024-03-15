@@ -1,7 +1,7 @@
 # How I use my computer
 
-[!screenshot-dark](dark mode screenshot)
-[!screenshot-light](light mode screenshot)
+![dark mode screenshot](screenshot-dark.png)
+![dark mode screenshot](screenshot-light.png)
 
 - Linux Distribution: [NixOS](https://nixos.org/) ([with flakes](https://nixos-and-flakes.thiscute.world/nixos-with-flakes/nixos-with-flakes-enabled))
 - Dotfiles: bare [git](https://www.atlassian.com/git/tutorials/dotfiles) + [Home Manager](https://nix-community.github.io/home-manager/index.xhtml)
