@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 
-# for opening terminals in current folder
+# for opening terminals or file managers in current folder
 
-DIR=$(xcwd)
+# https://github.com/schischi/xcwd
+DIR="$(xcwd)"
 
 # outside of home?
 case $DIR/ in
-$HOME/*) ;;     # in home
-*) echo $HOME; exit 0 ;; # not in home
+  $HOME/*) ;;     # in home
+  *) echo "$HOME"; exit 0 ;; # not in home
 esac
 
 # inside a git repo?
