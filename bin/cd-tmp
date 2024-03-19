@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+dir=$(mktemp -d)
+echo "$dir"
+cd "$dir"
+
+exec $SHELL
