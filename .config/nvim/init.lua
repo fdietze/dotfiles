@@ -57,6 +57,10 @@ vim.opt.expandtab = true          -- use spaces instead of tabs
 
 vim.opt.formatoptions:remove("o") -- don't continue comments with o
 
+if vim.g.neovide then
+  vim.o.guifont = "Ubuntu Mono:h10"
+end
+
 
 -- vimkeybindings (* to jump to index)
 -- The descriptions can be read by plugins, like https://github.com/folke/which-key.nvim (gx to open)
@@ -82,6 +86,7 @@ end
 vim.keymap.set('n', 'l', '<cmd>bnext<cr>', { desc = 'next buffer' })
 vim.keymap.set('n', 'L', '<cmd>bprev<cr>', { desc = 'prev buffer' })
 vim.keymap.set('n', '<leader>vv', '<cmd>edit ~/.config/nvim/init.lua<cr>', { desc = 'edit init.lua' })
+vim.keymap.set('n', '<leader>vh', '<cmd>edit ~/nixos/home.nix<cr>', { desc = 'edit init.lua' })
 vim.keymap.set('n', '<leader>vt', '<cmd>edit ~/todo.md<cr>', { desc = 'edit todo.md' })
 vim.keymap.set('n', 'h', "<cmd>let @/ = expand('<cword>')<cr>:set hls<cr>", { desc = 'highlight word under cursor' })
 vim.keymap.set('n', '<leader>/', '<cmd>nohls<cr>', { desc = 'clear search highlight' })
@@ -117,6 +122,22 @@ vim.keymap.set('n', 'ß', '@q', { desc = "run macro 'q'" })
 -- smart home
 vim.keymap.set('n', '<Home>', "col('.') == match(getline('.'), '\\S') + 1 ? '<Home>' : '^'", { expr = true })
 vim.keymap.set('i', '<Home>', "col('.') == match(getline('.'), '\\S') + 1 ? '<Home>' : '<C-O>^", { expr = true })
+
+-- Toggle a specific character at the end of the current line
+local function toggle_char_at_eol(target_char)
+  local line_content = vim.api.nvim_get_current_line()
+
+  if line_content:sub(-1) == target_char then
+    -- Remove the character if it's at the end
+    vim.api.nvim_set_current_line(line_content:sub(1, -2))
+  else
+    -- Add the character at the end
+    vim.api.nvim_set_current_line(line_content .. target_char)
+  end
+end
+
+vim.keymap.set('n', '<leader>,', function() toggle_char_at_eol(',') end, { desc = 'toggle , at end of line' })
+vim.keymap.set('n', '<leader>;', function() toggle_char_at_eol(';') end, { desc = 'toggle ; at end of line' })
 
 
 -- vimplugins (* to jump to index)
@@ -204,10 +225,11 @@ require("lazy").setup({
     lazy = false, -- so that telescope works when starting vim with telescope from the command line
     dependencies = { 'nvim-lua/plenary.nvim' },
     keys = {
-      { '<leader>e', '<cmd>Telescope find_files<cr>', desc = 'open files' },
-      { '<leader>a', '<cmd>Telescope live_grep<cr>',  desc = 'live grep' },
-      { '<leader>r', '<cmd>Telescope oldfiles<cr>',   desc = 'open recent files' },
-      { '<leader>b', '<cmd>Telescope buffers<cr>',    desc = 'open recent files' }
+      { '<leader>e',  '<cmd>Telescope find_files<cr>', desc = 'open files' },
+      { '<leader>a',  '<cmd>Telescope live_grep<cr>',  desc = 'live grep' },
+      { '<leader>r',  '<cmd>Telescope oldfiles<cr>',   desc = 'open recent files' },
+      { '<leader>vr', '<cmd>Telescope oldfiles<cr>',   desc = 'open recent files' },
+      { '<leader>b',  '<cmd>Telescope buffers<cr>',    desc = 'open recent files' }
     },
     opts = {
       pickers = {
@@ -223,9 +245,28 @@ require("lazy").setup({
   },
 
   {
+    'linrongbin16/lsp-progress.nvim',
+    lazy = false,
+    --event = { 'VeryLazy' },
+    config = function()
+      require('lsp-progress').setup()
+      -- listen to user event and trigger lualine refresh
+      vim.cmd([[
+        augroup lualine_augroup
+            autocmd!
+            autocmd User LspProgressStatusUpdated lua require("lualine").refresh()
+        augroup END
+      ]])
+    end
+  },
+
+  {
     -- nice default status bar
     'nvim-lualine/lualine.nvim',
-    dependencies = { 'nvim-tree/nvim-web-devicons' },
+    dependencies = {
+      'nvim-tree/nvim-web-devicons',
+      'linrongbin16/lsp-progress.nvim',
+    },
     opts = {
       options = {
         icons_enabled = true,
@@ -248,10 +289,10 @@ require("lazy").setup({
       sections = {
         lualine_a = { 'mode' },
         lualine_b = { 'branch', 'diff', 'diagnostics' },
-        lualine_c = { 'filename' },
+        lualine_c = { 'filename', "require('lsp-progress').progress()" },
         lualine_x = { 'filetype' },
         lualine_y = {},
-        lualine_z = { 'location' }
+        lualine_z = { 'location', 'progress' },
       },
       inactive_sections = {
         lualine_a = {},
@@ -313,7 +354,7 @@ require("lazy").setup({
   {
     'NvChad/nvim-colorizer.lua',
     -- highlight color codes in files
-    -- demo color: #8BF8E7
+    -- demo colors: #8BF8E7, salmon
     lazy = false,
     config = function()
       require("colorizer").setup({
@@ -343,7 +384,7 @@ require("lazy").setup({
         pickers = {
           {
             name = "dotfiles",
-            command = "list-dotfiles | xargs -L 1 -I {} echo $HOME/{}", -- ~/bin/list-dotfiles (gf to open)
+            command = "list-dotfiles | sed \"s|^|~/|\"", -- ~/bin/list-dotfiles (gf to open)
             previewer = easypick.previewers.default()
           },
         }
@@ -353,38 +394,14 @@ require("lazy").setup({
 
   {
     "nvimtools/none-ls.nvim",
+    -- non-lsp tools as lsp
     dependencies = { "nvim-lua/plenary.nvim" },
     config = function()
       local null_ls = require("null-ls")
       local sources = {
-        -- null_ls.builtins.formatting.black,
-        -- null_ls.builtins.formatting.goimports,
-        -- null_ls.builtins.formatting.prettier,
-        -- null_ls.builtins.formatting.stylua,
-        -- null_ls.builtins.formatting.rustfmt,
-        -- null_ls.builtins.formatting.csharpier,
         null_ls.builtins.formatting.alejandra, -- nix formatter
-        -- null_ls.builtins.formatting.djlint,
-        -- null_ls.builtins.formatting.terraform_fmt,
-        -- null_ls.builtins.formatting.shfmt,
-        -- null_ls.builtins.formatting.fourmolu,
       }
-      local augroup = vim.api.nvim_create_augroup("LspFormatting", {})
-      null_ls.setup({
-        sources = sources,
-        on_attach = function(client, bufnr)
-          if client.server_capabilities.documentFormattingProvider then
-            vim.api.nvim_clear_autocmds({ group = augroup, buffer = bufnr })
-            vim.api.nvim_create_autocmd("BufWritePre", {
-              group = augroup,
-              buffer = bufnr,
-              callback = function()
-                vim.lsp.buf.format({ async = false })
-              end,
-            })
-          end
-        end,
-      })
+      null_ls.setup()
     end,
   },
 
@@ -396,89 +413,152 @@ require("lazy").setup({
     end
   },
 
-  {
-    "RishabhRD/nvim-lsputils",
-    -- show code actions, etc
-    requires = { "RishabhRD/popfix" },
-  },
+  -- {
+  --   "RishabhRD/nvim-lsputils",
+  --   -- show code actions, etc
+  --   requires = { "RishabhRD/popfix" },
+  -- },
+  -- {
+  --   "neovim/nvim-lspconfig",
+  --   -- language server protocol
+  --   -- rust:
+  --   config = function()
+  --     local lspconfig = require("lspconfig")
+  --     lspconfig.rust_analyzer.setup({
+  --       settings = {
+  --         ["rust-analyzer"] = {
+  --           -- checkOnSave = {
+  --           --   command = "clippy",
+  --           -- },
+  --           -- cargo = {
+  --           --   extraEnv = { CARGO_PROFILE_RUST_ANALYZER_INHERITS = 'dev', },
+  --           --   extraArgs = { "--profile", "rust-analyzer", },
+  --           -- },
+  --           -- diagnostics = {
+  --           --   disabled = { "inactive-code" },
+  --           -- },
+  --         },
+  --       },
+  --     })
+  --   end,
+  -- },
 
   {
-    "neovim/nvim-lspconfig",
-    -- language server protocol configurations
-    init = function()
-      -- list of supported language servers here:
-      -- https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md (gx to open)
+    "dundalek/lazy-lsp.nvim",
+    dependencies = {
+      "neovim/nvim-lspconfig",
+      { "VonHeikemen/lsp-zero.nvim", branch = "v3.x" },
+      "hrsh7th/cmp-nvim-lsp",
+      "hrsh7th/nvim-cmp",
+    },
+    config = function()
+      local lsp_zero = require("lsp-zero")
 
-      require 'lspconfig'.lua_ls.setup {
-        settings = {
-          Lua = {
-            diagnostics = {
-              globals = { "vim" },
-            },
-          },
+      lsp_zero.on_attach(function(client, bufnr)
+        -- see :help lsp-zero-keybindings to learn the available actions
+        lsp_zero.default_keymaps({
+          buffer = bufnr,
+          preserve_mappings = false
+        })
+      end)
+
+      -- completion menu
+      local cmp = require('cmp')
+      local cmp_mapping = require('cmp.config.mapping')
+      cmp.setup {
+        mapping = cmp_mapping.preset.insert {
+          ['<C-Space>'] = cmp.mapping.complete(),
+          ['<CR>'] = cmp.mapping.confirm({ select = true }),
+          ['<tab>'] = cmp.mapping.confirm({ select = true }),
         },
       }
-      require 'lspconfig'.nixd.setup {}     -- nix
-      require 'lspconfig'.marksman.setup {} --  markdown
-      require 'lspconfig'.julials.setup {}  -- julia
+
 
       -- format on save
+      -- TODO: toggle with keybinding
       vim.api.nvim_create_autocmd("BufWritePre", {
         pattern = { "*" },
         command = "lua vim.lsp.buf.format()",
       })
 
-      -- https://github.com/neovim/nvim-lspconfig?tab=readme-ov-file#suggested-configuration
+      require("lazy-lsp").setup {
+        -- Override config for specific servers that will passed down to lspconfig setup.
+        -- Note that the default_config will be merged with this specific configuration so you don't need to specify everything twice.
+        configs = {
+          lua_ls = {
+            settings = {
+              Lua = {
+                diagnostics = {
+                  -- Get the language server to recognize the `vim` global
+                  globals = { "vim" },
+                },
+              },
+            },
+          },
+          rust_analyzer = {
+            settings = {
+              ["rust-analyzer"] = {
+                procMacro = {
+                  enable = true,
+                },
+                check = {
+                  command = "clippy",
+                },
+                cargo = {
+                  -- To prevent rustanalyzer from locking the target dir (blocking cargo build/run)
+                  -- https://github.com/rust-lang/rust-analyzer/issues/6007#issuecomment-1523204067
+                  extraEnv = { CARGO_PROFILE_RUST_ANALYZER_INHERITS = 'dev', },
+                  extraArgs = { "--profile", "rust-analyzer", },
+                  allFeatures = true,          -- enable all features, so that all optional dependencies are loaded
+                  loadOutDirsFromCheck = true, -- everybody seems to enable this
+                },
+                diagnostics = {
+                  -- show code, even if disabled via feature flags
+                  disabled = { "inactive-code" },
+                },
+              },
+            },
+          },
+        },
+      }
     end,
   },
+
   -- {
-  --   "dundalek/lazy-lsp.nvim",
-  --   -- install lsp servers on demand using nix
-  --   dependencies = { "neovim/nvim-lspconfig" },
+  --   "nvim-treesitter/nvim-treesitter",
+  --   -- syntax highlighting
+  --   -- https://github.com/nvim-treesitter/nvim-treesitter#readme
+  --   -- with nix home-manager, all treesitter grammars can be installed in one go:
+  --   -- programs.neovim.plugins = [
+  --   --   pkgs.vimPlugins.nvim-treesitter.withAllGrammars
+  --   -- ];
+  --   build = ":TSUpdate",
   --   config = function()
-  --     require("lazy-lsp").setup {}
+  --     local configs = require("nvim-treesitter.configs")
+  --     configs.setup({
+  --       -- ...
+  --     })
   --   end
   -- },
-  {
-    "nvim-treesitter/nvim-treesitter",
-    -- syntax highlighting
-    -- https://github.com/nvim-treesitter/nvim-treesitter#readme
-    -- with nix home-manager, all treesitter grammars can be installed in one go:
-    -- programs.neovim.plugins = [
-    --   pkgs.vimPlugins.nvim-treesitter.withAllGrammars
-    -- ];
-    build = ":TSUpdate",
-    config = function()
-      local configs = require("nvim-treesitter.configs")
-      configs.setup({
-        -- ...
-      })
-    end
-  },
-  -- {
-  -- 	'rmagatti/auto-session',
-  -- 	config = function()
-  -- 		require("auto-session").setup {
-  -- 			log_level = "error",
-  -- 			auto_session_suppress_dirs = { "~/", "~/Projects", "~/Downloads", "/" },
-  -- 		}
-  -- 	end
-  -- },
+
   {
     "gioele/vim-autoswap",
     -- manage vim swapfiles
     lazy = false,
 
   },
+
   {
     "arp242/auto_mkdir2.vim",
     -- automatically create non-existing directories when writing a file
     lazy = false,
   },
+
   {
     "zbirenbaum/copilot.lua",
     -- AI completion, lua copy of the original
     cmd = "Copilot",
+    -- event = "BufEnter",
     event = "InsertEnter",
     opts = {
       suggestion = {
@@ -499,6 +579,7 @@ require("lazy").setup({
       },
     },
   },
+
   { 'akinsho/toggleterm.nvim',             version = "*", config = true },
 
   {
@@ -551,6 +632,7 @@ require("lazy").setup({
   -- 	event = "BufReadPost",
   -- 	config = function() require("nvim-rooter").setup() end,
   -- },
+
   {
     "terryma/vim-multiple-cursors",
     lazy = false,
@@ -563,6 +645,8 @@ require("lazy").setup({
     end,
   },
 })
+
+
 
 
 -- vimcustom (* to jump to index)
