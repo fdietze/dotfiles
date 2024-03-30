@@ -5,52 +5,44 @@ shopt -s expand_aliases
 
 source /etc/os-release # load linux distribution information
 case $NAME in
-    NixOS )
-        echo "checking nixos configuration"
-        nix-instantiate '<nixpkgs/nixos>' -A system
-        echo "upgrading system"
-        echo "channels:"
-        sudo nix-channel --list
-        # sudo nixos-rebuild boot --upgrade
-        CHANNEL=$(sudo nix-channel --list | grep -oP "[0-9]{2}\.[0-9]{2}")
-        sudo nix-channel --update
-        # (cd "$HOME/projects/nixpkgs" && git fetch && git checkout "nixos-$CHANNEL" && git pull)
-        # sudo nixos-rebuild boot -I nixpkgs="$HOME/projects/nixpkgs"
-        sudo nixos-rebuild boot
-        echo "updating user space"
-        echo "channels:"
-        nix-channel --list
-        nix-channel --update
-        nix-env --upgrade
-        ;;
+NixOS)
+	# echo "checking nixos configuration"
+	# nix-instantiate '<nixpkgs/nixos>' -A system
+	echo "upgrading system"
+	# echo "channels:"
+	# sudo nix-channel --list
+	# sudo nixos-rebuild boot --upgrade
+	# CHANNEL=$(sudo nix-channel --list | grep -oP "[0-9]{2}\.[0-9]{2}")
+	# sudo nix-channel --update
+	# (cd "$HOME/projects/nixpkgs" && git fetch && git checkout "nixos-$CHANNEL" && git pull)
+	# sudo nixos-rebuild boot -I nixpkgs="$HOME/projects/nixpkgs"
+	(cd "$HOME/nixos" && nix flake update)
+	sudo nixos-rebuild boot
+	echo "updating nix profile"
+	NIXPKGS_ALLOW_UNFREE=1 nix profile upgrade '.*' --impure
+	;;
 esac
 
+# echo "updating zgen plugins..."
+# zsh -c "source ~/.zgenom/zgenom.zsh && zgenom selfupdate && zgenom update"
 
-echo "updating vim plugins..."
-nvim +PlugUpgrade +PlugInstall +PlugUpdate +PlugClean! +qall
-nvim -c 'CocUpdateSync|q'
-
-
-echo "updating zgen plugins..."
-zsh -c "source ~/.zgenom/zgenom.zsh && zgenom selfupdate && zgenom update"
-
-echo "updating fish plugins..."
-fish -c "fisher update"
+# echo "updating fish plugins..."
+# fish -c "fisher update"
 
 # echo "updating ruby gems..."
 # gem update
 
-echo "updating global npm packages"
-npm -g update # installs yarn
-yarn global upgrade
+# echo "updating global npm packages"
+# npm -g update # installs yarn
+# yarn global upgrade
 
+# echo "updating coursier (scala)"
+# cs update
 
-echo "updating coursier (scala)"
-cs update
-
-# echo "updating rust installation"
-# multirust update
+# echo "updating vim plugins..."
+# nvim +AstroUpdate
+# nvim +TSUpdate
+# nvim +AstroUpdatePackages
 
 sync
-
 exit 0

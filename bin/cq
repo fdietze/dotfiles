@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+# usage $0 db.sqlite this is a prompt
+if [ $# -eq 0 ]; then
+	echo "Usage: $0 db.sqlite this is a prompt"
+	exit 1
+fi
+
+dbfile="$1"
+shift 1
+prompt="$*"
+
+# get sqlite schema
+schema="$(sqlite3 -init /dev/null "$dbfile" .schema)"
+
+# Run chatgpt-cli to get the query
+result="$(chatgpt "You are a senior developer. Return a single or multiple sql (sqlite) queries with the potentially destructive functionality I will describe according to the current schema. In the explanation, be as concise as you can. Before providing the final solution, question yourself, if the approach is correct. Always provide the full code. You must use the following json format: { explanation: string, query: string }. Only return the raw json without any code block quoting. The query should do the following: $prompt\n\ncurrent schema:\n$schema")"
+
+# Print the query and ask for confirmation
+explanation="$(echo "$result" | jq -r '.explanation')"
+query="$(echo "$result" | jq -r '.query')"
+echo -e "$explanation\n"
+echo -e "$query\n"
+echo "Press ENTER to execute on '$dbfile' or CTRL+C to cancel."
+
+# Wait for user input
+read -r
+
+# Execute the query
+sqlite3 -init /dev/null "$dbfile" "$query"

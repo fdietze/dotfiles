@@ -1,19 +1,26 @@
 #!/usr/bin/env bash
+# https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail
+set -Eeo pipefail
+
+# `sbt new` can be executed without build.sbt
+if [ "$1" == "new" ]; then
+	exec env sbt "$@"
+fi
 
 # look in this parent folders for build.sbt
 # only launch sbt if build.sbt is found
 DIR=$(pwd)
 
 while [ -n "$DIR" ] && [ ! -f "$DIR/build.sbt" ]; do
-  DIR="${DIR%\/*}"
+	DIR="${DIR%\/*}"
 done
 
 if [ -z "$DIR" ]; then
-  echo "No build.sbt found."
-  exit 1
+	echo "No build.sbt found."
+	exit 1
 fi
 
 [[ "$DIR" == "$PWD" ]] || echo "$(tput setaf 2)Launching sbt in $DIR$(tput sgr0)"
 
 cd "$DIR"
-exec env sbt $@
+exec env sbt "$@"

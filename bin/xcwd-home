@@ -8,7 +8,8 @@ DIR="$(xcwd)"
 # outside of home?
 case $DIR/ in
   $HOME/*) ;;     # in home
-  *) echo "$HOME"; exit 0 ;; # not in home
+  /tmp/*) ;;
+  *) echo "$HOME"; exit 0 ;; # somewhere else
 esac
 
 # inside a git repo?
