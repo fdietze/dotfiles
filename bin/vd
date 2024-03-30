@@ -2,5 +2,5 @@
 
 source dotfiles-env
 
-file="$(dt ls-tree --full-tree --name-only -r HEAD | fzf --preview 'pistol $HOME/{} $FZF_PREVIEW_COLUMNS $FZF_PREVIEW_LINES' --bind 'ctrl-d:preview-page-down')"
+file="$(list-dotfiles | fzf --preview 'pistol $HOME/{} $FZF_PREVIEW_COLUMNS $FZF_PREVIEW_LINES' --bind 'ctrl-d:preview-page-down')"
 [[ -n $file ]] && $EDITOR "$HOME/$file"

@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+source dotfiles-env
+
+dt ls-tree --full-tree --name-only -r HEAD
