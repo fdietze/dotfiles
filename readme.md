@@ -7,7 +7,7 @@
 - Dotfiles: [bare git](https://www.atlassian.com/git/tutorials/dotfiles) + [Home Manager](https://nix-community.github.io/home-manager/index.xhtml)
 - Shell: [ZSH](https://zsh.sourceforge.io/) (via Home Manager)
 - Editor: [Neovim](https://neovim.io/) + [lua config](https://lsp-zero.netlify.app/v3.x/tutorial.html) (I always use it in the terminal)
-- Keyboard layout: [Neo Layout](https://neo-layout.org/))
+- Keyboard layout: [Neo Layout](https://neo-layout.org/)
 
 - Tiling Window Manager: [Herbstluftwm](https://herbstluftwm.org/)
 - Statusbar: [Polybar](https://github.com/polybar/polybar)
