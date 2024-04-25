@@ -33,12 +33,12 @@
 -- https://devhints.io/vim (gx to open)
 
 -- vimoptions (* to jump to index)
+vim.opt.cursorline = true
 vim.opt.number = true -- show line numbers
 vim.opt.confirm = true -- confirm before overwriting files
 vim.opt.clipboard:append("unnamedplus") -- use system clipboard
 vim.opt.signcolumn = "yes" -- always show signcolumn, even if there are no diagnostics
 vim.opt.gdefault = true -- by default substitute all occurrences in line with :s/.../.../g
-vim.opt.breakindent = true -- indent wrapped lines
 vim.opt.ignorecase = true -- search case insensitivity
 vim.opt.smartcase = true -- uppercase search triggers case sensitivity
 vim.opt.list = true
@@ -48,18 +48,33 @@ vim.opt.backup = true -- file backups on save
 vim.opt.backupdir = vim.env.HOME .. '/.local/state/nvim/backup/'
 vim.opt.undofile = true -- persistent undo
 vim.opt.viminfo = "'10000,<1000,s1000" -- adjust vim file history https://vi.stackexchange.com/a/26037
+vim.opt.wildmode = 'longest,list:lastused,full'
 
--- tab size 2
-vim.opt.tabstop = 2
-vim.opt.softtabstop = 2
-vim.opt.shiftwidth = 2
+-- tabs
+vim.opt.tabstop = 2      -- size of a hard tabstop
+vim.opt.softtabstop = 2  -- a combination of spaces and tabs are used to simulate tab stops at a width
+vim.opt.shiftwidth = 2   -- size of an "indent"
 vim.opt.expandtab = true          -- use spaces instead of tabs
+vim.opt.smarttab = true
+vim.opt.virtualedit =
+{ 'block', 'onemore' }      -- { 'block', 'onemore' } -- the cursor can be positioned where there is no actual character.
+vim.opt.startofline = false -- move the cursor to the first non-blank of the line: CTRL-D, CTRL-U, switching buffers, ...
 
-vim.opt.formatoptions:remove("o") -- don't continue comments with o
+-- wrapping and scrolling
+vim.opt.wrap = true
+vim.opt.linebreak = true   -- break only at word boundary
+vim.opt.breakindent = true -- indent wrapped lines
+vim.opt.breakindentopt = "shift:2"
+vim.opt.scrolloff = 5      -- scroll to keep 5 lines above and below cursor
+vim.opt.sidescrolloff = 5
+vim.opt.sidescroll = 1     -- used when wrap is off
+
+-- vim.opt.formatoptions:remove("o") -- don't continue comments with o
 
 if vim.g.neovide then
-  vim.o.guifont = "Ubuntu Mono:h10"
+  vim.o.guifont = "Ubuntu Mono:h9"
 end
+
 
 
 -- vimkeybindings (* to jump to index)
@@ -67,61 +82,52 @@ end
 -- old: /home/felix.old-2024-03-01/.vimrc_keybindings  (gf to open)
 vim.g.mapleader = " " -- set leader to space
 -- well established
-vim.keymap.set('n', 'ä', '<cmd>q<cr>', { desc = 'quit' })
-vim.keymap.set('n', 'ö', '<cmd>update<cr>', { desc = 'save' })
-vim.keymap.set('n', 'ü', '<cmd>bdelete<cr>', { desc = 'close buffer' })
+vim.keymap.set({ 'n', 'v' }, 'ä', '<cmd>q<cr>', { desc = 'quit' })
+vim.keymap.set({ 'n', 'v' }, 'ö', '<cmd>update<cr>', { desc = 'save' })
+vim.keymap.set({ 'n', 'v' }, 'ü', '<cmd>bdelete<cr>', { desc = 'close buffer' })
+-- TODO: vim.keymap.set('n', '<leader>ü', '', { desc = 'close all buffers except the current one' })
 -- incubator
 
-for _, mode in ipairs({ 'n', 'v' }) do
-  vim.keymap.set(mode, 'Λ', '<C-W>k', { desc = 'focus window up (neo mod6+l)' })
-  vim.keymap.set(mode, '∀', '<C-W>j', { desc = 'focus window down (neo mod6+a)' })
-  vim.keymap.set(mode, '∫', '<C-W>h', { desc = 'focus window left (neo mod6+i)' })
-  vim.keymap.set(mode, '∃', '<C-W>l', { desc = 'focus window right (neo mod6+e)' })
-  vim.keymap.set(mode, 'Φ', '<C-W>_', { desc = 'maximize window right (neo mod6+f)' })
-  vim.keymap.set(mode, '∂', '<cmd>ToggleTerm direction=horizontal start_in_insert=true<cr>',
+vim.keymap.set({ 'n', 'v' }, 'Λ', '<C-W>k', { desc = 'focus window up (neo mod6+l)' })
+vim.keymap.set({ 'n', 'v' }, '∀', '<C-W>j', { desc = 'focus window down (neo mod6+a)' })
+vim.keymap.set({ 'n', 'v' }, '∫', '<C-W>h', { desc = 'focus window left (neo mod6+i)' })
+vim.keymap.set({ 'n', 'v' }, '∃', '<C-W>l', { desc = 'focus window right (neo mod6+e)' })
+vim.keymap.set({ 'n', 'v' }, 'Φ', '<C-W>_', { desc = 'maximize window right (neo mod6+f)' })
+vim.keymap.set({ 'n', 'v' }, '∂', '<cmd>ToggleTerm direction=horizontal start_in_insert=true<cr>',
     { desc = 'open terminal (neo mod6+t)' })
-end
 
 -- switch buffers with l, L
 vim.keymap.set('n', 'l', '<cmd>bnext<cr>', { desc = 'next buffer' })
 vim.keymap.set('n', 'L', '<cmd>bprev<cr>', { desc = 'prev buffer' })
 vim.keymap.set('n', '<leader>vv', '<cmd>edit ~/.config/nvim/init.lua<cr>', { desc = 'edit init.lua' })
 vim.keymap.set('n', '<leader>vh', '<cmd>edit ~/nixos/home.nix<cr>', { desc = 'edit init.lua' })
+vim.keymap.set('n', '<leader>vn', '<cmd>edit ~/nixos/configuration.nix<cr>', { desc = 'edit init.lua' })
 vim.keymap.set('n', '<leader>vt', '<cmd>edit ~/todo.md<cr>', { desc = 'edit todo.md' })
-vim.keymap.set('n', 'h', "<cmd>let @/ = expand('<cword>')<cr>:set hls<cr>", { desc = 'highlight word under cursor' })
+
+vim.keymap.set('n', 'h', "<cmd>let @/ = expand('<cword>')<cr>:set hls<cr>", { desc = 'highlight word under cursor' }) -- todo: toggle
 vim.keymap.set('n', '<leader>/', '<cmd>nohls<cr>', { desc = 'clear search highlight' })
-vim.keymap.set('n', "<leader>p", "v$<Left>pgvy", { desc = 'paste over rest of line' })
 
 vim.keymap.set('n', 'Y', 'y$', { desc = 'yank till end of line. (Y behaves like D and C)' })
-vim.keymap.set('n', "<leader>n",
-  function()
-    local has_errors = next(vim.diagnostic.get(0, { severity = vim.diagnostic.severity.ERROR })) ~= nil
-    if has_errors then
-      vim.diagnostic.goto_next { severity = vim.diagnostic.severity.ERROR, float = true }
-    else
-      local has_warnings = next(vim.diagnostic.get(0, { severity = vim.diagnostic.severity.ERROR })) ~=
-          nil
-      if has_warnings then
-        vim.diagnostic.goto_next { severity = vim.diagnostic.severity.WARN, float = true }
-      else
-        vim.diagnostic.goto_next { float = true }
-      end
-    end
-  end,
-  { desc = "Jump to next LSP diagnostic" }
-)
+vim.keymap.set('n', "<leader>p", "v$<Left>pgvy", { desc = 'paste over rest of line' })
+
 
 vim.keymap.set('n', '<leader>gs', '<cmd>nohlsearch<CR>:term tig status<CR>i', { desc = 'launch tig status' })
+vim.keymap.set('n', 'gf', ':e <cfile><cr>', { desc = 'edit file under cursor' })
 
 vim.keymap.set('v', 'p', 'pgvy', { desc = "keep clipboard when pasting over selection" })
 vim.keymap.set('v', '>', '>gv', { desc = ">, keep selection when indenting" })
 vim.keymap.set('v', '<', '<gv', { desc = "<, keep selection when indenting" })
 vim.keymap.set('v', '=', '=gv', { desc = "=, keep selection when indenting" })
 vim.keymap.set('n', 'ß', '@q', { desc = "run macro 'q'" })
+vim.keymap.set({ 'n', 'v', 'i' }, '<C-Up>', 'g<Up>', { desc = "move visible line up" })
 
 -- smart home
-vim.keymap.set('n', '<Home>', "col('.') == match(getline('.'), '\\S') + 1 ? '<Home>' : '^'", { expr = true })
-vim.keymap.set('i', '<Home>', "col('.') == match(getline('.'), '\\S') + 1 ? '<Home>' : '<C-O>^", { expr = true })
+vim.keymap.set('n', '<Home>', function()
+  return vim.fn.col('.') == vim.fn.match(vim.fn.getline('.'), '\\S') + 1 and '<Home>' or '^'
+end, { expr = true })
+vim.keymap.set('i', '<Home>', function()
+  return vim.fn.col('.') == vim.fn.match(vim.fn.getline('.'), '\\S') + 1 and '<Home>' or '<C-O>^'
+end, { expr = true })
 
 -- Toggle a specific character at the end of the current line
 local function toggle_char_at_eol(target_char)
@@ -227,9 +233,9 @@ require("lazy").setup({
     keys = {
       { '<leader>e',  '<cmd>Telescope find_files<cr>', desc = 'open files' },
       { '<leader>a',  '<cmd>Telescope live_grep<cr>',  desc = 'live grep' },
-      { '<leader>r',  '<cmd>Telescope oldfiles<cr>',   desc = 'open recent files' },
+      { '<leader>A',  '<cmd>Telescope live_grep<cr><C-r><C-w>', desc = 'live grep word under cursor' }, -- TODO!
       { '<leader>vr', '<cmd>Telescope oldfiles<cr>',   desc = 'open recent files' },
-      { '<leader>b',  '<cmd>Telescope buffers<cr>',    desc = 'open recent files' }
+      { '<leader>b',  '<cmd>Telescope buffers<cr>',             desc = 'open buffers' }
     },
     opts = {
       pickers = {
@@ -238,7 +244,7 @@ require("lazy").setup({
           find_command = { "rg", "--files", "--hidden", "--glob", "!**/.git/*" }, -- use ripgrep, find hidden files and folders except .git/
         },
         live_grep = {
-          additional_args = { "--hidden", "--glob", "!**/.git/*" }, -- search in hidden files and folders except .git/
+          additional_args = { "--hidden", "--glob", "!**/.git/*", "--fixed-strings" }, -- search in hidden files and folders except .git/
         },
       },
     }
@@ -413,6 +419,17 @@ require("lazy").setup({
     end
   },
 
+  {
+    "notjedi/nvim-rooter.lua",
+    event = "BufReadPost",
+    config = function() require("nvim-rooter").setup() end,
+  },
+  {
+    "direnv/direnv.vim",
+    -- load .envrc automatically when vim changes its working directory
+    lazy = false,
+  },
+
   -- {
   --   "RishabhRD/nvim-lsputils",
   --   -- show code actions, etc
@@ -426,21 +443,33 @@ require("lazy").setup({
   --     local lspconfig = require("lspconfig")
   --     lspconfig.rust_analyzer.setup({
   --       settings = {
+  --         rust_analyzer = {
+  --           settings = {
   --         ["rust-analyzer"] = {
-  --           -- checkOnSave = {
-  --           --   command = "clippy",
-  --           -- },
-  --           -- cargo = {
-  --           --   extraEnv = { CARGO_PROFILE_RUST_ANALYZER_INHERITS = 'dev', },
-  --           --   extraArgs = { "--profile", "rust-analyzer", },
-  --           -- },
-  --           -- diagnostics = {
-  --           --   disabled = { "inactive-code" },
-  --           -- },
+  --               procMacro = {
+  --                 enable = true,
+  --         },
+  --               check = {
+  --                 command = "clippy",
+  --       },
+  --               cargo = {
+  --                 -- To prevent rustanalyzer from locking the target dir (blocking cargo build/run)
+  --                 -- https://github.com/rust-lang/rust-analyzer/issues/6007#issuecomment-1523204067
+  --                 extraEnv = { CARGO_PROFILE_RUST_ANALYZER_INHERITS = 'dev', },
+  --                 extraArgs = { "--profile", "rust-analyzer", },
+  --                 allFeatures = true,          -- enable all features, so that all optional dependencies are loaded
+  --                 loadOutDirsFromCheck = true, -- everybody seems to enable this
+  --               },
+  --               diagnostics = {
+  --                 -- show code, even if disabled via feature flags
+  --                 disabled = { "inactive-code" },
+  --               },
+  --             },
+  --           },
   --         },
   --       },
   --     })
-  --   end,
+  --   end
   -- },
 
   {
@@ -478,10 +507,17 @@ require("lazy").setup({
       -- TODO: toggle with keybinding
       vim.api.nvim_create_autocmd("BufWritePre", {
         pattern = { "*" },
-        command = "lua vim.lsp.buf.format()",
+        callback = function()
+          if vim.bo.filetype ~= "json" then
+            vim.lsp.buf.format({ async = false })
+          end
+        end,
       })
 
       require("lazy-lsp").setup {
+        excluded_servers = {
+          "denols", "quick_lint_js", "pylyzer", "marksman", "ltex"
+        },
         -- Override config for specific servers that will passed down to lspconfig setup.
         -- Note that the default_config will be merged with this specific configuration so you don't need to specify everything twice.
         configs = {
@@ -585,12 +621,12 @@ require("lazy").setup({
   {
     "AndrewRadev/switch.vim",
     -- cycle between words
+    -- examples: true, on, px
     keys = { "gs", desc = "cycle wordes, e.g. true <-> false" },
     config = function()
       vim.g.switch_custom_definitions = {
         { "on",         "off" },
         { "==",         "!=" },
-        { "_",          "-" },
         { " < ",        " > " },
         { "<=",         ">=" },
         { " + ",        " - " },
@@ -627,11 +663,21 @@ require("lazy").setup({
 
   { "lukas-reineke/indent-blankline.nvim", main = "ibl",  opts = {} },
 
-  -- {
-  -- 	"notjedi/nvim-rooter.lua",
-  -- 	event = "BufReadPost",
-  -- 	config = function() require("nvim-rooter").setup() end,
-  -- },
+  {
+    "smjonas/inc-rename.nvim",
+    lazy = false,
+    keys = {
+      {
+        '<leader>rr',
+        ':IncRename ',
+        { expr = true },
+        desc = "rename current word"
+      },
+    },
+    config = function()
+      require("inc_rename").setup()
+    end,
+  },
 
   {
     "terryma/vim-multiple-cursors",
@@ -652,7 +698,7 @@ require("lazy").setup({
 -- vimcustom (* to jump to index)
 
 -- load dark or light color scheme
-local theme_file = io.open(os.getenv("HOME") .. "/.theme", "r")
+local theme_file = io.open(os.getenv("HOME") .. "/.theme", "r") -- ~/.theme
 local system_theme = "dark"
 if theme_file then
   if theme_file:read("*a"):find("light") then
@@ -769,4 +815,20 @@ vim.api.nvim_create_autocmd(
   { "BufRead", "BufEnter", "CursorHold", "InsertLeave", "TextChanged", "TextChangedI", "TextChangedP" }, {
     pattern = "*",
     callback = underline_existing_paths,
+  })
+
+
+vim.api.nvim_create_autocmd(
+-- change the window-local directory to the current file
+-- helps to edit files in the same folder using :e
+  { "BufEnter" }, {
+    pattern = "*",
+    command = "lcd %:p:h",
+  })
+
+vim.api.nvim_create_autocmd(
+-- neovim: automatically close terminal when process exited
+  { "TermClose" }, {
+    pattern = "*",
+    command = "call feedkeys('<cr>')",
   })
