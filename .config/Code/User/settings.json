@@ -2,7 +2,9 @@
     "keyboard.dispatch": "keyCode",
     "editor.suggestSelection": "first",
     "vsintellicode.modify.editor.suggestSelection": "automaticallyOverrodeDefaultValue",
-    "workbench.colorTheme": "Palenight Theme",
+    "workbench.colorTheme": "Tokyo Night Storm",
+    "workbench.preferredLightColorTheme": "Snazzy Light",
+    "workbench.preferredDarkColorTheme": "Tokyo Night Storm",
     "editor.formatOnSave": true,
     "vim.leader": " ",
     "vim.useSystemClipboard": true,
@@ -15,63 +17,10 @@
                 ":w"
             ]
         },
-        {
-            "before": [
-                "ü"
-            ],
-            "commands": [
-                "workbench.action.closeActiveEditor"
-            ]
-        },
-        {
-            "before": [
-                "<leader>",
-                "n"
-            ],
-            "commands": [
-                "editor.action.marker.next"
-            ]
-        },
-        {
-            "before": [
-                "<leader>",
-                "e"
-            ],
-            "commands": [
-                "workbench.action.quickOpen"
-            ]
-        },
-        {
-            "before": [
-                "<leader>",
-                "a"
-            ],
-            "commands": [
-                "workbench.action.findInFiles"
-            ]
-        },
-        {
-            "before": [
-                "l"
-            ],
-            "commands": [
-                "workbench.action.nextEditor",
-            ]
-        },
-        {
-            "before": [
-                "L"
-            ],
-            "commands": [
-                "workbench.action.previousEditor",
-            ]
-        },
     ],
     "editor.formatOnPaste": true,
     "editor.inlineSuggest.enabled": true,
     "window.autoDetectColorScheme": true,
-    "workbench.preferredLightColorTheme": "Snazzy Light",
-    "workbench.preferredDarkColorTheme": "Palenight Theme",
     "window.zoomLevel": -1,
     "editor.minimap.showSlider": "always",
     "editor.wordWrap": "on",
@@ -81,4 +30,22 @@
     "[python]": {
         "editor.formatOnType": true
     },
+    "files.watcherExclude": {
+        "**/.bloop": true,
+        "**/.metals": true,
+        "**/.ammonite": true,
+        "**/out": true
+    },
+    "metals.enableIndentOnPaste": true,
+    "metals.showInferredType": "minimal",
+    "metals.showImplicitConversionsAndClasses": true,
+    "metals.showImplicitArguments": true,
+    "window.titleBarStyle": "custom",
+    "window.customMenuBarAltFocus": false,
+    "window.enableMenuBarMnemonics": false,
+    "metals.serverVersion": "1.2.2+117-8cc7a42f-SNAPSHOT",
+    "window.menuBarVisibility": "compact",
+    "breadcrumbs.enabled": false,
+    "editor.autoClosingBrackets": "never",
+    "editor.cursorBlinking": "solid",
 }
