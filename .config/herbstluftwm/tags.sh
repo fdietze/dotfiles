@@ -23,11 +23,11 @@ case $THEME in
         default_bg="#191C26"
         empty_fg="#555555"
         used_fg="#EFEFEF"
-        selected_fg="#ffffff"
+        selected_fg="#000000"
         urgent_bg="#CE6D00"
-        focus_bg="#5A5B66"
-        focus_other_bg="#393940"
-        unfocus_bg="#393940"
+        focus_bg="#9ECE6A"
+        focus_other_bg="#668544"
+        unfocus_bg="#668544"
         unfocus_other_bg=#29292E
         # fgcolordim="#909090"
         # fgcolorbad="#FF3F74"
@@ -44,10 +44,10 @@ tag_status() {
                 echo -n "%{B$focus_bg F$selected_fg}"
                 ;;
             '-') # Focused monitor: the tag is viewed on other monitor
-                echo -n "%{B$focus_other_bg F#$used_fg}"
+                echo -n "%{B$focus_other_bg F$used_fg}"
                 ;;
             '+') # Unfocused monitor: the tag is viewed on this monitor
-                echo -n "%{B$unfocus_bg F$selected_fg}"
+                echo -n "%{B$unfocus_bg F$used_fg}"
                 ;;
             '%') # Unfocused monitor: the tag is viewed on other monitor
                 echo -n "%{B$unfocus_other_bg F$used_fg}"
