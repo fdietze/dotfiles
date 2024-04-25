@@ -1,14 +1,3 @@
-bt http://localhost:8889/
-c https://www.google.com/calendar
-db http://bahn.de
-f http://feedly.com
-fb https://www.facebook.com/messages/
-gp https://plus.google.com/
-m https://mail.google.com/mail/u/0/#inbox
-p http://localhost:9000/
-pb https://banking.postbank.de/rai/login
-s file:///usr/share/doc/scala/api/scala-library/index.html#package
-td http://www.toodledo.com/tasks/index.php#main
-wu https://www.wunderlist.com/#/lists/inbox
-kunagi http://dum.hopto.org:8082/kunagi/#project=ef4b23be-1d70-4748-b1f9-1d1fc6a8da55-1%7Cpage=Dashboard
-haskell http://dev.stephendiehl.com/hask/
+cal https://calendar.google.com
+herbstluftwm tabs config https://github.com/juacq97/dotfilesOlds/blob/master/.config/herbstluftwm/autostart
+vh https://home-manager-options.extranix.com/
