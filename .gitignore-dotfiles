@@ -1,5 +1,7 @@
 *~
 
+__pycache__/
+
 /.AndroidStudioPreview2.0
 /.android
 /Android
@@ -17,6 +19,8 @@
 /.vscode
 /.visualvm
 /.gephi
+/.rustup
+/.yarn
 /.config/skypeforlinux
 /.config/google-chrome*
 /.config/chromium*
@@ -39,8 +43,19 @@
 /.config/Postman
 /.config/coc/extensions
 /.config/discord
+/.jitsi/sip-communicator.bin
 
-
+/backup-gurke-2024-03-01
+/MEGAsync
+/.wpfr
+/.julia/compiled
+/.julia/packages
+/.julia/artifacts
+/.julia/logs
+/.julia/registries
+/.jupyter
+/.docker/buildx
+/.tldrc
 /.Xauthority
 /.cache
 /.colors
