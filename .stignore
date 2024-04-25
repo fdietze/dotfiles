@@ -1,9 +1,0 @@
-!/screenshots
-!/downloads
-!/.zsh_history
-!/.sync-conflict-*.zsh_history
-!/sync
-!/.local/share/fonts
-!/.ssh/config
-!/.ssh/known_hosts
-**
