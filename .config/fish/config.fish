@@ -10,7 +10,6 @@ if status is-interactive
     fish_add_path $HOME/go/bin
     fish_add_path $HOME/development/flutter/bin
     fish_add_path $HOME/.local/share/coursier/bin
-    fish_add_path $HOME/.zgenom/sources/dottr/dottr/___/pan.git # https://github.com/dottr/dottr/#installation-1
 
 
     set -gx EDITOR nvim
