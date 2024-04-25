@@ -1,0 +1,84 @@
+// Place your key bindings in this file to override the defaults
+[
+    {
+        "key": "space o",
+        "command": "workbench.view.explorer",
+        "when": "!sideBarVisible && vim.mode == 'Normal' && (!inQuickOpen && !textInputFocus || editorTextFocus)"
+    },
+    {
+        "key": "space o",
+        "command": "workbench.action.closeSidebar",
+        "when": "sideBarVisible && vim.mode == 'Normal' && (!inQuickOpen && !textInputFocus || editorTextFocus)"
+    },
+    {
+        "key": "space e",
+        "command": "workbench.action.quickOpen",
+        "when": "vim.mode == 'Normal' && (!inQuickOpen && !textInputFocus || editorTextFocus)"
+    },
+    {
+        "key": "<leader> n",
+        "command": "editor.action.marker.next",
+        "when": "vim.mode == 'Normal' && (!inQuickOpen && !textInputFocus || editorTextFocus)"
+    },
+    {
+        "key": "<leader> a",
+        "command": "workbench.action.findInFiles",
+        "when": "vim.mode == 'Normal' && (!inQuickOpen && !textInputFocus || editorTextFocus)"
+    },
+    {
+        "key": "<leader> v v",
+        "command": "workbench.action.openSettingsJson",
+        "when": "vim.mode == 'Normal' && (!inQuickOpen && !textInputFocus || editorTextFocus)"
+    }, // {
+    //     "before": [
+    //         "<leader>",
+    //         "n"
+    //     ],
+    //     "commands": [
+    //         "editor.action.marker.next"
+    //     ]
+    // },
+    // {
+    //     "before": [
+    //         "<leader>",
+    //         "a"
+    //     ],
+    //     "commands": [
+    //         "workbench.action.findInFiles"
+    //     ]
+    // },
+    // {
+    //     "before": [
+    //         "<leader>",
+    //         "v",
+    //         "v"
+    //     ],
+    //     "commands": [
+    //         "workbench.action.openSettingsJson"
+    //     ]
+    // },
+    {
+        "key": "z", // neo layout: ü
+        "command": "workbench.action.closeActiveEditor",
+        "when": "vim.mode == 'Normal' && (!inQuickOpen && !textInputFocus || editorTextFocus)"
+    },
+    {
+        "key": "c", // neo layout: ä
+        "command": "workbench.action.quit",
+        "when": "editorTextFocus && vim.mode == 'Normal' || !inQuickOpen && !textInputFocus && vim.mode == 'Normal'"
+    },
+    {
+        "key": "l",
+        "command": "workbench.action.nextEditor",
+        "when": "vim.mode == 'Normal' && (!inQuickOpen && !textInputFocus || editorTextFocus)"
+    },
+    {
+        "key": "shift+l",
+        "command": "workbench.action.previousEditor",
+        "when": "vim.mode == 'Normal' && (!inQuickOpen && !textInputFocus || editorTextFocus)"
+    },
+    {
+        "key": "ctrl+shift+space",
+        "command": "workbench.action.showCommands"
+    },
+]
