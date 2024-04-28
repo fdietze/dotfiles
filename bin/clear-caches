@@ -3,15 +3,19 @@ set -Eeuo pipefail # https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_
 set -x # print all commands
 
 
+df -h
+
 rm -rf ~/.cache/{yarn,Cypress,coursier,JetBrains,typescript,prisma,pip,mozilla,chromium,node-gyp}
 rm -rf ~/.cargo/registry
 rm -rf ~/.ivy2
 
 docker stop $(docker ps -q) || true
 docker system prune --all --volumes --force
-# nix-collect-garbage --delete-older-than 1d
-# sudo nix-collect-garbage --delete-older-than 1d
+nix-collect-garbage --delete-older-than 1d
+sudo nix-collect-garbage --delete-older-than 1d
 
-# trash-empty -f # needs trash-cli
+trash-empty # needs trash-cli
 
-# nix-store --optimize
+~/projects/cleanup
+
+df -h

@@ -1,0 +1,7 @@
+[manager]
+sort_dir_first = true
+linemode = "mtime"    # show last modified time next to file
+sort_by = "modified"
+sort_reverse = true
+ratio = [0, 5, 5]     # hide first column
+show_hidden = true

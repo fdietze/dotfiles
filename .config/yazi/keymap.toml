@@ -1,0 +1,19 @@
+[manager]
+prepend_keymap = [
+	{ on = [ "ä" ], run = 'quit', desc = "quit" },
+	# { on = [ "ü" ], run = 'close-tab', desc = "close tab" },
+	# { on = [ "l" ], run = 'tab-next', desc = "next tab" },
+	# { on = [ "L" ], run = 'tab-prev', desc = "previous tab" },
+  { on = [ "<C-t>" ], run  = 'shell "$SHELL" --block --confirm', desc = "Open shell here"},
+  # { on = [ "<C-n>" ], run = 'shell "dragon -x -i -T $SHELL" --confirm', desc = "Drag and drop"}
+]
+
+[help]
+prepend_keymap = [
+	{ on = [ "ä" ], run = 'close', desc = "quit" },
+]
+
+[input]
+prepend_keymap = [
+  { on = [ "<Esc>" ], run = 'close', desc = "Cancel input" },
+]
