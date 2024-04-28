@@ -1,0 +1,80 @@
+[light]
+[light.bright]
+black = '#999999'
+blue = '#77c4ff'
+cyan = '#65cabe'
+green = '#68af5d'
+magenta = '#8468cb'
+red = '#ff72bd'
+white = '#ffffff'
+yellow = '#ffa34a'
+
+[light.normal]
+black = '#000000'
+blue = '#0a94ff'
+cyan = '#00cab2'
+green = '#19af00'
+magenta = '#3b00cb'
+red = '#ff0088'
+white = '#ffffff'
+yellow = '#ff7e00'
+
+[light.primary]
+background = '#ffffff'
+foreground = '#000000'
+
+[palenight]
+[palenight.bright]
+black = '#434758'
+blue = '#9cc4ff'
+cyan = '#a3f7ff'
+green = '#ddffa7'
+magenta = '#e1acff'
+red = '#ff8b92'
+white = '#ffffff'
+yellow = '#ffe585'
+
+[palenight.normal]
+black = '#292d3e'
+blue = '#82aaff'
+cyan = '#89ddff'
+green = '#c3e88d'
+magenta = '#c792ea'
+red = '#f07178'
+white = '#d0d0d0'
+yellow = '#ffcb6b'
+
+[palenight.primary]
+background = '#292d3e'
+foreground = '#d0d0d0'
+
+
+# Colors (Tokyo Night Storm variant)
+# Source https//github.com/zatchheems/tokyo-night-alacritty-theme
+
+# Default colors
+[tokyonightstorm.primary]
+background = '#24283b'
+foreground = '#a9b1d6'
+
+# Normal colors
+[tokyonightstorm.normal]
+black = '#32344a'
+red = '#f7768e'
+green = '#9ece6a'
+yellow = '#e0af68'
+blue = '#7aa2f7'
+magenta = '#ad8ee6'
+cyan = '#449dab'
+white = '#9699a8'
+
+# Bright colors
+[tokyonightstorm.bright]
+black = '#444b6a'
+red = '#ff7a93'
+green = '#b9f27c'
+yellow = '#ff9e64'
+blue = '#7da6ff'
+magenta = '#bb9af7'
+cyan = '#0db9d7'
+white = '#acb0d0'
