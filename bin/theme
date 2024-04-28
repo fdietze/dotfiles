@@ -1,71 +1,36 @@
 #!/usr/bin/env bash
-OLDTHEME=$(cat $HOME/.theme)
- # light or dark
+set -e
+
+OLDTHEME=$(cat $HOME/.theme || echo dark)
+# light or dark
 THEME=${1:-$OLDTHEME}
 
 case $THEME in
-    light|dark)
-        ;;
-    *)
-        echo "usage: theme <light|dark>"
-        exit 1
-        ;;
+light | dark) ;;
+*)
+	echo "usage: theme <light|dark>"
+	exit 1
+	;;
 esac
 
-echo "$THEME" > $HOME/.theme
+# set new theme system wide
+echo "$THEME" >$HOME/.theme
 
-case $THEME in
-  light)
-    WALLPAPER=$(shuf -n1 -e $HOME/downloads/wallpapers/light/*)
-    echo $WALLPAPER
-    VIM_COLORSCHEME="goodmorning"
-    ALACRITTY_COLORSCHEME="light"
-    GTK_THEME="Qogir-Light"
-    GTK_ICON_THEME="elementary"
-    export BAR_BG="#FFFFFF"
-    export BAR_FG="#000000"
-    export BAR_FG_ALT="#888888"
-    export BAR_WARN="#FF3F74"
-    export BAR_PEAK="#5100DE"
-    export BAR_RAMP_0="%{F$BAR_FG_ALT}▁%{F-}"
-    export BAR_RAMP_7="%{F$BAR_PEAK}█%{F-}"
-    export BAR_RAMP_WARN_0="%{F$BAR_WARN}▁%{F-}"
-    export BAR_RAMP_WARN_1="%{F$BAR_WARN}▂%{F-}"
-    export WM_BORDER_NORMAL="#E8E9F2"
-    export WM_BORDER_FOCUSED="#777987"
-    ;;
-  dark)
-    WALLPAPER=$(shuf -n1 -e $HOME/downloads/wallpapers/dark/*)
-    VIM_COLORSCHEME="tokyonight"
-    ALACRITTY_COLORSCHEME="dark"
-    GTK_THEME="Qogir-Dark"
-    GTK_ICON_THEME="Qogir-dark"
-    export BAR_BG="#191C26"
-    export BAR_FG="#BFC7D5"
-    export BAR_FG_ALT="#4B5263"
-    export BAR_WARN="#FF5370"
-    export BAR_PEAK="#9282FF"
-    export BAR_RAMP_0="%{F$BAR_FG_ALT}▁%{F-}"
-    export BAR_RAMP_7="%{F$BAR_PEAK}█%{F-}"
-    export BAR_RAMP_WARN_0="%{F$BAR_WARN}▁%{F-}"
-    export BAR_RAMP_WARN_1="%{F$BAR_WARN}▂%{F-}"
-    export WM_BORDER_NORMAL="#171717"
-    export WM_BORDER_FOCUSED="#9282FF"
-    ;;
-esac
-
+# load env vars with colors
+source "$HOME/bin/theme-env" # (gf to open)
 
 echo "gtk..."
 sed -i "s/Net\/ThemeName.*/Net\/ThemeName \"$GTK_THEME\"/" ~/.config/xsettingsd/xsettingsd.conf
 sed -i "s/Net\/IconThemeName.*/Net\/IconThemeName \"$GTK_ICON_THEME\"/" ~/.config/xsettingsd/xsettingsd.conf
-killall -HUP xsettingsd &
+killall -HUP xsettingsd & # send signal to xsettingsd to reload gtk themes
 
 echo "alacritty..."
-yq e ".colors alias = \"$ALACRITTY_COLORSCHEME\"" -i ~/.config/alacritty/alacritty.yml &
+# yq e ".colors alias = \"$ALACRITTY_COLORSCHEME\"" -i ~/.config/alacritty/alacritty.yml &
+dasel -f ~/.config/alacritty/alacritty.toml put -r toml -s '.colors' -t toml -v "$(dasel -f ~/.config/alacritty/schemes.toml -r toml "$ALACRITTY_COLORSCHEME")" &
 
 echo "nvim..."
 nvr --serverlist | while read -r nvim_instance; do
-  nvr --servername "$nvim_instance" -c "set background=$THEME" -c "colorscheme $VIM_COLORSCHEME"
+	nvr --servername "$nvim_instance" -c "set background=$THEME" -c "colorscheme $VIM_COLORSCHEME" &
 done
 
 echo "intellij... (Plugin: External LAF Switcher)"
@@ -74,31 +39,29 @@ echo "$THEME" | nc localhost 16666 &
 # echo "cursor..."
 # xsetroot -cursor_name left_ptr &
 
-
-
 echo "herbstluftwm..."
-hc() {
-    herbstclient "$@"
-}
+herbstclient reload &
 
-(
-  hc attr theme.tiling.reset 1
-  hc attr theme.floating.reset 1
-  hc set frame_border_active_color $WM_BORDER_FOCUSED
-  hc set frame_border_normal_color $WM_BORDER_NORMAL
-  hc set frame_border_width 3
+# hc() {
+# 	herbstclient "$@"
+# }
+#
+# (
+# 	hc attr theme.tiling.reset 1
+# 	hc attr theme.floating.reset 1
+# 	hc set frame_border_active_color $WM_BORDER_FOCUSED
+# 	hc set frame_border_normal_color $WM_BORDER_NORMAL
+# 	hc set frame_border_width 3
+#
+# 	hc set window_border_active_color $WM_BORDER_FOCUSED
+# 	hc set window_border_normal_color $WM_BORDER_NORMAL
+# 	hc set window_border_width 3
+#
+# 	hc attr theme.urgent.color orange
+# 	hc attr theme.floating.border_width 2
+# ) &
 
-  hc set window_border_active_color $WM_BORDER_FOCUSED
-  hc set window_border_normal_color $WM_BORDER_NORMAL
-  hc set window_border_width 3
-
-  hc attr theme.urgent.color orange
-  hc attr theme.floating.border_width 2
-) &
-
-
-
-echo "i3..."
+# echo "i3..."
 # hc attr theme.tiling.reset 1
 # hc attr theme.floating.reset 1
 # hc set frame_border_active_color $WM_BORDER_FOCUSED
@@ -112,20 +75,24 @@ echo "i3..."
 # hc attr theme.urgent.color orange
 # hc attr theme.floating.border_width 2
 
-
-
 echo "wallpaper..."
-# (
-#   nitrogen --head=0 --set-zoom-fill "$WALLPAPER" && \
-#   nitrogen --head=1 --set-zoom-fill "$WALLPAPER" && \
-#   nitrogen --head=2 --set-zoom-fill "$WALLPAPER"
-# ) &
-
-
-
+(
+	# retry downloading latest wallpaper, needed when network is not up yet
+	case $THEME in
+	light)
+		"$HOME/bin/frottage" desktop-light
+		;;
+	dark)
+		"$HOME/bin/frottage" desktop
+		;;
+	esac
+) || feh --bg-fill "$WALLPAPER" || true &
 
 # echo "statusbar..."
-"$HOME/bin/statusbar" &
+# "$HOME/bin/statusbar" &
 
-sleep 10 # sometimes mpv has issues if started too early
-$HOME/projects/wpfr/random-frame &
+# sleep 10 # sometimes mpv has issues if started too early
+# $HOME/projects/wpfr/random-frame &
+
+
+wait

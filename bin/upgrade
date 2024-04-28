@@ -9,15 +9,8 @@ NixOS)
 	# echo "checking nixos configuration"
 	# nix-instantiate '<nixpkgs/nixos>' -A system
 	echo "upgrading system"
-	# echo "channels:"
-	# sudo nix-channel --list
-	# sudo nixos-rebuild boot --upgrade
-	# CHANNEL=$(sudo nix-channel --list | grep -oP "[0-9]{2}\.[0-9]{2}")
-	# sudo nix-channel --update
-	# (cd "$HOME/projects/nixpkgs" && git fetch && git checkout "nixos-$CHANNEL" && git pull)
-	# sudo nixos-rebuild boot -I nixpkgs="$HOME/projects/nixpkgs"
 	(cd "$HOME/nixos" && nix flake update)
-	sudo nixos-rebuild boot
+	sudo nixos-rebuild switch
 	echo "updating nix profile"
 	NIXPKGS_ALLOW_UNFREE=1 nix profile upgrade '.*' --impure
 	;;
