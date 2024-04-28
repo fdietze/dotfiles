@@ -4,8 +4,7 @@
   ...
 }: {
   nixpkgs.config.permittedInsecurePackages = [
-    "freeimage-unstable-2021-11-01" # https://github.com/NixOS/nixpkgs/issues/290949
-    "nix-2.16.2" # https://github.com/nix-community/nixd/issues/357
+    # add some here whenever needed
   ];
 
   system.autoUpgrade.enable = true;
@@ -96,6 +95,14 @@
     # firewall.allowedTCPPorts = [12345 18080 8080 4566]; # devserver
     # firewall.allowedUDPPorts = [ 8123 ]; # Stream Audio from VirtualBox
   };
+  services.resolved = {
+    # cache dns requests locally
+    enable = false;
+    dnssec = "true";
+    domains = [ "~." ];
+    fallbackDns = [ "1.1.1.1#one.one.one.one" "1.0.0.1#one.one.one.one" ];
+    dnsovertls = "true";
+  };
 
   # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
   # time.timeZone = "Europe/Berlin";
@@ -111,8 +118,45 @@
 
   powerManagement = {
     enable = true;
-    # powertop.enable = true;
+    powertop.enable = true;
   };
+  services.thermald.enable = true;
+
+
+  services.upower = {
+    enable = true;
+    percentageLow = 20;
+    percentageCritical = 10;
+    criticalPowerAction = "Hibernate";
+  };
+
+  services.auto-cpufreq.enable = true;
+  services.auto-cpufreq.settings = {
+    battery = {
+       governor = "powersave";
+       turbo = "never";
+    };
+    charger = {
+       governor = "powersave";
+       turbo = "auto";
+    };
+  };
+
+#   services.tlp = {
+#     enable = true;
+#     settings = {
+#       tlp_DEFAULT_MODE = "BAT";
+#       CPU_SCALING_GOVERNOR_ON_BAT = "powersave";
+# # CPU_SCALING_GOVERNOR_ON_AC = "powersave";
+#       DEVICES_TO_DISABLE_ON_STARTUP = "bluetooth";
+#
+# #Optional helps save long term battery health
+#       START_CHARGE_THRESH_BAT0 = 40; # 40 and bellow it starts to charge
+#         STOP_CHARGE_THRESH_BAT0 = 80; # 80 and above it stops charging
+#     };
+#   };
+
+
 
   hardware.opengl = {
     enable = true;
@@ -132,7 +176,7 @@
   hardware.bluetooth = {
     # https://nixos.wiki/wiki/Bluetooth
     enable = true;
-    powerOnBoot = false;
+    # powerOnBoot = false;
     settings.General.Experimental = true; # bluetooth battery percentage
   };
   services.blueman.enable = true;
@@ -179,7 +223,7 @@
   };
 
   programs.zsh.enable = true;
-  # programs.java.enable = true; # otherwise, JAVA_HOME is not set
+  programs.java.enable = true; # provide JAVA_HOME
   programs.adb.enable = true; # android debugging
   programs.dconf.enable = true; # useful for: blueman-applet, ...
   programs.light.enable = true; # adjust screen brightness
@@ -188,13 +232,9 @@
 
   services.xserver = {
     enable = true;
-    # dpi = 210;
+    dpi = 210;
     videoDrivers = ["modesetting"];
-    # waiting for https://gitlab.freedesktop.org/xorg/xserver/-/merge_requests/1006, released in xserver 21.1.6
-    # then, hopefully, picom can be disabled
-    # deviceSection = ''
-    #   Option "TearFree" "true"
-    # '';
+
     xkb.layout = "de,de";
     xkb.variant = "neo,basic";
     xkb.options = "grp:menu_toggle";
@@ -212,11 +252,6 @@
 
     displayManager = {
       lightdm.enable = true;
-      defaultSession = "none+herbstluftwm";
-      autoLogin = {
-        enable = true;
-        user = "felix";
-      };
       # lock on suspend
       sessionCommands = ''
         ${pkgs.xss-lock}/bin/xss-lock -- ${pkgs.i3lock}/bin/i3lock -c 292D3E &
@@ -235,6 +270,14 @@
           '';
         }
       ];
+    };
+  };
+
+  services.displayManager = {
+    defaultSession = "none+herbstluftwm";
+    autoLogin = {
+      enable = true;
+      user = "felix";
     };
   };
 
@@ -300,120 +343,6 @@
 
     acpid.enable = true;
 
-    upower = {
-      enable = true;
-      percentageLow = 20;
-      percentageCritical = 10;
-    };
-
-    tlp = {
-      enable = true;
-      settings = {
-        tlp_DEFAULT_MODE = "BAT";
-        CPU_SCALING_GOVERNOR_ON_BAT = "powersave";
-        CPU_SCALING_GOVERNOR_ON_AC = "powersave";
-        DEVICES_TO_DISABLE_ON_STARTUP = "bluetooth";
-      };
-    };
-
-    throttled = {
-      # Workaround for Intel CPU Throttling on Linux
-      # https://github.com/erpalma/throttled
-      # default config: https://github.com/erpalma/throttled/blob/master/etc/throttled.conf
-      enable = true;
-      extraConfig = ''
-        [GENERAL]
-        # Enable or disable the script execution
-        Enabled: True
-        # SYSFS path for checking if the system is running on AC power
-        Sysfs_Power_Path: /sys/class/power_supply/AC*/online
-        # Auto reload config on changes
-        Autoreload: True
-
-        ## Settings to apply while connected to Battery power
-        [BATTERY]
-        # Update the registers every this many seconds
-        Update_Rate_s: 30
-        # Max package power for time window #1
-        PL1_Tdp_W: 29
-        # Time window #1 duration
-        PL1_Duration_s: 28
-        # Max package power for time window #2
-        PL2_Tdp_W: 44
-        # Time window #2 duration
-        PL2_Duration_S: 0.002
-        # Max allowed temperature before throttling
-        Trip_Temp_C: 70
-        # Set cTDP to normal=0, down=1 or up=2 (EXPERIMENTAL)
-        cTDP: 0
-        # Disable BDPROCHOT (EXPERIMENTAL)
-        Disable_BDPROCHOT: False
-
-        ## Settings to apply while connected to AC power
-        [AC]
-        # Update the registers every this many seconds
-        Update_Rate_s: 5
-        # Max package power for time window #1
-        PL1_Tdp_W: 44
-        # Time window #1 duration
-        PL1_Duration_s: 28
-        # Max package power for time window #2
-        PL2_Tdp_W: 44
-        # Time window #2 duration
-        PL2_Duration_S: 0.002
-        # Max allowed temperature before throttling
-        Trip_Temp_C: 90
-        # Set HWP energy performance hints to 'performance' on high load (EXPERIMENTAL)
-        # Uncomment only if you really want to use it
-        # HWP_Mode: False
-        # Set cTDP to normal=0, down=1 or up=2 (EXPERIMENTAL)
-        cTDP: 0
-        # Disable BDPROCHOT (EXPERIMENTAL)
-        Disable_BDPROCHOT: False
-
-        # All voltage values are expressed in mV and *MUST* be negative (i.e. undervolt)!
-        [UNDERVOLT.BATTERY]
-        # CPU core voltage offset (mV)
-        CORE: 0
-        # Integrated GPU voltage offset (mV)
-        GPU: 0
-        # CPU cache voltage offset (mV)
-        CACHE: 0
-        # System Agent voltage offset (mV)
-        UNCORE: 0
-        # Analog I/O voltage offset (mV)
-        ANALOGIO: 0
-
-        # All voltage values are expressed in mV and *MUST* be negative (i.e. undervolt)!
-        [UNDERVOLT.AC]
-        # CPU core voltage offset (mV)
-        CORE: 0
-        # Integrated GPU voltage offset (mV)
-        GPU: 0
-        # CPU cache voltage offset (mV)
-        CACHE: 0
-        # System Agent voltage offset (mV)
-        UNCORE: 0
-        # Analog I/O voltage offset (mV)
-        ANALOGIO: 0
-
-        # [ICCMAX.AC]
-        # # CPU core max current (A)
-        # CORE:
-        # # Integrated GPU max current (A)
-        # GPU:
-        # # CPU cache max current (A)
-        # CACHE:
-
-        # [ICCMAX.BATTERY]
-        # # CPU core max current (A)
-        # CORE:
-        # # Integrated GPU max current (A)
-        # GPU:
-        # # CPU cache max current (A)
-        # CACHE:
-      '';
-    };
   };
 
   # systemd.services.frottage = {
