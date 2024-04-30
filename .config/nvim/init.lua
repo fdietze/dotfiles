@@ -509,7 +509,10 @@ require("lazy").setup({
         pattern = { "*" },
         callback = function()
           if vim.bo.filetype ~= "json" then
-            vim.lsp.buf.format({ async = false })
+            vim.lsp.buf.format({
+              async = false,
+              filter = function(client) return client.name ~= "tsserver" end
+            })
           end
         end,
       })
@@ -521,6 +524,14 @@ require("lazy").setup({
         -- Override config for specific servers that will passed down to lspconfig setup.
         -- Note that the default_config will be merged with this specific configuration so you don't need to specify everything twice.
         configs = {
+          eslint = {
+            on_attach = function(client, bufnr)
+              vim.api.nvim_create_autocmd("BufWritePre", {
+                buffer = bufnr,
+                command = "EslintFixAll",
+              })
+            end,
+          },
           lua_ls = {
             settings = {
               Lua = {
