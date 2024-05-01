@@ -3,11 +3,10 @@
 set -Eeuo pipefail
 
 gitlog_cmd="git log --color=always --pretty=format:'%Cred%h %C(reset)%C(dim)%ad%Creset %C(blue)%an%Creset %s%C(yellow)%d%C(reset) %Cgreen(%ar)%Creset' --abbrev-commit --date-order --date='format:%F %R'"
+extract_hash_cmd="grep -oE '[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]'" # {7} would be replaced by fzf preview
 
 bash -c "$gitlog_cmd" \
   | fzf --no-sort --exact --ansi --height 90% --reverse \
-  --preview "git name-rev --name-only --no-undefined --always \$(echo {} | cut -d ' ' -f1) && git show \$(echo {} | cut -d ' ' -f1) --stat --format=reference --color=always && git show --color-words \$(echo {} | cut -d ' ' -f1)" \
-  --bind "ctrl-d:preview-page-down,ctrl-u:preview-page-up,ctrl-a:reload($gitlog_cmd --all)" \
-  | cut -d ' ' -f1 | tr '\n' ' '
-
-#  | xargs git name-rev --name-only --no-undefined --always
+  --preview "hash=\$(echo {} | $extract_hash_cmd); git name-rev --name-only --no-undefined --always \$hash && git show \$hash --stat --format=reference --color=always && git show --color-words \$hash" \
+  --bind "ctrl-d:preview-page-down,ctrl-u:preview-page-up,ctrl-a:reload($gitlog_cmd --all --graph)" \
+  | bash -c "$extract_hash_cmd" | tr '\n' ' '
