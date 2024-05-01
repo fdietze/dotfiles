@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
 
-BRANCH="$(GH_FORCE_TTY='100%' gh pr list | 
-  fzf --reverse --ansi --header-lines 3 \
+# no word-based diff possible with github cli: https://github.com/cli/cli/issues/3234
+
+git fetch
+
+# TODO: as diff, show local word-based diff on just pulled PR against mergebase with main
+
+BRANCH="$(GH_FORCE_TTY='100%' gh pr list |
+  fzf --reverse --ansi --header-lines 4 \
   --preview 'GH_FORCE_TTY=$FZF_PREVIEW_COLUMNS gh pr view {1}; GH_FORCE_TTY=$FZF_PREVIEW_COLUMNS gh pr checks {1}; GH_FORCE_TTY=$FZF_PREVIEW_COLUMNS gh pr diff {1};' \
   --bind 'ctrl-d:preview-page-down,ctrl-u:preview-page-up' \
   --bind 'ctrl-r:reload(GH_FORCE_TTY=''50%'' gh pr list)' \
