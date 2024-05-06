@@ -166,27 +166,27 @@
 
 
       # colorize manpages
-      LESS_TERMCAP_mb="$(tput bold; tput setaf 6)";
-      LESS_TERMCAP_md="$(tput bold; tput setaf 2)";
-      LESS_TERMCAP_me="$(tput sgr0)";
-      LESS_TERMCAP_so="$(tput bold; tput setaf 0; tput setab 6)";
-      LESS_TERMCAP_se="$(tput rmso; tput sgr0)";
-      LESS_TERMCAP_us="$(tput smul; tput bold; tput setaf 3)";
-      LESS_TERMCAP_ue="$(tput rmul; tput sgr0)";
-      LESS_TERMCAP_mr="$(tput rev)";
-      LESS_TERMCAP_mh="$(tput dim)";
-      LESS_TERMCAP_ZN="$(tput ssubm)";
-      LESS_TERMCAP_ZV="$(tput rsubm)";
-      LESS_TERMCAP_ZO="$(tput ssupm)";
-      LESS_TERMCAP_ZW="$(tput rsupm)";
-      GROFF_NO_SGR=1;
+      export LESS_TERMCAP_mb="$(tput bold; tput setaf 6)";
+      export LESS_TERMCAP_md="$(tput bold; tput setaf 2)";
+      export LESS_TERMCAP_me="$(tput sgr0)";
+      export LESS_TERMCAP_so="$(tput bold; tput setaf 0; tput setab 6)";
+      export LESS_TERMCAP_se="$(tput rmso; tput sgr0)";
+      export LESS_TERMCAP_us="$(tput smul; tput bold; tput setaf 3)";
+      export LESS_TERMCAP_ue="$(tput rmul; tput sgr0)";
+      export LESS_TERMCAP_mr="$(tput rev)";
+      export LESS_TERMCAP_mh="$(tput dim)";
+      export LESS_TERMCAP_ZN="$(tput ssubm)";
+      export LESS_TERMCAP_ZV="$(tput rsubm)";
+      export LESS_TERMCAP_ZO="$(tput ssupm)";
+      export LESS_TERMCAP_ZW="$(tput rsupm)";
+      export GROFF_NO_SGR=1;
 
       # TODO: fzf for $(git-select-dirty-files)
 
-# x() { # open a gui command and close the terminal
-#     zsh -i -c "$@ &; disown" 
-#     exit
-# }
+      x() { # open a gui command and close the terminal
+          zsh -i -c "$@ &; disown" 
+          exit
+      }
 
 
 # sshforward() {
@@ -553,7 +553,7 @@
         # collapse the current frame
         Mod1-comma = "remove";
         Mod1-Shift-comma = "remove";
-        Mod1-Shift-h = "cycle_layout 1 grid horizontal vertical";
+        Mod1-Shift-h = "cycle_layout 1 grid vertical horizontal";
         Mod1-f = "fullscreen toggle";
         Mod1-h = "set_attr clients.focus.floating toggle";
 
@@ -1189,7 +1189,7 @@
     i3lock
 
     # guis
-
+    cinnamon.nemo-with-extensions
     vscode
     (jetbrains.plugins.addPlugins jetbrains.idea-community [
       # https://github.com/NixOS/nixpkgs/blob/master/pkgs/applications/editors/jetbrains/plugins/plugins.json
