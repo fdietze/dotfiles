@@ -1,4 +1,4 @@
--- old: /home/felix.old-2024-03-01/.vimrc  (gf to open)
+-- old: /home/felix/backup-gurke-2024-03-01/.vimrc_keybindings  (gf to open)
 -- old: /home/felix.old-2024-03-01/.config/nvim.bak.astronvim-2024-02-27/lua/user
 
 -- Contents: (* to jump)
@@ -54,7 +54,7 @@ vim.opt.wildmode = 'longest,list:lastused,full'
 vim.opt.tabstop = 2      -- size of a hard tabstop
 vim.opt.softtabstop = 2  -- a combination of spaces and tabs are used to simulate tab stops at a width
 vim.opt.shiftwidth = 2   -- size of an "indent"
-vim.opt.expandtab = true          -- use spaces instead of tabs
+vim.opt.expandtab = true -- use spaces instead of tabs
 vim.opt.smarttab = true
 vim.opt.virtualedit =
 { 'block', 'onemore' }      -- { 'block', 'onemore' } -- the cursor can be positioned where there is no actual character.
@@ -85,7 +85,7 @@ vim.g.mapleader = " " -- set leader to space
 vim.keymap.set({ 'n', 'v' }, 'ä', '<cmd>q<cr>', { desc = 'quit' })
 vim.keymap.set({ 'n', 'v' }, 'ö', '<cmd>update<cr>', { desc = 'save' })
 vim.keymap.set({ 'n', 'v' }, 'ü', '<cmd>bdelete<cr>', { desc = 'close buffer' })
--- TODO: vim.keymap.set('n', '<leader>ü', '', { desc = 'close all buffers except the current one' })
+vim.keymap.set({ 'n', 'v' }, '<leader>ü', '<cmd>BufOnly<cr>', { desc = 'close all buffers except the current one' })
 -- incubator
 
 vim.keymap.set({ 'n', 'v' }, 'Λ', '<C-W>k', { desc = 'focus window up (neo mod6+l)' })
@@ -94,11 +94,11 @@ vim.keymap.set({ 'n', 'v' }, '∫', '<C-W>h', { desc = 'focus window left (neo m
 vim.keymap.set({ 'n', 'v' }, '∃', '<C-W>l', { desc = 'focus window right (neo mod6+e)' })
 vim.keymap.set({ 'n', 'v' }, 'Φ', '<C-W>_', { desc = 'maximize window right (neo mod6+f)' })
 vim.keymap.set({ 'n', 'v' }, '∂', '<cmd>ToggleTerm direction=horizontal start_in_insert=true<cr>',
-    { desc = 'open terminal (neo mod6+t)' })
+  { desc = 'open terminal (neo mod6+t)' })
 
 -- switch buffers with l, L
-vim.keymap.set('n', 'l', '<cmd>bnext<cr>', { desc = 'next buffer' })
-vim.keymap.set('n', 'L', '<cmd>bprev<cr>', { desc = 'prev buffer' })
+vim.keymap.set({ 'n', 'v' }, 'l', '<cmd>bnext<cr>', { desc = 'next buffer' })
+vim.keymap.set({ 'n', 'v' }, 'L', '<cmd>bprev<cr>', { desc = 'prev buffer' })
 vim.keymap.set('n', '<leader>vv', '<cmd>edit ~/.config/nvim/init.lua<cr>', { desc = 'edit init.lua' })
 vim.keymap.set('n', '<leader>vh', '<cmd>edit ~/nixos/home.nix<cr>', { desc = 'edit init.lua' })
 vim.keymap.set('n', '<leader>vn', '<cmd>edit ~/nixos/configuration.nix<cr>', { desc = 'edit init.lua' })
@@ -111,7 +111,7 @@ vim.keymap.set('n', 'Y', 'y$', { desc = 'yank till end of line. (Y behaves like 
 vim.keymap.set('n', "<leader>p", "v$<Left>pgvy", { desc = 'paste over rest of line' })
 
 
-vim.keymap.set('n', '<leader>gs', '<cmd>nohlsearch<CR>:term tig status<CR>i', { desc = 'launch tig status' })
+vim.keymap.set({ 'n', 'v' }, '<leader>gs', '<cmd>nohlsearch<CR>:term tig status<CR>i', { desc = 'launch tig status' })
 vim.keymap.set('n', 'gf', ':e <cfile><cr>', { desc = 'edit file under cursor' })
 
 vim.keymap.set('v', 'p', 'pgvy', { desc = "keep clipboard when pasting over selection" })
@@ -231,10 +231,10 @@ require("lazy").setup({
     lazy = false, -- so that telescope works when starting vim with telescope from the command line
     dependencies = { 'nvim-lua/plenary.nvim' },
     keys = {
-      { '<leader>e',  '<cmd>Telescope find_files<cr>', desc = 'open files' },
-      { '<leader>a',  '<cmd>Telescope live_grep<cr>',  desc = 'live grep' },
+      { '<leader>e',  '<cmd>Telescope find_files<cr>',          desc = 'open files' },
+      { '<leader>a',  '<cmd>Telescope live_grep<cr>',           desc = 'live grep' },
       { '<leader>A',  '<cmd>Telescope live_grep<cr><C-r><C-w>', desc = 'live grep word under cursor' }, -- TODO!
-      { '<leader>vr', '<cmd>Telescope oldfiles<cr>',   desc = 'open recent files' },
+      { '<leader>vr', '<cmd>Telescope oldfiles<cr>',            desc = 'open recent files' },
       { '<leader>b',  '<cmd>Telescope buffers<cr>',             desc = 'open buffers' }
     },
     opts = {
@@ -310,6 +310,7 @@ require("lazy").setup({
       },
       tabline = {},
       winbar = {
+        -- TODO: buffers don't take the full width
         lualine_a = { { 'buffers', symbols = { modified = ' ✱', alternate_file = '' } } },
         lualine_b = { { '%=' } }, -- workaround, so that buffers doesn't expand
       },
@@ -346,6 +347,9 @@ require("lazy").setup({
       { '<leader>o', '<cmd>Neotree toggle reveal<cr>', desc = 'toggle file tree' }
     },
     opts = {
+      window = {
+        position = "right",
+      },
       auto_clean_after_session_restore = true,
       close_if_last_window = true,
       filesystem = {
@@ -424,6 +428,16 @@ require("lazy").setup({
     event = "BufReadPost",
     config = function() require("nvim-rooter").setup() end,
   },
+  -- {
+  --   "ahmedkhalf/project.nvim",
+  --   -- lsp based projet root finding
+  --   config = function()
+  --     require("project_nvim").setup {
+  --       require('telescope').load_extension('projects'),
+  --     }
+  --   end
+  -- },
+
   {
     "direnv/direnv.vim",
     -- load .envrc automatically when vim changes its working directory
@@ -438,20 +452,121 @@ require("lazy").setup({
   -- {
   --   "neovim/nvim-lspconfig",
   --   -- language server protocol
-  --   -- rust:
+  --   dependencies = {
+  --     "dundalek/lazy-lsp.nvim", -- only for filetype -> language server mapping
+  --     { "VonHeikemen/lsp-zero.nvim", branch = "v3.x" },
+  --     "hrsh7th/cmp-nvim-lsp",
+  --     "hrsh7th/nvim-cmp",
+  --   },
   --   config = function()
+  --     local lsp_zero = require("lsp-zero")
+  --
+  --     lsp_zero.on_attach(function(client, bufnr)
+  --       -- see :help lsp-zero-keybindings to learn the available actions
+  --       lsp_zero.default_keymaps({
+  --         buffer = bufnr,
+  --         preserve_mappings = false
+  --       })
+  --     end)
+  --
+  --     -- completion menu
+  --     local cmp = require('cmp')
+  --     local cmp_mapping = require('cmp.config.mapping')
+  --     cmp.setup {
+  --       mapping = cmp_mapping.preset.insert {
+  --         ['<C-Space>'] = cmp.mapping.complete(),
+  --         ['<CR>'] = cmp.mapping.confirm({ select = true }),
+  --         ['<tab>'] = cmp.mapping.confirm({ select = true }),
+  --       },
+  --     }
+  --
+  --
+  --     -- format on save
+  --     -- TODO: toggle with keybinding
+  --     vim.api.nvim_create_autocmd("BufWritePre", {
+  --       pattern = { "*" },
+  --       callback = function()
+  --         if vim.bo.filetype ~= "json" then
+  --           vim.lsp.buf.format({ async = false })
+  --         end
+  --       end,
+  --     })
+  --
+  --
+  --     -- local function build_filetype_to_servers_index(servers, lspconfig)
+  --     --   local index = {}
+  --     --   for server, _ in pairs(servers) do
+  --     --     if lspconfig[server] then
+  --     --       local filetypes = lspconfig[server].document_config.default_config.filetypes
+  --     --       if filetypes then
+  --     --         for _, filetype in ipairs(filetypes) do
+  --     --           if not index[filetype] then
+  --     --             index[filetype] = {}
+  --     --           end
+  --     --           table.insert(index[filetype], server)
+  --     --         end
+  --     --       else
+  --     --         -- what would be a good way to log this?
+  --     --         -- print("no filetypes for", server)
+  --     --       end
+  --     --     end
+  --     --   end
+  --     --   return index
+  --     -- end
+  --     --
   --     local lspconfig = require("lspconfig")
+  --     -- local included_servers = vim.tbl_extend("force", {}, require("lazy-lsp.servers"))
+  --     -- local filetype_to_servers = build_filetype_to_servers_index(included_servers, lspconfig)
+  --     --
+  --     -- -- Function to setup language servers for a given filetype
+  --     -- local function setup_servers_for_filetype(filetype)
+  --     --     local servers = filetype_to_servers[filetype]
+  --     --     if servers then
+  --     --         for _, server in ipairs(servers) do
+  --     --             local cmd = require'lspconfig'[server].document_config.default_config.cmd
+  --     --             -- print(vim.inspect(require'lspconfig'[server].default_config.commands))
+  --     --             -- print(vim.inspect(cmd[1]))
+  --     --             if vim.fn.executable(cmd[1]) == 1 then
+  --     --               require'lspconfig'[server].setup{}
+  --     --             end
+  --     --         end
+  --     --     end
+  --     -- end
+  --     --
+  --     -- -- Autocommand that sets up language servers based on the current filetype
+  --     -- vim.api.nvim_create_autocmd("FileType", {
+  --     --     pattern = "*", -- This will trigger the autocommand for any filetype
+  --     --     callback = function(args)
+  --     --         setup_servers_for_filetype(args.match)
+  --     --     end,
+  --     -- })
+  --
+  --     -- print(vim.inspect(filetype_to_servers))
+  --     -- on bufenter
+  --     lspconfig.tsserver.setup {}
+  --     lspconfig.lua_ls.setup({
+  --       lua_ls = {
+  --         settings = {
+  --           Lua = {
+  --             diagnostics = {
+  --               -- Get the language server to recognize the `vim` global
+  --               globals = { "vim" },
+  --             },
+  --           },
+  --         },
+  --       },
+  --     });
   --     lspconfig.rust_analyzer.setup({
   --       settings = {
   --         rust_analyzer = {
   --           settings = {
-  --         ["rust-analyzer"] = {
+  --             ["rust-analyzer"] = {
   --               procMacro = {
   --                 enable = true,
-  --         },
+  --               },
   --               check = {
   --                 command = "clippy",
-  --       },
+  --               },
   --               cargo = {
   --                 -- To prevent rustanalyzer from locking the target dir (blocking cargo build/run)
   --                 -- https://github.com/rust-lang/rust-analyzer/issues/6007#issuecomment-1523204067
@@ -474,22 +589,75 @@ require("lazy").setup({
 
   {
     "dundalek/lazy-lsp.nvim",
+    lazy = false,
     dependencies = {
       "neovim/nvim-lspconfig",
       { "VonHeikemen/lsp-zero.nvim", branch = "v3.x" },
       "hrsh7th/cmp-nvim-lsp",
       "hrsh7th/nvim-cmp",
+      'L3MON4D3/LuaSnip',
+      'saadparwaiz1/cmp_luasnip'
     },
     config = function()
       local lsp_zero = require("lsp-zero")
+
 
       lsp_zero.on_attach(function(client, bufnr)
         -- see :help lsp-zero-keybindings to learn the available actions
         lsp_zero.default_keymaps({
           buffer = bufnr,
-          preserve_mappings = false
+          preserve_mappings = true
         })
       end)
+
+
+      vim.api.nvim_create_autocmd('LspAttach', {
+        group = vim.api.nvim_create_augroup('UserLspConfig', {}),
+        callback = function(ev)
+          -- Enable completion triggered by <c-x><c-o>
+          vim.bo[ev.buf].omnifunc = 'v:lua.vim.lsp.omnifunc'
+
+          -- Buffer local mappings.
+          -- See `:help vim.lsp.*` for documentation on any of the below functions
+          local opts = { buffer = ev.buf }
+          vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, opts)
+          vim.keymap.set('n', 'gd', vim.lsp.buf.definition, opts)
+          vim.keymap.set('n', '<leader>lt', vim.lsp.buf.hover, opts)
+          vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, opts)
+          -- vim.keymap.set('n', '<C-k>', vim.lsp.buf.signature_help, opts)
+          -- vim.keymap.set('n', '<leader>wa', vim.lsp.buf.add_workspace_folder, opts)
+          -- vim.keymap.set('n', '<leader>wr', vim.lsp.buf.remove_workspace_folder, opts)
+          -- vim.keymap.set('n', '<leader>wl', function()
+          --   print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
+          -- end, opts)
+          -- vim.keymap.set('n', '<leader>D', vim.lsp.buf.type_definition, opts)
+          -- vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, opts)
+          vim.keymap.set({ 'n', 'v' }, '<leader>la', vim.lsp.buf.code_action, opts)
+          -- li => show diagnostic
+          -- vim.keymap.set({ 'n', 'v' }, '<leader>li', vim.lsp.buf.document_diagnostics, opts)
+          vim.keymap.set('n', 'gr', vim.lsp.buf.references, opts)
+          vim.keymap.set('n', '<leader>f', function()
+            vim.lsp.buf.format { async = true }
+          end, opts)
+          vim.keymap.set('n', "<leader>n",
+            function()
+              local has_errors = next(vim.diagnostic.get(0, { severity = vim.diagnostic.severity.ERROR })) ~= nil
+              if has_errors then
+                vim.diagnostic.goto_next { severity = vim.diagnostic.severity.ERROR, float = true }
+              else
+                local has_warnings = next(vim.diagnostic.get(0, { severity = vim.diagnostic.severity.ERROR })) ~=
+                    nil
+                if has_warnings then
+                  vim.diagnostic.goto_next { severity = vim.diagnostic.severity.WARN, float = true }
+                else
+                  vim.diagnostic.goto_next { float = true }
+                end
+              end
+            end,
+            { desc = "Jump to next LSP diagnostic" }
+          )
+        end,
+      })
 
       -- completion menu
       local cmp = require('cmp')
@@ -519,7 +687,7 @@ require("lazy").setup({
 
       require("lazy-lsp").setup {
         excluded_servers = {
-          "denols", "quick_lint_js", "pylyzer", "marksman", "ltex"
+          "denols", "quick_lint_js", "pylyzer", "marksman", "ltex", "nil_ls", "rnix"
         },
         -- Override config for specific servers that will passed down to lspconfig setup.
         -- Note that the default_config will be merged with this specific configuration so you don't need to specify everything twice.
@@ -571,6 +739,25 @@ require("lazy").setup({
     end,
   },
 
+  {
+    "ThePrimeagen/refactoring.nvim",
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      -- "nvim-treesitter/nvim-treesitter", -- is provided in nix home-manager
+    },
+    cmd = "Refactor",
+    keys = {
+      { "<leader>re", ":Refactor extract ",         mode = "x",          desc = "Extract function" },
+      { "<leader>rf", ":Refactor extract_to_file ", mode = "x",          desc = "Extract function to file" },
+      { "<leader>rv", ":Refactor extract_var ",     mode = "x",          desc = "Extract variable" },
+      { "<leader>ri", ":Refactor inline_var",       mode = { "x", "n" }, desc = "Inline variable" },
+      { "<leader>rI", ":Refactor inline_func",      mode = "n",          desc = "Inline function" },
+      -- { "<leader>rb", ":Refactor extract_block",         mode = "n",          desc = "Extract block" },
+      -- { "<leader>rf", ":Refactor extract_block_to_file", mode = "n",          desc = "Extract block to file" },
+    },
+    config = true
+  },
+
   -- {
   --   "nvim-treesitter/nvim-treesitter",
   --   -- syntax highlighting
@@ -601,31 +788,31 @@ require("lazy").setup({
     lazy = false,
   },
 
-  {
-    "zbirenbaum/copilot.lua",
-    -- AI completion, lua copy of the original
-    cmd = "Copilot",
-    -- event = "BufEnter",
-    event = "InsertEnter",
-    opts = {
-      suggestion = {
-        auto_trigger = true,
-        keymap = {
-          accept = "<C-tab>",
-          accept_word = "<C-t>",
-          accept_line = false,
-          next = "<C-n>",
-          dismiss = "<C-,>",
-        },
-      },
-      filetypes = {
-        yaml = true,
-        markdown = false,
-        gitcommit = true,
-        json = true,
-      },
-    },
-  },
+  -- {
+  --   "zbirenbaum/copilot.lua",
+  --   -- AI completion, lua copy of the original
+  --   cmd = "Copilot",
+  --   -- event = "BufEnter",
+  --   event = "InsertEnter",
+  --   opts = {
+  --     suggestion = {
+  --       auto_trigger = true,
+  --       keymap = {
+  --         accept = "<C-tab>",
+  --         accept_word = "<C-t>",
+  --         accept_line = false,
+  --         -- next = "<leader><tab>",
+  --         dismiss = "<C-,>",
+  --       },
+  --     },
+  --     filetypes = {
+  --       yaml = true,
+  --       markdown = false,
+  --       gitcommit = true,
+  --       json = true,
+  --     },
+  --   },
+  -- },
 
   { 'akinsho/toggleterm.nvim',             version = "*", config = true },
 
@@ -701,6 +888,9 @@ require("lazy").setup({
       vim.g.multi_cursor_exit_from_insert_mode = 0
     end,
   },
+
+  { "ethanholz/nvim-lastplace", config = true },
+  { "vim-scripts/BufOnly.vim" },
 })
 
 
@@ -727,12 +917,14 @@ end
 
 
 -- Restore cursor position
-vim.api.nvim_create_autocmd({ "BufReadPost" }, {
-  pattern = { "*" },
-  callback = function()
-    vim.api.nvim_exec('silent! normal! g`"zv', false)
-  end,
-})
+-- TODO: vim farmergreg/lastplace
+-- TODO: not for git commit message
+-- vim.api.nvim_create_autocmd({ "BufReadPost" }, {
+--   pattern = { "*" },
+--   callback = function()
+--     vim.api.nvim_exec('silent! normal! g`"zv', false)
+--   end,
+-- })
 
 
 -- run commands, when saving specific files
@@ -790,43 +982,43 @@ vim.api.nvim_create_autocmd({ "BufReadPost" }, {
 
 -- highlight existing file paths
 -- Define the Lua function for underlining existing file paths
-local function underline_existing_paths()
-  local bufnr = vim.api.nvim_get_current_buf()
-  local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-  local ns_id = vim.api.nvim_create_namespace('underline_paths')
-
-  -- Clear existing underlines
-  vim.api.nvim_buf_clear_namespace(bufnr, ns_id, 0, -1)
-
-  -- Define a Lua pattern for file paths, excluding spaces within paths
-  local pattern = "([~/][%w%._%-/]+[%w%._%-])"
-
-  for i, line in ipairs(lines) do
-    for file_path in line:gmatch(pattern) do
-      -- Expand ~ to the home directory
-      local expanded_path = file_path:gsub("^~", os.getenv("HOME") or "")
-
-      -- Check if the file exists
-      if vim.fn.filereadable(expanded_path) == 1 or vim.fn.isdirectory(expanded_path) == 1 then
-        local start_pos, end_pos = line:find(file_path, 1, true)
-        if start_pos and end_pos then
-          -- Highlight the file path
-          vim.api.nvim_buf_add_highlight(bufnr, ns_id, 'UnderlinedFilePath', i - 1, start_pos - 1, end_pos)
-        end
-      end
-    end
-  end
-end
-
--- Create the highlight group
-vim.cmd [[highlight UnderlinedFilePath gui=underline cterm=underline]]
-
--- Apply the highlight using an autocommand
-vim.api.nvim_create_autocmd(
-  { "BufRead", "BufEnter", "CursorHold", "InsertLeave", "TextChanged", "TextChangedI", "TextChangedP" }, {
-    pattern = "*",
-    callback = underline_existing_paths,
-  })
+-- local function underline_existing_paths()
+--   local bufnr = vim.api.nvim_get_current_buf()
+--   local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+--   local ns_id = vim.api.nvim_create_namespace('underline_paths')
+--
+--   -- Clear existing underlines
+--   vim.api.nvim_buf_clear_namespace(bufnr, ns_id, 0, -1)
+--
+--   -- Define a Lua pattern for file paths, excluding spaces within paths
+--   local pattern = "([~/][%w%._%-/]+[%w%._%-])"
+--
+--   for i, line in ipairs(lines) do
+--     for file_path in line:gmatch(pattern) do
+--       -- Expand ~ to the home directory
+--       local expanded_path = file_path:gsub("^~", os.getenv("HOME") or "")
+--
+--       -- Check if the file exists
+--       if vim.fn.filereadable(expanded_path) == 1 or vim.fn.isdirectory(expanded_path) == 1 then
+--         local start_pos, end_pos = line:find(file_path, 1, true)
+--         if start_pos and end_pos then
+--           -- Highlight the file path
+--           vim.api.nvim_buf_add_highlight(bufnr, ns_id, 'UnderlinedFilePath', i - 1, start_pos - 1, end_pos)
+--         end
+--       end
+--     end
+--   end
+-- end
+--
+-- -- Create the highlight group
+-- vim.cmd [[highlight UnderlinedFilePath gui=underline cterm=underline]]
+--
+-- -- Apply the highlight using an autocommand
+-- vim.api.nvim_create_autocmd(
+--   { "BufRead", "BufEnter", "CursorHold", "InsertLeave", "TextChanged", "TextChangedI", "TextChangedP" }, {
+--     pattern = "*",
+--     callback = underline_existing_paths,
+--   })
 
 
 vim.api.nvim_create_autocmd(
