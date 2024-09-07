@@ -1,6 +1,6 @@
 set vertical-split = true
 set tab-size = 4
-set ignore-space = all
+# set ignore-space = all
 set ignore-case = true # search
 # set wrap-lines = true # conflicts with stage-update-line
 set editor-line-number = true
@@ -27,7 +27,7 @@ bind generic 5 move-down # NEO right hand analog to arrow down
 bind generic g move-first-line
 bind generic G move-last-line
 bind main G move-last-line # overwrites default keybinding
-bind generic P !git push
+bind generic P !bash -c 'source $HOME/bin/secret-envs && git push'
 bind status A !git commit --amend
 bind status F !git fixup
 bind status D ?@rm -r %(file) # remove files
