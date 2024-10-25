@@ -1,0 +1,7 @@
+#!/bin/sh
+
+# Check for fixup commits
+if git log origin/$(git rev-parse --abbrev-ref HEAD)..HEAD --pretty=format:%s | grep -q '^fixup!'; then
+  echo "Error: Fixup commits detected. Please squash them before pushing."
+  exit 1
+fi

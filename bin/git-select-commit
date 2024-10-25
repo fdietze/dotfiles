@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 # https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail
 set -Eeuo pipefail
-
-gitlog_cmd="git log --color=always --pretty=format:'%Cred%h %C(reset)%C(dim)%ad%Creset %C(blue)%an%Creset %s%C(yellow)%d%C(reset) %Cgreen(%ar)%Creset' --abbrev-commit --date-order --date='format:%F %R'"
+# %C(dim)%ad%C(reset)
+gitlog_cmd="git log --color=always --pretty=format:'%C(red)%h%C(reset)%C(yellow)%d%C(reset) %s %C(green)(%ar)%C(reset)' --abbrev-commit --date-order --date='format:%F %R'"
 extract_hash_cmd="grep -oE '[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]'" # {7} would be replaced by fzf preview
 
-bash -c "$gitlog_cmd" \
-  | fzf --no-sort --exact --ansi --height 90% --reverse \
-  --preview "hash=\$(echo {} | $extract_hash_cmd); git name-rev --name-only --no-undefined --always \$hash && git show \$hash --stat --format=reference --color=always && git show --color-words \$hash" \
-  --bind "ctrl-d:preview-page-down,ctrl-u:preview-page-up,ctrl-a:reload($gitlog_cmd --all --graph)" \
-  | bash -c "$extract_hash_cmd" | tr '\n' ' '
+bash -c "$gitlog_cmd" |
+	fzf --no-sort --exact --ansi --height 90% --reverse \
+		--preview "hash=\$(echo {} | $extract_hash_cmd); git show \$hash --stat --format=reference --color=always && git show --color-words \$hash" \
+		--preview-window=wrap \
+		--bind "ctrl-d:preview-page-down,ctrl-u:preview-page-up,ctrl-a:reload($gitlog_cmd --all --graph)" |
+	bash -c "$extract_hash_cmd" | tr '\n' ' '
