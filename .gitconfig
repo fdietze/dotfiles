@@ -4,6 +4,7 @@
 
 [init]
 	defaultBranch = main
+	templateDir = /home/felix/.config/git/templates
 
 [pager]
     diff = diff-so-fancy | less --RAW-CONTROL-CHARS

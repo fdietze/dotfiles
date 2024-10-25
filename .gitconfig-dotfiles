@@ -1,8 +1,8 @@
 [include]
-  path = /home/felix/.gitconfig
+  path = ~/.gitconfig
 
 [core]
-  excludesfile = /home/felix/.gitignore-dotfiles
+  excludesfile = ~/.gitignore-dotfiles
 
 [status]
   showUntrackedFiles = all
