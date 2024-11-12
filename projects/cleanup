@@ -28,7 +28,7 @@ babel-loader
 EOF
 
 pattern=$(printf "^%s$|" "${lines[@]}") # generate regex
-pattern=${pattern%|} # Remove the trailing pipe
+pattern=${pattern%|}                    # Remove the trailing pipe
 
 echo "looking for directories:"
 echo
@@ -36,23 +36,19 @@ echo "$pattern" | tr -d '^$' | tr '|' '\n'
 echo
 dirlist=$(fd -u --prune -t d "$pattern")
 if [ -z "$dirlist" ]; then
-  echo "No matching directories found. Everything clean!"
-  exit 0
+	echo "No matching directories found. Everything clean!"
+	exit 0
 fi
 
-
 echo "$dirlist" | while read -r dir; do
-  size=$(du -sh "$dir" | cut -f1)
-  filecount=$(fd . -t f "$dir" | wc -l)
-  printf "%5s %6d files $dir\n" "$size" "$filecount"
+	size=$(du -sh "$dir" | cut -f1)
+	filecount=$(fd . -t f "$dir" | wc -l)
+	printf "%5s %6d files $dir\n" "$size" "$filecount"
 done | LC_ALL=C sort -k1h
 
 # TODO: get total size and count of all directories
 
-
-
-
 read -p "Press enter to delete the above directories"
 while read -r dir; do
-  trash-put -rv "$dir"
-done <<< "$dirlist"
+	trash put "$dir"
+done <<<"$dirlist"

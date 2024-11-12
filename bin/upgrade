@@ -10,9 +10,9 @@ NixOS)
 	# nix-instantiate '<nixpkgs/nixos>' -A system
 	echo "upgrading system"
 	(cd "$HOME/nixos" && nix flake update)
-	sudo nixos-rebuild switch
+	sudo nice -n 18 nixos-rebuild boot
 	echo "updating nix profile"
-	NIXPKGS_ALLOW_UNFREE=1 nix profile upgrade '.*' --impure
+	NIXPKGS_ALLOW_UNFREE=1  nice -n 18 nix profile upgrade '.*' --impure
 	;;
 esac
 
