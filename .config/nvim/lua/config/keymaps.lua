@@ -8,14 +8,13 @@
 
 vim.keymap.set({ 'n', 'v' }, 'ä', '<cmd>q<cr>', { desc = 'quit' })
 vim.keymap.set({ 'n', 'v' }, 'ö', '<cmd>update<cr>', { desc = 'save' })
-vim.keymap.set({ 'n', 'v' }, 'ü', LazyVim.ui.bufremove, { desc = 'close buffer' })
-vim.keymap.set({ 'n', 'v' }, '<leader>ü', '<cmd>BufOnly<cr>', { desc = 'close all buffers except the current one' })
+vim.keymap.set({ 'n', 'v' }, 'ü', function() Snacks.bufdelete() end, { desc = "Delete Buffer" })
+vim.keymap.set({ 'n', 'v' }, '<leader>ü', function() Snacks.bufdelete.other() end, { desc = "Delete Other Buffers" })
 
 -- -- switch buffers with l, L
 vim.keymap.set({ 'n', 'v' }, 'l', '<cmd>bnext<cr>', { desc = 'next buffer' })
 vim.keymap.set({ 'n', 'v' }, 'L', '<cmd>bprev<cr>', { desc = 'prev buffer' })
 
--- vim.keymap.set('n', '<leader>vv', '<cmd>edit ~/.config/nvim/init.lua<cr>', { desc = 'edit init.lua' })
 vim.keymap.set('n', '<leader>vv', LazyVim.pick.config_files(), { desc = 'edit config files' })
 vim.keymap.set('n', '<leader>vh', '<cmd>edit ~/nixos/home.nix<cr>', { desc = 'edit init.lua' })
 vim.keymap.set('n', '<leader>vn', '<cmd>edit ~/nixos/configuration.nix<cr>', { desc = 'edit init.lua' })
@@ -42,25 +41,10 @@ vim.keymap.set('n', 'Y', 'y$', { desc = 'yank till end of line. (Y behaves like 
 vim.keymap.set('n', "<leader>p", "v$<Left>pgvy", { desc = 'paste over rest of line' })
 
 vim.keymap.set({ 'n', 'v' }, '<leader>gs', '<cmd>nohlsearch<CR><cmd>term tig status<CR>i', { desc = 'launch tig status' })
--- vim.keymap.set('n', 'gf', ':e <cfile><cr>', { desc = 'edit/create file under cursor' })
--- vim.keymap.set('n', 'gf', function()
---   local filename = vim.fn.expand("<cfile>")
---   local newfilepath = vim.fn.expand('%:p:h') .. '/' .. filename
---
---   if vim.fn.filereadable(newfilepath) == 1 then
---     print("File already exists")
---     vim.cmd('normal <C-W>gf')
---   else
---     os.execute("touch " .. newfilepath)
---     print("File created: " .. newfilepath)
---     vim.cmd('normal <C-W>gf')
---   end
--- end, { noremap = true, silent = true })
 
 vim.keymap.set('v', 'p', 'pgvy', { desc = "keep clipboard when pasting over selection" })
 vim.keymap.set('n', 'ß', '@q', { desc = "run macro 'q'" })
--- vim.keymap.set({ 'n', 'v', 'i' }, '<C-Up>', 'g<Up>', { desc = "move visible line up" })
---
+
 -- smart home
 vim.keymap.set('n', '<Home>', function()
   return vim.fn.col('.') == vim.fn.match(vim.fn.getline('.'), '\\S') + 1 and '<Home>' or '^'
@@ -105,15 +89,15 @@ vim.keymap.set('n', "<leader>n",
 )
 
 local function keymapOptions(desc)
-    return {
-        noremap = true,
-        silent = true,
-        nowait = true,
-        desc = "GPT prompt " .. desc,
-    }
+  return {
+    noremap = true,
+    silent = true,
+    nowait = true,
+    desc = "GPT prompt " .. desc,
+  }
 end
 
-vim.keymap.set({"n", "i"}, "<C-g>c", "<cmd>GpChatNew<cr>", keymapOptions("New Chat"))
+vim.keymap.set({ "n", "i" }, "<C-g>c", "<cmd>GpChatNew<cr>", keymapOptions("New Chat"))
 -- vim.keymap.set({"n", "i"}, "<C-g>t", "<cmd>GpChatToggle<cr>", keymapOptions("Toggle Chat"))
 -- vim.keymap.set({"n", "i"}, "<C-g>f", "<cmd>GpChatFinder<cr>", keymapOptions("Chat Finder"))
 
@@ -130,9 +114,9 @@ vim.keymap.set({ "n", "i" }, "<C-g><C-x>", "<cmd>GpChatNew split<cr>", keymapOpt
 -- vim.keymap.set("v", "<C-g><C-t>", ":<C-u>'<,'>GpChatNew tabnew<cr>", keymapOptions("Visual Chat New tabnew"))
 
 -- Prompt commands
-vim.keymap.set({"n", "i"}, "<C-g>r", "<cmd>GpRewrite<cr>", keymapOptions("Inline Rewrite"))
-vim.keymap.set({"n", "i"}, "<C-g>a", "<cmd>GpAppend<cr>", keymapOptions("Append (after)"))
-vim.keymap.set({"n", "i"}, "<C-g>b", "<cmd>GpPrepend<cr>", keymapOptions("Prepend (before)"))
+vim.keymap.set({ "n", "i" }, "<C-g>r", "<cmd>GpRewrite<cr>", keymapOptions("Inline Rewrite"))
+vim.keymap.set({ "n", "i" }, "<C-g>a", "<cmd>GpAppend<cr>", keymapOptions("Append (after)"))
+vim.keymap.set({ "n", "i" }, "<C-g>b", "<cmd>GpPrepend<cr>", keymapOptions("Prepend (before)"))
 
 vim.keymap.set("v", "<C-g>r", ":<C-u>'<,'>GpRewrite<cr>", keymapOptions("Visual Rewrite"))
 vim.keymap.set("v", "<C-g>a", ":<C-u>'<,'>GpAppend<cr>", keymapOptions("Visual Append (after)"))
@@ -154,8 +138,8 @@ vim.keymap.set("v", "<C-g>i", ":<C-u>'<,'>GpImplement<cr>", keymapOptions("Imple
 -- vim.keymap.set({"n", "i"}, "<C-g>x", "<cmd>GpContext<cr>", keymapOptions("Toggle Context"))
 -- vim.keymap.set("v", "<C-g>x", ":<C-u>'<,'>GpContext<cr>", keymapOptions("Visual Toggle Context"))
 
-vim.keymap.set({"n", "i", "v", "x"}, "<C-g>s", "<cmd>GpStop<cr>", keymapOptions("Stop"))
-vim.keymap.set({"n", "i", "v", "x"}, "<C-g>n", "<cmd>GpNextAgent<cr>", keymapOptions("Next Agent"))
+vim.keymap.set({ "n", "i", "v", "x" }, "<C-g>s", "<cmd>GpStop<cr>", keymapOptions("Stop"))
+vim.keymap.set({ "n", "i", "v", "x" }, "<C-g>n", "<cmd>GpNextAgent<cr>", keymapOptions("Next Agent"))
 
 -- optional Whisper commands with prefix <C-g>w
 -- vim.keymap.set({"n", "i"}, "<C-g>ww", "<cmd>GpWhisper<cr>", keymapOptions("Whisper"))
@@ -226,17 +210,16 @@ end, { desc = "Format" })
 -- vim.keymap.set("n", "[w", diagnostic_goto(false, "WARN"), { desc = "Prev Warning" })
 
 -- toggle options
-LazyVim.toggle.map("<leader>uf", LazyVim.toggle.format())
-LazyVim.toggle.map("<leader>uF", LazyVim.toggle.format(true))
-LazyVim.toggle.map("<leader>us", LazyVim.toggle("spell", { name = "Spelling" }))
-LazyVim.toggle.map("<leader>uw", LazyVim.toggle("wrap", { name = "Wrap" }))
-LazyVim.toggle.map("<leader>uL", LazyVim.toggle("relativenumber", { name = "Relative Number" }))
-LazyVim.toggle.map("<leader>ud", LazyVim.toggle.diagnostics)
-LazyVim.toggle.map("<leader>ul", LazyVim.toggle.number)
-LazyVim.toggle.map("<leader>uc",
-  LazyVim.toggle("conceallevel", { values = { 0, vim.o.conceallevel > 0 and vim.o.conceallevel or 2 } }))
-LazyVim.toggle.map("<leader>uT", LazyVim.toggle.treesitter)
-LazyVim.toggle.map("<leader>ub", LazyVim.toggle("background", { values = { "light", "dark" }, name = "Background" }))
+LazyVim.format.snacks_toggle():map("<leader>uf")
+LazyVim.format.snacks_toggle(true):map("<leader>uF")
+Snacks.toggle.option("spell", { name = "Spelling"}):map("<leader>us")
+Snacks.toggle.option("wrap", {name = "Wrap"}):map("<leader>uw")
+Snacks.toggle.option("relativenumber", { name = "Relative Number"}):map("<leader>uL")
+Snacks.toggle.diagnostics():map("<leader>ud")
+Snacks.toggle.line_number():map("<leader>ul")
+Snacks.toggle.option("conceallevel", {off = 0, on = vim.o.conceallevel > 0 and vim.o.conceallevel or 2}):map("<leader>uc")
+Snacks.toggle.treesitter():map("<leader>uT")
+Snacks.toggle.option("background", { off = "light", on = "dark" , name = "Dark Background"}):map("<leader>ub")
 if vim.lsp.inlay_hint then
-  LazyVim.toggle.map("<leader>uh", LazyVim.toggle.inlay_hints)
+  Snacks.toggle.inlay_hints():map("<leader>uh")
 end
