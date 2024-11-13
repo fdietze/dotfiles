@@ -18,7 +18,3 @@ sudo nix-collect-garbage -d
 trash empty --force --all # needs trashy
 
 duf -only local
-
-~/projects/cleanup
-
-duf -only local

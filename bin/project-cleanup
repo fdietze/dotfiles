@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
-# cd into script directory
-cd "$(dirname "${BASH_SOURCE[0]}")"
+# cd into project directory
+cd ~/projects
 
 readarray -t lines <<EOF
 node_modules
