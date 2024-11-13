@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail # https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail
-set -x # print all commands
+set -x             # print all commands
 
-
-df -h
+duf -only local
 
 rm -rf ~/.cache/{yarn,Cypress,coursier,JetBrains,typescript,prisma,pip,mozilla,chromium,node-gyp}
 rm -rf ~/.cargo/registry
@@ -16,8 +15,10 @@ earthly prune --reset
 nix-collect-garbage -d
 sudo nix-collect-garbage -d
 
-trash-empty # needs trash-cli
+trash empty --force --all # needs trashy
+
+duf -only local
 
 ~/projects/cleanup
 
-df -h
+duf -only local
