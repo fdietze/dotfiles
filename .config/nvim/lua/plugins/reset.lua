@@ -84,20 +84,18 @@ return {
     },
   },
   {
-    "rcarriga/nvim-notify",
-    opts = {
-      level = 3,
-      -- render = "minimal",
-      -- stages = "static",
-    },
+    "nvim-cmp",
+    opts = function(_, opts)
+      local cmp = require("cmp")
+
+      -- disable snippets
+      opts.sources = vim.tbl_filter(function(v)
+        return not vim.tbl_contains({ "luasnip" }, v.name)
+      end, opts.sources)
+
+      -- disable ghost text
+      opts.preselect = cmp.PreselectMode.None
+      opts.experimental.ghost_text = false
+    end,
   },
-  {
-    "hrsh7th/nvim-cmp",
-    opts = {
-      preselect = require("cmp").PreselectMode.None,
-      experimental = {
-        ghost_text = false
-      }
-    },
-  }
 }
