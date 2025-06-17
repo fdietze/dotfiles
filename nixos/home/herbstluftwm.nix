@@ -2,11 +2,12 @@
 
   home.shellAliases = { hc = "${pkgs.herbstluftwm}/bin/herbstclient"; };
 
-  home.activation.reloadHerbstluftwm =
-    config.lib.dag.entryBetween [ "reloadSystemD" ] [ "onFilesChange" ] ''
-      echo reloading herbstluftwm
-      ${pkgs.herbstluftwm}/bin/herbstclient reload
-    '';
+  # disabled, because it reloads at boot time
+  # home.activation.reloadHerbstluftwm =
+  #   config.lib.dag.entryBetween [ "reloadSystemD" ] [ "onFilesChange" ] ''
+  #     echo reloading herbstluftwm
+  #     ${pkgs.herbstluftwm}/bin/herbstclient reload
+  #   '';
 
   xsession = {
     enable = true;
@@ -14,23 +15,19 @@
       enable = true; # generates ~/.config/herbstluftwm/autostart
       tags = [ "1" "2" "3" "4" "5" "6" "7" "8" "9" ];
       keybinds = {
-        # launchers
-        # if there is an alacritty window, spawn a new window.
-        # Working directory is current directory of currently focused window.
-        # Mod4-d = "spawn sh -c 'alacritty msg create-window --working-directory \"$($HOME/bin/xcwd-home)\" || alacritty --working-directory \"$($HOME/bin/xcwd-home)\"'";
         Mod4-d =
           "spawn sh -c 'alacritty --working-directory \"$($HOME/bin/xcwd-home)\"'";
+        # Mod4-d =
+        #   "spawn sh -c '${pkgs.ghostty}/bin/ghostty --working-directory=\"$($HOME/bin/xcwd-home)\"'";
         # Mod4-d = "spawn sh -c 'wezterm start --cwd \"$($HOME/bin/xcwd-home)\"'";
-        Mod4-Shift-d =
-          "chain , rule once class=Alacritty floating=on floatplacement=center , spawn alacritty -e sh -c 'source $HOME/bin/secret-envs && aichat'";
         Mod4-y = "spawn rofi -show run -modi run,calc,emoji";
         Mod4-b = "spawn rofi-bluetooth";
         Mod4-j = "spawn $BROWSER";
         # Mod4-´ = "spawn $BROWSER";
-        Mod4-Apostrophe = "spawn $BROWSER";
+        Mod4-apostrophe = "spawn $BROWSER";
 
-        Mod4-q = "close_and_remove";
-        Mod4-x = "close_and_remove";
+        Mod4-q = "close";
+        Mod4-x = "close";
         Mod4-k = "spawn xkill";
 
         # focusing clients (iale are positions of neo layout arrow keys)
@@ -190,9 +187,10 @@
         frame_gap = 0;
         window_gap = 0;
         frame_padding = 0;
-        smart_window_surroundings = false; # must be false to show tabs
+        smart_window_surroundings = true; # must be false to show tabs
         smart_frame_surroundings = true;
         focus_stealing_prevention = true; # zoom problems
+        # TODO different frame and window border color
 
         tabbed_max = true; # show tabs in max layout
       };
@@ -207,6 +205,8 @@
 
         # custom app rules
         "class='MEGAsync' floating=on"
+        "class='mpv' floating=on"
+        "class='feh' floating=on floatplacement=center"
         ''class="Signal" tag=1''
         ''class="VirtualBox Manager" tag=6''
         ''class="KeePassXC" windowtype='_NET_WM_WINDOW_TYPE_NORMAL' tag=8''
@@ -224,13 +224,15 @@
       ];
 
       extraConfig = ''
+        # alias hc="${pkgs.herbstluftwm}/bin/herbstclient"
+
         # tags keybindings
         tag_names=({1..9})
         tag_keys=({1..9} 0)
 
-        hc rename default "''${tag_names[0]}" || true
+        herbstclient rename default "''${tag_names[0]}" || true
         for i in ''${!tag_names[@]}; do
-        	hc add "''${tag_names[$i]}"
+        	herbstclient add "''${tag_names[$i]}"
         	key="''${tag_keys[$i]}"
         	if ! [ -z "$key" ]; then
         		herbstclient keybind "Mod4-$key" use_index "$i"
@@ -262,67 +264,68 @@
         herbstclient attr theme.active.title_color $BAR_BG # Foreground text color
         herbstclient attr theme.urgent.color orange
         herbstclient attr theme.urgent.title_color $BAR_BG # Foreground text color
+        herbstclient attr theme.minimal.title_height 25
+        herbstclient attr theme.minimal.title_when multiple_tabs
+        # herbstclient attr theme.minimal.color $BAR_BG
+        # herbstclient attr theme.minimal.title_color $BAR_FG
+        # herbstclient attr theme.minimal.title_depth 8
+        # herbstclient attr theme.minimal.title_font "Monospace:pixelsize=20"
 
 
 
 
 
-        frottage & # set wallpaper
+        # frottage & # set wallpaper
 
-        xsetroot -cursor_name left_ptr # apply cursor theme globally
+        # xsetroot -cursor_name left_ptr # apply cursor theme globally
 
 
         (
-        pkill polybar || true
-        pkill -9 polybar || true
+        pkill -f "polybar" || true # More robust pkill targeting polybar
+        # Give pkill a moment to act before restarting
+        sleep 1
 
-        rm -f /tmp/msgg
+        echo "Polybar launch script started at $(date)" > /tmp/polybar_launch.log
         set -e
 
-        # show polybar tray on primary monitor
-        # https://github.com/polybar/polybar/issues/1070
-
-
         HLWM_MONITOR_IDS=$(${pkgs.herbstluftwm}/bin/herbstclient list_monitors | cut -d':' -f1)
-        # example line: 0
-        echo "command $(${pkgs.herbstluftwm}/bin/herbstclient list_monitors)" >> /tmp/msgg
-        echo HLWM_MONITOR_IDS: $HLWM_MONITOR_IDS >> /tmp/msgg
+        echo "HLWM_MONITOR_IDS: $HLWM_MONITOR_IDS" >> /tmp/polybar_launch.log
 
         POLYBAR_MONITOR_IDS_PRIMARY=$(polybar --list-monitors | awk -F: '{print $1 ($2~/primary/?" (primary)":"")}')
-        # example line: eDP-1 (primary)
-        echo POLYBAR_MONITOR_IDS_PRIMARY: $POLYBAR_MONITOR_IDS_PRIMARY >> /tmp/msgg
+        echo "POLYBAR_MONITOR_IDS_PRIMARY: $POLYBAR_MONITOR_IDS_PRIMARY" >> /tmp/polybar_launch.log
 
         MERGED=$(paste -d " " <(echo "$HLWM_MONITOR_IDS") <(echo "$POLYBAR_MONITOR_IDS_PRIMARY"))
-        # example line: 0 eDP-1 (primary)
-        echo MERGED: $MERGED >> /tmp/msgg
+        echo "MERGED: $MERGED" >> /tmp/polybar_launch.log
 
         PRIMARY=$(echo "$MERGED" | grep "primary" || true)
         OTHERS=$(echo "$MERGED" | grep -v "primary" || true)
-        echo PRIMARY: $PRIMARY >> /tmp/msgg
-        echo OTHERS: $OTHERS >> /tmp/msgg
+        echo "PRIMARY: $PRIMARY" >> /tmp/polybar_launch.log
+        echo "OTHERS: $OTHERS" >> /tmp/polybar_launch.log
 
 
-        # first, launch polybar on primary monitor
-        export MONITOR=$(echo "$PRIMARY" | cut -d" " -f2) # used in ~/.config/polybar/config.ini
-        export MONITOR_HLWM=$(echo "$PRIMARY" | cut -d" " -f1) # passed via ~/.config/polybar/config.ini to ~/.config/herbstluftwm/tags.sh
-        echo "Starting polybar on primary monitor '$PRIMARY' $MONITOR_HLWM ($MONITOR)" >> /tmp/msgg
-        ${pkgs.polybar}/bin/polybar &
+        if [ -n "$PRIMARY" ]; then
+            export MONITOR=$(echo "$PRIMARY" | cut -d" " -f2)
+            export MONITOR_HLWM=$(echo "$PRIMARY" | cut -d" " -f1)
+            echo "Starting polybar on primary monitor '$PRIMARY' -> HLWM: $MONITOR_HLWM, Polybar: $MONITOR" >> /tmp/polybar_launch.log
+            ${pkgs.polybar}/bin/polybar >> /tmp/polybar_launch.log 2>&1 &
+        else
+            echo "No primary monitor found by script. Not starting Polybar on primary." >> /tmp/polybar_launch.log
+        fi
 
-        # after waiting a bit, launch polybar on other monitors
         sleep 2
+
         IFS=$'\n' # loop over whole lines
         echo "$OTHERS" | while read -r m; do
-            # if line is empty, skip
             if [ -z "$m" ]; then
                 continue
             fi
             export MONITOR=$(echo "$m" | cut -d" " -f2)
             export MONITOR_HLWM=$(echo "$m" | cut -d" " -f1)
-            # Start polybar in the background and optionally manage PIDs
-            echo "Starting polybar on other monitor '$m' $MONITOR_HLWM ($MONITOR)" >> /tmp/msgg
-            ${pkgs.polybar}/bin/polybar &
+            echo "Starting polybar on other monitor '$m' -> HLWM: $MONITOR_HLWM, Polybar: $MONITOR" >> /tmp/polybar_launch.log
+            ${pkgs.polybar}/bin/polybar >> /tmp/polybar_launch.log 2>&1 &
         done
-        ) > /tmp/polybar.log 2>&1
+        echo "Polybar launch script finished at $(date)" >> /tmp/polybar_launch.log
+        ) > /dev/null 2>&1
 
 
 
@@ -434,8 +437,8 @@
       if [ -z "$_XPROFILE_SOURCED" ]; then
         export _XPROFILE_SOURCED=1
 
-        autorandr --change & # detect monitors
-        (sleep 2 && keepassxc) &
+        # autorandr --change & # detect monitors
+        (sleep 5 && keepassxc) &
         (
           set -e
           sleep 60
@@ -443,13 +446,10 @@
           CURRENT_WIFI=$(current_wifi)
           echo $CURRENT_WIFI > /tmp/current_wifi
           if [ -n "$CURRENT_WIFI" ] && [ "$CURRENT_WIFI" != "kronk" ]; then
-            # QT_SCALE_FACTOR fixes megasync UI
-            # QT_SCALE_FACTOR=1
             ${pkgs.megasync}/bin/megasync > /tmp/megasync_logs 2>&1 &
           fi
         ) &
       fi
-      wait
       ) >/tmp/xsession_debug 2>&1 &
     '';
   };
