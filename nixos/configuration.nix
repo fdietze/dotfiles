@@ -313,6 +313,7 @@
     # https://stylix.danth.me/index.html
     enable = true;
     autoEnable = false;
+    polarity = "dark";
     base16Scheme = {
       # tokyo-night-moon
       base00 = "222436"; # bg
@@ -334,6 +335,16 @@
     };
     targets = { console.enable = true; };
   };
+  home-manager.extraSpecialArgs = { colorMode = "dark"; };
+  specialisation.light.configuration = {
+    stylix = {
+      polarity = lib.mkForce "light";
+      base16Scheme =
+        lib.mkForce "${pkgs.base16-schemes}/share/themes/solarized-light.yaml";
+    };
+    home-manager.extraSpecialArgs = { colorMode = "light"; };
+  };
+
   services.xserver = {
     enable = true;
     dpi = 210;
