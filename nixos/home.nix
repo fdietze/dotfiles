@@ -1,5 +1,5 @@
 # https://mipmip.github.io/home-manager-option-search/
-{ config, pkgs, ... }:
+{ config, pkgs, colorMode, ... }:
 
 {
   imports =
@@ -12,6 +12,8 @@
   home.sessionPath = [ "$HOME/bin" "$HOME/.cargo/bin" ];
 
   # home.sessionCommand
+
+  home.file.".colormode".text = colorMode;
 
   home.sessionVariables = {
     CLICOLOR_FORCE =
@@ -307,20 +309,21 @@
   };
   services.xsettingsd = {
     enable = true;
-    settings = {
-      # for dark-light theme switching, the config file needs to be mutable:
-      # ~/.config/xsettingsd/xsettingsd.conf
-      # It will be modified by the script ~/bin/theme
-      #
-      # # https://github.com/derat/xsettingsd/wiki/Settings
-      #
-      # "Xft/Hinting" = 1;
-      # "Xft/HintStyle" = "hintslight";
-      # "Xft/Antialias" = 1;
-      # "Xft/RGBA" = "rgb";
-      # "Net/ThemeName" = "Qogir-Dark";
-      # "Net/IconThemeName" = "Qogir-dark";
-    };
+    settings = { "Net/ThemeName" = "adw-gtk3-${colorMode}"; };
+    # settings = {
+    # for dark-light theme switching, the config file needs to be mutable:
+    # ~/.config/xsettingsd/xsettingsd.conf
+    # It will be modified by the script ~/bin/theme
+    #
+    # # https://github.com/derat/xsettingsd/wiki/Settings
+    #
+    # "Xft/Hinting" = 1;
+    # "Xft/HintStyle" = "hintslight";
+    # "Xft/Antialias" = 1;
+    # "Xft/RGBA" = "rgb";
+    # "Net/ThemeName" = "Qogir-Dark";
+    # "Net/IconThemeName" = "Qogir-dark";
+    # };
   };
 
   systemd.user.services.frottage = {
@@ -348,7 +351,7 @@
           #!${pkgs.bash}/bin/bash
           set -euo pipefail
 
-          THEME=$(cat "$HOME/.theme" 2>/dev/null || echo dark)
+          THEME=${colorMode}
           case "$THEME" in
             light) TARGET=desktop-light ;;
             *) TARGET=desktop ;;
