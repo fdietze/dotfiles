@@ -1,0 +1,42 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "google/gemini-3-pro-preview",
+  "autoupdate": false,
+  "default_agent": "architect",
+  "agent": {
+    "build": {
+      "model": "google/gemini-3-flash-preview"
+    }
+  },
+  "provider": {
+    "openrouter": {}
+  },
+  "permission": {
+    "bash": {
+      "ls": "allow",
+      "pwd": "allow",
+      "rg": "allow",
+      "cat": "allow",
+      "echo": "allow",
+      "git status": "allow",
+      "git diff": "allow",
+      "git show": "allow",
+      "git log": "allow",
+      "git": "ask",
+      "nix build": "allow",
+      "just check": "allow",
+      "just fix": "allow",
+      "devbox run -- just check": "allow",
+      "devbox run -- just fix": "allow",
+      "cargo build": "allow",
+      "cargo test": "allow",
+      "cargo add": "allow",
+      "cargo check": "allow",
+      "npm run typecheck": "allow",
+      "npm run lint": "allow",
+      "npm run test:e2e": "allow",
+      "npm run test:unit": "allow",
+      "npx playwright test": "allow",
+    }
+  }
+}
