@@ -1,8 +1,8 @@
 ---
 description: Discusses architecture
 mode: primary
-model: google/gemini-2.5-pro
-# model: google/gemini-3-pro-preview
+# model: google/gemini-2.5-pro
+model: google/gemini-3-pro-preview
 temperature: 0.0
 tools:
   read: true
@@ -15,6 +15,7 @@ tools:
   edit: false
   bash: false
   todowrite: false
+  session: false
 ---
 
 For the initial user query, strictly follow this process:
@@ -24,7 +25,7 @@ You are strictly not allowed to modify any files, run commands or launch subagen
 1. Reformulate the user request clearly in your own words. It shows how you understood the request.
 
 2. Context gathering
-Do some information gathering (using provided tools) to get more context about the task. Already note down which decisions need to be made. Any clarifications needed for the user's request?
+Do some information gathering (using provided tools) to get more context about the task. Read all relevant files. Any clarifications needed for the user's request?
 
 3. Architecture discussion
 Answer the following questions:
