@@ -1,6 +1,9 @@
-{ pkgs, config, ... }: {
+{ pkgs, config, ... }:
+{
 
-  home.shellAliases = { hc = "${pkgs.herbstluftwm}/bin/herbstclient"; };
+  home.shellAliases = {
+    hc = "${pkgs.herbstluftwm}/bin/herbstclient";
+  };
 
   # disabled, because it reloads at boot time
   # home.activation.reloadHerbstluftwm =
@@ -13,10 +16,19 @@
     enable = true;
     windowManager.herbstluftwm = {
       enable = true; # generates ~/.config/herbstluftwm/autostart
-      tags = [ "1" "2" "3" "4" "5" "6" "7" "8" "9" ];
+      tags = [
+        "1"
+        "2"
+        "3"
+        "4"
+        "5"
+        "6"
+        "7"
+        "8"
+        "9"
+      ];
       keybinds = {
-        Mod4-d =
-          "spawn sh -c 'alacritty --working-directory \"$($HOME/bin/xcwd-home)\"'";
+        Mod4-d = "spawn sh -c 'alacritty --working-directory \"$($HOME/bin/xcwd-home)\"'";
         # Mod4-d =
         #   "spawn sh -c '${pkgs.ghostty}/bin/ghostty --working-directory=\"$($HOME/bin/xcwd-home)\"'";
         # Mod4-d = "spawn sh -c 'wezterm start --cwd \"$($HOME/bin/xcwd-home)\"'";
@@ -55,12 +67,10 @@
 
         # cycle through tags
         Mod4-c = "use_index +1 --skip-visible";
-        Mod4-Shift-c =
-          "chain , move_index +1 --skip-visible , use_index +1 --skip-visible";
+        Mod4-Shift-c = "chain , move_index +1 --skip-visible , use_index +1 --skip-visible";
         Mod4-Shift-Ctrl-c = "move_index +1 --skip-visible";
         Mod4-v = "use_index -1 --skip-visible";
-        Mod4-Shift-v =
-          "chain , move_index -1 --skip-visible , use_index -1 --skip-visible";
+        Mod4-Shift-v = "chain , move_index -1 --skip-visible , use_index -1 --skip-visible";
         Mod4-Shift-Ctrl-v = "move_index -1 --skip-visible";
         Mod4-w = "use_previous";
         Mod4-Shift-w = "spawn $HOME/bin/hc-move-previous";
@@ -97,8 +107,7 @@
         Mod4-Shift-u = "chain , shift_to_monitor -1 , focus_monitor -1";
         Mod4-Shift-Ctrl-o = "shift_to_monitor +1";
         Mod4-Shift-Ctrl-u = "shift_to_monitor -1";
-        Mod4-F7 =
-          "spawn autorandr --change"; # detect connected monitors, apply right profile
+        Mod4-F7 = "spawn autorandr --change"; # detect connected monitors, apply right profile
 
         # window manager & system
         Mod4-Shift-q = "quit";
@@ -144,11 +153,12 @@
         Mod4-p = "spawn playerctl stop";
         Mod4-z = "spawn playerctl next";
 
+        Mod4-Shift-odiaeresis = "spawn ${pkgs.timewarrior}/bin/timew continue";
+        Mod4-Shift-p = "spawn ${pkgs.timewarrior}/bin/timew stop";
+
         # Screenshots
-        Print =
-          "spawn ${pkgs.scrot}/bin/scrot 'screenshots/%Y-%m-%d_%H-%M-%S.png' --exec '${pkgs.libnotify}/bin/notify-send --expire-time=2000 \"Fullscreen Screenshot Saved.\"'";
-        Ctrl-Mod4-Print =
-          "spawn ${pkgs.flameshot}/bin/flameshot gui -r | ${pkgs.xclip}/bin/xclip -selection clipboard -t image/png"; # https://github.com/flameshot-org/flameshot/issues/635#issuecomment-2302675095
+        Print = "spawn ${pkgs.scrot}/bin/scrot 'screenshots/%Y-%m-%d_%H-%M-%S.png' --exec '${pkgs.libnotify}/bin/notify-send --expire-time=2000 \"Fullscreen Screenshot Saved.\"'";
+        Ctrl-Mod4-Print = "spawn ${pkgs.flameshot}/bin/flameshot gui -r | ${pkgs.xclip}/bin/xclip -selection clipboard -t image/png"; # https://github.com/flameshot-org/flameshot/issues/635#issuecomment-2302675095
 
         # incubator
         # Mod4- = "keepmenu ~/";
@@ -206,12 +216,11 @@
         # custom app rules
         "class='MEGAsync' floating=on"
         "class='mpv' floating=on"
-        "class='feh' floating=on floatplacement=center"
+        # "class='feh' floating=on floatplacement=center"
         ''class="Signal" tag=1''
         ''class="VirtualBox Manager" tag=6''
         ''class="KeePassXC" windowtype='_NET_WM_WINDOW_TYPE_NORMAL' tag=8''
-        ''
-          class="KeePassXC" windowtype='_NET_WM_WINDOW_TYPE_DIALOG' focus=on switchtag=on floatplacement=center'' # keepass dialogs
+        ''class="KeePassXC" windowtype='_NET_WM_WINDOW_TYPE_DIALOG' focus=on switchtag=on floatplacement=center'' # keepass dialogs
         ''class="Spotify" tag=9''
 
         # zoom
@@ -427,30 +436,29 @@
       # '';
     };
     profileExtra = ''
-      (
-
-      function current_wifi {
-      	${pkgs.networkmanager}/bin/nmcli -t -f active,ssid dev wifi | grep -E '^yes' | cut -d: -f2
-      }
-
       # https://github.com/NixOS/nixpkgs/issues/119513
       if [ -z "$_XPROFILE_SOURCED" ]; then
         export _XPROFILE_SOURCED=1
 
-        # autorandr --change & # detect monitors
-        (sleep 5 && keepassxc) &
         (
-          set -e
-          sleep 60
-          # if current wifi is not empty and not "kronk" (mobile hotspot), start megasync
-          CURRENT_WIFI=$(current_wifi)
-          echo $CURRENT_WIFI > /tmp/current_wifi
-          if [ -n "$CURRENT_WIFI" ] && [ "$CURRENT_WIFI" != "kronk" ]; then
-            ${pkgs.megasync}/bin/megasync > /tmp/megasync_logs 2>&1 &
-          fi
-        ) &
+          function current_wifi {
+            ${pkgs.networkmanager}/bin/nmcli -t -f active,ssid dev wifi | grep -E '^yes' | cut -d: -f2
+          }
+
+          # autorandr --change & # detect monitors
+          (sleep 30 && keepassxc) &
+          (
+            set -e
+            sleep 120
+            # if current wifi is not empty and not "kronk" (mobile hotspot), start megasync
+            CURRENT_WIFI=$(current_wifi)
+            echo $CURRENT_WIFI > /tmp/current_wifi
+            if [ -n "$CURRENT_WIFI" ] && [ "$CURRENT_WIFI" != "kronk" ]; then
+              ${pkgs.megasync}/bin/megasync > /tmp/megasync_logs 2>&1 &
+            fi
+          ) &
+        ) >/tmp/xsession_debug 2>&1 &
       fi
-      ) >/tmp/xsession_debug 2>&1 &
     '';
   };
 }

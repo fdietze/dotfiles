@@ -1,4 +1,5 @@
-{ pkgs, ... }: {
+{ pkgs, ... }:
+{
 
   programs.bash.enable = true;
   programs.zoxide = {
@@ -11,24 +12,26 @@
     enableBashIntegration = false;
     enableZshIntegration = true;
     enableFishIntegration = true;
-    settings = (with builtins;
-      fromTOML (readFile
-        "${pkgs.starship}/share/starship/presets/nerd-font-symbols.toml")) // {
-          git_status.stashed = ""; # disable stash indicator
-          python.disabled = true;
-          rust.disabled = true;
-          scala.disabled = true;
-          java.disabled = true;
-          julia.disabled = true;
-          docker_context.disabled = true;
-          dart.disabled = true;
-          package.disabled = true; # do not show npm, cargo etc
-          nodejs.disabled = true;
-        };
+    settings =
+      (
+        with builtins; fromTOML (readFile "${pkgs.starship}/share/starship/presets/nerd-font-symbols.toml")
+      )
+      // {
+        git_status.stashed = ""; # disable stash indicator
+        python.disabled = true;
+        rust.disabled = true;
+        scala.disabled = true;
+        java.disabled = true;
+        julia.disabled = true;
+        docker_context.disabled = true;
+        dart.disabled = true;
+        package.disabled = true; # do not show npm, cargo etc
+        nodejs.disabled = true;
+      };
 
   };
 
-  programs.less.keys = ''
+  programs.less.config = ''
     # VIM
     j   forw-line
     k   back-line
@@ -67,7 +70,7 @@
       H = "| head";
       L = "| less";
       C = "| xclip -selection clipboard";
-      N = ''"$(ls -tp | grep -v '/$' | head -1)"'';
+      N = ''"$(\ls -tr | tail -1)"'';
     };
 
     initContent = ''
@@ -149,7 +152,8 @@
       bindkey -M visual "^[[H" beginning-of-line
       bindkey -M visual "^[[F" end-of-line
 
-
+      # in zshrc: 10ms timeout waiting for keysequences
+      export KEYTIMEOUT=1
 
 
 
