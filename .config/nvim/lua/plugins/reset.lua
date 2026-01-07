@@ -4,25 +4,31 @@
 return {
   -- disable mason because I'm on NixOS
   -- https://github.com/LazyVim/LazyVim/issues/445#issuecomment-1473273620
-  { "williamboman/mason-lspconfig.nvim", enabled = false },
-  { "williamboman/mason.nvim",           enabled = false },
-  { "folke/persistence.nvim",            enabled = false },
-  { "folke/yanky.nvim",                  enabled = false },
-  { "nvimdev/dashboard-nvim",            enabled = false },
-  { "stevearc/aerial.nvim",              enabled = false },
-  { "echasnovski/mini.pairs",            enabled = false },
-  { "echasnovski/mini.surround",         enabled = false },
-  { "gbprod/yanky.nvim",                 enabled = false },
-  { "folke/todo-comments.nvim",          enabled = false },
-  {
-    'nvim-telescope/telescope.nvim',
-    keys = {
-      { '<leader>gs', false },
-      { '<leader>/',  false },
-    }
-  },
+  { "mason-org/mason-lspconfig.nvim", enabled = false },
+  { "mason-org/mason.nvim", enabled = false },
+  { "folke/persistence.nvim", enabled = false },
+  { "folke/yanky.nvim", enabled = false },
+  -- { "nvimdev/dashboard-nvim", enabled = false },
+  { "stevearc/aerial.nvim", enabled = false },
+  { "nvim-mini/mini.pairs", enabled = false },
+  { "nvim-mini/mini.surround", enabled = false },
+  { "gbprod/yanky.nvim", enabled = false },
+  { "folke/todo-comments.nvim", enabled = false },
+  { "rafamadriz/friendly-snippets", enabled = false },
+  -- { "markdown-preview.nvim", enabled = false },
+  -- { "iamcco/markdown-preview.nvim", enabled = false },
+  -- { "MeanderingProgrammer/render-markdown.nvim", enabled = false },
+  -- { "headlines.nvim", enabled = false },
+  -- {
+  --   "nvim-telescope/telescope.nvim",
+  --   keys = {
+  --     { "<leader>gs", false },
+  --     { "<leader>/", false },
+  --   },
+  -- },
   {
     "folke/flash.nvim",
+    enabled = false,
     keys = {
       { "s", false },
       -- { "S", mode = { "n", "o", "x" }, function() require("flash").treesitter() end, desc = "Flash Treesitter" },
@@ -38,42 +44,42 @@ return {
       defaults = {
         autocmds = true, -- lazyvim.config.autocmds
         keymaps = false, -- lazyvim.config.keymaps
-        options = true,  -- lazyvim.config.options
-      },
-    }
-  },
-  {
-    "folke/noice.nvim",
-    enabled = true,
-    opts = {
-      -- cmdline = {
-      --   view = 'cmdline' -- classic command line at the bottom
-      -- },
-      -- notify = {
-      --   enabled = true,
-      --   view = 'split'
-      -- },
-      -- routes = {
-      --   {
-      --     filter = {
-      --       event = "echo",
-      --     },
-      --     view = "split",
-      --   },
-      -- },
-      presets = {
-        -- bottom_search = true,
-        -- command_palette = true,
-        -- long_message_to_split = true,
+        options = true, -- lazyvim.config.options
       },
     },
   },
+  -- {
+  --   "folke/noice.nvim",
+  --   enabled = true,
+  --   opts = {
+  --     -- cmdline = {
+  --     --   view = 'cmdline' -- classic command line at the bottom
+  --     -- },
+  --     -- notify = {
+  --     --   enabled = true,
+  --     --   view = 'split'
+  --     -- },
+  --     -- routes = {
+  --     --   {
+  --     --     filter = {
+  --     --       event = "echo",
+  --     --     },
+  --     --     view = "split",
+  --     --   },
+  --     -- },
+  --     presets = {
+  --       -- bottom_search = true,
+  --       -- command_palette = true,
+  --       -- long_message_to_split = true,
+  --     },
+  --   },
+  -- },
   {
     "nvim-neo-tree/neo-tree.nvim",
     keys = {
       { "<leader>e", false }, -- mapped to <leader>o
       { "<leader>E", false },
-    }
+    },
   },
   {
     "nvim-lualine/lualine.nvim",
@@ -84,18 +90,21 @@ return {
     },
   },
   {
-    "nvim-cmp",
-    opts = function(_, opts)
-      local cmp = require("cmp")
-
-      -- disable snippets
-      opts.sources = vim.tbl_filter(function(v)
-        return not vim.tbl_contains({ "luasnip" }, v.name)
-      end, opts.sources)
-
-      -- disable ghost text
-      opts.preselect = cmp.PreselectMode.None
-      opts.experimental.ghost_text = false
-    end,
+    "folke/snacks.nvim",
+    opts = {
+      dashboard = {
+        enabled = false,
+      },
+      notifier = {
+        level = vim.log.levels.WARN,
+      },
+    },
   },
+  -- {
+  --   "nvim-cmp",
+  --   opts = function(_, opts)
+  --     -- disable ghost text
+  --     opts.experimental.ghost_text = false
+  --   end,
+  -- },
 }
