@@ -1,4 +1,5 @@
-{ pkgs, ... }: {
+{ pkgs, ... }:
+{
   home.shellAliases = {
     g = "git";
     gs = "git status";
@@ -17,6 +18,15 @@
     # enable = true;
     # userName = "Felix Dietze";
     # userEmail = "github@felx.me";
-    difftastic = { enable = true; };
+    difftastic = {
+      enable = true;
+    };
+  };
+
+  programs.difftastic = {
+    git.enable = true;
+    options = {
+      display = "inline";
+    };
   };
 }

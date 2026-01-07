@@ -1,23 +1,36 @@
 # https://mipmip.github.io/home-manager-option-search/
-{ config, pkgs, colorMode, ... }:
+{
+  config,
+  pkgs,
+  theme,
+  ...
+}:
 
 {
-  imports =
-    [ ./home/shell.nix ./home/git.nix ./home/yazi.nix ./home/herbstluftwm.nix ];
+  imports = [
+    ./home/shell.nix
+    ./home/git.nix
+    ./home/yazi.nix
+    ./home/herbstluftwm.nix
+    ./home/dictate.nix
+  ];
 
   # https://nix-community.github.io/home-manager/index.xhtml
   home.username = "felix";
   home.homeDirectory = "/home/felix";
 
-  home.sessionPath = [ "$HOME/bin" "$HOME/.cargo/bin" ];
+  home.sessionPath = [
+    "$HOME/bin"
+    "$HOME/.cargo/bin"
+    "$HOME/.npm-packages/bin"
+  ];
 
   # home.sessionCommand
 
-  home.file.".colormode".text = colorMode;
+  home.file.".theme".text = theme;
 
   home.sessionVariables = {
-    CLICOLOR_FORCE =
-      1; # ANSI colors should be enabled no matter what. (https://bixense.com/clicolors/)
+    CLICOLOR_FORCE = 1; # ANSI colors should be enabled no matter what. (https://bixense.com/clicolors/)
 
     EDITOR = "${pkgs.neovim}/bin/nvim";
     BROWSER = "${pkgs.firefox}/bin/firefox";
@@ -25,16 +38,17 @@
     PAGER = "less --RAW-CONTROL-CHARS"; # less with colors
 
     # colorize less
-    LESS =
-      "--use-color --RAW-CONTROL-CHARS --incsearch --ignore-case --redraw-on-quit --mouse --wheel-lines=3";
+    LESS = "--use-color --RAW-CONTROL-CHARS --incsearch --ignore-case --redraw-on-quit --mouse --wheel-lines=3";
 
     MOZ_USE_XINPUT2 = 1; # fix firefox scrolling, enable touchpad gestures
 
-    QT_QPA_PLATFORMTHEME = "gtk2"; # let qt apps use gtk 2 themes
+    # QT_QPA_PLATFORMTHEME = "gtk2"; # let qt apps use gtk 2 themes
     # QT_AUTO_SCREEN_SCALE_FACTOR = 1; # honor screen DPI
   };
 
-  xdg.userDirs = { download = "${config.home.homeDirectory}/downloads"; };
+  xdg.userDirs = {
+    download = "${config.home.homeDirectory}/downloads";
+  };
   xdg.configFile."mimeapps.list".force = true;
   xdg.mimeApps = {
     enable = true;
@@ -73,26 +87,21 @@
     cd = "z";
     # rm = "${pkgs.trashy}/bin/trash put";
     sec = "source $HOME/bin/secret-envs";
-    aider = "sec && ${pkgs.aider-chat}/bin/aider --no-check-update";
-    db = "devbox";
-    dbs = "devbox shell";
-    dbre = "refresh"; # devbox: refresh shell
-    c = ''
-      sec && AICHAT_LIGHT_THEME=$(grep -q "light" ~/.theme && echo "true" || echo "false") ${pkgs.aichat}/bin/aichat --session $(date --iso-8601=seconds) --save-session'';
+    # aider = "sec && ${pkgs.aider-chat}/bin/aider --no-check-update";
+    alors = "sec && alors";
+    opencode = "sec && opencode";
+    oc = "sec && opencode";
+    c = ''sec && AICHAT_LIGHT_THEME=$(grep -q "light" ~/.theme && echo "true" || echo "false") ${pkgs.aichat}/bin/aichat --session $(date --iso-8601=seconds) --save-session'';
     cb = "sec && $HOME/bin/cb";
     cq = "sec && $HOME/bin/cq";
-    e = "earthly";
     ssh = "sec && TERM=xterm-256color ssh"; # fix colors in some ssh connections
     scp = "sec && scp";
-    rg =
-      "rg --hidden  --no-follow --no-heading --glob '!.git/*' --smart-case"; # https://github.com/BurntSushi/ripgrep/issues/623
+    rg = "rg --hidden  --no-follow --no-heading --glob '!.git/*' --smart-case"; # https://github.com/BurntSushi/ripgrep/issues/623
 
-    qrscan =
-      "LD_PRELOAD=/usr/lib/libv4l/v4l1compat.so ${pkgs.zbar}/bin/zbarcam --raw /dev/video0";
+    qrscan = "LD_PRELOAD=/usr/lib/libv4l/v4l1compat.so ${pkgs.zbar}/bin/zbarcam --raw /dev/video0";
     qr = "${pkgs.qrencode}/bin/qrencode -t ansiutf8";
-    tclip = ''
-      tmate display -p "#{tmate_ssh}" | xclip -selection clipboard''; # tmate session token to clipboard
-    tw = "timew";
+    tclip = ''tmate display -p "#{tmate_ssh}" | xclip -selection clipboard''; # tmate session token to clipboard
+    tw = "${pkgs.timewarrior}/bin/timew";
     feh = "feh --auto-zoom --scale-down";
     im = ''
       ${pkgs.feh}/bin/feh --fullscreen --auto-zoom --sort mtime \
@@ -102,6 +111,9 @@
               --action3 'mkdir -p 3; mv %F 3/' \
     '';
     zed = "sec && ${pkgs.zed-editor}/bin/zeditor";
+    # gemini = "sec && gemini";
+    # gmc = "geminicommit";
+    signal-desktop = ''sec && signal-desktop --password-store="gnome-libsecret"'';
 
     ##################
     # well established
@@ -138,10 +150,9 @@
     rcp = "rsync --archive --partial --info=progress2 --human-readable";
     sys = "sudo systemctl";
     sysu = "systemctl --user";
-    w =
-      "watch --color --differences "; # trailing space is for alias expansion: https://unix.stackexchange.com/a/25329
-    chromium =
-      "chromium --force-device-scale-factor=1.5"; # fix highdpi for chromium
+    w = "watch --color --differences "; # trailing space is for alias expansion: https://unix.stackexchange.com/a/25329
+    chromium = "chromium --force-device-scale-factor=1.5"; # fix highdpi for chromium
+    google-chrome-stable = "google-chrome-stable --force-device-scale-factor=1.5"; # fix highdpi for chromium
     chromium-no-plugins = "chromium --disable-extensions --disable-plugins";
 
     lsblk = "lsblk -o NAME,RM,SIZE,FSTYPE,LABEL,MOUNTPOINT,RO,UUID";
@@ -150,13 +161,11 @@
     cdt = "cd-tmp";
 
     m = "make";
-    mc = "make clean";
+    # mc = "make clean";
     drs = "$HOME/projects/ubunix/ubunix.sh";
 
-    # # online checking tools
-    # ONLINECMD='ping -c 1 8.8.8.8 -W 5 && ping -c 1 google.com -W 5'
-    # alias online="$ONLINECMD" # -c <retries>  -W <timout>
-    # alias online-wait='until online; do; sleep 3; done; espeak -p 30 "online"; espeak -p 80 "online"; espeak -p 50 "online"'
+    online = "ping -c 1 8.8.8.8 -W 5 && ping -c 1 google.com -W 5"; # -c <retries>  -W <timout>
+    online-wait = "until online; do; sleep 3; done; ${pkgs.espeak}/bin/espeak -p 30 'online'; ${pkgs.espeak}/bin/espeak -p 80 'online'; ${pkgs.espeak}/bin/espeak -p 50 'online'";
     # alias on="w --interval=1 '$ONLINECMD'"
 
   };
@@ -167,6 +176,8 @@
     enableZshIntegration = true;
   };
 
+  services.podman.enable = true;
+
   programs.fish = {
     enable = true;
     interactiveShellInit = ''
@@ -175,7 +186,7 @@
   };
 
   stylix = {
-    autoEnable = false;
+    autoEnable = true;
     cursor = {
       name = "Vanilla-DMZ";
       package = pkgs.vanilla-dmz;
@@ -184,13 +195,17 @@
     fonts.sizes.applications = 8;
     fonts.sizes.terminal = 8;
 
-    targets = { dunst.enable = true; };
+    targets = {
+      dunst.enable = true;
+      rofi.enable = false;
+      neovim.enable = false;
+    };
   };
 
   programs.neovim = {
     # ~/.config/nvim/init.lua
     enable = true;
-    plugins = with pkgs.vimPlugins; [ nvim-treesitter.withAllGrammars ];
+    # plugins = with pkgs.vimPlugins; [ nvim-treesitter.withAllGrammars ];
   };
 
   # programs.atuin = {
@@ -217,8 +232,7 @@
       window-padding-x = 2;
       window-decoration = "none";
       font-size = 17; # stylix size is too small
-      confirm-close-surface =
-        false; # don't confirm to close when a command is running
+      confirm-close-surface = false; # don't confirm to close when a command is running
     };
   };
   programs.alacritty = {
@@ -232,6 +246,16 @@
         shape = "Beam";
       };
       general.import = [ "~/.config/alacritty/theme.toml" ];
+      keyboard.bindings = [
+        # Maps Shift+Enter to send a special escape code.
+        # We use a standard CSI sequence: \x1b[13;2u
+        # 13 is for the Enter key, ;2 indicates Shift is pressed.
+        # {
+        #   key = "Enter";
+        #   mods = "Shift";
+        #   chars = "\x1b[13;2u";
+        # }
+      ];
     };
   };
   programs.wezterm = {
@@ -252,7 +276,20 @@
       }
     '';
   };
-  services.copyq.enable = true;
+  programs.helix.enable = false;
+  services.copyq.enable = false;
+
+  services.udiskie = {
+    enable = true;
+    settings = {
+      # workaround for
+      # https://github.com/nix-community/home-manager/issues/632
+      program_options = {
+        # replace with your favorite file manager
+        file_manager = "${pkgs.nemo-with-extensions}/bin/nemo";
+      };
+    };
+  };
 
   services.redshift = {
     # Redshift adjusts the color temperature of your screen. This may help your eyes hurt less if you are working in front of the screen at night.
@@ -263,6 +300,44 @@
   services.unclutter = {
     # hide mouse after some seconds of no movement
     enable = true;
+  };
+
+  services.espanso = {
+    # https://github.com/espanso/espanso
+    enable = true;
+    matches = {
+      base = {
+        matches = [
+          {
+            trigger = ":date";
+            replace = "{{currentdate}}";
+          }
+          {
+            trigger = ":opt";
+            replace = "What are the decisions we have to make? What are the options, trade-offs and recommendations? "; # needs space, else ? disappear -> nix yaml generator bug?
+          }
+          {
+            trigger = ":hello";
+            replace = "line1\nline2&";
+          }
+          {
+            regex = ":hi(?P.*)\\.";
+            replace = "Hi {{person}}!";
+          }
+        ];
+      };
+      global_vars = {
+        global_vars = [
+          {
+            name = "currentdate";
+            type = "date";
+            params = {
+              format = "%Y-%m-%d";
+            };
+          }
+        ];
+      };
+    };
   };
 
   services.playerctld.enable = true;
@@ -291,10 +366,9 @@
     enable = true;
     settings = {
       General = {
-        checkForUpdates = false;
         contrastOpacity = 51;
         disabledTrayIcon = false;
-        drawColor = "#00ffff";
+        drawColor = "#9ECE6A";
         filenamePattern = "%F_%H-%M-%S";
         savePath = "/home/felix/screenshots";
         savePathFixed = true;
@@ -309,7 +383,9 @@
   };
   services.xsettingsd = {
     enable = true;
-    settings = { "Net/ThemeName" = "adw-gtk3-${colorMode}"; };
+    settings = {
+      "Net/ThemeName" = "adw-gtk3-${theme}";
+    };
     # settings = {
     # for dark-light theme switching, the config file needs to be mutable:
     # ~/.config/xsettingsd/xsettingsd.conf
@@ -346,53 +422,60 @@
       Type = "oneshot";
       # Environment = "DISPLAY=:0"; # Might be needed if DISPLAY is not inherited correctly
       # Use sh -c to run a small script determining the wallpaper URL based on ~/.theme
-      ExecStart = let
-        script = pkgs.writeShellScriptBin "frottage-user" ''
-          #!${pkgs.bash}/bin/bash
-          set -euo pipefail
+      ExecStart =
+        let
+          script = pkgs.writeShellScriptBin "frottage-user" ''
+            #!${pkgs.bash}/bin/bash
+            set -euo pipefail
 
-          THEME=${colorMode}
-          case "$THEME" in
-            light) TARGET=desktop-light ;;
-            *) TARGET=desktop ;;
-          esac
+            THEME=${theme}
+            case "$THEME" in
+              light) TARGET=desktop-light ;;
+              *) TARGET=desktop ;;
+            esac
 
-          # Ensure the target directory exists
-          ${pkgs.coreutils}/bin/mkdir -p "$HOME/frottage"
+            # Ensure the target directory exists
+            ${pkgs.coreutils}/bin/mkdir -p "$HOME/frottage"
 
-          DOWNLOAD_URL="https://frottage.app/static/wallpaper-''${TARGET}-latest.jpg"
-          OUTPUT_PATH="$HOME/frottage/wallpaper.jpg"
+            DOWNLOAD_URL="https://frottage.app/static/wallpaper-''${TARGET}-latest.jpg"
+            OUTPUT_PATH="$HOME/frottage/wallpaper.jpg"
+            ${pkgs.feh}/bin/feh --bg-fill "$OUTPUT_PATH" || true
 
-          echo "Starting wallpaper download for theme: ''${TARGET}"
-          echo "Downloading $DOWNLOAD_URL to $OUTPUT_PATH with retries"
+            echo "Starting wallpaper download for theme: ''${TARGET}"
+            echo "Downloading $DOWNLOAD_URL to $OUTPUT_PATH with retries"
 
-          if ${pkgs.curl}/bin/curl --retry 5 --retry-delay 10 --retry-all-errors -sfSL -o "$OUTPUT_PATH" "$DOWNLOAD_URL"; then
-            echo "Download successful."
-            # Set the wallpaper
-            echo "Setting wallpaper using feh."
-            ${pkgs.feh}/bin/feh --bg-fill "$OUTPUT_PATH"
-            exit 0 # Success
-          else
-            curl_exit_code=$?
-            echo "curl command failed after retries with exit code: $curl_exit_code." >&2
-            echo "Failed to download wallpaper from $DOWNLOAD_URL." >&2
-            echo "Falling back to last wallpaper." >&2
-            ${pkgs.feh}/bin/feh --bg-fill "$OUTPUT_PATH"
-            exit 1 # Failure
-          fi
-        '';
-      in "${script}/bin/frottage-user";
+            if ${pkgs.curl}/bin/curl --retry 5 --retry-delay 10 --retry-all-errors -sfSL -o "$OUTPUT_PATH" "$DOWNLOAD_URL"; then
+              echo "Download successful."
+              # Set the wallpaper
+              echo "Setting wallpaper using feh."
+              ${pkgs.feh}/bin/feh --bg-fill "$OUTPUT_PATH"
+              exit 0 # Success
+            else
+              curl_exit_code=$?
+              echo "curl command failed after retries with exit code: $curl_exit_code." >&2
+              echo "Failed to download wallpaper from $DOWNLOAD_URL." >&2
+              echo "Falling back to last wallpaper." >&2
+              ${pkgs.feh}/bin/feh --bg-fill "$OUTPUT_PATH"
+              exit 1 # Failure
+            fi
+          '';
+        in
+        "${script}/bin/frottage-user";
     };
-    Install = { WantedBy = [ "graphical-session.target" ]; };
   };
 
   systemd.user.timers.frottage = {
-    Unit = { Description = "Frottage Timer"; };
+    Unit = {
+      Description = "Frottage Timer";
+    };
     Timer = {
+      OnActiveSec = "15s";
       OnCalendar = "*-*-* 01,07,13,19:00:00 UTC";
       Persistent = true; # Run job if missed due to suspend/shutdown
     };
-    Install = { WantedBy = [ "timers.target" ]; };
+    Install = {
+      WantedBy = [ "timers.target" ];
+    };
   };
 
   # services.syncthing.enable = true;
@@ -447,7 +530,9 @@
     enable = true;
     enableZshIntegration = true;
   };
-  programs.ripgrep = { enable = true; };
+  programs.ripgrep = {
+    enable = true;
+  };
   programs.eza = {
     # colorful ls alternative
     enable = true;
@@ -466,19 +551,24 @@
     # application launcher, window switcher, ssh launcher
     enable = true;
 
-    theme = let
-      fetchedContent = builtins.fetchurl {
-        url =
-          "https://raw.githubusercontent.com/newmanls/rofi-themes-collection/c2be059e9507785d42fc2077a4c3bc2533760939/themes/squared-everforest.rasi";
-        sha256 = "14p055gbqr7wijahjmd8jr04jn6nscs2zx3fyiy42c4n8yi0v98f";
-      };
-      fileContent = builtins.readFile fetchedContent;
-      # replace font in theme with monospace font.
-      replacedContent = builtins.replaceStrings [
-        ''"FiraCode Nerd Font Medium 12"''
-        "width:      480;"
-      ] [ ''"mono 30"'' "width: 1000;" ] fileContent;
-    in builtins.toFile "squared-everforest-modified.rasi" replacedContent;
+    theme =
+      let
+        fetchedContent = builtins.fetchurl {
+          url = "https://raw.githubusercontent.com/newmanls/rofi-themes-collection/c2be059e9507785d42fc2077a4c3bc2533760939/themes/squared-everforest.rasi";
+          sha256 = "14p055gbqr7wijahjmd8jr04jn6nscs2zx3fyiy42c4n8yi0v98f";
+        };
+        fileContent = builtins.readFile fetchedContent;
+        # replace font in theme with monospace font.
+        replacedContent =
+          builtins.replaceStrings
+            [
+              ''"FiraCode Nerd Font Medium 12"''
+              "width:      480;"
+            ]
+            [ ''"mono 30"'' "width: 1000;" ]
+            fileContent;
+      in
+      builtins.toFile "squared-everforest-modified.rasi" replacedContent;
 
     plugins = with pkgs; [
       rofi-calc
@@ -498,7 +588,7 @@
 
   programs.librewolf = {
     # https://github.com/mjschwenne/dotfiles/blob/f45fbe1e6ea426342be03054d9e26ab1a29bf0f3/home/applications/librewolf/default.nix#L2
-    enable = true;
+    enable = false;
     profiles = {
       default = {
         settings = {
@@ -532,112 +622,141 @@
             "bing".metaData.hidden = true;
             "ebay".metaData.hidden = true;
             "ddg" = {
-              urls = [{
-                template = "https://duckduckgo.com";
-                params = [{
-                  name = "q";
-                  value = "{searchTerms}";
-                }];
-              }];
+              urls = [
+                {
+                  template = "https://duckduckgo.com";
+                  params = [
+                    {
+                      name = "q";
+                      value = "{searchTerms}";
+                    }
+                  ];
+                }
+              ];
               definedAliases = [ "ddg" ];
             };
             "google" = {
-              urls = [{
-                template = "https://google.com/search";
-                params = [{
-                  name = "q";
-                  value = "{searchTerms}";
-                }];
-              }];
+              urls = [
+                {
+                  template = "https://google.com/search";
+                  params = [
+                    {
+                      name = "q";
+                      value = "{searchTerms}";
+                    }
+                  ];
+                }
+              ];
               definedAliases = [ "g" ];
             };
             "Home Manager Options" = {
-              urls = [{
-                template =
-                  "https://mipmip.github.io/home-manager-option-search/";
-                params = [{
-                  name = "query";
-                  value = "{searchTerms}";
-                }];
-              }];
+              urls = [
+                {
+                  template = "https://mipmip.github.io/home-manager-option-search/";
+                  params = [
+                    {
+                      name = "query";
+                      value = "{searchTerms}";
+                    }
+                  ];
+                }
+              ];
               definedAliases = [ "vh" ];
             };
             "Nix Packages" = {
-              urls = [{
-                template = "https://search.nixos.org/packages";
-                params = [
-                  {
-                    name = "type";
-                    value = "packages";
-                  }
-                  {
-                    name = "query";
-                    value = "{searchTerms}";
-                  }
-                ];
-              }];
+              urls = [
+                {
+                  template = "https://search.nixos.org/packages";
+                  params = [
+                    {
+                      name = "type";
+                      value = "packages";
+                    }
+                    {
+                      name = "query";
+                      value = "{searchTerms}";
+                    }
+                  ];
+                }
+              ];
               definedAliases = [ "np" ];
             };
             "NixOs Options" = {
-              urls = [{
-                template = "https://search.nixos.org/options";
-                params = [
-                  {
-                    name = "channel";
-                    value = "unstable";
-                  }
-                  {
-                    name = "query";
-                    value = "{searchTerms}";
-                  }
-                ];
-              }];
+              urls = [
+                {
+                  template = "https://search.nixos.org/options";
+                  params = [
+                    {
+                      name = "channel";
+                      value = "unstable";
+                    }
+                    {
+                      name = "query";
+                      value = "{searchTerms}";
+                    }
+                  ];
+                }
+              ];
               definedAliases = [ "np" ];
             };
             "youtube" = {
-              urls = [{
-                template = "https://www.youtube.com/results";
-                params = [{
-                  name = "search_query";
-                  value = "{searchTerms}";
-                }];
-              }];
+              urls = [
+                {
+                  template = "https://www.youtube.com/results";
+                  params = [
+                    {
+                      name = "search_query";
+                      value = "{searchTerms}";
+                    }
+                  ];
+                }
+              ];
               definedAliases = [ "y" ];
             };
             "Wikipedia" = {
-              urls = [{
-                template = "https://en.wikipedia.org/wiki/Special:Search";
-                params = [{
-                  name = "search";
-                  value = "{searchTerms}";
-                }];
-              }];
+              urls = [
+                {
+                  template = "https://en.wikipedia.org/wiki/Special:Search";
+                  params = [
+                    {
+                      name = "search";
+                      value = "{searchTerms}";
+                    }
+                  ];
+                }
+              ];
               definedAliases = [ "w" ];
             };
             "GitHub" = {
-              urls = [{
-                template = "https://github.com/search";
-                params = [{
-                  name = "q";
-                  value = "{searchTerms}";
-                }];
-              }];
+              urls = [
+                {
+                  template = "https://github.com/search";
+                  params = [
+                    {
+                      name = "q";
+                      value = "{searchTerms}";
+                    }
+                  ];
+                }
+              ];
               definedAliases = [ "gh" ];
             };
             "GitHub Code" = {
-              urls = [{
-                template = "https://github.com/search";
-                params = [
-                  {
-                    name = "type";
-                    value = "code";
-                  }
-                  {
-                    name = "q";
-                    value = "{searchTerms}";
-                  }
-                ];
-              }];
+              urls = [
+                {
+                  template = "https://github.com/search";
+                  params = [
+                    {
+                      name = "type";
+                      value = "code";
+                    }
+                    {
+                      name = "q";
+                      value = "{searchTerms}";
+                    }
+                  ];
+                }
+              ];
               definedAliases = [ "ghc" ];
             };
           };
@@ -649,10 +768,12 @@
   programs.firefox = {
     # https://gitlab.com/usmcamp0811/dotfiles/-/blob/fb584a888680ff909319efdcbf33d863d0c00eaa/modules/home/apps/firefox/default.nix
     enable = false;
-    profiles = { my-profile = { }; };
+    profiles = {
+      my-profile = { };
+    };
   };
   programs.qutebrowser = {
-    enable = true;
+    enable = false;
     loadAutoconfig = true;
     enableDefaultBindings = true;
     keyBindings = {
@@ -680,8 +801,7 @@
     profiles = {
       default = {
         fingerprint = {
-          eDP-1 =
-            "00ffffffffffff0006af362000000000001b0104a51f117802fbd5a65334b6250e505400000001010101010101010101010101010101e65f00a0a0a040503020350035ae100000180000000f0000000000000000000000000020000000fe0041554f0a202020202020202020000000fe004231343051414e30322e30200a00d2";
+          eDP-1 = "00ffffffffffff0006af362000000000001b0104a51f117802fbd5a65334b6250e505400000001010101010101010101010101010101e65f00a0a0a040503020350035ae100000180000000f0000000000000000000000000020000000fe0041554f0a202020202020202020000000fe004231343051414e30322e30200a00d2";
         };
         config = {
           eDP-1 = {
@@ -696,10 +816,8 @@
       };
       portable-monitor-left = {
         fingerprint = {
-          DP-2 =
-            "00ffffffffffff004a8bb5a501010101141e0104b5351d783fee91a3544c99260f5054210800d1c001010101950001018180010181c040d000a0f0703e803020350061632100001a000000fc004d473134302d555430310a2020000000ff0064656d6f7365742d310a203020000000fd00283d88883c010a20202020202001d702032df2529001020304131f2021223c3d3e4c5d5e5f60e200c023097f0783010000e305c000e6060501525200023a801871382d40582c250061632100001e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000032";
-          eDP-1 =
-            "00ffffffffffff0006af362000000000001b0104a51f117802fbd5a65334b6250e505400000001010101010101010101010101010101e65f00a0a0a040503020350035ae100000180000000f0000000000000000000000000020000000fe0041554f0a202020202020202020000000fe004231343051414e30322e30200a00d2";
+          DP-2 = "00ffffffffffff004a8bb5a501010101141e0104b5351d783fee91a3544c99260f5054210800d1c001010101950001018180010181c040d000a0f0703e803020350061632100001a000000fc004d473134302d555430310a2020000000ff0064656d6f7365742d310a203020000000fd00283d88883c010a20202020202001d702032df2529001020304131f2021223c3d3e4c5d5e5f60e200c023097f0783010000e305c000e6060501525200023a801871382d40582c250061632100001e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000032";
+          eDP-1 = "00ffffffffffff0006af362000000000001b0104a51f117802fbd5a65334b6250e505400000001010101010101010101010101010101e65f00a0a0a040503020350035ae100000180000000f0000000000000000000000000020000000fe0041554f0a202020202020202020000000fe004231343051414e30322e30200a00d2";
         };
         config = {
           DP-2 = {
@@ -720,12 +838,20 @@
         };
       };
     };
-    hooks.postswitch = { run-theme = "$HOME/bin/theme"; };
+    hooks.postswitch = {
+      run-theme = "$HOME/bin/theme";
+    };
+  };
+
+  services.keynav = {
+    # TODO: https://github.com/portothree/dotfiles/blob/ef2274393816b8a2df0c8efbb80f852f9d0d20bd/config/keynav.nix#L7
+    enable = false;
   };
 
   home.packages = with pkgs; [
     # command line fu
     # https://github.com/ibraheemdev/modern-unix
+    tmux
     wget # download files
     htop # fancy top
     ncdu # disk space analyzer
@@ -753,6 +879,7 @@
     tmate # invite someone else into your terminal via ssh
     upterm # tmate alternative
     imagemagick
+    ffmpeg-full
     mediainfo
     entr # run commands when files change
     xcolor # simple color picker
@@ -762,13 +889,23 @@
     ripgrep-all # ripgrep, but for documents
     ngrok # remote http tunnel
     chafa # preview images
-    xdragon # file drag and drop initiated from command line
+    dragon-drop # file drag and drop initiated from command line
     pandoc # convert document formats
     texliveSmall # required by pandoc
     diff-so-fancy # diff viewer. TODO: replace with delta
     kondo # clear project files
     ouch # file compression
     btop # system monitor
+    # curl-impersonate # curl mocking a real browser
+    helix # modal text editor
+    espeak # text to speech
+    whisper-cpp # audio transcription
+    alsa-utils # audo recording
+    timewarrior # time tracking
+    nrfconnect # bluetooth ble
+    typst # modern latex alternative
+    pulsemixer # audio mixer tui
+    bluetuith # bluetooth tui
 
     networkmanagerapplet
     xcwd # returns current directory of x application, used to spawn new termanals in the current directory: ~/bin/xcwd-home
@@ -781,10 +918,10 @@
     usbutils
     hdparm
     gparted
+    exfatprogs
     ntfs3g
     ntfsprogs
     testdisk
-    exfat
     lm_sensors
     linuxPackages.cpupower
     xorg.xkill
@@ -794,11 +931,12 @@
     acpi
     samba
     cifs-utils
-    mtpfs
+    # mtpfs
     jmtpfs
     file
     smem
     dnsutils
+    smartmontools # hard drive diagnostics
 
     # defaults
     lsof
@@ -825,6 +963,9 @@
     miniserve
     atool # archiver
     p7zip # compressor
+    gnupg # cryptographic signing
+    ghostscript # pdf (nvim)
+    mermaid-cli # mermaid diagrams
 
     # development
     python3
@@ -836,6 +977,14 @@
     clang # c-compiler, cc is required for nvim treesitter
     coursier # scala package manager, used to install metals
     helix # modal editor
+    sccache # compile cache
+    devenv # nix based dev environments
+    # code-cursor # ai code editor
+    # antigravity-fhs # ai code editor from google
+    opencode # ai coding agent
+    # cursor-cli # ai coding agent
+    tree-sitter # syntax highlighting toolkit (used by nvim)
+    meld # git conflict resolution ui
 
     # language servers/formatters/linters
     nixd # nix language server
@@ -846,9 +995,10 @@
     # alejandra # nix code formatter
     nil # nix language server
     nixfmt
+    statix # nix linter
     # go language server
     gopls
-    gotools
+    # gotools
     gofumpt
     gomodifytags
     impl
@@ -858,7 +1008,7 @@
     nodePackages.prettier # css/js formatter
     taplo # toml language server
     docker-ls
-    llm-ls
+    # llm-ls
     kotlin
     kotlin-language-server
     ktlint
@@ -877,9 +1027,9 @@
 
     # themeing
     polybar # status bar
-    qogir-theme # gtk theme
-    qogir-icon-theme # gtk theme
-    tokyonight-gtk-theme
+    # qogir-theme # gtk theme
+    # qogir-icon-theme # gtk theme
+    # tokyonight-gtk-theme
     # gtk-engine-murrine
     # gnome-themes-extra
     # sassc # gtk theme engine
@@ -893,20 +1043,23 @@
     i3lock
 
     # guis
-    nemo-with-extensions
+    # anydesk # simple remote desktop
+    google-chrome
+    nemo-with-extensions # file manager
     file-roller
     vscode
-    jetbrains.idea-community-bin
+    # jetbrains.idea-community-bin
     android-studio
     # jetbrains-toolbox # to install fleet editor: https://github.com/NixOS/nixpkgs/issues/242322#issuecomment-2264995861
     # (jetbrains.plugins.addPlugins jetbrains.idea-community [
     #   # https://github.com/NixOS/nixpkgs/blob/master/pkgs/applications/editors/jetbrains/plugins/plugins.json
     #   "github-copilot"
     # ])
-    code-cursor # ai code editor
-    windsurf # ai code editor
-    zed-editor # ai code editor
-    goose-cli # cli ai agent
+    # code-cursor # ai code editor
+    # windsurf # ai code editor
+    # zed-editor # ai code editor
+    # goose-cli # cli ai agent
+    # geminicommit
     inkscape # svg editor
     gcolor3
     screenkey # screencast tool to display key presses
@@ -925,13 +1078,14 @@
     gthumb
     libreoffice
     sublime-merge
-    scribus
-    nheko # matrix client
+    # scribus
+    # nheko # matrix client
     kvirc # irc client
     zathura # minimal pdf viewer with vim bindings
     firefox # browser
     librewolf # firefox privacy fork
     kazam
+    vdhcoapp # for video download helper browser extension
     # anytype # p2p note taking
     # gitbutler # Git client for simultaneous branches on top of your existing workflow
   ];

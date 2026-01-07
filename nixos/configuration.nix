@@ -1,9 +1,13 @@
-{ pkgs, flake-inputs, ... }: {
+{
+  lib,
+  pkgs,
+  flake-inputs,
+  ...
+}:
+{
   nixpkgs.config.permittedInsecurePackages = [
-    "olm-3.2.16" # https://gitlab.matrix.org/matrix-org/olm/-/blob/6d4b5b07887821a95b144091c8497d09d377f985/README.md#important-libolm-is-now-deprecated
     # add some here whenever needed
   ];
-  # nixpkgs.config.allowUnsupportedSystem = true; # bug with cctools / fontconfig
 
   system.autoUpgrade.enable = true;
   nix = {
@@ -23,11 +27,16 @@
     '';
 
     settings.experimental-features = "nix-command flakes"; # enable flakes
-    settings.trusted-users = [ "root" "felix" ];
+    settings.trusted-users = [
+      "root"
+      "felix"
+    ];
 
     # useful for using traditional nix-shell, but with nixpkgs pointing to the system flake
     # registry entries
-    registry = { nixpkgs.flake = flake-inputs.nixpkgs; };
+    registry = {
+      nixpkgs.flake = flake-inputs.nixpkgs;
+    };
     # nix path to correspond to my flakes
     nixPath = [ "nixpkgs=${flake-inputs.nixpkgs}" ];
   };
@@ -35,10 +44,26 @@
   home-manager.backupFileExtension = "hm-bak";
 
   boot = {
+    kernelPackages = pkgs.linuxPackages_zen;
+    kernelParams = [
+      "kvm.enable_virt_at_load=0" # fix virtualbox
+      "usbcore.autosuspend=-1" # Disable USB autosuspend globally to prevent issues with powertop
+      "zswap.enabled=1" # enables zswap
+      # "zswap.compressor=zstd" # compression algorithm
+      "zswap.max_pool_percent=5" # maximum percentage of RAM that zswap is allowed to use
+    ]; # https://github.com/NixOS/nixpkgs/issues/363887
     # Use the systemd-boot EFI boot loader.
     loader.systemd-boot.enable = true;
     loader.efi.canTouchEfiVariables = true;
-    supportedFilesystems = [ "ntfs" ];
+    supportedFilesystems = [
+      "ntfs"
+      "exfat"
+    ];
+
+    initrd.kernelModules = [
+      "zstd"
+      "zsmalloc"
+    ];
 
     # Howto: Installation of NixOS with encrypted root
     # https://gist.github.com/martijnvermaat/76f2e24d0239470dd71050358b4d5134
@@ -51,12 +76,9 @@
     };
 
     kernel.sysctl = {
-      "kernel.sysrq" =
-        1; # enable REISUB: https://blog.kember.net/posts/2008-04-reisub-the-gentle-linux-restart/
-      "vm.swappiness" = 2; # start swapping before the system is out of memory
+      "kernel.sysrq" = 1; # enable REISUB: https://blog.kember.net/posts/2008-04-reisub-the-gentle-linux-restart/
+      "vm.swappiness" = 1;
     };
-
-    # zramSwap.enable = true; # ram compression
 
     tmp = {
       useTmpfs = false;
@@ -66,11 +88,23 @@
     # extraModulePackages = [ config.boot.kernelPackages.exfat-nofuse ];
   };
 
+  # 3. Enable EarlyOOM (The Safety Net)
+  # Prevents complete system lockups by killing the heaviest process
+  # (usually a browser tab) when you have < 5% RAM left.
+  services.earlyoom = {
+    enable = true;
+    enableNotifications = true; # You get a popup if something is killed
+    freeMemThreshold = 5; # Kill if less than 5% RAM free
+    freeSwapThreshold = 5; # Kill if less than 5% Swap free
+  };
+
   console.keyMap = "neo"; # https://neo-layout.org/
 
   i18n = {
     defaultLocale = "en_US.UTF-8";
-    extraLocaleSettings = { LC_TIME = "de_DE.UTF-8"; };
+    extraLocaleSettings = {
+      LC_TIME = "de_DE.UTF-8";
+    };
   };
 
   security = {
@@ -83,16 +117,37 @@
   networking = {
     hostName = "gurke";
     # wireless.enable = true;  # Enables wireless support via wpa_supplicant.
-    networkmanager.enable = true;
+    networkmanager = {
+      enable = true;
+      plugins = with pkgs; [
+        networkmanager-openvpn
+      ];
+    };
     networkmanager.dns = "systemd-resolved";
 
     # cloudflare dns servers: https://developers.cloudflare.com/1.1.1.1/ip-addresses/
-    nameservers =
-      [ "1.1.1.1" "1.0.0.1" "2606:4700:4700::1111" "2606:4700:4700::1001" ];
+    nameservers = [
+      "1.1.1.1"
+      "1.0.0.1"
+      "2606:4700:4700::1111"
+      "2606:4700:4700::1001"
+    ];
 
     # firewall.allowedUDPPortRanges = [ { from = 60000; to = 61000; } ]; # for mosh
-    firewall.allowedTCPPorts = [ 12345 5173 ]; # devserver
+    firewall.allowedTCPPorts = [
+      12345
+      5173
+      8080 # miniserve
+      8081 # expo
+      3000 # common rust backend port
+      9099 # firebase auth
+      9000 # firebase auth
+    ]; # devserver
     # firewall.allowedUDPPorts = [ 8123 ]; # Stream Audio from VirtualBox
+    firewall.allowedUDPPorts = [
+      5353 # mDNS (Multicast DNS) for printer discovery
+      427 # SLP (Service Location Protocol)
+    ];
 
     extraHosts = ''
       10.101.8.14 onboard.eurostar.com
@@ -101,19 +156,20 @@
   services.resolved = {
     # cache dns requests locally
     enable = true;
-    dnssec = "true";
-    domains = [ "~." ];
-    fallbackDns = [ "1.1.1.1#one.one.one.one" "1.0.0.1#one.one.one.one" ];
-    dnsovertls = "opportunistic";
+    # dnssec = "true";
+    # domains = [ "~." ];
+    # fallbackDns = [ "1.1.1.1#one.one.one.one" "1.0.0.1#one.one.one.one" ];
+    # dnsovertls = "opportunistic";
   };
+
+  services.tailscale.enable = true;
 
   # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
   # time.timeZone = "Europe/Berlin";
   # time.timeZone = "Europe/Sofia";
   # time.timeZone = "Europe/Lisbon";
   # time.timeZone = "Indian/Mauritius";
-  services.automatic-timezoned.enable =
-    true; # relies on geoclue to work: https://github.com/NixOS/nixpkgs/issues/321121
+  services.automatic-timezoned.enable = true; # relies on geoclue to work: https://github.com/NixOS/nixpkgs/issues/321121
 
   location.provider = "geoclue2";
   services.geoclue2 = {
@@ -143,7 +199,7 @@
   services.thermald.enable = true;
 
   services.auto-cpufreq = {
-    enable = true;
+    enable = true; # conflict with gnome
     settings = {
       battery = {
         governor = "powersave";
@@ -177,7 +233,7 @@
       # https://nixos.wiki/wiki/Accelerated_Video_Playback
       intel-media-driver # LIBVA_DRIVER_NAME=iHD
       intel-vaapi-driver # LIBVA_DRIVER_NAME=i965 (older but works better for Firefox/Chromium)
-      vaapiVdpau
+      libva-vdpau-driver
       libvdpau-va-gl
       vpl-gpu-rt
     ];
@@ -186,7 +242,10 @@
   environment.sessionVariables = {
     LIBVA_DRIVER_NAME = "iHD";
   }; # Force intel-media-driver
-  # hardware.sane.enable = true; # scanners
+  hardware.sane = {
+    enable = true; # scanners
+    extraBackends = [ pkgs.hplipWithPlugin ]; # HP scanner support
+  };
 
   hardware.bluetooth = {
     # https://nixos.wiki/wiki/Bluetooth
@@ -196,8 +255,7 @@
   };
   services.blueman.enable = true;
 
-  security.rtkit.enable =
-    true; # allows certain user-level processes to run with real-time priorities, good for media editing and playing
+  security.rtkit.enable = true; # allows certain user-level processes to run with real-time priorities, good for media editing and playing
   services.pipewire = {
     # alternative to pulseaudio with better bluetooth support
     # https://nixos.wiki/wiki/PipeWire
@@ -206,28 +264,40 @@
     alsa.support32Bit = true;
     pulse.enable = true;
     wireplumber.configPackages = [
-      (pkgs.writeTextDir
-        "share/wireplumber/bluetooth.lua.d/51-bluez-config.lua" ''
-          bluez_monitor.properties = {
-          	["bluez5.enable-sbc-xq"] = true,
-          	["bluez5.enable-msbc"] = true,
-          	["bluez5.enable-hw-volume"] = true,
-          	["bluez5.headset-roles"] = "[ hsp_hs hsp_ag hfp_hf hfp_ag ]"
-          }
-        '')
+      (pkgs.writeTextDir "share/wireplumber/bluetooth.lua.d/51-bluez-config.lua" ''
+        bluez_monitor.properties = {
+        	["bluez5.enable-sbc-xq"] = true,
+        	["bluez5.enable-msbc"] = true,
+        	["bluez5.enable-hw-volume"] = true,
+        	["bluez5.headset-roles"] = "[ hsp_hs hsp_ag hfp_hf hfp_ag ]"
+        }
+      '')
     ];
   };
 
   virtualisation.virtualbox.host.enable = true;
-  virtualisation.docker.enable = true;
-  boot.kernelParams = [
-    # "kvm.enable_virt_at_load=0"
-    "usbcore.autosuspend=-1" # Disable USB autosuspend globally to prevent issues with powertop
-  ]; # https://github.com/NixOS/nixpkgs/issues/363887
+  virtualisation.docker = {
+    enable = true;
+    enableOnBoot = false;
+  };
+  programs.virt-manager.enable = true;
+  virtualisation.containers.enable = true;
+  virtualisation = {
+    podman = {
+      enable = false;
+
+      # Create a `docker` alias for podman, to use it as a drop-in replacement
+      dockerCompat = true;
+
+      # Required for containers under podman-compose to be able to talk to each other.
+      defaultNetwork.settings.dns_enabled = true;
+    };
+  };
 
   nixpkgs.config = {
     allowUnfree = true;
     oraclejdk.accept_license = true;
+    segger-jlink.acceptLicense = true;
     # chromium = {
     #   enablePepperFlash = true;
     #   enablePepperPDF = true;
@@ -240,6 +310,8 @@
       # only the bare minimum here
       git
       neovim
+      hplipWithPlugin # HP printer utilities (hp-setup, hp-toolbox, etc.)
+
       # xdg-utils # Provides xdg-screensaver and other desktop integration tools
       # Remove lockers managed by home-manager or unused
       # i3lock       # Dependency for betterlockscreen
@@ -252,7 +324,8 @@
     ];
   };
 
-  services.ollama.enable = true;
+  services.ollama.enable = false; # local ai models
+  services.qdrant.enable = false; # vector search engine, used for kilo code indexing
 
   # Remove PAM configuration for i3lock
   # security.pam.services.i3lock = { ... };
@@ -267,9 +340,8 @@
   programs.fish.enable = false;
   programs.java = {
     enable = true; # provide JAVA_HOME
-    package = pkgs.jdk11; # needed for flutter builds in android studio
+    package = pkgs.jdk17; # needed for flutter builds in android studio
   };
-  programs.adb.enable = true; # android debugging
   programs.dconf.enable = true; # useful for: blueman-applet, ...
   programs.light.enable = true; # adjust screen brightness
   programs.iotop.enable = true;
@@ -312,7 +384,7 @@
   stylix = {
     # https://stylix.danth.me/index.html
     enable = true;
-    autoEnable = false;
+    autoEnable = true;
     polarity = "dark";
     base16Scheme = {
       # tokyo-night-moon
@@ -333,38 +405,74 @@
       base0E = "c099ff"; # magenta
       base0F = "4fd6be"; # teal
     };
-    targets = { console.enable = true; };
+    # targets = {
+    #   console.enable = true;
+    #   gtk.enable = true;
+    # };
   };
-  home-manager.extraSpecialArgs = { colorMode = "dark"; };
+  home-manager.extraSpecialArgs = {
+    theme = "dark";
+  };
   specialisation.light.configuration = {
     stylix = {
       polarity = lib.mkForce "light";
-      base16Scheme =
-        lib.mkForce "${pkgs.base16-schemes}/share/themes/solarized-light.yaml";
+      # base16Scheme = lib.mkForce "${pkgs.base16-schemes}/share/themes/catppuccin-latte.yaml";
+      base16Scheme = {
+        # sabuni
+        base00 = "ffffff"; # bg (from primary.background)
+        base01 = "eeeeee"; # bg_highlight (Generated light gray)
+        base02 = "999999"; # bg_visual (from bright.black)
+        base03 = "666666"; # comment (from primary.dim_foreground)
+        base04 = "333333"; # fg_dark (Generated dark gray)
+        base05 = "000000"; # fg (from primary.foreground)
+        base06 = "000000"; # fg (reused primary.foreground)
+        base07 = "000000"; # terminal.white_bright (reused primary.foreground)
+        base08 = "ff0088"; # red (from normal.red)
+        base09 = "ff7e00"; # orange (from normal.yellow)
+        base0A = "ffa34a"; # yellow (from bright.yellow)
+        base0B = "19af00"; # green (from normal.green)
+        base0C = "00cab2"; # cyan (from normal.cyan)
+        base0D = "0a94ff"; # blue (from normal.blue)
+        base0E = "3b00cb"; # magenta (from normal.magenta)
+        base0F = "65cabe"; # teal (from bright.cyan)
+      };
     };
-    home-manager.extraSpecialArgs = { colorMode = "light"; };
+    home-manager.extraSpecialArgs = {
+      theme = "light";
+    };
   };
+
+  # Start the driver at boot
+  systemd.services.fprintd = {
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig.Type = "simple";
+  };
+
+  # Install the driver
+  services.fprintd.enable = true;
 
   services.xserver = {
     enable = true;
     dpi = 210;
     videoDrivers = [ "modesetting" ];
 
-    # --- Keep the ORIGINAL multi-layout config for this test ---
     xkb.layout = "de,de";
     xkb.variant = "neo,basic";
     xkb.options = "altwin:swap_lalt_lwin";
-    # --- End Original XKB ---
 
     displayManager = {
       lightdm = {
         enable = true;
-        background = "/home/felix/frottage/wallpaper.jpg";
-        greeters.gtk = { enable = true; };
+        # background = "/home/felix/frottage/wallpaper.jpg";
+        greeters.gtk = {
+          enable = true;
+        };
       };
+      # gdm.enable = true;
     };
     desktopManager.xterm.enable = false;
     windowManager.herbstluftwm.enable = true;
+    # desktopManager.gnome.enable = true;
   };
 
   services.displayManager = {
@@ -380,7 +488,7 @@
     enableGhostscriptFonts = true;
     packages = with pkgs; [
       corefonts # Arial, Verdana, ...
-      vistafonts # Consolas, ...
+      vista-fonts # Consolas, ...
       noto-fonts-color-emoji
       # google-fonts # Droid Sans, Roboto, ...
       roboto
@@ -409,6 +517,8 @@
     fontDir.enable = true;
   };
 
+  programs.ssh.startAgent = true;
+
   services = {
     cron.enable = true;
     openssh = {
@@ -417,8 +527,7 @@
       settings.X11Forwarding = true;
     };
 
-    fstrim.enable =
-      true; # periodic SSD TRIM of mounted partitions in background
+    fstrim.enable = true; # periodic SSD TRIM of mounted partitions in background
 
     avahi = {
       # network discovery
@@ -426,11 +535,11 @@
       nssmdns4 = true;
       publish.enable = true;
       publish.addresses = true;
+      openFirewall = true; # needed for printer discovery
     };
 
     gvfs.enable = true; # gnome virtual file system
-    udisks2.enable =
-      true; # allows to mount removable devices in graphical file managers
+    udisks2.enable = true; # allows to mount removable devices in graphical file managers
 
     journald = {
       extraConfig = ''
@@ -448,10 +557,10 @@
     #   openDefaultPorts = true;
     # };
 
-    #printing = {
-    #  enable = true;
-    #  drivers = [ pkgs.gutenprint pkgs.hplip pkgs.epson-escpr ];
-    #};
+    printing = {
+      enable = true;
+      drivers = [ pkgs.hplip ];
+    };
 
     acpid.enable = true;
 
@@ -504,12 +613,23 @@
   #     Persistent = true; # If the timer is missed, run it as soon as possible
   #   };
   # };
+  #
+  # ensure the group exists
+  users.groups.plugdev = { };
+  users.groups.usb = { };
+
+  services.udev.extraRules = ''
+    SUBSYSTEM=="usb", ATTR{idVendor}=="cafe", ATTR{idProduct}=="4000", MODE="0660", GROUP="plugdev"
+    SUBSYSTEM=="usb", ATTR{idVendor}=="0bda", ATTR{idProduct}=="8771", MODE="0660", GROUP="plugdev"
+  '';
 
   users = {
     defaultUserShell = pkgs.bash;
     extraUsers.felix = {
       isNormalUser = true;
       extraGroups = [
+        "plugdev"
+        "usb"
         "wheel"
         "networkmanager"
         "video"
@@ -518,6 +638,8 @@
         "vboxusers"
         "adbusers"
         "kvm"
+        "scanner" # for HP scanner support
+        "lp" # for printer access
       ];
       shell = pkgs.zsh;
     };

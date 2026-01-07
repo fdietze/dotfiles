@@ -2,12 +2,25 @@
   description = "NixOS configuration with flakes";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    stylix.url = "github:danth/stylix";
-    # nixpkgs.url =
-    #   "github:NixOS/nixpkgs/0e905f6bc12528d7e3ead3d4263530d7f13597cb";
+    # nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    # get hash of currently running system: nixos-version --revision
+    nixpkgs.url = "github:NixOS/nixpkgs/3e2499d5539c16d0d173ba53552a4ff8547f4539";
     # nixpkgs.url = "path:/home/felix/projects/nixpkgs";
+    stylix = {
+      url = "github:nix-community/stylix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
+    # nvf = {
+    #   url = "github:NotAShelf/nvf";
+    #   # You can override the input nixpkgs to follow your system's
+    #   # instance of nixpkgs. This is safe to do as nvf does not depend
+    #   # on a binary cache.
+    #   inputs.nixpkgs.follows = "nixpkgs";
+    #   # Optionally, you can also override individual plugins
+    #   # for example:
+    #   # inputs.obsidian-nvim.follows = "obsidian-nvim"; # <- this will use the obsidian-nvim from your inputs
+    # };
 
     home-manager = {
       url = "github:nix-community/home-manager";
@@ -21,21 +34,31 @@
     };
   };
 
-  outputs = { self, nixpkgs, stylix, nixos-hardware, home-manager
-    , nix-index-database,
-    # stylix,
-    ... }@inputs: {
+  outputs =
+    {
+      self,
+      nixpkgs,
+      stylix,
+      nixos-hardware,
+      # nvf,
+      home-manager,
+      nix-index-database,
+      ...
+    }@inputs:
+    {
       nixosConfigurations = {
         "gurke" = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
-          specialArgs = { flake-inputs = inputs; };
+          specialArgs = {
+            flake-inputs = inputs;
+          };
           modules = [
             stylix.nixosModules.stylix
             ./configuration.nix
             ./hardware-configuration.nix
             nixos-hardware.nixosModules.lenovo-thinkpad-x1-6th-gen
             nix-index-database.nixosModules.nix-index
-
+            # nvf.homeManagerModules.default
             home-manager.nixosModules.home-manager
             {
               home-manager.useGlobalPkgs = true;
