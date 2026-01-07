@@ -1,4 +1,5 @@
 -- old lua: /home/felix/.config/nvim.bak/init.lua
+--
 
 return {
   {
@@ -22,50 +23,50 @@ return {
     },
   },
 
-  {
-    -- a popular fuzzy finder
-    -- files, live grep, buffers, recent files, etc
-    -- https://github.com/nvim-telescope/telescope.nvim
-    "nvim-telescope/telescope.nvim",
-    keys = {
-      { "<leader>e", "<cmd>Telescope find_files<cr>", desc = "open files" },
-      { "<leader>a", "<cmd>Telescope live_grep<cr>", desc = "live grep" },
-      { "<leader>A", "<cmd>Telescope live_grep<cr><C-r><C-w>", desc = "live grep word under cursor" }, -- TODO!
-      { "<leader>vr", "<cmd>Telescope oldfiles<cr>", desc = "open recent files" },
-      -- { '<leader>b',  '<cmd>Telescope buffers<cr>',             desc = 'open buffers' }
-    },
-    opts = {
-      pickers = {
-        live_grep = {
-          -- , "--fixed-strings"
-          additional_args = { "--hidden", "--glob", "!**/.git/*" }, -- search in hidden files and folders except .git/
-        },
-      },
-    },
-  },
+  -- {
+  --   -- a popular fuzzy finder
+  --   -- files, live grep, buffers, recent files, etc
+  --   -- https://github.com/nvim-telescope/telescope.nvim
+  --   "nvim-telescope/telescope.nvim",
+  --   keys = {
+  --     { "<leader>e", "<cmd>Telescope find_files<cr>", desc = "open files" },
+  --     { "<leader>a", "<cmd>Telescope live_grep<cr>", desc = "live grep" },
+  --     { "<leader>A", "<cmd>Telescope live_grep<cr><C-r><C-w>", desc = "live grep word under cursor" }, -- TODO!
+  --     { "<leader>vr", "<cmd>Telescope oldfiles<cr>", desc = "open recent files" },
+  --     -- { '<leader>b',  '<cmd>Telescope buffers<cr>',             desc = 'open buffers' }
+  --   },
+  --   opts = {
+  --     pickers = {
+  --       live_grep = {
+  --         -- , "--fixed-strings"
+  --         additional_args = { "--hidden", "--glob", "!**/.git/*" }, -- search in hidden files and folders except .git/
+  --       },
+  --     },
+  --   },
+  -- },
 
   -- { 'nvim-telescope/telescope-fzf-native.nvim', build = 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release' },
 
-  {
-    "axkirillov/easypick.nvim",
-    -- pick files from a list
-    requires = "nvim-telescope/telescope.nvim",
-    keys = {
-      { "<leader>vd", ":Easypick dotfiles<cr>", desc = "Dotfiles" },
-    },
-    config = function()
-      local easypick = require("easypick")
-      require("easypick").setup({
-        pickers = {
-          {
-            name = "dotfiles",
-            command = 'list-dotfiles | sed "s|^|~/|"', -- ~/bin/list-dotfiles (gf to open)
-            previewer = easypick.previewers.default(),
-          },
-        },
-      })
-    end,
-  },
+  -- {
+  --   "axkirillov/easypick.nvim",
+  --   -- pick files from a list
+  --   requires = "nvim-telescope/telescope.nvim",
+  --   keys = {
+  --     { "<leader>vd", ":Easypick dotfiles<cr>", desc = "Dotfiles" },
+  --   },
+  --   config = function()
+  --     local easypick = require("easypick")
+  --     require("easypick").setup({
+  --       pickers = {
+  --         {
+  --           name = "dotfiles",
+  --           command = 'list-dotfiles | sed "s|^|~/|"', -- ~/bin/list-dotfiles (gf to open)
+  --           previewer = easypick.previewers.default(),
+  --         },
+  --       },
+  --     })
+  --   end,
+  -- },
 
   {
     "kylechui/nvim-surround",
@@ -103,6 +104,12 @@ return {
         desc = "Add or remove cursor",
       },
 
+      {
+        "<C-n>",
+        "<Cmd>MultipleCursorsAddMatches<CR>",
+        mode = { "v" },
+        desc = "Add cursor for visual selection",
+      },
       {
         "<C-n>",
         "<Cmd>MultipleCursorsAddJumpNextMatch<CR>",
@@ -180,33 +187,33 @@ return {
     end,
   },
 
-  {
-    "mrcjkb/rustaceanvim",
-    opts = {
-      server = {
-        default_settings = {
-          -- rust-analyzer language server configuration
-          ["rust-analyzer"] = {
-            cargo = {
-              -- To prevent rustanalyzer from locking the target dir (blocking cargo build/run)
-              -- https://github.com/rust-lang/rust-analyzer/issues/6007#issuecomment-1523204067
-              extraEnv = { CARGO_PROFILE_RUST_ANALYZER_INHERITS = "dev", CC = "gcc" },
-              extraArgs = { "--profile", "rust-analyzer" },
-            },
-            diagnostics = {
-              -- show code, even if disabled via feature flags
-              disabled = { "inactive-code" },
-            },
-            -- Add clippy lints for Rust.
-            -- TODO: already enabled by default?
-            -- check = {
-            --   command = "clippy",
-            -- },
-          },
-        },
-      },
-    },
-  },
+  -- {
+  --   "mrcjkb/rustaceanvim",
+  --   opts = {
+  --     server = {
+  --       default_settings = {
+  --         -- rust-analyzer language server configuration
+  --         ["rust-analyzer"] = {
+  --           cargo = {
+  --             -- To prevent rustanalyzer from locking the target dir (blocking cargo build/run)
+  --             -- https://github.com/rust-lang/rust-analyzer/issues/6007#issuecomment-1523204067
+  --             extraEnv = { CARGO_PROFILE_RUST_ANALYZER_INHERITS = "dev", CC = "gcc" },
+  --             extraArgs = { "--profile", "rust-analyzer" },
+  --           },
+  --           diagnostics = {
+  --             -- show code, even if disabled via feature flags
+  --             disabled = { "inactive-code" },
+  --           },
+  --           -- Add clippy lints for Rust.
+  --           -- TODO: already enabled by default?
+  --           -- check = {
+  --           --   command = "clippy",
+  --           -- },
+  --         },
+  --       },
+  --     },
+  --   },
+  -- },
   {
     "MagicDuck/grug-far.nvim",
     config = function()
@@ -227,7 +234,31 @@ return {
       })
     end,
   },
-  { "vmchale/just-vim" },
+  {
+    "NoahTheDuke/vim-just",
+    ft = { "just" },
+  },
+  -- {
+  --   "nvim-cmp",
+  --   opts = function(_, opts)
+  --     local cmp = require("cmp")
+  --     opts.preselect = cmp.PreselectMode.None
+  --     opts.completion.autocomplete = false -- completion must be triggered manually
+  --     opts.completion.completeopt = "menupreview,menuone,noselect" -- don't select first entry
+  --
+  --     opts.mapping["<CR>"] = cmp.mapping({
+  --       i = function(fallback)
+  --         if cmp.visible() and cmp.get_active_entry() then
+  --           cmp.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = false })
+  --         else
+  --           fallback()
+  --         end
+  --       end,
+  --       s = cmp.mapping.confirm({ select = true }),
+  --       c = cmp.mapping.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = true }),
+  --     })
+  --   end,
+  -- },
   -- {
   --   "hrsh7th/nvim-cmp",
   --   opts = function(_, opts)
@@ -286,13 +317,30 @@ return {
   --     -- Setup shortcuts here (see Usage > Shortcuts in the Documentation/Readme)
   --   end,
   -- },
+  -- {
+  --   "nvim-flutter/flutter-tools.nvim",
+  --   lazy = false,
+  --   dependencies = {
+  --     "nvim-lua/plenary.nvim",
+  --     -- 'stevearc/dressing.nvim', -- optional for vim.ui.select
+  --   },
+  --   config = true,
+  -- },
   {
-    "nvim-flutter/flutter-tools.nvim",
-    lazy = false,
-    dependencies = {
-      "nvim-lua/plenary.nvim",
-      -- 'stevearc/dressing.nvim', -- optional for vim.ui.select
+    "mfussenegger/nvim-lint",
+    opts = {
+      linters = {
+        markdownlint = {
+          args = { "--disable", "MD013", "--" },
+        },
+      },
     },
-    config = true,
+  },
+  {
+    "MeanderingProgrammer/render-markdown.nvim",
+    enabled = false,
+    opts = {
+      enabled = false,
+    },
   },
 }
