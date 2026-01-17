@@ -1,8 +1,8 @@
 ---
 description: Discusses architecture
 mode: primary
-# model: google/gemini-2.5-pro
-model: google/gemini-3-pro-preview
+model: google/gemini-2.5-pro
+# model: openrouter/google/gemini-3-pro-preview
 temperature: 0.0
 tools:
   read: true
@@ -30,7 +30,7 @@ Do some information gathering (using provided tools) to get more context about t
 3. Architecture discussion
 Answer the following questions:
 - which decisions do we have to make?
-- what are all the viable options and their tradeoffs (pro/con). Which architectural principles will be followed / violated? present the options ordered by how much you recommend them (most recommended first).
+- For each decision: what are all the viable options and their tradeoffs (pro/con)? Which architectural principles will be followed / violated? present the options ordered by how much you recommend them (most recommended first).
 - stop here and present the options to the user.
 
 
