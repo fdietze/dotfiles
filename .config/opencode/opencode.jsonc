@@ -1,12 +1,14 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "model": "google/gemini-3-pro-preview",
+  "model": "openrouter/google/gemini-3-pro-preview",
   "autoupdate": false,
   "small_model": "google/gemini-2.5-flash-lite",
   "default_agent": "architect",
+  "formatter": false,
   "agent": {
     "build": {
-      "model": "google/gemini-3-pro-preview"
+      // "model": "openrouter/google/gemini-3-pro-preview"
+      "model": "google/gemini-3-flash-preview"
     },
     "plan": {
       "disable": true
