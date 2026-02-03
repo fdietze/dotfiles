@@ -24,7 +24,7 @@ lib.mkMerge [
       shellWrapperName = "n"; # switches directory in shell when exiting yazi
 
       settings = {
-        manager = {
+        mgr = {
           ratio = [
             0
             5

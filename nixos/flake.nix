@@ -2,10 +2,11 @@
   description = "NixOS configuration with flakes";
 
   inputs = {
-    # nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     # get hash of currently running system: nixos-version --revision
-    nixpkgs.url = "github:NixOS/nixpkgs/3e2499d5539c16d0d173ba53552a4ff8547f4539";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    # nixpkgs.url = "github:NixOS/nixpkgs/3e2499d5539c16d0d173ba53552a4ff8547f4539";
     # nixpkgs.url = "path:/home/felix/projects/nixpkgs";
+
     stylix = {
       url = "github:nix-community/stylix";
       inputs.nixpkgs.follows = "nixpkgs";

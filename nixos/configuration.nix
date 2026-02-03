@@ -9,7 +9,7 @@
     # add some here whenever needed
   ];
 
-  system.autoUpgrade.enable = true;
+  system.autoUpgrade.enable = false;
   nix = {
     gc = {
       automatic = true;
@@ -46,11 +46,12 @@
   boot = {
     kernelPackages = pkgs.linuxPackages_zen;
     kernelParams = [
+      "i915.enable_psr=0" # disable PSR to prevent screen freezes
       "kvm.enable_virt_at_load=0" # fix virtualbox
       "usbcore.autosuspend=-1" # Disable USB autosuspend globally to prevent issues with powertop
-      "zswap.enabled=1" # enables zswap
+      # "zswap.enabled=1" # enables zswap
       # "zswap.compressor=zstd" # compression algorithm
-      "zswap.max_pool_percent=5" # maximum percentage of RAM that zswap is allowed to use
+      # "zswap.max_pool_percent=5" # maximum percentage of RAM that zswap is allowed to use
     ]; # https://github.com/NixOS/nixpkgs/issues/363887
     # Use the systemd-boot EFI boot loader.
     loader.systemd-boot.enable = true;
@@ -61,8 +62,8 @@
     ];
 
     initrd.kernelModules = [
-      "zstd"
-      "zsmalloc"
+      # "zstd"
+      # "zsmalloc"
     ];
 
     # Howto: Installation of NixOS with encrypted root
@@ -77,7 +78,7 @@
 
     kernel.sysctl = {
       "kernel.sysrq" = 1; # enable REISUB: https://blog.kember.net/posts/2008-04-reisub-the-gentle-linux-restart/
-      "vm.swappiness" = 1;
+      "vm.swappiness" = 10;
     };
 
     tmp = {
@@ -91,12 +92,12 @@
   # 3. Enable EarlyOOM (The Safety Net)
   # Prevents complete system lockups by killing the heaviest process
   # (usually a browser tab) when you have < 5% RAM left.
-  services.earlyoom = {
-    enable = true;
-    enableNotifications = true; # You get a popup if something is killed
-    freeMemThreshold = 5; # Kill if less than 5% RAM free
-    freeSwapThreshold = 5; # Kill if less than 5% Swap free
-  };
+  # services.earlyoom = {
+  #   enable = true;
+  #   enableNotifications = true; # You get a popup if something is killed
+  #   freeMemThreshold = 5; # Kill if less than 5% RAM free
+  #   freeSwapThreshold = 5; # Kill if less than 5% Swap free
+  # };
 
   console.keyMap = "neo"; # https://neo-layout.org/
 
@@ -522,7 +523,7 @@
   services = {
     cron.enable = true;
     openssh = {
-      enable = false;
+      enable = true;
       settings.PasswordAuthentication = false;
       settings.X11Forwarding = true;
     };

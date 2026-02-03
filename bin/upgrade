@@ -6,14 +6,14 @@ shopt -s expand_aliases
 source /etc/os-release # load linux distribution information
 case $NAME in
 NixOS)
-	# echo "checking nixos configuration"
-	# nix-instantiate '<nixpkgs/nixos>' -A system
-	echo "upgrading system"
-	(cd "$HOME/nixos" && nix flake update)
-	sudo nice -n 18 nixos-rebuild boot
-	echo "updating nix profile"
-	NIXPKGS_ALLOW_UNFREE=1  nice -n 18 nix profile upgrade '.*' --impure
-	;;
+  # echo "checking nixos configuration"
+  # nix-instantiate '<nixpkgs/nixos>' -A system
+  echo "upgrading system"
+  (cd "$HOME/nixos" && nix flake update)
+  sudo nice -n 18 nixos-rebuild boot
+  echo "updating nix profile"
+  NIXPKGS_ALLOW_UNFREE=1 nice -n 18 nix profile upgrade '.*' --impure
+  ;;
 esac
 
 # echo "updating zgen plugins..."
@@ -32,10 +32,13 @@ esac
 # echo "updating coursier (scala)"
 # cs update
 
-# echo "updating vim plugins..."
-# nvim +AstroUpdate
-# nvim +TSUpdate
-# nvim +AstroUpdatePackages
+devbox global update
+
+echo "updating vim plugins..."
+nvim --headless "+Lazy! update" "+Lazy! clean" +qa
+
+# echo "updating nix-index"
+# nix run 'nixpkgs#nix-index' --extra-experimental-features 'nix-command flakes'
 
 sync
 exit 0

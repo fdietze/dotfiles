@@ -19,12 +19,12 @@
     # userName = "Felix Dietze";
     # userEmail = "github@felx.me";
     difftastic = {
-      enable = true;
+      enable = false;
     };
   };
 
   programs.difftastic = {
-    git.enable = true;
+    git.enable = false;
     options = {
       display = "inline";
     };
