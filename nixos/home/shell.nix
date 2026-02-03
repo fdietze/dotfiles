@@ -27,6 +27,8 @@
         dart.disabled = true;
         package.disabled = true; # do not show npm, cargo etc
         nodejs.disabled = true;
+        c.disabled = true;
+        cpp.disabled = true;
       };
 
   };

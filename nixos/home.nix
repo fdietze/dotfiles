@@ -402,6 +402,21 @@
     # };
   };
 
+  systemd.user.services.keepassxc = {
+    Unit = {
+      Description = "KeePassXC password manager";
+      PartOf = [ "graphical-session.target" ];
+      After = [ "graphical-session.target" ];
+    };
+    Service = {
+      ExecStart = "${pkgs.keepassxc}/bin/keepassxc";
+      Restart = "on-failure";
+    };
+    Install = {
+      WantedBy = [ "graphical-session.target" ];
+    };
+  };
+
   systemd.user.services.frottage = {
     Unit = {
       Description = "Frottage";
@@ -968,6 +983,7 @@
     mermaid-cli # mermaid diagrams
 
     # development
+    rust-script
     python3
     nodejs
     earthly # better Dockerfiles
@@ -1014,7 +1030,7 @@
     ktlint
     ruff # python
     pyright
-    codeium # ai completion
+    # codeium # ai completion
     hadolint # docker lint
     vtsls # typescript
     vscode-langservers-extracted
@@ -1060,6 +1076,7 @@
     # zed-editor # ai code editor
     # goose-cli # cli ai agent
     # geminicommit
+    dbeaver-bin
     inkscape # svg editor
     gcolor3
     screenkey # screencast tool to display key presses
@@ -1083,9 +1100,9 @@
     kvirc # irc client
     zathura # minimal pdf viewer with vim bindings
     firefox # browser
-    librewolf # firefox privacy fork
+    # librewolf # firefox privacy fork
     kazam
-    vdhcoapp # for video download helper browser extension
+    # vdhcoapp # for video download helper browser extension
     # anytype # p2p note taking
     # gitbutler # Git client for simultaneous branches on top of your existing workflow
   ];

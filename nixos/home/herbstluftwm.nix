@@ -446,7 +446,6 @@
           }
 
           # autorandr --change & # detect monitors
-          (sleep 30 && keepassxc) &
           (
             set -e
             sleep 120
