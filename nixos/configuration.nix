@@ -86,6 +86,9 @@
       cleanOnBoot = true;
     };
 
+    # Enable ARM64 emulation for Docker cross-architecture builds
+    binfmt.emulatedSystems = [ "aarch64-linux" ];
+
     # extraModulePackages = [ config.boot.kernelPackages.exfat-nofuse ];
   };
 
@@ -413,6 +416,7 @@
   };
   home-manager.extraSpecialArgs = {
     theme = "dark";
+    nvf = flake-inputs.nvf;
   };
   specialisation.light.configuration = {
     stylix = {

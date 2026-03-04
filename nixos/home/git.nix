@@ -1,5 +1,4 @@
-{ pkgs, ... }:
-{
+{pkgs, ...}: {
   home.shellAliases = {
     g = "git";
     gs = "git status";
@@ -24,7 +23,7 @@
   };
 
   programs.difftastic = {
-    git.enable = false;
+    enable = false;
     options = {
       display = "inline";
     };

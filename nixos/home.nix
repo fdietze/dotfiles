@@ -1,18 +1,19 @@
 # https://mipmip.github.io/home-manager-option-search/
 {
+  lib,
   config,
   pkgs,
   theme,
+  nvf,
   ...
-}:
-
-{
+}: {
   imports = [
     ./home/shell.nix
     ./home/git.nix
     ./home/yazi.nix
     ./home/herbstluftwm.nix
     ./home/dictate.nix
+    ./home/nvf.nix
   ];
 
   # https://nix-community.github.io/home-manager/index.xhtml
@@ -32,7 +33,6 @@
   home.sessionVariables = {
     CLICOLOR_FORCE = 1; # ANSI colors should be enabled no matter what. (https://bixense.com/clicolors/)
 
-    EDITOR = "${pkgs.neovim}/bin/nvim";
     BROWSER = "${pkgs.firefox}/bin/firefox";
     # BROWSER = "${pkgs.librewolf}/bin/librewolf";
     PAGER = "less --RAW-CONTROL-CHARS"; # less with colors
@@ -53,12 +53,12 @@
   xdg.mimeApps = {
     enable = true;
     defaultApplications = {
-      "x-scheme-handler/http" = [ "firefox.desktop" ];
-      "x-scheme-handler/https" = [ "firefox.desktop" ];
-      "x-scheme-handler/about" = [ "firefox.desktop" ];
-      "image/jpeg" = [ "feh.desktop" ];
-      "image/png" = [ "feh.desktop" ];
-      "application/pdf" = [ "org.pwmt.zathura-pdf-mupdf.desktop" ];
+      "x-scheme-handler/http" = ["firefox.desktop"];
+      "x-scheme-handler/https" = ["firefox.desktop"];
+      "x-scheme-handler/about" = ["firefox.desktop"];
+      "image/jpeg" = ["feh.desktop"];
+      "image/png" = ["feh.desktop"];
+      "application/pdf" = ["org.pwmt.zathura-pdf-mupdf.desktop"];
     };
   };
 
@@ -67,7 +67,7 @@
     enable = true;
     enableZshIntegration = true;
     nix-direnv.enable = true;
-    config = { }; # don't generate direnv.toml and use the existing one instead
+    config = {}; # don't generate direnv.toml and use the existing one instead
   };
 
   home.shellAliases = {
@@ -137,7 +137,7 @@
     t2 = "${pkgs.eza}/bin/eza --tree --color=always -L 2";
     t3 = "${pkgs.eza}/bin/eza --tree --color=always -L 3";
     tg = "tree-git";
-    vv = ''nvim -c "FzfLua files cwd=~/.config/nvim"'';
+    vv = ''$EDITOR "$HOME"/nixos/home/nvf.nix'';
     vn = ''$EDITOR "$HOME"/nixos/configuration.nix'';
     vh = ''$EDITOR "$HOME"/nixos/home.nix'';
     vb = ''$EDITOR "$HOME"/.config/polybar/config.ini'';
@@ -167,7 +167,6 @@
     online = "ping -c 1 8.8.8.8 -W 5 && ping -c 1 google.com -W 5"; # -c <retries>  -W <timout>
     online-wait = "until online; do; sleep 3; done; ${pkgs.espeak}/bin/espeak -p 30 'online'; ${pkgs.espeak}/bin/espeak -p 80 'online'; ${pkgs.espeak}/bin/espeak -p 50 'online'";
     # alias on="w --interval=1 '$ONLINECMD'"
-
   };
 
   # programs.command-not-found.enable = true;
@@ -179,7 +178,7 @@
   services.podman.enable = true;
 
   programs.fish = {
-    enable = true;
+    enable = false;
     interactiveShellInit = ''
       set fish_greeting # Disable greeting
     '';
@@ -199,13 +198,8 @@
       dunst.enable = true;
       rofi.enable = false;
       neovim.enable = false;
+      nvf.enable = false;
     };
-  };
-
-  programs.neovim = {
-    # ~/.config/nvim/init.lua
-    enable = true;
-    # plugins = with pkgs.vimPlugins; [ nvim-treesitter.withAllGrammars ];
   };
 
   # programs.atuin = {
@@ -245,7 +239,7 @@
         blinking = "Never";
         shape = "Beam";
       };
-      general.import = [ "~/.config/alacritty/theme.toml" ];
+      general.import = ["~/.config/alacritty/theme.toml"];
       keyboard.bindings = [
         # Maps Shift+Enter to send a special escape code.
         # We use a standard CSI sequence: \x1b[13;2u
@@ -257,6 +251,9 @@
         # }
       ];
     };
+  };
+  programs.kitty = {
+    enable = false;
   };
   programs.wezterm = {
     enable = true;
@@ -273,6 +270,7 @@
           top = "2px",
           bottom = "2px",
         },
+        enable_kitty_keyboard = true,
       }
     '';
   };
@@ -305,6 +303,11 @@
   services.espanso = {
     # https://github.com/espanso/espanso
     enable = true;
+    configs = {
+      default = {
+        show_notifications = false;
+      };
+    };
     matches = {
       base = {
         matches = [
@@ -405,15 +408,15 @@
   systemd.user.services.keepassxc = {
     Unit = {
       Description = "KeePassXC password manager";
-      PartOf = [ "graphical-session.target" ];
-      After = [ "graphical-session.target" ];
+      PartOf = ["graphical-session.target"];
+      After = ["graphical-session.target"];
     };
     Service = {
       ExecStart = "${pkgs.keepassxc}/bin/keepassxc";
       Restart = "on-failure";
     };
     Install = {
-      WantedBy = [ "graphical-session.target" ];
+      WantedBy = ["graphical-session.target"];
     };
   };
 
@@ -437,45 +440,43 @@
       Type = "oneshot";
       # Environment = "DISPLAY=:0"; # Might be needed if DISPLAY is not inherited correctly
       # Use sh -c to run a small script determining the wallpaper URL based on ~/.theme
-      ExecStart =
-        let
-          script = pkgs.writeShellScriptBin "frottage-user" ''
-            #!${pkgs.bash}/bin/bash
-            set -euo pipefail
+      ExecStart = let
+        script = pkgs.writeShellScriptBin "frottage-user" ''
+          #!${pkgs.bash}/bin/bash
+          set -euo pipefail
 
-            THEME=${theme}
-            case "$THEME" in
-              light) TARGET=desktop-light ;;
-              *) TARGET=desktop ;;
-            esac
+          THEME=${theme}
+          case "$THEME" in
+            light) TARGET=desktop-light ;;
+            *) TARGET=desktop ;;
+          esac
 
-            # Ensure the target directory exists
-            ${pkgs.coreutils}/bin/mkdir -p "$HOME/frottage"
+          # Ensure the target directory exists
+          ${pkgs.coreutils}/bin/mkdir -p "$HOME/frottage"
 
-            DOWNLOAD_URL="https://frottage.app/static/wallpaper-''${TARGET}-latest.jpg"
-            OUTPUT_PATH="$HOME/frottage/wallpaper.jpg"
-            ${pkgs.feh}/bin/feh --bg-fill "$OUTPUT_PATH" || true
+          DOWNLOAD_URL="https://frottage.app/static/wallpaper-''${TARGET}-latest.jpg"
+          OUTPUT_PATH="$HOME/frottage/wallpaper.jpg"
+          ${pkgs.feh}/bin/feh --bg-fill "$OUTPUT_PATH" || true
 
-            echo "Starting wallpaper download for theme: ''${TARGET}"
-            echo "Downloading $DOWNLOAD_URL to $OUTPUT_PATH with retries"
+          echo "Starting wallpaper download for theme: ''${TARGET}"
+          echo "Downloading $DOWNLOAD_URL to $OUTPUT_PATH with retries"
 
-            if ${pkgs.curl}/bin/curl --retry 5 --retry-delay 10 --retry-all-errors -sfSL -o "$OUTPUT_PATH" "$DOWNLOAD_URL"; then
-              echo "Download successful."
-              # Set the wallpaper
-              echo "Setting wallpaper using feh."
-              ${pkgs.feh}/bin/feh --bg-fill "$OUTPUT_PATH"
-              exit 0 # Success
-            else
-              curl_exit_code=$?
-              echo "curl command failed after retries with exit code: $curl_exit_code." >&2
-              echo "Failed to download wallpaper from $DOWNLOAD_URL." >&2
-              echo "Falling back to last wallpaper." >&2
-              ${pkgs.feh}/bin/feh --bg-fill "$OUTPUT_PATH"
-              exit 1 # Failure
-            fi
-          '';
-        in
-        "${script}/bin/frottage-user";
+          if ${pkgs.curl}/bin/curl --retry 5 --retry-delay 10 --retry-all-errors -sfSL -o "$OUTPUT_PATH" "$DOWNLOAD_URL"; then
+            echo "Download successful."
+            # Set the wallpaper
+            echo "Setting wallpaper using feh."
+            ${pkgs.feh}/bin/feh --bg-fill "$OUTPUT_PATH"
+            exit 0 # Success
+          else
+            curl_exit_code=$?
+            echo "curl command failed after retries with exit code: $curl_exit_code." >&2
+            echo "Failed to download wallpaper from $DOWNLOAD_URL." >&2
+            echo "Falling back to last wallpaper." >&2
+            ${pkgs.feh}/bin/feh --bg-fill "$OUTPUT_PATH"
+            exit 1 # Failure
+          fi
+        '';
+      in "${script}/bin/frottage-user";
     };
   };
 
@@ -489,7 +490,7 @@
       Persistent = true; # Run job if missed due to suspend/shutdown
     };
     Install = {
-      WantedBy = [ "timers.target" ];
+      WantedBy = ["timers.target"];
     };
   };
 
@@ -566,23 +567,22 @@
     # application launcher, window switcher, ssh launcher
     enable = true;
 
-    theme =
-      let
-        fetchedContent = builtins.fetchurl {
-          url = "https://raw.githubusercontent.com/newmanls/rofi-themes-collection/c2be059e9507785d42fc2077a4c3bc2533760939/themes/squared-everforest.rasi";
-          sha256 = "14p055gbqr7wijahjmd8jr04jn6nscs2zx3fyiy42c4n8yi0v98f";
-        };
-        fileContent = builtins.readFile fetchedContent;
-        # replace font in theme with monospace font.
-        replacedContent =
-          builtins.replaceStrings
-            [
-              ''"FiraCode Nerd Font Medium 12"''
-              "width:      480;"
-            ]
-            [ ''"mono 30"'' "width: 1000;" ]
-            fileContent;
-      in
+    theme = let
+      fetchedContent = builtins.fetchurl {
+        url = "https://raw.githubusercontent.com/newmanls/rofi-themes-collection/c2be059e9507785d42fc2077a4c3bc2533760939/themes/squared-everforest.rasi";
+        sha256 = "14p055gbqr7wijahjmd8jr04jn6nscs2zx3fyiy42c4n8yi0v98f";
+      };
+      fileContent = builtins.readFile fetchedContent;
+      # replace font in theme with monospace font.
+      replacedContent =
+        builtins.replaceStrings
+        [
+          ''"FiraCode Nerd Font Medium 12"''
+          "width:      480;"
+        ]
+        [''"mono 30"'' "width: 1000;"]
+        fileContent;
+    in
       builtins.toFile "squared-everforest-modified.rasi" replacedContent;
 
     plugins = with pkgs; [
@@ -648,7 +648,7 @@
                   ];
                 }
               ];
-              definedAliases = [ "ddg" ];
+              definedAliases = ["ddg"];
             };
             "google" = {
               urls = [
@@ -662,7 +662,7 @@
                   ];
                 }
               ];
-              definedAliases = [ "g" ];
+              definedAliases = ["g"];
             };
             "Home Manager Options" = {
               urls = [
@@ -676,7 +676,7 @@
                   ];
                 }
               ];
-              definedAliases = [ "vh" ];
+              definedAliases = ["vh"];
             };
             "Nix Packages" = {
               urls = [
@@ -694,7 +694,7 @@
                   ];
                 }
               ];
-              definedAliases = [ "np" ];
+              definedAliases = ["np"];
             };
             "NixOs Options" = {
               urls = [
@@ -712,7 +712,7 @@
                   ];
                 }
               ];
-              definedAliases = [ "np" ];
+              definedAliases = ["np"];
             };
             "youtube" = {
               urls = [
@@ -726,7 +726,7 @@
                   ];
                 }
               ];
-              definedAliases = [ "y" ];
+              definedAliases = ["y"];
             };
             "Wikipedia" = {
               urls = [
@@ -740,7 +740,7 @@
                   ];
                 }
               ];
-              definedAliases = [ "w" ];
+              definedAliases = ["w"];
             };
             "GitHub" = {
               urls = [
@@ -754,7 +754,7 @@
                   ];
                 }
               ];
-              definedAliases = [ "gh" ];
+              definedAliases = ["gh"];
             };
             "GitHub Code" = {
               urls = [
@@ -772,7 +772,7 @@
                   ];
                 }
               ];
-              definedAliases = [ "ghc" ];
+              definedAliases = ["ghc"];
             };
           };
           default = "ddg";
@@ -784,7 +784,7 @@
     # https://gitlab.com/usmcamp0811/dotfiles/-/blob/fb584a888680ff909319efdcbf33d863d0c00eaa/modules/home/apps/firefox/default.nix
     enable = false;
     profiles = {
-      my-profile = { };
+      my-profile = {};
     };
   };
   programs.qutebrowser = {
@@ -939,10 +939,10 @@
     testdisk
     lm_sensors
     linuxPackages.cpupower
-    xorg.xkill
+    xkill
     psmisc
     wirelesstools
-    xorg.xbacklight
+    xbacklight
     acpi
     samba
     cifs-utils
@@ -986,10 +986,11 @@
     rust-script
     python3
     nodejs
-    earthly # better Dockerfiles
+    pgcli
+    # earthly # better Dockerfiles
     devbox # install dev tools in project
     sqlite-interactive
-    visualvm
+    visualvm # jvm profiling
     clang # c-compiler, cc is required for nvim treesitter
     coursier # scala package manager, used to install metals
     helix # modal editor
@@ -1077,7 +1078,7 @@
     # goose-cli # cli ai agent
     # geminicommit
     dbeaver-bin
-    inkscape # svg editor
+    # inkscape # svg editor
     gcolor3
     screenkey # screencast tool to display key presses
     zoom-us # TODO
