@@ -70,6 +70,10 @@
     config = {}; # don't generate direnv.toml and use the existing one instead
   };
 
+  home.shell = {
+    enableIonIntegration = true;
+  };
+
   home.shellAliases = {
     # /home/felix.old-2024-03-01/.aliases
     # /home/felix.old-2024-03-01/.sh_aliases
@@ -167,6 +171,11 @@
     online = "ping -c 1 8.8.8.8 -W 5 && ping -c 1 google.com -W 5"; # -c <retries>  -W <timout>
     online-wait = "until online; do; sleep 3; done; ${pkgs.espeak}/bin/espeak -p 30 'online'; ${pkgs.espeak}/bin/espeak -p 80 'online'; ${pkgs.espeak}/bin/espeak -p 50 'online'";
     # alias on="w --interval=1 '$ONLINECMD'"
+  };
+
+  programs.ion = {
+    enable = true;
+    shellAliases = {};
   };
 
   # programs.command-not-found.enable = true;
@@ -414,9 +423,6 @@
     Service = {
       ExecStart = "${pkgs.keepassxc}/bin/keepassxc";
       Restart = "on-failure";
-    };
-    Install = {
-      WantedBy = ["graphical-session.target"];
     };
   };
 

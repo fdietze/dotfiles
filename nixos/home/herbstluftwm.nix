@@ -1,6 +1,8 @@
-{ pkgs, config, ... }:
 {
-
+  pkgs,
+  config,
+  ...
+}: {
   home.shellAliases = {
     hc = "${pkgs.herbstluftwm}/bin/herbstclient";
   };
@@ -335,6 +337,8 @@
         done
         echo "Polybar launch script finished at $(date)" >> /tmp/polybar_launch.log
         ) > /dev/null 2>&1
+
+        (${pkgs.coreutils}/bin/sleep 2; ${pkgs.systemd}/bin/systemctl --user start keepassxc.service) &
 
 
 
