@@ -1,6 +1,4 @@
-{ pkgs, ... }:
-{
-
+{pkgs, ...}: {
   programs.bash.enable = true;
   programs.zoxide = {
     enable = true;
@@ -9,9 +7,10 @@
   programs.starship = {
     # https://starship.rs/config/
     enable = true;
-    enableBashIntegration = false;
+    enableBashIntegration = true;
     enableZshIntegration = true;
     enableFishIntegration = true;
+    enableIonIntegration = true;
     settings =
       (
         with builtins; fromTOML (readFile "${pkgs.starship}/share/starship/presets/nerd-font-symbols.toml")
@@ -30,7 +29,6 @@
         c.disabled = true;
         cpp.disabled = true;
       };
-
   };
 
   programs.less.config = ''
@@ -195,7 +193,7 @@
       export GROFF_NO_SGR=1;
 
       x() { # open a gui command and close the terminal
-          zsh -i -c "$@ &; disown" 
+          zsh -i -c "$@ &; disown"
           exit
       }
 
