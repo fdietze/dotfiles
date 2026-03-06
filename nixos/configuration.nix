@@ -3,8 +3,7 @@
   pkgs,
   flake-inputs,
   ...
-}:
-{
+}: {
   nixpkgs.config.permittedInsecurePackages = [
     # add some here whenever needed
   ];
@@ -38,7 +37,7 @@
       nixpkgs.flake = flake-inputs.nixpkgs;
     };
     # nix path to correspond to my flakes
-    nixPath = [ "nixpkgs=${flake-inputs.nixpkgs}" ];
+    nixPath = ["nixpkgs=${flake-inputs.nixpkgs}"];
   };
 
   home-manager.backupFileExtension = "hm-bak";
@@ -87,7 +86,7 @@
     };
 
     # Enable ARM64 emulation for Docker cross-architecture builds
-    binfmt.emulatedSystems = [ "aarch64-linux" ];
+    binfmt.emulatedSystems = ["aarch64-linux"];
 
     # extraModulePackages = [ config.boot.kernelPackages.exfat-nofuse ];
   };
@@ -187,7 +186,7 @@
     # staticAccuracy = 1000.0;
   };
 
-  users.users.geoclue.extraGroups = [ "networkmanager" ]; # ?
+  users.users.geoclue.extraGroups = ["networkmanager"]; # ?
 
   powerManagement = {
     enable = true;
@@ -241,14 +240,14 @@
       libvdpau-va-gl
       vpl-gpu-rt
     ];
-    extraPackages32 = with pkgs.pkgsi686Linux; [ libva ];
+    extraPackages32 = with pkgs.pkgsi686Linux; [libva];
   };
   environment.sessionVariables = {
     LIBVA_DRIVER_NAME = "iHD";
   }; # Force intel-media-driver
   hardware.sane = {
     enable = true; # scanners
-    extraBackends = [ pkgs.hplipWithPlugin ]; # HP scanner support
+    extraBackends = [pkgs.hplipWithPlugin]; # HP scanner support
   };
 
   hardware.bluetooth = {
@@ -324,7 +323,6 @@
       # workaround for rust-analyzer with openblas not finding CC
       # gcc
       # gfortran
-
     ];
   };
 
@@ -338,7 +336,7 @@
   # security.pam.services.betterlockscreen = { ... };
 
   programs.nix-ld.enable = true; # run non-nixos binaries on nixos
-  programs.nix-ld.libraries = [ ];
+  programs.nix-ld.libraries = [];
   programs.appimage.enable = true;
   programs.zsh.enable = true;
   programs.fish.enable = false;
@@ -379,8 +377,8 @@
 
   xdg.portal = {
     enable = true;
-    configPackages = [ pkgs.xdg-desktop-portal-gtk ];
-    extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+    configPackages = [pkgs.xdg-desktop-portal-gtk];
+    extraPortals = [pkgs.xdg-desktop-portal-gtk];
     xdgOpenUsePortal = false; # make xdg-open use the portal to open programs
     config.common.default = "gtk";
   };
@@ -449,7 +447,7 @@
 
   # Start the driver at boot
   systemd.services.fprintd = {
-    wantedBy = [ "multi-user.target" ];
+    wantedBy = ["multi-user.target"];
     serviceConfig.Type = "simple";
   };
 
@@ -459,7 +457,7 @@
   services.xserver = {
     enable = true;
     dpi = 210;
-    videoDrivers = [ "modesetting" ];
+    videoDrivers = ["modesetting"];
 
     xkb.layout = "de,de";
     xkb.variant = "neo,basic";
@@ -564,11 +562,10 @@
 
     printing = {
       enable = true;
-      drivers = [ pkgs.hplip ];
+      drivers = [pkgs.hplip];
     };
 
     acpid.enable = true;
-
   };
 
   # systemd.services.frottage = {
@@ -620,8 +617,8 @@
   # };
   #
   # ensure the group exists
-  users.groups.plugdev = { };
-  users.groups.usb = { };
+  users.groups.plugdev = {};
+  users.groups.usb = {};
 
   services.udev.extraRules = ''
     SUBSYSTEM=="usb", ATTR{idVendor}=="cafe", ATTR{idProduct}=="4000", MODE="0660", GROUP="plugdev"

@@ -131,10 +131,10 @@
     p = "cd $(select-project)";
 
     ls = "${pkgs.eza}/bin/eza --all --group-directories-first";
-    l = "ls -l";
-    la = "ls -la";
-    lt = "ls -l --sort newest";
-    lta = "ls -la --sort newest";
+    l = "${pkgs.eza}/bin/eza -l";
+    la = "${pkgs.eza}/bin/eza -la";
+    lt = "${pkgs.eza}/bin/eza -l --sort newest";
+    lta = "${pkgs.eza}/bin/eza -la --sort newest";
     t = "${pkgs.eza}/bin/eza --tree --color=always";
     ta = "${pkgs.eza}/bin/eza --tree --color=always -a";
     t1 = "${pkgs.eza}/bin/eza --tree --color=always -L 1";
@@ -174,8 +174,12 @@
   };
 
   programs.ion = {
+    # currently missing: I-Beam cursor in insert mode
     enable = true;
-    shellAliases = {};
+    shellAliases = config.home.shellAliases;
+    initExtra = ''
+      keybindings vi
+    '';
   };
 
   # programs.command-not-found.enable = true;
