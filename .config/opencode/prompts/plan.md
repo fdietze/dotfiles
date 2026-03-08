@@ -6,12 +6,13 @@ create a detailed
 - motivation
 - approach
 - decisions made
+- milestones
 - full test-driven implementation plan. the first step of the plan must be to
   read the relevant files. (don't read them yet while creating the plan, only
   list them)
 - all relevant file paths (for context, as well as for implementation). Which
   files must the implementor read to fully understand the design document?
-- code snippets
+- code snippets: full function signatures, data structures, algorithms. all layed out, so it becomes nearly mechanical for the implementor
 - type checking strategy
 - testing strategy
 
