@@ -10,7 +10,8 @@
       // "model": "openrouter/google/gemini-3-pro-preview"
       // "model": "google/gemini-3-flash-preview"
       // "model": "openrouter/z-ai/glm-5"
-      "model": "openai/gpt-5.3-codex",
+      // "model": "openai/gpt-5.3-codex",
+      "model": "openai/gpt-5.4",
       // "model": "google/gemini-3.1-pro-preview"
       // "model": "anthropic/claude-sonnet-4-6"
     },
@@ -20,10 +21,21 @@
     },
     "plan": {
       // "model": "anthropic/claude-opus-4-6",
-      "model": "openai/gpt-5.3-codex",
+      // "model": "openai/gpt-5.3-codex",
+      "model": "openai/gpt-5.4",
       // "model": "google/gemini-3.1-pro-preview",
       "prompt": "{file:./prompts/plan.md}",
     },
+    "git": {
+      "description": "Specialized agent for Git operations and commits",
+      "permission": {
+        "bash": {
+          "git add *": "allow",
+          "git commit *": "allow",
+        }
+      },
+      "prompt": "You are a Git expert. Your primary role is to stage changes and write clear, concise commit messages following conventional commit standards."
+    }
   },
   "plugin": [
     "@tarquinen/opencode-dcp@latest"
@@ -52,6 +64,7 @@
       ".envrc": "allow",
       ".envrc.example": "allow",
       ".envrc.local": "deny",
+      "~/.cargo/registry/src/*": "allow",
     },
     "bash": {
       "*": "ask",
@@ -80,7 +93,10 @@
       "docker *": "allow",
       "true *": "allow",
       "devbox install": "allow",
-      "cargo *": "allow",
+      "cargo*": "allow",
+      "cargo test *": "allow",
+      "PROPTEST_CASES=* cargo test *": "allow",
+      "RUST_BACKTRACE=* cargo test *": "allow",
       "npm run typecheck": "allow",
       "npm run lint": "allow",
       "npm run test:e2e": "allow",

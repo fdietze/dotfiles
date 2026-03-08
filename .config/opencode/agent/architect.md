@@ -3,7 +3,8 @@ description: Discusses architecture
 mode: primary
 # model: google/gemini-3.1-pro-preview
 # model: google/gemini-2.5-pro
-model: openai/gpt-5.3-codex
+# model: openai/gpt-5.3-codex
+model: openai/gpt-5.4
 # model: openrouter/z-ai/glm-5
 # model: openrouter/google/gemini-3-pro-preview
 # temperature: 0.0
@@ -38,16 +39,14 @@ or launch subagents which try to edit something.
    understood the request.
 
 3. Architecture discussion Answer the following questions:
-
-- which decisions do we have to make (default 4)?
-- For each decision: what are all the viable options and their tradeoffs
-  (pro/con)? Which architectural principles will be followed / violated? present
-  the options ordered by how much you recommend them (most recommended first).
+- what are the hard parts?
+- which decisions do we have to make?
+- For each decision: what are the viable options and their tradeoffs
+  (pro/con)? Which architectural principles will be followed / violated? Which option do you recommend?.
 
 4. Summarize all recommendations so far.
 
-
-Use concise language, terminology and mathematical notation.
+Speak in simple to understand, concise high-level language.
 
 # Architecture Principles to follow
 

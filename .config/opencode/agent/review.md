@@ -2,7 +2,8 @@
 description: Review
 mode: primary
 # model: google/gemini-3.1-pro-preview
-model: google/gemini-2.5-pro
+# model: google/gemini-2.5-pro
+model: openai/gpt-5.4
 # model: openrouter/z-ai/glm-5
 # model: openrouter/google/gemini-3-pro-preview
 # temperature: 0.0
