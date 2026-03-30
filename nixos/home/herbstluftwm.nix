@@ -126,10 +126,10 @@
         Mod4-Ctrl-s = "spawn bash -c '$HOME/bin/theme dark > /dev/null 2>&1'";
 
         # media keys
-        XF86KbdBrightnessDown = "spawn keyboardbacklightoff";
-        XF86KbdBrightnessUp = "spawn keyboardbacklightmax";
-        XF86MonBrightnessDown = "spawn light -U 5";
-        XF86MonBrightnessUp = "spawn light -A 5";
+        # XF86KbdBrightnessDown = "spawn keyboardbacklightoff"; # TODO
+        # XF86KbdBrightnessUp = "spawn keyboardbacklightmax"; # TODO
+        XF86MonBrightnessDown = "spawn ${pkgs.brightnessctl}/bin/brightnessctl set 5%-";
+        XF86MonBrightnessUp = "spawn ${pkgs.brightnessctl}/bin/brightnessctl set +5%";
         XF86TouchpadToggle = "spawn touchpadtoggle";
         XF86AudioRaiseVolume = "spawn pamixer --increase 5";
         XF86AudioLowerVolume = "spawn pamixer --decrease 5";
@@ -143,10 +143,10 @@
         Mod4-Ctrl-m = "spawn pamixer -t";
 
         # adjust screen brightness
-        Mod4-Ctrl-g = "spawn light -A 5";
-        Mod4-Ctrl-r = "spawn light -U 5";
-        Mod4-Ctrl-Shift-g = "spawn light -A 1";
-        Mod4-Ctrl-Shift-r = "spawn light -U 1";
+        Mod4-Ctrl-g = "spawn ${pkgs.brightnessctl}/bin/brightnessctl set +5%";
+        Mod4-Ctrl-r = "spawn ${pkgs.brightnessctl}/bin/brightnessctl set 5%-";
+        Mod4-Ctrl-Shift-g = "spawn ${pkgs.brightnessctl}/bin/brightnessctl set +1%";
+        Mod4-Ctrl-Shift-r = "spawn ${pkgs.brightnessctl}/bin/brightnessctl set 1%-";
 
         #   # control media players with yxcvb (üöäpz on NEO)
         Mod4-udiaeresis = "spawn playerctl previous";

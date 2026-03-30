@@ -43,7 +43,7 @@
   home-manager.backupFileExtension = "hm-bak";
 
   boot = {
-    kernelPackages = pkgs.linuxPackages_zen;
+    # kernelPackages = pkgs.linuxPackages_zen;
     kernelParams = [
       "i915.enable_psr=0" # disable PSR to prevent screen freezes
       "kvm.enable_virt_at_load=0" # fix virtualbox
@@ -242,6 +242,7 @@
     ];
     extraPackages32 = with pkgs.pkgsi686Linux; [libva];
   };
+  hardware.acpilight.enable = true;
   environment.sessionVariables = {
     LIBVA_DRIVER_NAME = "iHD";
   }; # Force intel-media-driver
@@ -345,7 +346,6 @@
     package = pkgs.jdk17; # needed for flutter builds in android studio
   };
   programs.dconf.enable = true; # useful for: blueman-applet, ...
-  programs.light.enable = true; # adjust screen brightness
   programs.iotop.enable = true;
   programs.nix-index-database.comma.enable = true;
 
@@ -623,6 +623,14 @@
   services.udev.extraRules = ''
     SUBSYSTEM=="usb", ATTR{idVendor}=="cafe", ATTR{idProduct}=="4000", MODE="0660", GROUP="plugdev"
     SUBSYSTEM=="usb", ATTR{idVendor}=="0bda", ATTR{idProduct}=="8771", MODE="0660", GROUP="plugdev"
+  '';
+
+  services.udev.extraHwdb = ''
+    evdev:input:b0005v04E8p7021*
+     KEYBOARD_KEY_700e2=leftmeta
+     KEYBOARD_KEY_700e3=leftalt
+     KEYBOARD_KEY_700e6=rightmeta
+     KEYBOARD_KEY_700e7=rightalt
   '';
 
   users = {
