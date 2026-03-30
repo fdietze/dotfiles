@@ -95,7 +95,7 @@
     alors = "sec && alors";
     opencode = "sec && opencode";
     oc = "sec && opencode";
-    c = ''sec && AICHAT_LIGHT_THEME=$(grep -q "light" ~/.theme && echo "true" || echo "false") ${pkgs.aichat}/bin/aichat --session $(date --iso-8601=seconds) --save-session'';
+    c = ''sec && opencode --agent 'chat' '';
     cb = "sec && $HOME/bin/cb";
     cq = "sec && $HOME/bin/cq";
     ssh = "sec && TERM=xterm-256color ssh"; # fix colors in some ssh connections
@@ -287,7 +287,7 @@
       }
     '';
   };
-  programs.helix.enable = false;
+  # programs.helix.enable = false;
   services.copyq.enable = false;
 
   services.udiskie = {
@@ -922,7 +922,6 @@
     ouch # file compression
     btop # system monitor
     # curl-impersonate # curl mocking a real browser
-    helix # modal text editor
     espeak # text to speech
     whisper-cpp # audio transcription
     alsa-utils # audo recording
@@ -980,7 +979,6 @@
     unzip
     unrar
     pavucontrol
-    light
     mimeo
     xdotool
     gnumake
@@ -1003,7 +1001,7 @@
     visualvm # jvm profiling
     clang # c-compiler, cc is required for nvim treesitter
     coursier # scala package manager, used to install metals
-    helix # modal editor
+    # helix # modal editor
     sccache # compile cache
     devenv # nix based dev environments
     # code-cursor # ai code editor
@@ -1088,7 +1086,7 @@
     # goose-cli # cli ai agent
     # geminicommit
     dbeaver-bin
-    # inkscape # svg editor
+    # inkscape # svg editor, disabled because it is building from scratch because of stylix?
     gcolor3
     screenkey # screencast tool to display key presses
     zoom-us # TODO

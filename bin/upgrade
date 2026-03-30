@@ -34,8 +34,8 @@ esac
 
 devbox global update
 
-echo "updating vim plugins..."
-nvim --headless "+Lazy! update" "+Lazy! clean" +qa
+# echo "updating vim plugins..."
+# nvim --headless "+Lazy! update" "+Lazy! clean" +qa
 
 # echo "updating nix-index"
 # nix run 'nixpkgs#nix-index' --extra-experimental-features 'nix-command flakes'

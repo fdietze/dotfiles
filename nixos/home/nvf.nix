@@ -71,7 +71,7 @@
           };
           # toml.enable = true;
           markdown = {
-            enable = true;
+            enable = false;
             format.enable = false;
           };
           css.enable = true;
