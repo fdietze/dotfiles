@@ -3,7 +3,42 @@
   pkgs,
   flake-inputs,
   ...
-}: {
+}: let
+  breezyBinHome = "/run/current-system/sw/bin";
+
+  xrDriverVerify = pkgs.writeShellScriptBin "xr_driver_verify" ''
+    set -euo pipefail
+
+    for binary in xrDriver xr_driver_cli; do
+      if [ ! -x "${breezyBinHome}/$binary" ]; then
+        echo "Verification failed: missing $binary in ${breezyBinHome}" >&2
+        exit 1
+      fi
+    done
+
+    echo "Verification succeeded"
+  '';
+
+  breezyGnomeVerify = pkgs.writeShellScriptBin "breezy_gnome_verify" ''
+    set -euo pipefail
+
+    if [ ! -d "/run/current-system/sw/share/gnome-shell/extensions/breezydesktop@xronlinux.com" ]; then
+      echo "Verification failed: Breezy GNOME extension is not installed" >&2
+      exit 1
+    fi
+
+    for binary in xr_driver_cli xr_driver_verify virtualdisplay; do
+      if [ ! -x "${breezyBinHome}/$binary" ]; then
+        echo "Verification failed: missing $binary in ${breezyBinHome}" >&2
+        exit 1
+      fi
+    done
+
+    "${breezyBinHome}/xr_driver_verify" > /dev/null
+
+    echo "Verification succeeded"
+  '';
+in {
   nixpkgs.config.permittedInsecurePackages = [
     # add some here whenever needed
   ];
@@ -202,7 +237,7 @@
   services.thermald.enable = true;
 
   services.auto-cpufreq = {
-    enable = true; # conflict with gnome
+    enable = false; # conflict with gnome
     settings = {
       battery = {
         governor = "powersave";
@@ -245,6 +280,7 @@
   hardware.acpilight.enable = true;
   environment.sessionVariables = {
     LIBVA_DRIVER_NAME = "iHD";
+    XDG_BIN_HOME = breezyBinHome;
   }; # Force intel-media-driver
   hardware.sane = {
     enable = true; # scanners
@@ -315,6 +351,8 @@
       git
       neovim
       hplipWithPlugin # HP printer utilities (hp-setup, hp-toolbox, etc.)
+      xrDriverVerify
+      breezyGnomeVerify
 
       # xdg-utils # Provides xdg-screensaver and other desktop integration tools
       # Remove lockers managed by home-manager or unused
@@ -375,13 +413,13 @@
     };
   };
 
-  xdg.portal = {
-    enable = true;
-    configPackages = [pkgs.xdg-desktop-portal-gtk];
-    extraPortals = [pkgs.xdg-desktop-portal-gtk];
-    xdgOpenUsePortal = false; # make xdg-open use the portal to open programs
-    config.common.default = "gtk";
-  };
+  # xdg.portal = {
+  #   enable = true;
+  #   configPackages = [pkgs.xdg-desktop-portal-gtk];
+  #   extraPortals = [pkgs.xdg-desktop-portal-gtk];
+  #   xdgOpenUsePortal = false; # make xdg-open use the portal to open programs
+  #   config.common.default = "gtk";
+  # };
 
   stylix = {
     # https://stylix.danth.me/index.html
@@ -453,6 +491,8 @@
 
   # Install the driver
   services.fprintd.enable = true;
+  services.desktopManager.gnome.enable = true;
+  services.gnome.gnome-keyring.enable = lib.mkForce false; # we use keepassxc instead
 
   services.xserver = {
     enable = true;
@@ -463,25 +503,25 @@
     xkb.variant = "neo,basic";
     xkb.options = "altwin:swap_lalt_lwin";
 
-    displayManager = {
-      lightdm = {
+    displayManager.lightdm = {
+      enable = false;
+      # background = "/home/felix/frottage/wallpaper.jpg";
+      greeters.gtk = {
         enable = true;
-        # background = "/home/felix/frottage/wallpaper.jpg";
-        greeters.gtk = {
-          enable = true;
-        };
       };
-      # gdm.enable = true;
     };
     desktopManager.xterm.enable = false;
-    windowManager.herbstluftwm.enable = true;
     # desktopManager.gnome.enable = true;
   };
 
   services.displayManager = {
-    defaultSession = "none+herbstluftwm";
-    autoLogin = {
+    defaultSession = "gnome";
+    gdm = {
       enable = true;
+      wayland = true;
+    };
+    autoLogin = {
+      enable = false;
       user = "felix";
     };
   };
@@ -492,6 +532,7 @@
     packages = with pkgs; [
       corefonts # Arial, Verdana, ...
       vista-fonts # Consolas, ...
+      noto-fonts
       noto-fonts-color-emoji
       # google-fonts # Droid Sans, Roboto, ...
       roboto
@@ -511,16 +552,21 @@
     ];
     fontconfig = {
       includeUserConf = false; # no user fonts.conf
+      defaultFonts.serif = [
+        # https://www.nerdfonts.com/font-downloads
+        # "0xProto Nerd Font Mono"
+        "Noto Color Emoji"
+      ];
       defaultFonts.monospace = [
         # https://www.nerdfonts.com/font-downloads
-        "0xProto Nerd Font Mono"
+        "Noto Sans Mono"
         "Noto Color Emoji"
       ];
     };
     fontDir.enable = true;
   };
 
-  programs.ssh.startAgent = true;
+  programs.ssh.startAgent = false; # conflicts with gnome
 
   services = {
     cron.enable = true;
@@ -627,6 +673,7 @@
 
   services.udev.extraHwdb = ''
     evdev:input:b0005v04E8p7021*
+     KEYBOARD_KEY_70052=slash
      KEYBOARD_KEY_700e2=leftmeta
      KEYBOARD_KEY_700e3=leftalt
      KEYBOARD_KEY_700e6=rightmeta
@@ -655,5 +702,6 @@
     };
   };
 
-  system.stateVersion = "18.03";
+  system.stateVersion = "26.05";
+  # system.stateVersion = "18.03";
 }

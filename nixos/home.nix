@@ -1,18 +1,17 @@
 # https://mipmip.github.io/home-manager-option-search/
 {
-  lib,
   config,
+  lib,
   pkgs,
   theme,
-  nvf,
   ...
 }: {
   imports = [
     ./home/shell.nix
     ./home/git.nix
+    ./home/gnome.nix
     ./home/yazi.nix
-    ./home/herbstluftwm.nix
-    ./home/dictate.nix
+    # ./home/dictate.nix
     ./home/nvf.nix
   ];
 
@@ -199,13 +198,13 @@
 
   stylix = {
     autoEnable = true;
-    cursor = {
-      name = "Vanilla-DMZ";
-      package = pkgs.vanilla-dmz;
-      size = 128;
-    };
-    fonts.sizes.applications = 8;
-    fonts.sizes.terminal = 8;
+    # cursor = {
+    #   name = "Vanilla-DMZ";
+    #   package = pkgs.vanilla-dmz;
+    #   size = 128;
+    # };
+    # fonts.sizes.applications = 8;
+    # fonts.sizes.terminal = 8;
 
     targets = {
       dunst.enable = true;
@@ -245,7 +244,7 @@
   programs.alacritty = {
     enable = true;
     settings = {
-      font.size = 8;
+      # font.size = 8;
       scrolling.history = 100000;
       window.padding.x = 2;
       cursor.style = {
@@ -393,42 +392,118 @@
     };
   };
 
-  services.picom = {
-    enable = true;
-    vSync = true;
-  };
-  services.xsettingsd = {
+  programs.keepassxc = {
+    autostart = true;
     enable = true;
     settings = {
-      "Net/ThemeName" = "adw-gtk3-${theme}";
+      # For available settings, see https://github.com/keepassxreboot/keepassxc/blob/develop/src/core/Config.cpp
+      General = {
+        AutoReloadOnChange = true;
+        AutoSaveAfterEveryChange = true;
+        AutoSaveOnExit = true;
+        AutoTypeDelay = 25;
+        AutoTypeEntryTitleMatch = true;
+        AutoTypeEntryURLMatch = true;
+        AutoTypeStartDelay = 500;
+        BackupBeforeSave = false;
+        ConfigVersion = 2;
+        DropToBackgroundOnCopy = false;
+        FaviconDownloadTimeout = 10;
+        GlobalAutoTypeKey = 0;
+        GlobalAutoTypeModifiers = 0;
+        HideWindowOnCopy = false;
+        MinimizeAfterUnlock = false;
+        MinimizeOnCopy = true;
+        MinimizeOnOpenUrl = false;
+        OpenPreviousDatabasesOnStartup = true;
+        RememberLastDatabases = true;
+        RememberLastKeyFiles = true;
+        SingleInstance = true;
+        UseAtomicSaves = true;
+        UseGroupIconOnEntryCreation = true;
+      };
+
+      Browser = {
+        AllowExpiredCredentials = false;
+        AlwaysAllowAccess = true;
+        AlwaysAllowUpdate = true;
+        BestMatchOnly = true;
+        CustomProxyLocation = "";
+        Enabled = true;
+        HttpAuthPermission = false;
+        MatchUrlScheme = false;
+        NoMigrationPrompt = false;
+        SearchInAllDatabases = true;
+        ShowNotification = true;
+        SortByUsername = true;
+        SupportBrowserProxy = true;
+        SupportKphFields = true;
+        UnlockDatabase = true;
+        UpdateBinaryPath = false; # Home Manager manages the native messaging manifest.
+        UseCustomProxy = false;
+      };
+
+      FdoSecrets = {
+        ConfirmAccessItem = false;
+        Enabled = false;
+        NoConfirmDeleteItem = false;
+        ShowNotification = true;
+      };
+
+      GUI = {
+        ApplicationTheme = "auto";
+        CheckForUpdates = false;
+        CheckForUpdatesIncludeBetas = false;
+        CompactMode = true;
+        HidePreviewPanel = false;
+        HideToolbar = false;
+        HideUsernames = false;
+        Language = "system";
+        MinimizeOnClose = false;
+        MinimizeOnStartup = false;
+        MinimizeToTray = false;
+        MonospaceNotes = true;
+        MovableToolbar = false;
+        ShowTrayIcon = false;
+        ToolButtonStyle = 0;
+        TrayIconAppearance = "monochrome-light";
+      };
+
+      PasswordGenerator = {
+        AdditionalChars = "";
+        AdvancedMode = true;
+        EnsureEvery = true;
+        ExcludeAlike = false;
+        ExcludedChars = "";
+        Length = 64;
+        Logograms = true;
+        Math = false;
+        SpecialChars = true;
+      };
+
+      SSHAgent.Enabled = true;
+
+      Security = {
+        ClearClipboardTimeout = 20;
+        IconDownloadFallback = true;
+        LockDatabaseIdleSeconds = 3600;
+      };
     };
-    # settings = {
-    # for dark-light theme switching, the config file needs to be mutable:
-    # ~/.config/xsettingsd/xsettingsd.conf
-    # It will be modified by the script ~/bin/theme
-    #
-    # # https://github.com/derat/xsettingsd/wiki/Settings
-    #
-    # "Xft/Hinting" = 1;
-    # "Xft/HintStyle" = "hintslight";
-    # "Xft/Antialias" = 1;
-    # "Xft/RGBA" = "rgb";
-    # "Net/ThemeName" = "Qogir-Dark";
-    # "Net/IconThemeName" = "Qogir-dark";
-    # };
   };
 
-  systemd.user.services.keepassxc = {
-    Unit = {
-      Description = "KeePassXC password manager";
-      PartOf = ["graphical-session.target"];
-      After = ["graphical-session.target"];
-    };
-    Service = {
-      ExecStart = "${pkgs.keepassxc}/bin/keepassxc";
-      Restart = "on-failure";
-    };
-  };
+  xdg.autostart.enable = true; # Enable creation of XDG autostart entries.
+
+  # systemd.user.services.keepassxc = {
+  #   Unit = {
+  #     Description = "KeePassXC password manager";
+  #     PartOf = ["graphical-session.target"];
+  #     After = ["graphical-session.target"];
+  #   };
+  #   Service = {
+  #     ExecStart = "${pkgs.keepassxc}/bin/keepassxc";
+  #     Restart = "on-failure";
+  #   };
+  # };
 
   systemd.user.services.frottage = {
     Unit = {
@@ -527,17 +602,17 @@
 
   # services.megasync.enable = true; # is started in ~/.xprofile
 
-  # gtk = {
-  #   enable = true;
-  #   theme = {
-  #     name = "Qogir-Dark";
-  #     package = pkgs.qogir-theme;
-  #   };
-  #   iconTheme = {
-  #     name = "Qogir-Dark";
-  #     package = pkgs.qogir-icon-theme;
-  #   };
-  # };
+  gtk = {
+    enable = true;
+    # theme = {
+    #   # Prefer a real GNOME-aligned theme over raw gtk.css titlebar hacks.
+    #   name =
+    #     if theme == "light"
+    #     then "adw-gtk3"
+    #     else "adw-gtk3-dark";
+    #   package = pkgs.adw-gtk3;
+    # };
+  };
 
   # gtk.cursorTheme = {
   #   name = "Vanilla-DMZ";
@@ -930,10 +1005,12 @@
     typst # modern latex alternative
     pulsemixer # audio mixer tui
     bluetuith # bluetooth tui
+    nethogs # network traffic monitor per process
 
     networkmanagerapplet
     xcwd # returns current directory of x application, used to spawn new termanals in the current directory: ~/bin/xcwd-home
     arandr # manage monitors
+    bubblewrap # sandboxing tool
 
     # system tools
     openssl
@@ -989,6 +1066,7 @@
     gnupg # cryptographic signing
     ghostscript # pdf (nvim)
     mermaid-cli # mermaid diagrams
+    dconf-editor # gnome settings gui
 
     # development
     rust-script
@@ -1030,7 +1108,7 @@
     delve
     # vtsls # TODO
     tailwindcss-language-server
-    nodePackages.prettier # css/js formatter
+    # nodePackages.prettier # css/js formatter
     taplo # toml language server
     docker-ls
     # llm-ls
@@ -1044,7 +1122,7 @@
     vtsls # typescript
     vscode-langservers-extracted
 
-    nodePackages.bash-language-server
+    bash-language-server
     shellcheck # shell language server
     shfmt
     marksman # markdown language server
@@ -1111,9 +1189,16 @@
     firefox # browser
     # librewolf # firefox privacy fork
     kazam
+    bottles # wine environment
+    lutris # wine
+    umu-launcher # for lutris
     # vdhcoapp # for video download helper browser extension
     # anytype # p2p note taking
     # gitbutler # Git client for simultaneous branches on top of your existing workflow
+
+    xr-linux-driver
+    breezy-gnome # vr displays
+    geary # gnome email client
   ];
 
   # This value determines the Home Manager release that your
