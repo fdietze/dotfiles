@@ -75,7 +75,7 @@ in {
     nixPath = ["nixpkgs=${flake-inputs.nixpkgs}"];
   };
 
-  home-manager.backupFileExtension = "hm-bak";
+  home-manager.backupFileExtension = "hm-bak-20260407";
 
   boot = {
     # kernelPackages = pkgs.linuxPackages_zen;
@@ -521,7 +521,7 @@ in {
       wayland = true;
     };
     autoLogin = {
-      enable = false;
+      enable = true;
       user = "felix";
     };
   };

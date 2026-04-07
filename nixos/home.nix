@@ -211,6 +211,7 @@
       rofi.enable = false;
       neovim.enable = false;
       nvf.enable = false;
+      # alacritty.enable = false;
     };
   };
 
@@ -530,6 +531,23 @@
           #!${pkgs.bash}/bin/bash
           set -euo pipefail
 
+          set_wallpaper() {
+            local path="$1"
+            local uri="file://''${path}"
+
+            if [[ "''${XDG_CURRENT_DESKTOP:-}" == *GNOME* ]] || [[ "''${DESKTOP_SESSION:-}" == gnome ]]; then
+              echo "Setting wallpaper using GNOME gsettings."
+              ${pkgs.glib}/bin/gsettings set org.gnome.desktop.background picture-options 'zoom'
+              ${pkgs.glib}/bin/gsettings set org.gnome.desktop.background picture-uri "''${uri}"
+              ${pkgs.glib}/bin/gsettings set org.gnome.desktop.background picture-uri-dark "''${uri}"
+            elif [[ -n "''${DISPLAY:-}" ]]; then
+              echo "Setting wallpaper using feh."
+              ${pkgs.feh}/bin/feh --bg-fill "''${path}"
+            else
+              echo "No supported wallpaper backend found for the current session." >&2
+            fi
+          }
+
           THEME=${theme}
           case "$THEME" in
             light) TARGET=desktop-light ;;
@@ -541,23 +559,25 @@
 
           DOWNLOAD_URL="https://frottage.app/static/wallpaper-''${TARGET}-latest.jpg"
           OUTPUT_PATH="$HOME/frottage/wallpaper.jpg"
-          ${pkgs.feh}/bin/feh --bg-fill "$OUTPUT_PATH" || true
+          if [[ -e "$OUTPUT_PATH" ]]; then
+            set_wallpaper "$OUTPUT_PATH" || true
+          fi
 
           echo "Starting wallpaper download for theme: ''${TARGET}"
           echo "Downloading $DOWNLOAD_URL to $OUTPUT_PATH with retries"
 
           if ${pkgs.curl}/bin/curl --retry 5 --retry-delay 10 --retry-all-errors -sfSL -o "$OUTPUT_PATH" "$DOWNLOAD_URL"; then
             echo "Download successful."
-            # Set the wallpaper
-            echo "Setting wallpaper using feh."
-            ${pkgs.feh}/bin/feh --bg-fill "$OUTPUT_PATH"
+            set_wallpaper "$OUTPUT_PATH"
             exit 0 # Success
           else
             curl_exit_code=$?
             echo "curl command failed after retries with exit code: $curl_exit_code." >&2
             echo "Failed to download wallpaper from $DOWNLOAD_URL." >&2
             echo "Falling back to last wallpaper." >&2
-            ${pkgs.feh}/bin/feh --bg-fill "$OUTPUT_PATH"
+            if [[ -e "$OUTPUT_PATH" ]]; then
+              set_wallpaper "$OUTPUT_PATH" || true
+            fi
             exit 1 # Failure
           fi
         '';
@@ -619,13 +639,13 @@
   #   # size = 64;
   # };
 
-  # home.pointerCursor = {
-  #   x11.enable = true;
-  #   gtk.enable = true;
-  #   name = "Vanilla-DMZ";
-  #   package = pkgs.vanilla-dmz;
-  #   size = 128;
-  # };
+  home.pointerCursor = {
+    x11.enable = true;
+    gtk.enable = true;
+    name = "Vanilla-DMZ";
+    package = pkgs.vanilla-dmz;
+    size = 128;
+  };
 
   programs.fzf = {
     enable = true;
@@ -1209,7 +1229,7 @@
   # You can update Home Manager without changing this value. See
   # the Home Manager release notes for a list of state version
   # changes in each release.
-  home.stateVersion = "23.11";
+  home.stateVersion = "26.05";
 
   # Let Home Manager install and manage itself.
   programs.home-manager.enable = true;
