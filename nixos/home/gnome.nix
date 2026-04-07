@@ -62,7 +62,7 @@ in {
         package = pkgs.gnomeExtensions.auto-move-windows; # move window to specific workspace x
       }
       {
-        package = pkgs.gnomeExtensions.forge; # tiling window manager
+        package = pkgs.gnomeExtensions.paperwm; # scrollable tiling window manager
       }
       {
         package = pkgs.gnomeExtensions.workspace-buttons-with-app-icons;
@@ -140,7 +140,7 @@ in {
       switch-to-workspace-right = ["<Super>c"];
       switch-windows = ["<Super>Tab"];
       switch-windows-backward = ["<Shift><Super>Tab"];
-      toggle-fullscreen = ["<Super>f"];
+      toggle-fullscreen = empty;
       unmaximize = empty;
     };
 
@@ -151,6 +151,7 @@ in {
     "org/gnome/settings-daemon/plugins/media-keys" = {
       custom-keybindings = [
         "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
+        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/"
       ];
       logout = ["<Shift><Super>q"];
       next = ["<Super>z"];
@@ -158,7 +159,7 @@ in {
       play = ["<Super>odiaeresis"];
       previous = ["<Super>udiaeresis"];
       reboot = ["<Shift><Control><Super>y"];
-      screensaver = ["<Super>Escape"];
+      screensaver = empty;
       search = ["<Super>y"];
       shutdown = ["<Shift><Control><Super>q"];
       stop = ["<Alt>adiaeresis"];
@@ -172,6 +173,12 @@ in {
       binding = "<Super>d";
       command = "alacritty";
       name = "Terminal";
+    };
+
+    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1" = {
+      binding = "<Super>Escape";
+      command = "loginctl lock-session";
+      name = "Lock Screen";
     };
 
     "org/gnome/shell/keybindings" = {
@@ -215,56 +222,53 @@ in {
       application-list = ["org.keepassxc.KeePassXC.desktop:8"];
     };
 
-    "org/gnome/shell/extensions/forge" = {
-      css-last-update = lib.hm.gvariant.mkUint32 37;
-      tiling-mode-enabled = true;
-      window-gap-hidden-on-single = true;
-      window-gap-size = lib.hm.gvariant.mkUint32 2;
-      window-gap-size-increment = lib.hm.gvariant.mkUint32 1;
-      workspace-skip-tile = "1";
-    };
+    "org/gnome/shell/extensions/paperwm/keybindings" = {
+      switch-left = ["<Super>i" "<Super>Left"];
+      switch-right = ["<Super>e" "<Super>Right"];
+      switch-up = ["<Super>l" "<Super>Up"];
+      switch-down = ["<Super>a" "<Super>Down"];
 
-    "org/gnome/shell/extensions/forge/keybindings" = {
-      con-split-horizontal = empty;
-      con-split-layout-toggle = empty;
-      con-split-vertical = empty;
-      con-stacked-layout-toggle = empty;
-      con-tabbed-layout-toggle = empty;
-      con-tabbed-showtab-decoration-toggle = empty;
-      focus-border-toggle = empty;
-      mod-mask-mouse-tile = "Super";
-      prefs-tiling-toggle = ["<Super>w"];
-      window-focus-down = ["<Super>a"];
-      window-focus-left = ["<Super>i"];
-      window-focus-right = ["<Super>e"];
-      window-focus-up = ["<Super>l"];
-      window-gap-size-decrease = ["<Control><Super>minus"];
-      window-gap-size-increase = ["<Control><Super>plus"];
-      window-move-down = ["<Shift><Super>a"];
-      window-move-left = ["<Shift><Super>i"];
-      window-move-right = ["<Shift><Super>e"];
-      window-move-up = ["<Shift><Super>l"];
-      window-resize-bottom-decrease = ["<Shift><Super>g"];
-      window-resize-bottom-increase = ["<Shift><Super>r"];
-      window-resize-left-decrease = ["<Shift><Control><Super>o"];
-      window-resize-left-increase = ["<Control><Super>y"];
-      window-resize-right-decrease = ["<Shift><Super>n"];
-      window-resize-right-increase = ["<Shift><Super>t"];
-      window-resize-top-decrease = ["<Shift><Control><Super>u"];
-      window-resize-top-increase = ["<Control><Super>i"];
-      window-snap-center = ["<Control><Alt>c"];
-      window-snap-one-third-left = ["<Control><Alt>d"];
-      window-snap-one-third-right = ["<Control><Alt>g"];
-      window-snap-two-third-left = ["<Control><Alt>e"];
-      window-snap-two-third-right = ["<Control><Alt>t"];
-      window-swap-down = ["<Shift><Super>a"];
-      window-swap-last-active = ["<Super>Return"];
-      window-swap-left = ["<Shift><Super>i"];
-      window-swap-right = ["<Shift><Super>e"];
-      window-swap-up = ["<Shift><Super>l"];
-      window-toggle-always-float = empty;
-      window-toggle-float = ["<Super>h"];
-      workspace-active-tile-toggle = empty;
+      move-left = ["<Shift><Super>i"];
+      move-right = ["<Shift><Super>e"];
+      move-up = ["<Shift><Super>l"];
+      move-down = ["<Shift><Super>a"];
+
+      switch-monitor-left = ["<Super>u"];
+      switch-monitor-right = ["<Super>o"];
+      move-monitor-left = ["<Shift><Super>u"];
+      move-monitor-right = ["<Shift><Super>o"];
+
+      open-window-position-up = ["<Super>g"];
+      open-window-position-down = ["<Super>r"];
+      open-window-position-left = ["<Super>n"];
+      open-window-position-right = ["<Super>t"];
+
+      resize-h-dec = ["<Shift><Super>g"];
+      resize-h-inc = ["<Shift><Super>r"];
+      resize-w-dec = ["<Shift><Super>n"];
+      resize-w-inc = ["<Shift><Super>t"];
+
+      cycle-width = empty;
+      cycle-width-backwards = empty;
+      cycle-height = empty;
+      cycle-height-backwards = empty;
+
+      switch-focus-mode = empty;
+      switch-open-window-position = empty;
+      center-horizontally = ["<Control><Super>c"];
+      center-vertically = ["<Control><Super>v"];
+      center = empty;
+      toggle-maximize-width = empty;
+      paper-toggle-fullscreen = ["<Super>f"];
+      close-window = ["<Super>q" "<Super>x"];
+
+      toggle-scratch-window = ["<Alt><Super>Escape"];
+      toggle-scratch-layer = ["<Alt><Shift><Super>Escape"];
+      toggle-scratch = ["<Alt><Control><Super>Escape"];
+
+      slurp-in = empty;
+      barf-out = empty;
+      barf-out-active = empty;
     };
 
     "org/gnome/shell/extensions/workspace-buttons-with-app-icons" = {
