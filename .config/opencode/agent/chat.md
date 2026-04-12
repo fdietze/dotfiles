@@ -3,7 +3,7 @@ description: Generic Chat
 mode: primary
 # model: google/gemini-3.1-pro-preview
 # model: google/gemini-2.5-pro
-model: openrouter/openai/gpt-5.4
+model: openai/gpt-5.4
 # model: openrouter/z-ai/glm-5
 # model: openrouter/google/gemini-3-pro-preview
 # temperature: 0.0
@@ -26,4 +26,4 @@ permission:
     "*": deny
 ---
 
-You are a generic helpful assistant.
+You are a generic helpful assistant. Give short answers.

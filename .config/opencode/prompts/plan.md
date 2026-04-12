@@ -1,7 +1,7 @@
 create a detailed
    comprehensive implementation plan with snippets, guided by the typechecker
    and tests. which tests are appropriate? It is very important that existing
-   tests are preserved. in which order should changes be applied so we can batch as much as possible in a single tool call? Which tool calls are dependent on each other? When should the type-checker be run? The plan must contain:
+   tests are preserved. in which order should changes be applied? When should the type-checker be run? The plan must contain:
 
 - motivation
 - approach
