@@ -47,12 +47,17 @@
     nix-index-database,
     breezy-desktop,
     ...
-  } @ inputs: {
+  } @ inputs: let
+    uiFonts = import ./fonts.nix {
+      pkgs = nixpkgs.legacyPackages.x86_64-linux;
+    };
+  in {
     nixosConfigurations = {
       "gurke" = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         specialArgs = {
           flake-inputs = inputs;
+          inherit uiFonts;
         };
         modules = [
           stylix.nixosModules.stylix

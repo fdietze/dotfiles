@@ -4,6 +4,7 @@
   lib,
   pkgs,
   theme,
+  uiFonts,
   ...
 }: {
   imports = [
@@ -122,7 +123,7 @@
     # well established
     dc = "docker-compose";
 
-    vim = "$EDITOR";
+    vim = "nvim";
 
     v = ''nvim -c "FzfLua files"'';
     vg = ''nvim -c "FzfLua live_grep"'';
@@ -197,20 +198,19 @@
   };
 
   stylix = {
-    autoEnable = true;
+    autoEnable = false;
     # cursor = {
     #   name = "Vanilla-DMZ";
     #   package = pkgs.vanilla-dmz;
     #   size = 128;
     # };
-    # fonts.sizes.applications = 8;
-    # fonts.sizes.terminal = 8;
 
     targets = {
       dunst.enable = true;
       rofi.enable = false;
       neovim.enable = false;
       nvf.enable = false;
+      gnome.enable = false;
       # alacritty.enable = false;
     };
   };
@@ -238,14 +238,18 @@
     settings = {
       window-padding-x = 2;
       window-decoration = "none";
-      font-size = 17; # stylix size is too small
+      font-family = uiFonts.monospace.name;
+      font-size = uiFonts.sizes.terminal;
       confirm-close-surface = false; # don't confirm to close when a command is running
     };
   };
   programs.alacritty = {
     enable = true;
     settings = {
-      # font.size = 8;
+      font = {
+        normal.family = uiFonts.monospace.name;
+        size = uiFonts.sizes.terminal;
+      };
       scrolling.history = 100000;
       window.padding.x = 2;
       cursor.style = {
@@ -446,7 +450,7 @@
 
       FdoSecrets = {
         ConfirmAccessItem = false;
-        Enabled = false;
+        Enabled = true;
         NoConfirmDeleteItem = false;
         ShowNotification = true;
       };
@@ -554,16 +558,41 @@
             *) TARGET=desktop ;;
           esac
 
+          current_hour_utc="$(${pkgs.coreutils}/bin/date -u +%H)"
+          current_date_utc="$(${pkgs.coreutils}/bin/date -u +%F)"
+
+          if ((10#$current_hour_utc < 1)); then
+            slot_date="$(${pkgs.coreutils}/bin/date -u -d 'yesterday' +%F)"
+            slot_hour="19"
+          elif ((10#$current_hour_utc < 7)); then
+            slot_date="$current_date_utc"
+            slot_hour="01"
+          elif ((10#$current_hour_utc < 13)); then
+            slot_date="$current_date_utc"
+            slot_hour="07"
+          elif ((10#$current_hour_utc < 19)); then
+            slot_date="$current_date_utc"
+            slot_hour="13"
+          else
+            slot_date="$current_date_utc"
+            slot_hour="19"
+          fi
+
+          TIMESTAMP_KEY="''${slot_date}_''${slot_hour}-00-00"
+          WALLPAPER_FILENAME="wallpaper-''${TARGET}-''${TIMESTAMP_KEY}.jpg"
+
           # Ensure the target directory exists
           ${pkgs.coreutils}/bin/mkdir -p "$HOME/frottage"
 
-          DOWNLOAD_URL="https://frottage.app/static/wallpaper-''${TARGET}-latest.jpg"
-          OUTPUT_PATH="$HOME/frottage/wallpaper.jpg"
+          DOWNLOAD_URL="https://frottage.app/static/''${WALLPAPER_FILENAME}"
+          OUTPUT_PATH="$HOME/frottage/''${WALLPAPER_FILENAME}"
           if [[ -e "$OUTPUT_PATH" ]]; then
-            set_wallpaper "$OUTPUT_PATH" || true
+            echo "Using cached wallpaper for slot: ''${TIMESTAMP_KEY}"
+            set_wallpaper "$OUTPUT_PATH"
+            exit 0
           fi
 
-          echo "Starting wallpaper download for theme: ''${TARGET}"
+          echo "Starting wallpaper download for theme: ''${TARGET}, slot: ''${TIMESTAMP_KEY}"
           echo "Downloading $DOWNLOAD_URL to $OUTPUT_PATH with retries"
 
           if ${pkgs.curl}/bin/curl --retry 5 --retry-delay 10 --retry-all-errors -sfSL -o "$OUTPUT_PATH" "$DOWNLOAD_URL"; then
@@ -574,9 +603,10 @@
             curl_exit_code=$?
             echo "curl command failed after retries with exit code: $curl_exit_code." >&2
             echo "Failed to download wallpaper from $DOWNLOAD_URL." >&2
-            echo "Falling back to last wallpaper." >&2
-            if [[ -e "$OUTPUT_PATH" ]]; then
-              set_wallpaper "$OUTPUT_PATH" || true
+            echo "Falling back to the most recent cached wallpaper." >&2
+            latest_cached="$(${pkgs.findutils}/bin/find "$HOME/frottage" -maxdepth 1 -type f -name 'wallpaper-*.jpg' -printf '%T@ %p\n' | ${pkgs.coreutils}/bin/sort -nr | ${pkgs.coreutils}/bin/head -n1 | ${pkgs.gawk}/bin/awk '{print $2}')"
+            if [[ -n "''${latest_cached:-}" && -e "''${latest_cached}" ]]; then
+              set_wallpaper "$latest_cached" || true
             fi
             exit 1 # Failure
           fi
@@ -685,7 +715,7 @@
           ''"FiraCode Nerd Font Medium 12"''
           "width:      480;"
         ]
-        [''"mono 30"'' "width: 1000;"]
+        [''"${uiFonts.monospace.name} ${toString uiFonts.sizes.popups}"'' "width: 1000;"]
         fileContent;
     in
       builtins.toFile "squared-everforest-modified.rasi" replacedContent;
