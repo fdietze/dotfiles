@@ -105,10 +105,10 @@
         };
 
         visuals = {
-          # nvim-scrollbar.enable = true;
+          nvim-scrollbar.enable = true;
           fidget-nvim.enable = true;
-          # nvim-web-devicons.enable = true;
-          # nvim-cursorline.enable = true;
+          nvim-web-devicons.enable = true;
+          nvim-cursorline.enable = true;
         };
         ui.illuminate.enable = true;
 

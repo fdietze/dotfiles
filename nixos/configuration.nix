@@ -2,42 +2,10 @@
   lib,
   pkgs,
   flake-inputs,
+  uiFonts,
   ...
 }: let
   breezyBinHome = "/run/current-system/sw/bin";
-
-  xrDriverVerify = pkgs.writeShellScriptBin "xr_driver_verify" ''
-    set -euo pipefail
-
-    for binary in xrDriver xr_driver_cli; do
-      if [ ! -x "${breezyBinHome}/$binary" ]; then
-        echo "Verification failed: missing $binary in ${breezyBinHome}" >&2
-        exit 1
-      fi
-    done
-
-    echo "Verification succeeded"
-  '';
-
-  breezyGnomeVerify = pkgs.writeShellScriptBin "breezy_gnome_verify" ''
-    set -euo pipefail
-
-    if [ ! -d "/run/current-system/sw/share/gnome-shell/extensions/breezydesktop@xronlinux.com" ]; then
-      echo "Verification failed: Breezy GNOME extension is not installed" >&2
-      exit 1
-    fi
-
-    for binary in xr_driver_cli xr_driver_verify virtualdisplay; do
-      if [ ! -x "${breezyBinHome}/$binary" ]; then
-        echo "Verification failed: missing $binary in ${breezyBinHome}" >&2
-        exit 1
-      fi
-    done
-
-    "${breezyBinHome}/xr_driver_verify" > /dev/null
-
-    echo "Verification succeeded"
-  '';
 in {
   nixpkgs.config.permittedInsecurePackages = [
     # add some here whenever needed
@@ -351,8 +319,6 @@ in {
       git
       neovim
       hplipWithPlugin # HP printer utilities (hp-setup, hp-toolbox, etc.)
-      xrDriverVerify
-      breezyGnomeVerify
 
       # xdg-utils # Provides xdg-screensaver and other desktop integration tools
       # Remove lockers managed by home-manager or unused
@@ -387,20 +353,20 @@ in {
   programs.iotop.enable = true;
   programs.nix-index-database.comma.enable = true;
 
-  programs.xss-lock = {
-    enable = true;
-    lockerCommand = ''
-      ${pkgs.i3lock-color}/bin/i3lock-color \
-            --ignore-empty-password \
-            --image=/home/felix/frottage/wallpaper.jpg \
-            --ring-width=10 --line-uses-inside \
-            --ring-color=222436FF   --ringver-color=C3E88DFF   --ringwrong-color=C53B53FF \
-            --inside-color=000000AA --insidever-color=000000AA --insidewrong-color=000000AA \
-            --keyhl-color=C3E88DFF --bshl-color=82AAFFFF \
-            --verif-color=00000000 --wrong-color=00000000
-    '';
-  };
-  security.pam.services.i3lock.enable = true;
+  # programs.xss-lock = {
+  #   enable = false;
+  #   lockerCommand = ''
+  #     ${pkgs.i3lock-color}/bin/i3lock-color \
+  #           --ignore-empty-password \
+  #           --image=/home/felix/frottage/wallpaper.jpg \
+  #           --ring-width=10 --line-uses-inside \
+  #           --ring-color=222436FF   --ringver-color=C3E88DFF   --ringwrong-color=C53B53FF \
+  #           --inside-color=000000AA --insidever-color=000000AA --insidewrong-color=000000AA \
+  #           --keyhl-color=C3E88DFF --bshl-color=82AAFFFF \
+  #           --verif-color=00000000 --wrong-color=00000000
+  #   '';
+  # };
+  # security.pam.services.i3lock.enable = true;
 
   services.libinput = {
     enable = true;
@@ -426,6 +392,30 @@ in {
     enable = true;
     autoEnable = true;
     polarity = "dark";
+    fonts = {
+      serif = {
+        package = uiFonts.serif.package;
+        name = uiFonts.serif.name;
+      };
+      sansSerif = {
+        package = uiFonts.sans.package;
+        name = uiFonts.sans.name;
+      };
+      monospace = {
+        package = uiFonts.monospace.package;
+        name = uiFonts.monospace.name;
+      };
+      emoji = {
+        package = uiFonts.emoji.package;
+        name = uiFonts.emoji.name;
+      };
+      sizes = {
+        applications = uiFonts.sizes.applications;
+        desktop = uiFonts.sizes.desktop;
+        popups = uiFonts.sizes.popups;
+        terminal = uiFonts.sizes.terminal;
+      };
+    };
     base16Scheme = {
       # tokyo-night-moon
       base00 = "222436"; # bg
@@ -453,6 +443,7 @@ in {
   home-manager.extraSpecialArgs = {
     theme = "dark";
     nvf = flake-inputs.nvf;
+    inherit uiFonts;
   };
   specialisation.light.configuration = {
     stylix = {
@@ -480,6 +471,8 @@ in {
     };
     home-manager.extraSpecialArgs = {
       theme = "light";
+      nvf = flake-inputs.nvf;
+      inherit uiFonts;
     };
   };
 
@@ -496,7 +489,7 @@ in {
 
   services.xserver = {
     enable = true;
-    dpi = 210;
+    dpi = uiFonts.dpi;
     videoDrivers = ["modesetting"];
 
     xkb.layout = "de,de";
@@ -521,7 +514,7 @@ in {
       wayland = true;
     };
     autoLogin = {
-      enable = true;
+      enable = false;
       user = "felix";
     };
   };
@@ -529,39 +522,49 @@ in {
   fonts = {
     enableDefaultPackages = true;
     enableGhostscriptFonts = true;
-    packages = with pkgs; [
-      corefonts # Arial, Verdana, ...
-      vista-fonts # Consolas, ...
-      noto-fonts
-      noto-fonts-color-emoji
-      # google-fonts # Droid Sans, Roboto, ...
-      roboto
-      # ubuntu_font_family
-      nerd-fonts._0xproto
-      # (nerdfonts.override {
-      #   # https://github.com/NixOS/nixpkgs/blob/nixos-unstable/pkgs/data/fonts/nerdfonts/shas.nix
-      #   fonts = [
-      #     "0xProto"
-      #     "DejaVuSansMono"
-      #     "FiraCode"
-      #     "DroidSansMono"
-      #     "CascadiaCode"
-      #   ];
-      # }) # common fonts with icons and glyphs: https://www.nerdfonts.com/
-      # commit-mono # https://commitmono.com/
-    ];
+    packages =
+      lib.unique
+      ([
+          uiFonts.serif.package
+          uiFonts.sans.package
+          uiFonts.monospace.package
+          uiFonts.emoji.package
+        ]
+        ++ (with pkgs; [
+          corefonts # Arial, Verdana, ...
+          vista-fonts # Consolas, ...
+          # google-fonts # Droid Sans, Roboto, ...
+          roboto
+          # ubuntu_font_family
+        ]));
+    # (nerdfonts.override {
+    #   # https://github.com/NixOS/nixpkgs/blob/nixos-unstable/pkgs/data/fonts/nerdfonts/shas.nix
+    #   fonts = [
+    #     "0xProto"
+    #     "DejaVuSansMono"
+    #     "FiraCode"
+    #     "DroidSansMono"
+    #     "CascadiaCode"
+    #   ];
+    # }) # common fonts with icons and glyphs: https://www.nerdfonts.com/
+    # commit-mono # https://commitmono.com/
     fontconfig = {
       includeUserConf = false; # no user fonts.conf
-      defaultFonts.serif = [
-        # https://www.nerdfonts.com/font-downloads
-        # "0xProto Nerd Font Mono"
-        "Noto Color Emoji"
-      ];
-      defaultFonts.monospace = [
-        # https://www.nerdfonts.com/font-downloads
-        "Noto Sans Mono"
-        "Noto Color Emoji"
-      ];
+      defaultFonts = {
+        serif = [
+          uiFonts.serif.name
+          uiFonts.emoji.name
+        ];
+        sansSerif = [
+          uiFonts.sans.name
+          uiFonts.emoji.name
+        ];
+        monospace = [
+          uiFonts.monospace.name
+          uiFonts.emoji.name
+        ];
+        emoji = [uiFonts.emoji.name];
+      };
     };
     fontDir.enable = true;
   };
@@ -671,9 +674,9 @@ in {
     SUBSYSTEM=="usb", ATTR{idVendor}=="0bda", ATTR{idProduct}=="8771", MODE="0660", GROUP="plugdev"
   '';
 
+  # KEYBOARD_KEY_70052=slash
   services.udev.extraHwdb = ''
     evdev:input:b0005v04E8p7021*
-     KEYBOARD_KEY_70052=slash
      KEYBOARD_KEY_700e2=leftmeta
      KEYBOARD_KEY_700e3=leftalt
      KEYBOARD_KEY_700e6=rightmeta

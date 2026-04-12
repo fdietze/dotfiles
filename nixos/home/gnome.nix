@@ -4,11 +4,21 @@
   ...
 }: let
   empty = lib.hm.gvariant.mkEmptyArray lib.hm.gvariant.type.string;
+  paperwmExtensionId = "paperwm@paperwm.github.com";
   doublePairType = lib.hm.gvariant.type.tupleOf [
     lib.hm.gvariant.type.double
     lib.hm.gvariant.type.double
   ];
   variantType = lib.hm.gvariant.type.variant;
+  workspaceButtonsWithAppIconsPatched = pkgs.gnomeExtensions.workspace-buttons-with-app-icons.overrideAttrs (old: {
+    postInstall =
+      (old.postInstall or "")
+      + ''
+        substituteInPlace "$out/share/gnome-shell/extensions/workspace-buttons-with-app-icons@miro011.github.com/globals.js" \
+          --replace-fail "    stylesheetFile.replace_contents(" "    try { stylesheetFile.replace_contents(" \
+          --replace-fail "    );" "    ); } catch (error) { console.log('Workspace Buttons With App Icons: keeping packaged stylesheet.css because runtime update failed: ' + error.message); }"
+      '';
+  });
   bangkokLocation = lib.hm.gvariant.mkVariant (
     lib.hm.gvariant.mkTuple [
       (lib.hm.gvariant.mkUint32 2)
@@ -55,22 +65,27 @@ in {
   programs.gnome-shell = {
     enable = true;
     extensions = [
+      {package = pkgs.gnomeExtensions.system-monitor;}
+      {package = workspaceButtonsWithAppIconsPatched;}
+      {package = pkgs.gnomeExtensions.no-overview;}
+      {package = pkgs.gnomeExtensions.disable-workspace-switcher;}
+      {package = pkgs.gnomeExtensions.system-monitor;}
       {
-        package = pkgs.gnomeExtensions.system-monitor;
+        # move window to specific workspace x
+        package = pkgs.gnomeExtensions.auto-move-windows;
       }
       {
-        package = pkgs.gnomeExtensions.auto-move-windows; # move window to specific workspace x
-      }
-      {
-        package = pkgs.gnomeExtensions.paperwm; # scrollable tiling window manager
-      }
-      {
-        package = pkgs.gnomeExtensions.workspace-buttons-with-app-icons;
+        # scrollable tiling window manager
+        package = pkgs.gnomeExtensions.paperwm;
       }
     ];
   };
 
   dconf.settings = {
+    "org/gnome/gnome-session" = {
+      logout-prompt = false;
+    };
+
     "org/gnome/desktop/calendar" = {
       show-weekdate = true;
     };
@@ -84,7 +99,6 @@ in {
       # color-scheme = "prefer-dark";
       # icon-theme = "Qogir-Dark";
       show-battery-percentage = true;
-      text-scaling-factor = 0.99079754601227;
     };
 
     "org/gnome/desktop/notifications" = {
@@ -98,6 +112,7 @@ in {
     };
 
     "org/gnome/desktop/peripherals/touchpad" = {
+      speed = 0.27196652719665271;
       tap-to-click = false;
       two-finger-scrolling-enabled = true;
     };
@@ -145,6 +160,7 @@ in {
     };
 
     "org/gnome/desktop/wm/preferences" = {
+      mouse-button-modifier = "disabled";
       num-workspaces = 9;
     };
 
@@ -152,17 +168,24 @@ in {
       custom-keybindings = [
         "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
         "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/"
+        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2/"
+        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom3/"
+        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom4/"
+        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom5/"
+        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom6/"
+        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom7/"
       ];
       logout = ["<Shift><Super>q"];
       next = ["<Super>z"];
-      pause = ["<Super>adiaeresis"];
+      pause = empty;
       play = ["<Super>odiaeresis"];
       previous = ["<Super>udiaeresis"];
       reboot = ["<Shift><Control><Super>y"];
+      rfkill-bluetooth = ["<Super>b"];
       screensaver = empty;
       search = ["<Super>y"];
       shutdown = ["<Shift><Control><Super>q"];
-      stop = ["<Alt>adiaeresis"];
+      stop = ["<Super>p"];
       volume-down = ["<Control><Super>n"];
       volume-mute = ["<Control><Super>m"];
       volume-up = ["<Control><Super>h"];
@@ -179,6 +202,42 @@ in {
       binding = "<Super>Escape";
       command = "loginctl lock-session";
       name = "Lock Screen";
+    };
+
+    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2" = {
+      binding = "<Super>k";
+      command = "${pkgs.xorg.xkill}/bin/xkill";
+      name = "XKill";
+    };
+
+    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom3" = {
+      binding = "<Super>adiaeresis";
+      command = "${pkgs.playerctl}/bin/playerctl play-pause";
+      name = "Play Pause";
+    };
+
+    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom4" = {
+      binding = "<Control><Super>g";
+      command = "${pkgs.brightnessctl}/bin/brightnessctl set +5%";
+      name = "Brightness Up";
+    };
+
+    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom5" = {
+      binding = "<Control><Super>r";
+      command = "${pkgs.brightnessctl}/bin/brightnessctl set 5%-";
+      name = "Brightness Down";
+    };
+
+    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom6" = {
+      binding = "<Control><Shift><Super>g";
+      command = "${pkgs.brightnessctl}/bin/brightnessctl set +1%";
+      name = "Brightness Up Fine";
+    };
+
+    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom7" = {
+      binding = "<Control><Shift><Super>r";
+      command = "${pkgs.brightnessctl}/bin/brightnessctl set 1%-";
+      name = "Brightness Down Fine";
     };
 
     "org/gnome/shell/keybindings" = {
@@ -209,7 +268,22 @@ in {
       night-light-temperature = lib.hm.gvariant.mkUint32 4290;
     };
 
+    "org/gnome/settings-daemon/plugins/power" = {
+      power-saver-profile-on-low-battery = true;
+      sleep-inactive-ac-type = "nothing";
+    };
+
     "org/gnome/shell" = {
+      disable-user-extensions = false;
+      disabled-extensions = lib.mkForce ["tilingshell@ferrarodomenico.com"];
+      enabled-extensions = lib.mkForce [
+        "system-monitor@gnome-shell-extensions.gcampax.github.com"
+        "workspace-buttons-with-app-icons@miro011.github.com"
+        "auto-move-windows@gnome-shell-extensions.gcampax.github.com"
+        "no-overview@fthx"
+        "disable-workspace-switcher@jbradaric.me"
+        paperwmExtensionId
+      ];
       favorite-apps = [
         "firefox.desktop"
         "org.gnome.Calendar.desktop"
@@ -222,26 +296,93 @@ in {
       application-list = ["org.keepassxc.KeePassXC.desktop:8"];
     };
 
+    "org/gnome/shell/app-switcher" = {
+      current-workspace-only = true;
+    };
+
     "org/gnome/shell/extensions/paperwm/keybindings" = {
-      switch-left = ["<Super>i" "<Super>Left"];
-      switch-right = ["<Super>e" "<Super>Right"];
-      switch-up = ["<Super>l" "<Super>Up"];
-      switch-down = ["<Super>a" "<Super>Down"];
+      new-window = empty;
+      live-alt-tab = empty;
+      live-alt-tab-backward = empty;
+      live-alt-tab-scratch = empty;
+      live-alt-tab-scratch-backward = empty;
+
+      previous-workspace = empty;
+      previous-workspace-backward = empty;
+      move-previous-workspace = empty;
+      move-previous-workspace-backward = empty;
+      switch-down-workspace = empty;
+      switch-up-workspace = empty;
+      switch-down-workspace-from-all-monitors = empty;
+      switch-up-workspace-from-all-monitors = empty;
+      move-down-workspace = empty;
+      move-up-workspace = empty;
+      toggle-top-and-position-bar = empty;
+      toggle-top-bar = empty;
+      toggle-position-bar = empty;
+
+      switch-left = ["<Super>i"];
+      switch-right = ["<Super>e"];
+      switch-up = ["<Super>l"];
+      switch-down = ["<Super>a"];
+      switch-next = empty;
+      switch-previous = empty;
+      switch-next-loop = empty;
+      switch-previous-loop = empty;
+      switch-right-loop = empty;
+      switch-left-loop = empty;
+      switch-up-loop = empty;
+      switch-down-loop = empty;
+      switch-global-right = empty;
+      switch-global-left = empty;
+      switch-global-up = empty;
+      switch-global-down = empty;
+      switch-up-or-else-workspace = empty;
+      switch-down-or-else-workspace = empty;
+      switch-first = empty;
+      switch-second = empty;
+      switch-third = empty;
+      switch-fourth = empty;
+      switch-fifth = empty;
+      switch-sixth = empty;
+      switch-seventh = empty;
+      switch-eighth = empty;
+      switch-ninth = empty;
+      switch-tenth = empty;
+      switch-eleventh = empty;
+      switch-last = empty;
 
       move-left = ["<Shift><Super>i"];
       move-right = ["<Shift><Super>e"];
       move-up = ["<Shift><Super>l"];
       move-down = ["<Shift><Super>a"];
 
+      drift-left = empty;
+      drift-right = empty;
+
       switch-monitor-left = ["<Super>u"];
       switch-monitor-right = ["<Super>o"];
+      switch-monitor-above = empty;
+      switch-monitor-below = empty;
       move-monitor-left = ["<Shift><Super>u"];
       move-monitor-right = ["<Shift><Super>o"];
+      move-monitor-above = empty;
+      move-monitor-below = empty;
+      move-space-monitor-right = empty;
+      move-space-monitor-left = empty;
+      move-space-monitor-above = empty;
+      move-space-monitor-below = empty;
+      swap-monitor-right = empty;
+      swap-monitor-left = empty;
+      swap-monitor-above = empty;
+      swap-monitor-below = empty;
 
       open-window-position-up = ["<Super>g"];
       open-window-position-down = ["<Super>r"];
       open-window-position-left = ["<Super>n"];
       open-window-position-right = ["<Super>t"];
+      open-window-position-start = empty;
+      open-window-position-end = empty;
 
       resize-h-dec = ["<Shift><Super>g"];
       resize-h-inc = ["<Shift><Super>r"];
@@ -258,6 +399,8 @@ in {
       center-horizontally = ["<Control><Super>c"];
       center-vertically = ["<Control><Super>v"];
       center = empty;
+      take-window = empty;
+      activate-window-under-cursor = empty;
       toggle-maximize-width = empty;
       paper-toggle-fullscreen = ["<Super>f"];
       close-window = ["<Super>q" "<Super>x"];
@@ -272,7 +415,7 @@ in {
     };
 
     "org/gnome/shell/extensions/workspace-buttons-with-app-icons" = {
-      top-bar-height = 20;
+      # top-bar-height = 20;
       top-bar-indicator-spacing = 2;
       top-bar-move-date-right = true;
       top-bar-override-color = false;
@@ -296,7 +439,6 @@ in {
       wsb-ws-btn-spacing = 2;
       wsb-ws-btn-vert-spacing = 1;
       wsb-ws-num-active-color = "rgba(62, 180, 46, 0.42)";
-      wsb-ws-num-font-size = 9;
       wsb-ws-num-inactive-color = "rgba(28, 27, 27, 0.75)";
       wsb-ws-num-show = true;
       wsb-ws-num-spacing = 2;
