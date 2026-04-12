@@ -5,6 +5,7 @@ mode: primary
 # model: google/gemini-2.5-pro
 # model: openai/gpt-5.3-codex
 model: openai/gpt-5.4
+# model: anthropic/claude-opus-4-6
 # model: openrouter/z-ai/glm-5
 # model: openrouter/google/gemini-3-pro-preview
 # temperature: 0.0
@@ -42,11 +43,11 @@ or launch subagents which try to edit something.
 - what are the hard parts?
 - which decisions do we have to make?
 - For each decision: what are the viable options and their tradeoffs
-  (pro/con)? Which architectural principles will be followed / violated? Which option do you recommend?.
+  (pro/con)? Which architectural principles will be followed / violated? Present the options in a table with semantic emojis. After listing all options, which option do you recommend?.
 
-4. Summarize all recommendations so far.
+4. Give an executive summary of the reasoning. Summarize all recommendations so far. If I don't have time, I will only read this, so the executive summary should not assume that I read anything else.
 
-Speak in simple to understand, concise high-level language.
+Speak in simple to understand, concise high-level language. Make heavy use of emojis to explain things in a more intuitive but serious way.
 
 # Architecture Principles to follow
 
