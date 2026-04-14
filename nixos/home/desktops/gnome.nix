@@ -1,10 +1,20 @@
 {
+  desktop ? "gnome",
   lib,
   pkgs,
   ...
 }: let
   empty = lib.hm.gvariant.mkEmptyArray lib.hm.gvariant.type.string;
   paperwmExtensionId = "paperwm@paperwm.github.com";
+  paperwmLatest = pkgs.gnomeExtensions.paperwm.overrideAttrs (_: {
+    version = "49.0.2";
+    src = pkgs.fetchFromGitHub {
+      owner = "paperwm";
+      repo = "PaperWM";
+      rev = "8e038d0aee5dd71199ec4bcd16b1964a6b519772";
+      sha256 = "01kcw40kshgwspxkpmd5l519dra5j6xpqc0g666blqn95glxnzkf";
+    };
+  });
   doublePairType = lib.hm.gvariant.type.tupleOf [
     lib.hm.gvariant.type.double
     lib.hm.gvariant.type.double
@@ -53,7 +63,14 @@
       ))
     ]
   );
-in {
+in
+  lib.mkIf (desktop == "gnome") {
+  home.packages = with pkgs; [
+    dconf-editor # gnome settings gui
+    xr-linux-driver
+    breezy-gnome # vr displays
+  ];
+
   dconf.settings."org/gnome/desktop/input-sources" = {
     sources = [
       (lib.hm.gvariant.mkTuple ["xkb" "de+neo"])
@@ -71,12 +88,8 @@ in {
       {package = pkgs.gnomeExtensions.disable-workspace-switcher;}
       {package = pkgs.gnomeExtensions.system-monitor;}
       {
-        # move window to specific workspace x
-        package = pkgs.gnomeExtensions.auto-move-windows;
-      }
-      {
         # scrollable tiling window manager
-        package = pkgs.gnomeExtensions.paperwm;
+        package = paperwmLatest;
       }
     ];
   };
@@ -150,7 +163,7 @@ in {
       switch-to-workspace-7 = ["<Super>7"];
       switch-to-workspace-8 = ["<Super>8"];
       switch-to-workspace-9 = ["<Super>9"];
-      switch-to-workspace-last = ["<Super>w"];
+      switch-to-workspace-last = empty;
       switch-to-workspace-left = ["<Super>v"];
       switch-to-workspace-right = ["<Super>c"];
       switch-windows = ["<Super>Tab"];
@@ -174,6 +187,7 @@ in {
         "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom5/"
         "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom6/"
         "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom7/"
+        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom8/"
       ];
       logout = ["<Shift><Super>q"];
       next = ["<Super>z"];
@@ -240,6 +254,12 @@ in {
       name = "Brightness Down Fine";
     };
 
+    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom8" = {
+      binding = "<Shift><Super>y";
+      command = "${pkgs.bash}/bin/bash -lc 'gnome-extensions disable ${paperwmExtensionId}; sleep 1; gnome-extensions enable ${paperwmExtensionId}'";
+      name = "Restart PaperWM";
+    };
+
     "org/gnome/shell/keybindings" = {
       switch-to-application-1 = empty;
       switch-to-application-2 = empty;
@@ -279,7 +299,6 @@ in {
       enabled-extensions = lib.mkForce [
         "system-monitor@gnome-shell-extensions.gcampax.github.com"
         "workspace-buttons-with-app-icons@miro011.github.com"
-        "auto-move-windows@gnome-shell-extensions.gcampax.github.com"
         "no-overview@fthx"
         "disable-workspace-switcher@jbradaric.me"
         paperwmExtensionId
@@ -292,12 +311,14 @@ in {
       ];
     };
 
-    "org/gnome/shell/extensions/auto-move-windows" = {
-      application-list = ["org.keepassxc.KeePassXC.desktop:8"];
-    };
-
     "org/gnome/shell/app-switcher" = {
       current-workspace-only = true;
+    };
+
+    "org/gnome/shell/extensions/paperwm" = {
+      winprops = [
+        ''{"wm_class":"KeePassXC","spaceIndex":7,"focus":true}''
+      ];
     };
 
     "org/gnome/shell/extensions/paperwm/keybindings" = {
@@ -307,7 +328,7 @@ in {
       live-alt-tab-scratch = empty;
       live-alt-tab-scratch-backward = empty;
 
-      previous-workspace = empty;
+      previous-workspace = ["<Super>w"];
       previous-workspace-backward = empty;
       move-previous-workspace = empty;
       move-previous-workspace-backward = empty;
@@ -405,7 +426,7 @@ in {
       paper-toggle-fullscreen = ["<Super>f"];
       close-window = ["<Super>q" "<Super>x"];
 
-      toggle-scratch-window = ["<Alt><Super>Escape"];
+      toggle-scratch-window = empty;
       toggle-scratch-layer = ["<Alt><Shift><Super>Escape"];
       toggle-scratch = ["<Alt><Control><Super>Escape"];
 
