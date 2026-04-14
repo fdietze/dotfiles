@@ -1,4 +1,5 @@
 {
+  config,
   lib,
   pkgs,
   flake-inputs,
@@ -6,7 +7,32 @@
   ...
 }: let
   breezyBinHome = "/run/current-system/sw/bin";
+  lightBase16Scheme = {
+    # sabuni
+    base00 = "ffffff"; # bg (from primary.background)
+    base01 = "eeeeee"; # bg_highlight (Generated light gray)
+    base02 = "999999"; # bg_visual (from bright.black)
+    base03 = "666666"; # comment (from primary.dim_foreground)
+    base04 = "333333"; # fg_dark (Generated dark gray)
+    base05 = "000000"; # fg (from primary.foreground)
+    base06 = "000000"; # fg (reused primary.foreground)
+    base07 = "000000"; # terminal.white_bright (reused primary.foreground)
+    base08 = "ff0088"; # red (from normal.red)
+    base09 = "ff7e00"; # orange (from normal.yellow)
+    base0A = "ffa34a"; # yellow (from bright.yellow)
+    base0B = "19af00"; # green (from normal.green)
+    base0C = "00cab2"; # cyan (from normal.cyan)
+    base0D = "0a94ff"; # blue (from normal.blue)
+    base0E = "3b00cb"; # magenta (from normal.magenta)
+    base0F = "65cabe"; # teal (from bright.cyan)
+  };
 in {
+  imports = [
+    ./modules/desktop.nix
+    ./system/desktops/gnome.nix
+    ./system/desktops/herbstluftwm.nix
+  ];
+
   nixpkgs.config.permittedInsecurePackages = [
     # add some here whenever needed
   ];
@@ -204,34 +230,6 @@ in {
 
   services.thermald.enable = true;
 
-  services.auto-cpufreq = {
-    enable = false; # conflict with gnome
-    settings = {
-      battery = {
-        governor = "powersave";
-        turbo = "never";
-      };
-      charger = {
-        governor = "powersave";
-        turbo = "auto";
-      };
-    };
-  };
-
-  #   services.tlp = {
-  #     enable = true;
-  #     settings = {
-  #       tlp_DEFAULT_MODE = "BAT";
-  #       CPU_SCALING_GOVERNOR_ON_BAT = "powersave";
-  # # CPU_SCALING_GOVERNOR_ON_AC = "powersave";
-  #       DEVICES_TO_DISABLE_ON_STARTUP = "bluetooth";
-  #
-  # #Optional helps save long term battery health
-  #       START_CHARGE_THRESH_BAT0 = 40; # 40 and bellow it starts to charge
-  #         STOP_CHARGE_THRESH_BAT0 = 80; # 80 and above it stops charging
-  #     };
-  #   };
-
   hardware.graphics = {
     enable = true;
     enable32Bit = true; # for 32bit steam games
@@ -353,21 +351,6 @@ in {
   programs.iotop.enable = true;
   programs.nix-index-database.comma.enable = true;
 
-  # programs.xss-lock = {
-  #   enable = false;
-  #   lockerCommand = ''
-  #     ${pkgs.i3lock-color}/bin/i3lock-color \
-  #           --ignore-empty-password \
-  #           --image=/home/felix/frottage/wallpaper.jpg \
-  #           --ring-width=10 --line-uses-inside \
-  #           --ring-color=222436FF   --ringver-color=C3E88DFF   --ringwrong-color=C53B53FF \
-  #           --inside-color=000000AA --insidever-color=000000AA --insidewrong-color=000000AA \
-  #           --keyhl-color=C3E88DFF --bshl-color=82AAFFFF \
-  #           --verif-color=00000000 --wrong-color=00000000
-  #   '';
-  # };
-  # security.pam.services.i3lock.enable = true;
-
   services.libinput = {
     enable = true;
     touchpad = {
@@ -378,14 +361,6 @@ in {
       naturalScrolling = true; # seriously, try it for a day
     };
   };
-
-  # xdg.portal = {
-  #   enable = true;
-  #   configPackages = [pkgs.xdg-desktop-portal-gtk];
-  #   extraPortals = [pkgs.xdg-desktop-portal-gtk];
-  #   xdgOpenUsePortal = false; # make xdg-open use the portal to open programs
-  #   config.common.default = "gtk";
-  # };
 
   stylix = {
     # https://stylix.danth.me/index.html
@@ -440,39 +415,52 @@ in {
     #   gtk.enable = true;
     # };
   };
+  my = {
+    desktop = lib.mkDefault "gnome";
+    theme = lib.mkDefault "dark";
+  };
+
   home-manager.extraSpecialArgs = {
-    theme = "dark";
+    desktop = config.my.desktop;
+    theme = config.my.theme;
     nvf = flake-inputs.nvf;
     inherit uiFonts;
   };
-  specialisation.light.configuration = {
+
+  specialisation."gnome-dark".configuration = {
+    my = {
+      desktop = "gnome";
+      theme = "dark";
+    };
+  };
+
+  specialisation."gnome-light".configuration = {
+    my = {
+      desktop = "gnome";
+      theme = "light";
+    };
     stylix = {
       polarity = lib.mkForce "light";
       # base16Scheme = lib.mkForce "${pkgs.base16-schemes}/share/themes/catppuccin-latte.yaml";
-      base16Scheme = {
-        # sabuni
-        base00 = "ffffff"; # bg (from primary.background)
-        base01 = "eeeeee"; # bg_highlight (Generated light gray)
-        base02 = "999999"; # bg_visual (from bright.black)
-        base03 = "666666"; # comment (from primary.dim_foreground)
-        base04 = "333333"; # fg_dark (Generated dark gray)
-        base05 = "000000"; # fg (from primary.foreground)
-        base06 = "000000"; # fg (reused primary.foreground)
-        base07 = "000000"; # terminal.white_bright (reused primary.foreground)
-        base08 = "ff0088"; # red (from normal.red)
-        base09 = "ff7e00"; # orange (from normal.yellow)
-        base0A = "ffa34a"; # yellow (from bright.yellow)
-        base0B = "19af00"; # green (from normal.green)
-        base0C = "00cab2"; # cyan (from normal.cyan)
-        base0D = "0a94ff"; # blue (from normal.blue)
-        base0E = "3b00cb"; # magenta (from normal.magenta)
-        base0F = "65cabe"; # teal (from bright.cyan)
-      };
+      base16Scheme = lightBase16Scheme;
     };
-    home-manager.extraSpecialArgs = {
+  };
+
+  specialisation."herbstluftwm-dark".configuration = {
+    my = {
+      desktop = "herbstluftwm";
+      theme = "dark";
+    };
+  };
+
+  specialisation."herbstluftwm-light".configuration = {
+    my = {
+      desktop = "herbstluftwm";
       theme = "light";
-      nvf = flake-inputs.nvf;
-      inherit uiFonts;
+    };
+    stylix = {
+      polarity = lib.mkForce "light";
+      base16Scheme = lightBase16Scheme;
     };
   };
 
@@ -481,11 +469,8 @@ in {
     wantedBy = ["multi-user.target"];
     serviceConfig.Type = "simple";
   };
-
   # Install the driver
   services.fprintd.enable = true;
-  services.desktopManager.gnome.enable = true;
-  services.gnome.gnome-keyring.enable = lib.mkForce false; # we use keepassxc instead
 
   services.xserver = {
     enable = true;
@@ -496,27 +481,12 @@ in {
     xkb.variant = "neo,basic";
     xkb.options = "altwin:swap_lalt_lwin";
 
-    displayManager.lightdm = {
-      enable = false;
-      # background = "/home/felix/frottage/wallpaper.jpg";
-      greeters.gtk = {
-        enable = true;
-      };
-    };
     desktopManager.xterm.enable = false;
-    # desktopManager.gnome.enable = true;
   };
 
-  services.displayManager = {
-    defaultSession = "gnome";
-    gdm = {
-      enable = true;
-      wayland = true;
-    };
-    autoLogin = {
-      enable = false;
-      user = "felix";
-    };
+  services.displayManager.autoLogin = {
+    enable = true;
+    user = "felix";
   };
 
   fonts = {

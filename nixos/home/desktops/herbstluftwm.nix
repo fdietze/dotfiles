@@ -1,10 +1,101 @@
 {
+  desktop ? "gnome",
+  theme,
+  lib,
   pkgs,
   config,
+  uiFonts,
   ...
-}: {
+}:
+lib.mkIf (desktop == "herbstluftwm") {
   home.shellAliases = {
     hc = "${pkgs.herbstluftwm}/bin/herbstclient";
+  };
+
+  services.picom = {
+    enable = true;
+    vSync = true;
+  };
+  services.xsettingsd = {
+    enable = true;
+    settings = {
+      "Net/ThemeName" = "adw-gtk3-${theme}";
+    };
+  };
+  services.network-manager-applet.enable = true;
+
+  # systemd.user.services.xsettingsd = {
+  #   Unit = {
+  #     Description = "xsettingsd";
+  #     After = ["graphical-session-pre.target"];
+  #     PartOf = ["graphical-session.target"];
+  #   };
+  #
+  #   Install.WantedBy = ["graphical-session.target"];
+  #
+  #   Service = {
+  #     Environment = "PATH=${config.home.profileDirectory}/bin";
+  #     ExecStart =
+  #       "${pkgs.xsettingsd}/bin/xsettingsd"
+  #       + optionalString (cfg.configFile != null)
+  #       " -c ${escapeShellArg cfg.configFile}";
+  #     Restart = "on-abort";
+  #   };
+  # };
+
+  services.dunst = {
+    # https://github.com/dunst-project/dunst/blob/master/dunstrc
+    # old configFile = "$HOME/.config/dunst/dunstrc.old";
+    enable = true;
+    # settings = {
+    #   global = {
+    #     frame_width = 1;
+    #     frame_color = "#9ECE6A";
+    #     font = "Monospace 7";
+    #   };
+    #   urgency_normal = {
+    #     background = "#191C26";
+    #     foreground = "#eceff1";
+    #   };
+    # };
+  };
+
+  programs.rofi = {
+    # application launcher, window switcher, ssh launcher
+    enable = true;
+
+    theme = let
+      fetchedContent = builtins.fetchurl {
+        url = "https://raw.githubusercontent.com/newmanls/rofi-themes-collection/c2be059e9507785d42fc2077a4c3bc2533760939/themes/squared-everforest.rasi";
+        sha256 = "14p055gbqr7wijahjmd8jr04jn6nscs2zx3fyiy42c4n8yi0v98f";
+      };
+      fileContent = builtins.readFile fetchedContent;
+      # replace font in theme with monospace font.
+      replacedContent =
+        builtins.replaceStrings
+        [
+          ''"FiraCode Nerd Font Medium 12"''
+          "width:      480;"
+        ]
+        [''"${uiFonts.monospace.name} ${toString uiFonts.sizes.popups}"'' "width: 1000;"]
+        fileContent;
+    in
+      builtins.toFile "squared-everforest-modified.rasi" replacedContent;
+
+    plugins = with pkgs; [
+      rofi-calc
+      rofi-emoji
+      # rofi-bluetooth
+      # rofi-vpn
+      # rofi-systemd
+      # rofi-pulse-select
+      # rofi-file-browser
+    ];
+    extraConfig = {
+      modi = "run,calc,emoji";
+      run-list-command = ''bash -ic "alias | awk -F'[ =]' '{print \$2}'"'';
+      run-command = "bash -ic '{cmd}'";
+    };
   };
 
   # disabled, because it reloads at boot time

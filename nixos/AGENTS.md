@@ -5,6 +5,18 @@
 - you can read specific files and dirs, like ~/bin or ~/.config IN $HOME, but not list files in home
 - use nixos-option to find nixos options, e.g. services.xserver.xkb.layout
 - automatically apply changes using `sudo nixos-rebuild switch`
+- to figure out what exactly some software is doing, trace the nix build down to the source code. 
+- use DeepWiki MCP to answer questions about some repository
+- for package investigations on flake-based systems, treat `flake.lock` as the source of truth for the pinned nixpkgs revision
+- when tracing a package, prefer querying the pinned flake input directly with `nix flake metadata --json .` and `nix eval --impure --expr '(builtins.getFlake (toString ./.)).inputs.nixpkgs...'` instead of assuming this repo exports `packages` or `legacyPackages`
+- when `nix eval` on a local path flake uses `builtins.getFlake (toString ./.)`, add `--impure`
+- if `nix eval` or related commands fail on `/nix/var/nix/daemon-socket/socket`, immediately rerun with escalation instead of working around it
+- prefer this package tracing order: config reference -> pinned flake input -> package metadata via `nix eval` -> nixpkgs package definition or generated index -> installed runtime files -> upstream source/issues/PRs
+- for `pkgs.gnomeExtensions.*`, check `pkgs/desktops/gnome/extensions/extensions.json` and `buildGnomeExtension.nix` before assuming there is a dedicated `*.nix` package file
+- for GNOME extensions, note that nixpkgs `version` may be the extensions.gnome.org build number, while the human-facing extension version may live in embedded metadata like `version-name`
+- if a `src.outPath` store path is not realized or readable, inspect the pinned nixpkgs source tree and the installed runtime files under `/run/current-system/sw` or `/etc/profiles/per-user/...` instead
+- for live desktop investigations, prefer checking the actually installed runtime files and session state, not just the derivation metadata
+- if desktop debugging touches live GNOME session state, expect `gnome-extensions`, `dconf`, and `/run/user/*` access to require escalation
 
 configuration entrypoints:
 - flake.nix # nixos flake

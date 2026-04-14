@@ -74,19 +74,6 @@
           }
 
           breezy-desktop.nixosModules.breezy-desktop
-          {
-            services.breezy-desktop = {
-              enable = true;
-
-              # Pick your desktop environment:
-              gnome.enable = true; # GNOME Shell extension + UI
-              # kwin.enable = true;  # KDE Plasma 6 KWin plugin + UI
-
-              # Optional:
-              # vulkan.enable = true; # Vulkan layer for XR gaming
-            };
-            nixpkgs.overlays = [breezy-desktop.overlays.default];
-          }
         ];
       };
     };
