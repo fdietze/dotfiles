@@ -1,0 +1,140 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ -z "${IN_NIX_SHELL:-}" ]]; then
+  exec nix-shell -E '
+    with import <nixpkgs> {};
+    mkShell {
+      packages = [
+        rust-script
+        cargo
+        rustc
+        pkg-config
+        wayland
+        libxkbcommon
+        libx11
+        libxcursor
+        libxi
+        libxrandr
+        libxcb
+      ];
+      LD_LIBRARY_PATH = lib.makeLibraryPath [
+        wayland
+        libxkbcommon
+        libx11
+        libxcursor
+        libxi
+        libxrandr
+        libxcb
+      ];
+    }
+  ' --run "\"$0\" ${*@Q}"
+fi
+
+tmpdir="$(mktemp -d)"
+trap 'rm -rf "$tmpdir"' EXIT
+src="$tmpdir/winit_probe.rs"
+
+awk 'found { print } /^__RUST__$/ { found = 1; next }' "$0" > "$src"
+
+exec rust-script "$src" -- "$@"
+
+exit 1
+__RUST__
+//! ```cargo
+//! [package]
+//! edition = "2021"
+//!
+//! [dependencies]
+//! raw-window-handle = "0.6"
+//! winit = "0.30"
+//! ```
+
+use raw_window_handle::{HasDisplayHandle, RawDisplayHandle};
+use std::process;
+use winit::application::ApplicationHandler;
+use winit::dpi::LogicalSize;
+use winit::event::WindowEvent;
+use winit::event_loop::{ActiveEventLoop, EventLoop};
+use winit::window::{Window, WindowAttributes, WindowId};
+
+fn backend_name(window: &Window) -> &'static str {
+    let handle = match window.display_handle() {
+        Ok(handle) => handle,
+        Err(_) => return "unknown",
+    };
+
+    match handle.as_raw() {
+        RawDisplayHandle::Wayland(_) => "wayland",
+        RawDisplayHandle::Xlib(_) => "xlib",
+        RawDisplayHandle::Xcb(_) => "xcb",
+        _ => "other",
+    }
+}
+
+#[derive(Default)]
+struct App {
+    window: Option<Window>,
+}
+
+impl ApplicationHandler for App {
+    fn resumed(&mut self, event_loop: &ActiveEventLoop) {
+        if self.window.is_some() {
+            return;
+        }
+
+        let attrs = WindowAttributes::default()
+            .with_title("winit probe")
+            .with_inner_size(LogicalSize::new(640.0, 240.0));
+
+        let window = match event_loop.create_window(attrs) {
+            Ok(window) => window,
+            Err(err) => {
+                eprintln!("failed_to_create_window={err}");
+                process::exit(1);
+            }
+        };
+
+        let backend = backend_name(&window);
+        let scale = window.scale_factor();
+        let inner = window.inner_size();
+        let outer = window.outer_size();
+
+        println!("backend={backend}");
+        println!("scale_factor={scale:.3}");
+        println!("inner_size_px={}x{}", inner.width, inner.height);
+        println!("outer_size_px={}x{}", outer.width, outer.height);
+
+        if let Some(monitor) = window.current_monitor() {
+            let size = monitor.size();
+            let position = monitor.position();
+            println!(
+                "monitor_name={}",
+                monitor.name().unwrap_or_else(|| "<unknown>".to_string())
+            );
+            println!("monitor_scale_factor={:.3}", monitor.scale_factor());
+            println!("monitor_size_px={}x{}", size.width, size.height);
+            println!("monitor_position_px={}x{}", position.x, position.y);
+        }
+
+        self.window = Some(window);
+        event_loop.exit();
+    }
+
+    fn window_event(
+        &mut self,
+        event_loop: &ActiveEventLoop,
+        _window_id: WindowId,
+        event: WindowEvent,
+    ) {
+        if matches!(event, WindowEvent::CloseRequested) {
+            event_loop.exit();
+        }
+    }
+}
+
+fn main() {
+    let event_loop = EventLoop::new().expect("failed to create event loop");
+    let mut app = App::default();
+    event_loop.run_app(&mut app).expect("failed to run app");
+}

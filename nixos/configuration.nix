@@ -69,7 +69,7 @@ in {
     nixPath = ["nixpkgs=${flake-inputs.nixpkgs}"];
   };
 
-  home-manager.backupFileExtension = "hm-bak-20260407";
+  home-manager.backupFileExtension = "hm-bak";
 
   boot = {
     # kernelPackages = pkgs.linuxPackages_zen;
@@ -474,7 +474,6 @@ in {
 
   services.xserver = {
     enable = true;
-    dpi = uiFonts.dpi;
     videoDrivers = ["modesetting"];
 
     xkb.layout = "de,de";

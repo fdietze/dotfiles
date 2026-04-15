@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+family="${FONT_PROBE_FAMILY:-NotoSansM Nerd Font Mono}"
+size="${FONT_PROBE_SIZE:-17}"
+text="${FONT_PROBE_TEXT:-Hg}"
+
+run_probe() {
+  local name="$1"
+  shift
+
+  echo "=== ${name} ==="
+  "$@"
+  echo
+}
+
+run_probe \
+  "GTK" \
+  "${script_dir}/font_probe.py" \
+  --family "${family}" \
+  --size "${size}" \
+  --text "${text}"
+
+run_probe \
+  "Qt" \
+  "${script_dir}/qt_font_probe.py" \
+  --family "${family}" \
+  --size "${size}" \
+  --text "${text}"
+
+run_probe \
+  "winit" \
+  "${script_dir}/winit_probe"

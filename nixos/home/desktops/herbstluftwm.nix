@@ -11,6 +11,11 @@ lib.mkIf (desktop == "herbstluftwm") {
   home.shellAliases = {
     hc = "${pkgs.herbstluftwm}/bin/herbstclient";
   };
+  home.sessionVariables = {
+    # Keep winit-based X11 apps like Alacritty from auto-scaling to the panel's
+    # physical DPI, so they match the Wayland session more closely.
+    WINIT_X11_SCALE_FACTOR = "1";
+  };
 
   services.picom = {
     enable = true;
