@@ -21,6 +21,12 @@ lib.mkIf (desktop == "herbstluftwm") {
     enable = true;
     vSync = true;
   };
+  gtk = {
+    # This drives org.gnome.desktop.interface color-scheme via Home Manager's
+    # GTK module, which xdg-desktop-portal-gtk exposes to portal-aware apps.
+    gtk3.colorScheme = theme;
+    gtk4.colorScheme = theme;
+  };
   services.xsettingsd = {
     enable = true;
     settings = {
