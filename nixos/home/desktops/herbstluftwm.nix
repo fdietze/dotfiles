@@ -6,7 +6,129 @@
   config,
   uiFonts,
   ...
-}:
+}: let
+  stylixPalette = config.stylix.base16Scheme;
+  withHash = value: "#${value}";
+  currentThemeTarget = "theme-${theme}.target";
+  polybarRuntimePath = lib.makeBinPath [
+    pkgs.bash
+    pkgs.coreutils
+    pkgs.docker
+    pkgs.gawk
+    pkgs.gnugrep
+    pkgs.gnused
+    pkgs.herbstluftwm
+    pkgs.iotop
+    pkgs.iputils
+    pkgs.linuxPackages.cpupower
+    pkgs.polybar
+    pkgs.procps
+    pkgs.timewarrior
+    pkgs.xdotool
+  ];
+  hlwmColors = {
+    barBg = withHash stylixPalette.base00;
+    barFg = withHash stylixPalette.base05;
+    barFgAlt =
+      if theme == "light"
+      then "#888888"
+      else withHash stylixPalette.base03;
+    barWarn =
+      if theme == "light"
+      then "#FF3F74"
+      else "#FF5370";
+    barPeak = withHash stylixPalette.base0B;
+    borderNormal =
+      if theme == "light"
+      then "#E8E9F2"
+      else "#171717";
+    borderFocused = withHash stylixPalette.base0B;
+  };
+  themeSwitchCommand = mode: "${config.home.profileDirectory}/bin/theme-${mode}";
+  applyHlwmTheme = pkgs.writeShellScript "apply-hlwm-theme-${theme}" ''
+    #!${pkgs.bash}/bin/bash
+    set -euo pipefail
+
+    hc=${pkgs.herbstluftwm}/bin/herbstclient
+    $hc version >/dev/null 2>&1 || exit 0
+
+    $hc attr theme.tiling.reset 1
+    $hc attr theme.floating.reset 1
+    $hc set window_border_width 3
+    $hc set frame_border_width 1
+    $hc attr theme.floating.border_width 3
+
+    $hc set frame_border_active_color ${lib.escapeShellArg hlwmColors.borderFocused}
+    $hc set frame_border_normal_color ${lib.escapeShellArg hlwmColors.borderNormal}
+    $hc set window_border_active_color ${lib.escapeShellArg hlwmColors.borderFocused}
+    $hc set window_border_normal_color ${lib.escapeShellArg hlwmColors.borderNormal}
+
+    $hc attr theme.color ${lib.escapeShellArg hlwmColors.barBg}
+    $hc attr theme.title_color ${lib.escapeShellArg hlwmColors.barFg}
+    $hc attr theme.active.color ${lib.escapeShellArg hlwmColors.borderFocused}
+    $hc attr theme.active.title_color ${lib.escapeShellArg hlwmColors.barBg}
+    $hc attr theme.urgent.color orange
+    $hc attr theme.urgent.title_color ${lib.escapeShellArg hlwmColors.barBg}
+  '';
+  restartPolybar = pkgs.writeShellScript "restart-polybar-${theme}" ''
+    #!${pkgs.bash}/bin/bash
+    set -euo pipefail
+
+    export BAR_BG=${lib.escapeShellArg hlwmColors.barBg}
+    export BAR_FG=${lib.escapeShellArg hlwmColors.barFg}
+    export BAR_FG_ALT=${lib.escapeShellArg hlwmColors.barFgAlt}
+    export BAR_WARN=${lib.escapeShellArg hlwmColors.barWarn}
+    export BAR_PEAK=${lib.escapeShellArg hlwmColors.barPeak}
+    export BAR_RAMP_0="%{F$BAR_FG_ALT}▁%{F-}"
+    export BAR_RAMP_7="%{F$BAR_PEAK}█%{F-}"
+    export BAR_RAMP_WARN_0="%{F$BAR_WARN}▁%{F-}"
+    export BAR_RAMP_WARN_1="%{F$BAR_WARN}▂%{F-}"
+    export BAR_HEIGHT=24
+
+    ${pkgs.procps}/bin/pkill -x polybar || true
+    ${pkgs.coreutils}/bin/sleep 1
+
+    echo "Polybar launch script started at $(${pkgs.coreutils}/bin/date)" > /tmp/polybar_launch.log
+
+    HLWM_MONITOR_IDS=$(${pkgs.herbstluftwm}/bin/herbstclient list_monitors | ${pkgs.coreutils}/bin/cut -d':' -f1)
+    echo "HLWM_MONITOR_IDS: $HLWM_MONITOR_IDS" >> /tmp/polybar_launch.log
+
+    POLYBAR_MONITOR_IDS_PRIMARY=$(${pkgs.polybar}/bin/polybar --list-monitors | ${pkgs.gawk}/bin/awk -F: '{print $1 ($2~/primary/?" (primary)":"")}')
+    echo "POLYBAR_MONITOR_IDS_PRIMARY: $POLYBAR_MONITOR_IDS_PRIMARY" >> /tmp/polybar_launch.log
+
+    MERGED=$(${pkgs.coreutils}/bin/paste -d " " <(${pkgs.coreutils}/bin/echo "$HLWM_MONITOR_IDS") <(${pkgs.coreutils}/bin/echo "$POLYBAR_MONITOR_IDS_PRIMARY"))
+    echo "MERGED: $MERGED" >> /tmp/polybar_launch.log
+
+    PRIMARY=$(${pkgs.gnugrep}/bin/grep "primary" <<<"$MERGED" || true)
+    OTHERS=$(${pkgs.gnugrep}/bin/grep -v "primary" <<<"$MERGED" || true)
+    echo "PRIMARY: $PRIMARY" >> /tmp/polybar_launch.log
+    echo "OTHERS: $OTHERS" >> /tmp/polybar_launch.log
+
+    if [ -n "$PRIMARY" ]; then
+      export MONITOR=$(${pkgs.coreutils}/bin/cut -d" " -f2 <<<"$PRIMARY")
+      export MONITOR_HLWM=$(${pkgs.coreutils}/bin/cut -d" " -f1 <<<"$PRIMARY")
+      echo "Starting polybar on primary monitor '$PRIMARY' -> HLWM: $MONITOR_HLWM, Polybar: $MONITOR" >> /tmp/polybar_launch.log
+      ${pkgs.polybar}/bin/polybar >> /tmp/polybar_launch.log 2>&1 &
+    else
+      echo "No primary monitor found by script. Not starting Polybar on primary." >> /tmp/polybar_launch.log
+    fi
+
+    ${pkgs.coreutils}/bin/sleep 2
+
+    while IFS= read -r monitor; do
+      if [ -z "$monitor" ]; then
+        continue
+      fi
+
+      export MONITOR=$(${pkgs.coreutils}/bin/cut -d" " -f2 <<<"$monitor")
+      export MONITOR_HLWM=$(${pkgs.coreutils}/bin/cut -d" " -f1 <<<"$monitor")
+      echo "Starting polybar on other monitor '$monitor' -> HLWM: $MONITOR_HLWM, Polybar: $MONITOR" >> /tmp/polybar_launch.log
+      ${pkgs.polybar}/bin/polybar >> /tmp/polybar_launch.log 2>&1 &
+    done <<<"$OTHERS"
+
+    echo "Polybar launch script finished at $(${pkgs.coreutils}/bin/date)" >> /tmp/polybar_launch.log
+  '';
+in
 lib.mkIf (desktop == "herbstluftwm") {
   home.shellAliases = {
     hc = "${pkgs.herbstluftwm}/bin/herbstclient";
@@ -22,8 +144,8 @@ lib.mkIf (desktop == "herbstluftwm") {
     vSync = true;
   };
   gtk = {
-    # This drives org.gnome.desktop.interface color-scheme via Home Manager's
-    # GTK module, which xdg-desktop-portal-gtk exposes to portal-aware apps.
+    # Home Manager's GTK module writes both the per-user settings.ini files and
+    # the matching org.gnome.desktop.interface dconf keys.
     gtk3.colorScheme = theme;
     gtk4.colorScheme = theme;
   };
@@ -34,6 +156,37 @@ lib.mkIf (desktop == "herbstluftwm") {
     };
   };
   services.network-manager-applet.enable = true;
+  systemd.user.services."hlwm-${theme}" = {
+    Unit = {
+      Description = "Apply HerbstluftWM ${theme} theme";
+      After = ["graphical-session.target"];
+      PartOf = [currentThemeTarget];
+    };
+    Service = {
+      Type = "oneshot";
+      ExecStart = "${applyHlwmTheme}";
+    };
+    Install.WantedBy = [currentThemeTarget];
+  };
+  systemd.user.services."polybar-${theme}" = {
+    Unit = {
+      Description = "Restart Polybar for ${theme} theme";
+      After = [
+        "graphical-session.target"
+        "hlwm-${theme}.service"
+      ];
+      PartOf = [currentThemeTarget];
+    };
+    Service = {
+      Type = "oneshot";
+      KillMode = "none";
+      # Temporary workaround until the polybar config is migrated into Nix and
+      # can reference store paths directly instead of relying on a shell PATH.
+      Environment = "PATH=${polybarRuntimePath}:${config.home.homeDirectory}/bin:${config.home.profileDirectory}/bin:/run/wrappers/bin:/run/current-system/sw/bin";
+      ExecStart = "${restartPolybar}";
+    };
+    Install.WantedBy = [currentThemeTarget];
+  };
 
   # systemd.user.services.xsettingsd = {
   #   Unit = {
@@ -224,8 +377,8 @@ lib.mkIf (desktop == "herbstluftwm") {
         Mod4-Escape = "spawn bash -c 'loginctl lock-session'";
 
         #   # switch color scheme
-        Mod4-Ctrl-k = "spawn bash -c '$HOME/bin/theme light > /dev/null 2>&1'";
-        Mod4-Ctrl-s = "spawn bash -c '$HOME/bin/theme dark > /dev/null 2>&1'";
+        Mod4-Ctrl-k = "spawn ${themeSwitchCommand "light"}";
+        Mod4-Ctrl-s = "spawn ${themeSwitchCommand "dark"}";
 
         # media keys
         # XF86KbdBrightnessDown = "spawn keyboardbacklightoff"; # TODO
@@ -354,29 +507,11 @@ lib.mkIf (desktop == "herbstluftwm") {
         	fi
         done
 
-        source "$HOME/bin/theme-env" # gives different colors depending on "$HOME/.theme"
-        herbstclient attr theme.tiling.reset 1
-        herbstclient attr theme.floating.reset 1
-        herbstclient set window_border_width 3
-        herbstclient set frame_border_width 1
-        herbstclient attr theme.floating.border_width 3
-
-        herbstclient set frame_border_active_color $WM_BORDER_FOCUSED
-        herbstclient set frame_border_normal_color $WM_BORDER_NORMAL
-        herbstclient set window_border_active_color $WM_BORDER_FOCUSED
-        herbstclient set window_border_normal_color $WM_BORDER_NORMAL
-
         # tabs
         herbstclient attr theme.title_font 'Monospace:pixelsize=16'  # example using Xft
         herbstclient attr theme.title_height 15 # Pixel height for title text
         herbstclient attr theme.title_depth 5  # Pixels below title text
         herbstclient attr theme.title_when one_tab # tabbed mode in 'max' layout
-        herbstclient attr theme.color $BAR_BG
-        herbstclient attr theme.title_color $BAR_FG # Foreground text color
-        herbstclient attr theme.active.color $WM_BORDER_FOCUSED
-        herbstclient attr theme.active.title_color $BAR_BG # Foreground text color
-        herbstclient attr theme.urgent.color orange
-        herbstclient attr theme.urgent.title_color $BAR_BG # Foreground text color
         herbstclient attr theme.minimal.title_height 25
         herbstclient attr theme.minimal.title_when multiple_tabs
         # herbstclient attr theme.minimal.color $BAR_BG
@@ -384,62 +519,11 @@ lib.mkIf (desktop == "herbstluftwm") {
         # herbstclient attr theme.minimal.title_depth 8
         # herbstclient attr theme.minimal.title_font "Monospace:pixelsize=20"
 
-
-
-
-
         # frottage & # set wallpaper
 
         # xsetroot -cursor_name left_ptr # apply cursor theme globally
 
-
-        (
-        pkill -f "polybar" || true # More robust pkill targeting polybar
-        # Give pkill a moment to act before restarting
-        sleep 1
-
-        echo "Polybar launch script started at $(date)" > /tmp/polybar_launch.log
-        set -e
-
-        HLWM_MONITOR_IDS=$(${pkgs.herbstluftwm}/bin/herbstclient list_monitors | cut -d':' -f1)
-        echo "HLWM_MONITOR_IDS: $HLWM_MONITOR_IDS" >> /tmp/polybar_launch.log
-
-        POLYBAR_MONITOR_IDS_PRIMARY=$(polybar --list-monitors | awk -F: '{print $1 ($2~/primary/?" (primary)":"")}')
-        echo "POLYBAR_MONITOR_IDS_PRIMARY: $POLYBAR_MONITOR_IDS_PRIMARY" >> /tmp/polybar_launch.log
-
-        MERGED=$(paste -d " " <(echo "$HLWM_MONITOR_IDS") <(echo "$POLYBAR_MONITOR_IDS_PRIMARY"))
-        echo "MERGED: $MERGED" >> /tmp/polybar_launch.log
-
-        PRIMARY=$(echo "$MERGED" | grep "primary" || true)
-        OTHERS=$(echo "$MERGED" | grep -v "primary" || true)
-        echo "PRIMARY: $PRIMARY" >> /tmp/polybar_launch.log
-        echo "OTHERS: $OTHERS" >> /tmp/polybar_launch.log
-
-
-        if [ -n "$PRIMARY" ]; then
-            export MONITOR=$(echo "$PRIMARY" | cut -d" " -f2)
-            export MONITOR_HLWM=$(echo "$PRIMARY" | cut -d" " -f1)
-            echo "Starting polybar on primary monitor '$PRIMARY' -> HLWM: $MONITOR_HLWM, Polybar: $MONITOR" >> /tmp/polybar_launch.log
-            ${pkgs.polybar}/bin/polybar >> /tmp/polybar_launch.log 2>&1 &
-        else
-            echo "No primary monitor found by script. Not starting Polybar on primary." >> /tmp/polybar_launch.log
-        fi
-
-        sleep 2
-
-        IFS=$'\n' # loop over whole lines
-        echo "$OTHERS" | while read -r m; do
-            if [ -z "$m" ]; then
-                continue
-            fi
-            export MONITOR=$(echo "$m" | cut -d" " -f2)
-            export MONITOR_HLWM=$(echo "$m" | cut -d" " -f1)
-            echo "Starting polybar on other monitor '$m' -> HLWM: $MONITOR_HLWM, Polybar: $MONITOR" >> /tmp/polybar_launch.log
-            ${pkgs.polybar}/bin/polybar >> /tmp/polybar_launch.log 2>&1 &
-        done
-        echo "Polybar launch script finished at $(date)" >> /tmp/polybar_launch.log
-        ) > /dev/null 2>&1
-
+        (${pkgs.coreutils}/bin/sleep 1; ${pkgs.systemd}/bin/systemctl --user start ${currentThemeTarget}) &
         (${pkgs.coreutils}/bin/sleep 2; ${pkgs.systemd}/bin/systemctl --user start keepassxc.service) &
 
 

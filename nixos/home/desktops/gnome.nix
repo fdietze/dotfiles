@@ -1,10 +1,28 @@
 {
   desktop ? "gnome",
+  theme,
   lib,
   pkgs,
+  config,
   ...
 }: let
   empty = lib.hm.gvariant.mkEmptyArray lib.hm.gvariant.type.string;
+  currentThemeTarget = "theme-${theme}.target";
+  themeSwitchCommand = mode: "${config.home.profileDirectory}/bin/theme-${mode}";
+  gnomeColorScheme =
+    if theme == "light"
+    then "prefer-light"
+    else "prefer-dark";
+  applyGnomeTheme = pkgs.writeShellScript "apply-gnome-theme-${theme}" ''
+    #!${pkgs.bash}/bin/bash
+    set -euo pipefail
+
+    if [[ -z "''${DBUS_SESSION_BUS_ADDRESS:-}" ]]; then
+      exit 0
+    fi
+
+    ${pkgs.glib}/bin/gsettings set org.gnome.desktop.interface color-scheme ${lib.escapeShellArg gnomeColorScheme}
+  '';
   paperwmExtensionId = "paperwm@paperwm.github.com";
   paperwmLatest = pkgs.gnomeExtensions.paperwm.overrideAttrs (_: {
     version = "49.0.2";
@@ -109,7 +127,7 @@ in
 
     "org/gnome/desktop/interface" = {
       clock-show-weekday = true;
-      # color-scheme = "prefer-dark";
+      color-scheme = lib.mkForce gnomeColorScheme;
       # icon-theme = "Qogir-Dark";
       show-battery-percentage = true;
     };
@@ -188,6 +206,8 @@ in
         "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom6/"
         "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom7/"
         "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom8/"
+        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom9/"
+        "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom10/"
       ];
       logout = ["<Shift><Super>q"];
       next = ["<Super>z"];
@@ -258,6 +278,18 @@ in
       binding = "<Shift><Super>y";
       command = "${pkgs.bash}/bin/bash -lc 'gnome-extensions disable ${paperwmExtensionId}; sleep 1; gnome-extensions enable ${paperwmExtensionId}'";
       name = "Restart PaperWM";
+    };
+
+    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom9" = {
+      binding = "<Control><Super>k";
+      command = themeSwitchCommand "light";
+      name = "Theme Light";
+    };
+
+    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom10" = {
+      binding = "<Control><Super>s";
+      command = themeSwitchCommand "dark";
+      name = "Theme Dark";
     };
 
     "org/gnome/shell/keybindings" = {
@@ -474,5 +506,18 @@ in
     "org/gnome/shell/world-clocks" = {
       locations = lib.hm.gvariant.mkArray variantType [berlinLocation];
     };
+  };
+
+  systemd.user.services."gnome-interface-${theme}" = {
+    Unit = {
+      Description = "Apply GNOME ${theme} theme";
+      After = ["graphical-session.target"];
+      PartOf = [currentThemeTarget];
+    };
+    Service = {
+      Type = "oneshot";
+      ExecStart = "${applyGnomeTheme}";
+    };
+    Install.WantedBy = [currentThemeTarget];
   };
 }

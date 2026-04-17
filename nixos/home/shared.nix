@@ -7,7 +7,99 @@
   theme,
   uiFonts,
   ...
-}: {
+}: let
+  currentThemeTarget = "theme-${theme}.target";
+  switchToConfigurationPath = mode: "/nix/var/nix/profiles/system/specialisation/${desktop}-${mode}/bin/switch-to-configuration";
+  mkThemeSwitchScript = mode:
+    pkgs.writeShellScriptBin "theme-${mode}" ''
+      #!${pkgs.bash}/bin/bash
+      set -euo pipefail
+
+      sudo ${switchToConfigurationPath mode} switch
+      ${pkgs.systemd}/bin/systemctl --user daemon-reload
+      exec ${pkgs.systemd}/bin/systemctl --user start theme-${mode}.target
+    '';
+  wallpaperTarget = mode:
+    if mode == "light"
+    then "desktop-light"
+    else "desktop";
+  mkWallpaperScript = mode:
+    pkgs.writeShellScript "apply-wallpaper-${mode}" ''
+      #!${pkgs.bash}/bin/bash
+      set -euo pipefail
+
+      set_wallpaper() {
+        local path="$1"
+        local uri="file://''${path}"
+
+        if [[ "''${XDG_CURRENT_DESKTOP:-}" == *GNOME* ]] || [[ "''${DESKTOP_SESSION:-}" == gnome ]]; then
+          echo "Setting wallpaper using GNOME gsettings."
+          ${pkgs.glib}/bin/gsettings set org.gnome.desktop.background picture-options 'zoom'
+          ${pkgs.glib}/bin/gsettings set org.gnome.desktop.background picture-uri "''${uri}"
+          ${pkgs.glib}/bin/gsettings set org.gnome.desktop.background picture-uri-dark "''${uri}"
+        elif [[ -n "''${DISPLAY:-}" ]]; then
+          echo "Setting wallpaper using feh."
+          ${pkgs.feh}/bin/feh --bg-fill "''${path}"
+        else
+          echo "No supported wallpaper backend found for the current session." >&2
+        fi
+      }
+
+      TARGET=${wallpaperTarget mode}
+
+      current_hour_utc="$(${pkgs.coreutils}/bin/date -u +%H)"
+      current_date_utc="$(${pkgs.coreutils}/bin/date -u +%F)"
+
+      if ((10#$current_hour_utc < 1)); then
+        slot_date="$(${pkgs.coreutils}/bin/date -u -d 'yesterday' +%F)"
+        slot_hour="19"
+      elif ((10#$current_hour_utc < 7)); then
+        slot_date="$current_date_utc"
+        slot_hour="01"
+      elif ((10#$current_hour_utc < 13)); then
+        slot_date="$current_date_utc"
+        slot_hour="07"
+      elif ((10#$current_hour_utc < 19)); then
+        slot_date="$current_date_utc"
+        slot_hour="13"
+      else
+        slot_date="$current_date_utc"
+        slot_hour="19"
+      fi
+
+      TIMESTAMP_KEY="''${slot_date}_''${slot_hour}-00-00"
+      WALLPAPER_FILENAME="wallpaper-''${TARGET}-''${TIMESTAMP_KEY}.jpg"
+
+      ${pkgs.coreutils}/bin/mkdir -p "$HOME/frottage"
+
+      DOWNLOAD_URL="https://frottage.app/static/''${WALLPAPER_FILENAME}"
+      OUTPUT_PATH="$HOME/frottage/''${WALLPAPER_FILENAME}"
+      if [[ -e "$OUTPUT_PATH" ]]; then
+        echo "Using cached wallpaper for slot: ''${TIMESTAMP_KEY}"
+        set_wallpaper "$OUTPUT_PATH"
+        exit 0
+      fi
+
+      echo "Starting wallpaper download for theme: ''${TARGET}, slot: ''${TIMESTAMP_KEY}"
+      echo "Downloading $DOWNLOAD_URL to $OUTPUT_PATH with retries"
+
+      if ${pkgs.curl}/bin/curl --retry 5 --retry-delay 10 --retry-all-errors -sfSL -o "$OUTPUT_PATH" "$DOWNLOAD_URL"; then
+        echo "Download successful."
+        set_wallpaper "$OUTPUT_PATH"
+        exit 0
+      else
+        curl_exit_code=$?
+        echo "curl command failed after retries with exit code: $curl_exit_code." >&2
+        echo "Failed to download wallpaper from $DOWNLOAD_URL." >&2
+        echo "Falling back to the most recent cached wallpaper." >&2
+        latest_cached="$(${pkgs.findutils}/bin/find "$HOME/frottage" -maxdepth 1 -type f -name 'wallpaper-*.jpg' -printf '%T@ %p\n' | ${pkgs.coreutils}/bin/sort -nr | ${pkgs.coreutils}/bin/head -n1 | ${pkgs.gawk}/bin/awk '{print $2}')"
+        if [[ -n "''${latest_cached:-}" && -e "''${latest_cached}" ]]; then
+          set_wallpaper "$latest_cached" || true
+        fi
+        exit 1
+      fi
+    '';
+in {
   imports = [
     ./shell.nix
     ./git.nix
@@ -212,7 +304,7 @@
       nvf.enable = false;
       gnome.enable = desktop == "gnome";
       qt.enable = true;
-      # alacritty.enable = false;
+      alacritty.enable = true;
     };
   };
 
@@ -247,17 +339,17 @@
   programs.alacritty = {
     enable = true;
     settings = {
-      font = {
-        normal.family = uiFonts.monospace.name;
-        size = uiFonts.sizes.terminal;
-      };
+      # font = {
+      #   normal.family = uiFonts.monospace.name;
+      #   size = uiFonts.sizes.terminal;
+      # };
       scrolling.history = 100000;
       window.padding.x = 2;
       cursor.style = {
         blinking = "Never";
         shape = "Beam";
       };
-      general.import = ["~/.config/alacritty/theme.toml"];
+      # general.import = ["~/.config/alacritty/theme.toml"];
       keyboard.bindings = [
         # Maps Shift+Enter to send a special escape code.
         # We use a standard CSI sequence: \x1b[13;2u
@@ -512,91 +604,37 @@
     };
     Service = {
       Type = "oneshot";
-      # Environment = "DISPLAY=:0"; # Might be needed if DISPLAY is not inherited correctly
-      # Use sh -c to run a small script determining the wallpaper URL based on ~/.theme
-      ExecStart = let
-        script = pkgs.writeShellScriptBin "frottage-user" ''
-          #!${pkgs.bash}/bin/bash
-          set -euo pipefail
-
-          set_wallpaper() {
-            local path="$1"
-            local uri="file://''${path}"
-
-            if [[ "''${XDG_CURRENT_DESKTOP:-}" == *GNOME* ]] || [[ "''${DESKTOP_SESSION:-}" == gnome ]]; then
-              echo "Setting wallpaper using GNOME gsettings."
-              ${pkgs.glib}/bin/gsettings set org.gnome.desktop.background picture-options 'zoom'
-              ${pkgs.glib}/bin/gsettings set org.gnome.desktop.background picture-uri "''${uri}"
-              ${pkgs.glib}/bin/gsettings set org.gnome.desktop.background picture-uri-dark "''${uri}"
-            elif [[ -n "''${DISPLAY:-}" ]]; then
-              echo "Setting wallpaper using feh."
-              ${pkgs.feh}/bin/feh --bg-fill "''${path}"
-            else
-              echo "No supported wallpaper backend found for the current session." >&2
-            fi
-          }
-
-          THEME=${theme}
-          case "$THEME" in
-            light) TARGET=desktop-light ;;
-            *) TARGET=desktop ;;
-          esac
-
-          current_hour_utc="$(${pkgs.coreutils}/bin/date -u +%H)"
-          current_date_utc="$(${pkgs.coreutils}/bin/date -u +%F)"
-
-          if ((10#$current_hour_utc < 1)); then
-            slot_date="$(${pkgs.coreutils}/bin/date -u -d 'yesterday' +%F)"
-            slot_hour="19"
-          elif ((10#$current_hour_utc < 7)); then
-            slot_date="$current_date_utc"
-            slot_hour="01"
-          elif ((10#$current_hour_utc < 13)); then
-            slot_date="$current_date_utc"
-            slot_hour="07"
-          elif ((10#$current_hour_utc < 19)); then
-            slot_date="$current_date_utc"
-            slot_hour="13"
-          else
-            slot_date="$current_date_utc"
-            slot_hour="19"
-          fi
-
-          TIMESTAMP_KEY="''${slot_date}_''${slot_hour}-00-00"
-          WALLPAPER_FILENAME="wallpaper-''${TARGET}-''${TIMESTAMP_KEY}.jpg"
-
-          # Ensure the target directory exists
-          ${pkgs.coreutils}/bin/mkdir -p "$HOME/frottage"
-
-          DOWNLOAD_URL="https://frottage.app/static/''${WALLPAPER_FILENAME}"
-          OUTPUT_PATH="$HOME/frottage/''${WALLPAPER_FILENAME}"
-          if [[ -e "$OUTPUT_PATH" ]]; then
-            echo "Using cached wallpaper for slot: ''${TIMESTAMP_KEY}"
-            set_wallpaper "$OUTPUT_PATH"
-            exit 0
-          fi
-
-          echo "Starting wallpaper download for theme: ''${TARGET}, slot: ''${TIMESTAMP_KEY}"
-          echo "Downloading $DOWNLOAD_URL to $OUTPUT_PATH with retries"
-
-          if ${pkgs.curl}/bin/curl --retry 5 --retry-delay 10 --retry-all-errors -sfSL -o "$OUTPUT_PATH" "$DOWNLOAD_URL"; then
-            echo "Download successful."
-            set_wallpaper "$OUTPUT_PATH"
-            exit 0 # Success
-          else
-            curl_exit_code=$?
-            echo "curl command failed after retries with exit code: $curl_exit_code." >&2
-            echo "Failed to download wallpaper from $DOWNLOAD_URL." >&2
-            echo "Falling back to the most recent cached wallpaper." >&2
-            latest_cached="$(${pkgs.findutils}/bin/find "$HOME/frottage" -maxdepth 1 -type f -name 'wallpaper-*.jpg' -printf '%T@ %p\n' | ${pkgs.coreutils}/bin/sort -nr | ${pkgs.coreutils}/bin/head -n1 | ${pkgs.gawk}/bin/awk '{print $2}')"
-            if [[ -n "''${latest_cached:-}" && -e "''${latest_cached}" ]]; then
-              set_wallpaper "$latest_cached" || true
-            fi
-            exit 1 # Failure
-          fi
-        '';
-      in "${script}/bin/frottage-user";
+      ExecStart = "${mkWallpaperScript theme}";
     };
+  };
+
+  systemd.user.targets."theme-light" = {
+    Unit.Description = "Apply light theme hooks";
+  };
+
+  systemd.user.targets."theme-dark" = {
+    Unit.Description = "Apply dark theme hooks";
+  };
+
+  systemd.user.services."wallpaper-${theme}" = {
+    Unit = {
+      Description = "Apply ${theme} wallpaper";
+      After = [
+        "graphical-session.target"
+        "network-online.target"
+        "nss-lookup.target"
+      ];
+      Wants = [
+        "network-online.target"
+        "nss-lookup.target"
+      ];
+      PartOf = [currentThemeTarget];
+    };
+    Service = {
+      Type = "oneshot";
+      ExecStart = "${mkWallpaperScript theme}";
+    };
+    Install.WantedBy = [currentThemeTarget];
   };
 
   systemd.user.timers.frottage = {
@@ -619,14 +657,15 @@
 
   gtk = {
     enable = true;
-    # theme = {
-    #   # Prefer a real GNOME-aligned theme over raw gtk.css titlebar hacks.
-    #   name =
-    #     if theme == "light"
-    #     then "adw-gtk3"
-    #     else "adw-gtk3-dark";
-    #   package = pkgs.adw-gtk3;
-    # };
+    theme = {
+      # Keep GTK3 on a real theme package so xsettingsd's Net/ThemeName points
+      # at an installed theme instead of falling back unpredictably.
+      name =
+        if theme == "light"
+        then "adw-gtk3"
+        else "adw-gtk3-dark";
+      package = pkgs.adw-gtk3;
+    };
   };
 
   # gtk.cursorTheme = {
@@ -916,7 +955,7 @@
       };
     };
     hooks.postswitch = {
-      run-theme = "$HOME/bin/theme";
+      run-theme = "${pkgs.systemd}/bin/systemctl --user start ${currentThemeTarget}";
     };
   };
 
@@ -926,6 +965,8 @@
   };
 
   home.packages = with pkgs; [
+    (mkThemeSwitchScript "light")
+    (mkThemeSwitchScript "dark")
     # command line fu
     # https://github.com/ibraheemdev/modern-unix
     tmux

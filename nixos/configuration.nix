@@ -7,6 +7,23 @@
   ...
 }: let
   breezyBinHome = "/run/current-system/sw/bin";
+  switchToConfigurationCommand = desktop: mode: "/nix/var/nix/profiles/system/specialisation/${desktop}-${mode}/bin/switch-to-configuration switch";
+  allowedSudoCommands =
+    [
+      (switchToConfigurationCommand "gnome" "light")
+      (switchToConfigurationCommand "gnome" "dark")
+      (switchToConfigurationCommand "herbstluftwm" "light")
+      (switchToConfigurationCommand "herbstluftwm" "dark")
+      "/home/felix/bin/topioread"
+      "/home/felix/bin/topiowrite"
+      "/run/current-system/sw/bin/cpupower frequency-set -u 400MHz"
+      "/run/current-system/sw/bin/cpupower frequency-set -u 800MHz"
+      "/run/current-system/sw/bin/cpupower frequency-set -u 2GHz"
+      "/run/current-system/sw/bin/cpupower frequency-set -u 3GHz"
+      "/run/current-system/sw/bin/cpupower frequency-set -u 4GHz"
+      "/run/current-system/sw/bin/cpupower frequency-set -g powersave"
+      "/run/current-system/sw/bin/cpupower frequency-set -g performance"
+    ];
   lightBase16Scheme = {
     # sabuni
     base00 = "ffffff"; # bg (from primary.background)
@@ -142,7 +159,16 @@ in {
   security = {
     sudo = {
       enable = true;
-      wheelNeedsPassword = false;
+      wheelNeedsPassword = true;
+      extraRules = [
+        {
+          users = ["felix"];
+          commands = map (command: {
+            inherit command;
+            options = ["NOPASSWD"];
+          }) allowedSudoCommands;
+        }
+      ];
     };
   };
 
