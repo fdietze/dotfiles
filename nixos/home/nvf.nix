@@ -2,6 +2,7 @@
   lib,
   pkgs,
   nvf,
+  theme,
   ...
 }: {
   imports = [
@@ -28,8 +29,20 @@
 
         theme = {
           enable = true;
-          name = "tokyonight";
-          style = "moon";
+          name =
+            if theme == "light"
+            then "catppuccin"
+            else "tokyonight";
+          style =
+            if theme == "light"
+            then "latte"
+            else "moon";
+        };
+        # Keep both theme plugins present so already-running Neovim instances can
+        # switch live when the active specialization changes.
+        extraPlugins = {
+          "catppuccin-live".package = pkgs.vimPlugins.catppuccin-nvim;
+          "tokyonight-live".package = pkgs.vimPlugins.tokyonight-nvim;
         };
 
         lineNumberMode = "number";
@@ -535,5 +548,46 @@
         '';
       };
     };
+  };
+
+  systemd.user.services."nvim-theme-${theme}" = let
+    currentThemeTarget = "theme-${theme}.target";
+    applyNvimTheme = pkgs.writeShellScript "apply-nvim-theme-${theme}" ''
+      #!${pkgs.bash}/bin/bash
+      set -euo pipefail
+
+      THEME=${lib.escapeShellArg theme}
+
+      while read -r nvim_instance; do
+        if [[ -z "$nvim_instance" ]]; then
+          continue
+        fi
+
+        case "$THEME" in
+          light)
+            ${pkgs.neovim-remote}/bin/nvr --servername "$nvim_instance" \
+              -c "set background=light" \
+              -c "lua require('catppuccin').setup({ flavour = 'latte' })" \
+              -c "colorscheme catppuccin"
+            ;;
+          dark)
+            ${pkgs.neovim-remote}/bin/nvr --servername "$nvim_instance" \
+              -c "set background=dark" \
+              -c "colorscheme tokyonight-moon"
+            ;;
+        esac
+      done < <(${pkgs.neovim-remote}/bin/nvr --serverlist)
+    '';
+  in {
+    Unit = {
+      Description = "Apply Neovim ${theme} theme";
+      After = ["graphical-session.target"];
+      PartOf = [currentThemeTarget];
+    };
+    Service = {
+      Type = "oneshot";
+      ExecStart = "${applyNvimTheme}";
+    };
+    Install.WantedBy = [currentThemeTarget];
   };
 }

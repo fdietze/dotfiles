@@ -1,10 +1,11 @@
+- my dotfiles are managed with git where the GIT_DIR is pointing to a bare repo and the WORKTREE is pointing to my home directory. use `gitd` as a drop-in replacement for `git` to manage my dotfiles, for example `gitd status`.
 - the nixos and home manager configurations should be the source of truth
+- when switching the current system, make sure to stay on the same specialization.
 - automatically read analyze relevant log files and/or run commands like journalctl to get them
 - automatically read relevant man pages
 - you can assume all binaries in the nix store exist when referencing like this: "${pkgs.mypackage}/bin/mycommand"
 - you can read specific files and dirs, like ~/bin or ~/.config IN $HOME, but not list files in home
-- use nixos-option to find nixos options, e.g. services.xserver.xkb.layout
-- automatically apply changes using `sudo nixos-rebuild switch`
+- use `nixos-option` to find nixos options, e.g. services.xserver.xkb.layout
 - to figure out what exactly some software is doing, trace the nix build down to the source code. 
 - use DeepWiki MCP to answer questions about some repository
 - for package investigations on flake-based systems, treat `flake.lock` as the source of truth for the pinned nixpkgs revision
@@ -17,6 +18,10 @@
 - if a `src.outPath` store path is not realized or readable, inspect the pinned nixpkgs source tree and the installed runtime files under `/run/current-system/sw` or `/etc/profiles/per-user/...` instead
 - for live desktop investigations, prefer checking the actually installed runtime files and session state, not just the derivation metadata
 - if desktop debugging touches live GNOME session state, expect `gnome-extensions`, `dconf`, and `/run/user/*` access to require escalation
+  - If a nix let binding is reused across the whole module, keep it in the top-level let.
+  - If it is only used by one option block, move it into a local let right above that
+    block.
+  - Prefer the narrowest scope that still keeps the code readable.
 
 configuration entrypoints:
 - flake.nix # nixos flake
