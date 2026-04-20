@@ -61,8 +61,8 @@
         };
         modules = [
           stylix.nixosModules.stylix
-          ./configuration.nix
-          ./hardware-configuration.nix
+          ./hosts/gurke/default.nix
+          ./hosts/gurke/hardware-configuration.nix
           nixos-hardware.nixosModules.lenovo-thinkpad-x1-6th-gen
           nix-index-database.nixosModules.nix-index
           # nvf.homeManagerModules.default
@@ -70,7 +70,7 @@
           {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
-            home-manager.users.felix = ./home.nix;
+            home-manager.users.felix = ./hosts/gurke/home.nix;
           }
 
           breezy-desktop.nixosModules.breezy-desktop

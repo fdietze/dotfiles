@@ -45,9 +45,9 @@
   };
 in {
   imports = [
-    ./modules/desktop.nix
-    ./system/desktops/gnome.nix
-    ./system/desktops/herbstluftwm.nix
+    ../../modules/options.nix
+    ../../modules/nixos/desktops/gnome.nix
+    ../../modules/nixos/desktops/herbstluftwm.nix
   ];
 
   nixpkgs.config.permittedInsecurePackages = [

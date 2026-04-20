@@ -22,6 +22,7 @@
   - If it is only used by one option block, move it into a local let right above that
     block.
   - Prefer the narrowest scope that still keeps the code readable.
+  - for refactorings, use nvd to verify that the generated nix code is exactly the same before and after and only shows the desired changes.
 
 configuration entrypoints:
 - flake.nix # nixos flake
