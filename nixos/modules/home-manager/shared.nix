@@ -10,6 +10,16 @@
 }: let
   currentThemeTarget = "theme-${theme}.target";
   switchToConfigurationPath = mode: "/nix/var/nix/profiles/system/specialisation/${desktop}-${mode}/bin/switch-to-configuration";
+  nrsScript = pkgs.writeShellScriptBin "nrs" ''
+    #!${pkgs.bash}/bin/bash
+    set -euo pipefail
+
+    if [[ -r /run/nixos/current-specialisation ]] && specialisation="$(${pkgs.coreutils}/bin/head -n1 /run/nixos/current-specialisation)" && [[ -n "$specialisation" ]]; then
+      exec sudo nixos-rebuild switch --specialisation "$specialisation"
+    else
+      exec sudo nixos-rebuild switch
+    fi
+  '';
   mkThemeSwitchScript = mode:
     pkgs.writeShellScriptBin "theme-${mode}" ''
       #!${pkgs.bash}/bin/bash
@@ -237,7 +247,7 @@ in {
     vn = ''$EDITOR "$HOME"/nixos/configuration.nix'';
     vh = ''$EDITOR "$HOME"/nixos/home.nix'';
     vb = ''$EDITOR "$HOME"/.config/polybar/config.ini'';
-    nrs = "sudo nixos-rebuild switch";
+    nrs = "${nrsScript}/bin/nrs";
     ns = "nix-shell --run zsh";
     ni = "nix profile install nixpkgs#";
     md = "mkdir -p";
@@ -279,6 +289,7 @@ in {
     enable = true;
     enableZshIntegration = true;
   };
+  programs.nix-index-database.comma.enable = true;
 
   services.podman.enable = true;
 
@@ -339,6 +350,7 @@ in {
   programs.alacritty = {
     enable = true;
     settings = {
+      terminal.osc52 = "CopyPaste";
       # font = {
       #   normal.family = uiFonts.monospace.name;
       #   size = uiFonts.sizes.terminal;
@@ -967,6 +979,7 @@ in {
   home.packages = with pkgs; [
     (mkThemeSwitchScript "light")
     (mkThemeSwitchScript "dark")
+    nrsScript
     # command line fu
     # https://github.com/ibraheemdev/modern-unix
     tmux
@@ -988,7 +1001,6 @@ in {
     pamixer # control pulseaudio via cli / keybindings
     fd # find files by filename, alternative to `find`
     tldr # quick command examples
-    comma # run nix packages without installing them
     speedtest-cli
     gh # github cli
     autorandr # automatic monitor profiles
@@ -1024,6 +1036,8 @@ in {
     pulsemixer # audio mixer tui
     bluetuith # bluetooth tui
     nethogs # network traffic monitor per process
+    yt-dlp # download youtube videos
+    flyctl # fly.io command line tool
 
     networkmanagerapplet
     xcwd # returns current directory of x application, used to spawn new termanals in the current directory: ~/bin/xcwd-home

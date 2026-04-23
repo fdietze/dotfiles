@@ -70,6 +70,9 @@
           {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
+            home-manager.sharedModules = [
+              nix-index-database.homeModules.nix-index
+            ];
             home-manager.users.felix = ./hosts/gurke/home.nix;
           }
 

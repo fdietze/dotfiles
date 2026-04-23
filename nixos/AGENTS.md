@@ -18,11 +18,12 @@
 - if a `src.outPath` store path is not realized or readable, inspect the pinned nixpkgs source tree and the installed runtime files under `/run/current-system/sw` or `/etc/profiles/per-user/...` instead
 - for live desktop investigations, prefer checking the actually installed runtime files and session state, not just the derivation metadata
 - if desktop debugging touches live GNOME session state, expect `gnome-extensions`, `dconf`, and `/run/user/*` access to require escalation
-  - If a nix let binding is reused across the whole module, keep it in the top-level let.
-  - If it is only used by one option block, move it into a local let right above that
-    block.
-  - Prefer the narrowest scope that still keeps the code readable.
-  - for refactorings, use nvd to verify that the generated nix code is exactly the same before and after and only shows the desired changes.
+- If a nix let binding is reused across the whole module, keep it in the top-level let.
+- If it is only used by one option block, move it into a local let right above that
+block.
+- Prefer the narrowest scope that still keeps the code readable.
+- for refactorings, use nvd to verify that the generated nix code is exactly the same before and after and only shows the desired changes.
+- to know how other people configure something, search their dotfiles on github. Use corresponding file path and language where appropriate.
 
 configuration entrypoints:
 - flake.nix # nixos flake

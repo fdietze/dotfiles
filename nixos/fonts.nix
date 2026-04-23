@@ -1,6 +1,4 @@
 {pkgs}: {
-  dpi = 210;
-
   serif = {
     package = pkgs.noto-fonts;
     name = "Noto Serif";
@@ -23,8 +21,8 @@
 
   sizes = {
     applications = 12;
-    desktop = 12;
-    popups = 30;
+    desktop = 13;
+    popups = 14;
     terminal = 17;
   };
 }

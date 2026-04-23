@@ -48,10 +48,9 @@
         lineNumberMode = "number";
         clipboard = {
           enable = true;
-          providers.xclip.enable = true;
-          providers.wl-copy.enable = true;
           registers = "unnamedplus";
         };
+        globals.clipboard = "osc52";
 
         lsp = {
           enable = true;
@@ -257,8 +256,8 @@
           softtabstop = 2;
           scrolloff = 8;
           gdefault = true;
-          # listchars = "tab:⊳ ,trail:·";
-          # virtualedit = "block,onemore";
+          listchars = "tab:⊳ ,trail:·";
+          virtualedit = "block,onemore";
           # startofline = false;
           # wrap = true;
           # linebreak = true;

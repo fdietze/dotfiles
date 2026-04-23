@@ -8,22 +8,37 @@
 }: let
   breezyBinHome = "/run/current-system/sw/bin";
   switchToConfigurationCommand = desktop: mode: "/nix/var/nix/profiles/system/specialisation/${desktop}-${mode}/bin/switch-to-configuration switch";
-  allowedSudoCommands =
-    [
-      (switchToConfigurationCommand "gnome" "light")
-      (switchToConfigurationCommand "gnome" "dark")
-      (switchToConfigurationCommand "herbstluftwm" "light")
-      (switchToConfigurationCommand "herbstluftwm" "dark")
-      "/home/felix/bin/topioread"
-      "/home/felix/bin/topiowrite"
-      "/run/current-system/sw/bin/cpupower frequency-set -u 400MHz"
-      "/run/current-system/sw/bin/cpupower frequency-set -u 800MHz"
-      "/run/current-system/sw/bin/cpupower frequency-set -u 2GHz"
-      "/run/current-system/sw/bin/cpupower frequency-set -u 3GHz"
-      "/run/current-system/sw/bin/cpupower frequency-set -u 4GHz"
-      "/run/current-system/sw/bin/cpupower frequency-set -g powersave"
-      "/run/current-system/sw/bin/cpupower frequency-set -g performance"
-    ];
+  mkDesktopSpecialisation = {
+    desktop,
+    theme,
+    extraConfig ? {},
+  }: let
+    name = "${desktop}-${theme}";
+  in
+    lib.nameValuePair name {
+      configuration =
+        {
+          my = {
+            inherit desktop theme;
+          };
+        }
+        // extraConfig;
+    };
+  allowedSudoCommands = [
+    (switchToConfigurationCommand "gnome" "light")
+    (switchToConfigurationCommand "gnome" "dark")
+    (switchToConfigurationCommand "herbstluftwm" "light")
+    (switchToConfigurationCommand "herbstluftwm" "dark")
+    "/home/felix/bin/topioread"
+    "/home/felix/bin/topiowrite"
+    "/run/current-system/sw/bin/cpupower frequency-set -u 400MHz"
+    "/run/current-system/sw/bin/cpupower frequency-set -u 800MHz"
+    "/run/current-system/sw/bin/cpupower frequency-set -u 2GHz"
+    "/run/current-system/sw/bin/cpupower frequency-set -u 3GHz"
+    "/run/current-system/sw/bin/cpupower frequency-set -u 4GHz"
+    "/run/current-system/sw/bin/cpupower frequency-set -g powersave"
+    "/run/current-system/sw/bin/cpupower frequency-set -g performance"
+  ];
   lightBase16Scheme = {
     # sabuni
     base00 = "ffffff"; # bg (from primary.background)
@@ -91,7 +106,6 @@ in {
   boot = {
     # kernelPackages = pkgs.linuxPackages_zen;
     kernelParams = [
-      "i915.enable_psr=0" # disable PSR to prevent screen freezes
       "kvm.enable_virt_at_load=0" # fix virtualbox
       "usbcore.autosuspend=-1" # Disable USB autosuspend globally to prevent issues with powertop
       # "zswap.enabled=1" # enables zswap
@@ -100,6 +114,7 @@ in {
     ]; # https://github.com/NixOS/nixpkgs/issues/363887
     # Use the systemd-boot EFI boot loader.
     loader.systemd-boot.enable = true;
+    loader.timeout = null; # Show the boot menu until a specialization is chosen.
     loader.efi.canTouchEfiVariables = true;
     supportedFilesystems = [
       "ntfs"
@@ -159,14 +174,16 @@ in {
   security = {
     sudo = {
       enable = true;
-      wheelNeedsPassword = true;
+      wheelNeedsPassword = false;
       extraRules = [
         {
           users = ["felix"];
-          commands = map (command: {
-            inherit command;
-            options = ["NOPASSWD"];
-          }) allowedSudoCommands;
+          commands =
+            map (command: {
+              inherit command;
+              options = ["NOPASSWD"];
+            })
+            allowedSudoCommands;
         }
       ];
     };
@@ -375,7 +392,6 @@ in {
   };
   programs.dconf.enable = true; # useful for: blueman-applet, ...
   programs.iotop.enable = true;
-  programs.nix-index-database.comma.enable = true;
 
   services.libinput = {
     enable = true;
@@ -446,6 +462,15 @@ in {
     theme = lib.mkDefault "dark";
   };
 
+  system.activationScripts."current-specialisation" = ''
+    mkdir -p /run/nixos
+    printf '%s\n' ${lib.escapeShellArg (
+      if config.isSpecialisation
+      then "${config.my.desktop}-${config.my.theme}"
+      else ""
+    )} > /run/nixos/current-specialisation
+  '';
+
   home-manager.extraSpecialArgs = {
     desktop = config.my.desktop;
     theme = config.my.theme;
@@ -453,42 +478,37 @@ in {
     inherit uiFonts;
   };
 
-  specialisation."gnome-dark".configuration = {
-    my = {
+  specialisation = lib.listToAttrs [
+    (mkDesktopSpecialisation {
       desktop = "gnome";
       theme = "dark";
-    };
-  };
-
-  specialisation."gnome-light".configuration = {
-    my = {
+    })
+    (mkDesktopSpecialisation {
       desktop = "gnome";
       theme = "light";
-    };
-    stylix = {
-      polarity = lib.mkForce "light";
-      # base16Scheme = lib.mkForce "${pkgs.base16-schemes}/share/themes/catppuccin-latte.yaml";
-      base16Scheme = lightBase16Scheme;
-    };
-  };
-
-  specialisation."herbstluftwm-dark".configuration = {
-    my = {
+      extraConfig = {
+        stylix = {
+          polarity = lib.mkForce "light";
+          # base16Scheme = lib.mkForce "${pkgs.base16-schemes}/share/themes/catppuccin-latte.yaml";
+          base16Scheme = lightBase16Scheme;
+        };
+      };
+    })
+    (mkDesktopSpecialisation {
       desktop = "herbstluftwm";
       theme = "dark";
-    };
-  };
-
-  specialisation."herbstluftwm-light".configuration = {
-    my = {
+    })
+    (mkDesktopSpecialisation {
       desktop = "herbstluftwm";
       theme = "light";
-    };
-    stylix = {
-      polarity = lib.mkForce "light";
-      base16Scheme = lightBase16Scheme;
-    };
-  };
+      extraConfig = {
+        stylix = {
+          polarity = lib.mkForce "light";
+          base16Scheme = lightBase16Scheme;
+        };
+      };
+    })
+  ];
 
   # Start the driver at boot
   systemd.services.fprintd = {
