@@ -39,6 +39,26 @@
     "/run/current-system/sw/bin/cpupower frequency-set -g powersave"
     "/run/current-system/sw/bin/cpupower frequency-set -g performance"
   ];
+
+  darkBase16Scheme = {
+    # tokyo-night-moon
+    base00 = "222436"; # bg
+    base01 = "2f334d"; # bg_highlight
+    base02 = "2d3f76"; # bg_visual
+    base03 = "636da6"; # comment
+    base04 = "828bb8"; # fg_dark
+    base05 = "c8d3f5"; # fg
+    base06 = "c8d3f5"; # fg (reused)
+    base07 = "c8d3f5"; # terminal.white_bright
+    base08 = "ff757f"; # red
+    base09 = "ff966c"; # orange
+    base0A = "ffc777"; # yellow
+    base0B = "c3e88d"; # green
+    base0C = "86e1fc"; # cyan
+    base0D = "82aaff"; # blue
+    base0E = "c099ff"; # magenta
+    base0F = "4fd6be"; # teal
+  };
   lightBase16Scheme = {
     # sabuni
     base00 = "ffffff"; # bg (from primary.background)
@@ -404,7 +424,8 @@ in {
     };
   };
 
-  stylix = {
+  stylix = let
+  in {
     # https://stylix.danth.me/index.html
     enable = true;
     autoEnable = true;
@@ -433,25 +454,7 @@ in {
         terminal = uiFonts.sizes.terminal;
       };
     };
-    base16Scheme = {
-      # tokyo-night-moon
-      base00 = "222436"; # bg
-      base01 = "2f334d"; # bg_highlight
-      base02 = "2d3f76"; # bg_visual
-      base03 = "636da6"; # comment
-      base04 = "828bb8"; # fg_dark
-      base05 = "c8d3f5"; # fg
-      base06 = "c8d3f5"; # fg (reused)
-      base07 = "c8d3f5"; # terminal.white_bright
-      base08 = "ff757f"; # red
-      base09 = "ff966c"; # orange
-      base0A = "ffc777"; # yellow
-      base0B = "c3e88d"; # green
-      base0C = "86e1fc"; # cyan
-      base0D = "82aaff"; # blue
-      base0E = "c099ff"; # magenta
-      base0F = "4fd6be"; # teal
-    };
+    base16Scheme = darkBase16Scheme;
     # targets = {
     #   console.enable = true;
     #   gtk.enable = true;

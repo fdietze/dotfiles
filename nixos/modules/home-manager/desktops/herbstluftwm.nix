@@ -140,7 +140,7 @@ in
     };
 
     services.picom = {
-      enable = true;
+      enable = false; # if tearing, re-enable
       backend = "glx";
       vSync = true;
     };

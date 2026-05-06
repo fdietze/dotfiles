@@ -24,6 +24,7 @@ block.
 - Prefer the narrowest scope that still keeps the code readable.
 - for refactorings, use nvd to verify that the generated nix code is exactly the same before and after and only shows the desired changes.
 - to know how other people configure something, search their dotfiles on github. Use corresponding file path and language where appropriate.
+- if you found a good reference or documentation for the task at hand, add a comment in the code referring to that documentation for future quick retreival
 
 configuration entrypoints:
 - flake.nix # nixos flake

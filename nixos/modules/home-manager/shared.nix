@@ -3,7 +3,7 @@
   config,
   lib,
   pkgs,
-  desktop ? "gnome",
+  desktop,
   theme,
   uiFonts,
   ...
@@ -211,10 +211,10 @@ in {
     feh = "feh --auto-zoom --scale-down";
     im = ''
       ${pkgs.feh}/bin/feh --fullscreen --auto-zoom --sort mtime \
-              --action '${pkgs.trashy}/bin/trash put %F' \
-              --action1 'mkdir -p 1; mv %F 1/' \
-              --action2 'mkdir -p 2; mv %F 2/' \
-              --action3 'mkdir -p 3; mv %F 3/' \
+              --action '${pkgs.trashy}/bin/trash put %F && ${pkgs.libnotify}/bin/notify-send -a feh -t 1500 "Trashed" "%n"' \
+              --action1 ';mkdir -p 1 && cp %F 1/ && ${pkgs.libnotify}/bin/notify-send -a feh -t 1500 "Copied to 1" "%n"' \
+              --action2 ';mkdir -p 2 && cp %F 2/ && ${pkgs.libnotify}/bin/notify-send -a feh -t 1500 "Copied to 2" "%n"' \
+              --action3 ';mkdir -p 3 && cp %F 3/ && ${pkgs.libnotify}/bin/notify-send -a feh -t 1500 "Copied to 3" "%n"' \
     '';
     zed = "sec && ${pkgs.zed-editor}/bin/zeditor";
     # gemini = "sec && gemini";
@@ -245,7 +245,7 @@ in {
     tg = "tree-git";
     vv = ''$EDITOR "$HOME"/nixos/home/nvf.nix'';
     vn = ''$EDITOR "$HOME"/nixos/configuration.nix'';
-    vh = ''$EDITOR "$HOME"/nixos/home.nix'';
+    vh = ''$EDITOR "$HOME"/nixos/hosts/gurke/home.nix'';
     vb = ''$EDITOR "$HOME"/.config/polybar/config.ini'';
     nrs = "${nrsScript}/bin/nrs";
     ns = "nix-shell --run zsh";
@@ -316,6 +316,7 @@ in {
       gnome.enable = desktop == "gnome";
       qt.enable = true;
       alacritty.enable = true;
+      firefox.enable = true;
     };
   };
 
