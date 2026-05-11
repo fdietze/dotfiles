@@ -88,6 +88,14 @@ in {
   nixpkgs.config.permittedInsecurePackages = [
     # add some here whenever needed
   ];
+  nixpkgs.overlays = [
+    (_: prev: {
+      openldap = prev.openldap.overrideAttrs (oldAttrs: {
+        # https://github.com/NixOS/nixpkgs/issues/514113
+        doCheck = (oldAttrs.doCheck or true) && !prev.stdenv.hostPlatform.isi686;
+      });
+    })
+  ];
 
   system.autoUpgrade.enable = false;
   nix = {
@@ -322,7 +330,13 @@ in {
     # powerOnBoot = false;
     settings.General.Experimental = true; # bluetooth battery percentage
   };
-  services.blueman.enable = true;
+  services.blueman = {
+    enable = true;
+    # Home Manager owns blueman-applet.service. If NixOS also starts the applet,
+    # systemd merges duplicate ExecStart= entries; systemd.service(5) only
+    # allows that for Type=oneshot.
+    withApplet = false;
+  };
 
   security.rtkit.enable = true; # allows certain user-level processes to run with real-time priorities, good for media editing and playing
   services.pipewire = {
