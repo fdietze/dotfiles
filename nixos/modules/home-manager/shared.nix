@@ -27,6 +27,7 @@
 
       sudo ${switchToConfigurationPath mode} switch
       ${pkgs.systemd}/bin/systemctl --user daemon-reload
+      ${pkgs.systemd}/bin/systemctl --user stop theme-light.target theme-dark.target || true
       exec ${pkgs.systemd}/bin/systemctl --user start theme-${mode}.target
     '';
   wallpaperTarget = mode:

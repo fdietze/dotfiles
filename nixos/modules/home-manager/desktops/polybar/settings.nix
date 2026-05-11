@@ -1,4 +1,197 @@
 {
+  lib,
+  pkgs,
+  ...
+}:
+let
+  awk = lib.getExe pkgs.gawk;
+  coreutils = "${pkgs.coreutils}/bin";
+  cpupower = "${pkgs.linuxPackages.cpupower}/bin/cpupower";
+  docker = lib.getExe pkgs.docker;
+  grep = lib.getExe pkgs.gnugrep;
+  herbstclient = "${pkgs.herbstluftwm}/bin/herbstclient";
+  pavucontrol = lib.getExe pkgs.pavucontrol;
+  ping = "${pkgs.iputils}/bin/ping";
+  sed = lib.getExe pkgs.gnused;
+  sudo = "/run/wrappers/bin/sudo";
+  timew = lib.getExe pkgs.timewarrior;
+  xdotool = lib.getExe pkgs.xdotool;
+
+  hlwmTags = pkgs.writeShellApplication {
+    name = "polybar-hlwm-tags";
+    runtimeInputs = [
+      pkgs.coreutils
+      pkgs.herbstluftwm
+    ];
+    text = ''
+      hc() { herbstclient "$@"; }
+      monitor="''${1:-0}"
+
+      default_bg="''${BAR_TAG_DEFAULT_BG:-''${BAR_BG:-#282A2E}}"
+      default_fg="''${BAR_FG:-#00FF00}"
+      empty_fg="''${BAR_TAG_EMPTY_FG:-''${BAR_FG_ALT:-#999999}}"
+      used_fg="''${BAR_TAG_USED_FG:-''${BAR_FG:-#00FF00}}"
+      selected_fg="''${BAR_TAG_SELECTED_FG:-''${BAR_BG:-#282A2E}}"
+      urgent_bg="''${BAR_TAG_URGENT_BG:-''${BAR_WARN:-#e60053}}"
+      focus_bg="''${BAR_TAG_FOCUS_BG:-''${BAR_PEAK:-#FFD9C1}}"
+      focus_other_bg="''${BAR_TAG_FOCUS_OTHER_BG:-''${BAR_FG_ALT:-#999999}}"
+      unfocus_bg="''${BAR_TAG_UNFOCUS_BG:-''${BAR_FG_ALT:-#999999}}"
+      unfocus_other_bg="''${BAR_TAG_UNFOCUS_OTHER_BG:-''${BAR_BG:-#282A2E}}"
+
+      tag_status() {
+        IFS=$'\t' read -ra tags <<< "$(hc tag_status "$monitor")"
+
+        for i in "''${tags[@]}"; do
+          case ''${i:0:1} in
+            '#')
+              echo -n "%{B$focus_bg F$selected_fg}"
+              ;;
+            '-')
+              echo -n "%{B$focus_other_bg F$used_fg}"
+              ;;
+            '+')
+              echo -n "%{B$unfocus_bg F$used_fg}"
+              ;;
+            '%')
+              echo -n "%{B$unfocus_other_bg F$used_fg}"
+              ;;
+            '!')
+              echo -n "%{B$urgent_bg F$used_fg}"
+              ;;
+            ':')
+              echo -n "%{B$default_bg F$used_fg}"
+              ;;
+            *)
+              echo -n "%{B$default_bg F$empty_fg}"
+              ;;
+          esac
+          echo -n " ''${i:1} "
+        done
+        echo "%{B$default_bg F$default_fg}"
+      }
+
+      {
+        echo "tag_changed"
+        hc --idle
+      } | while read -r action rest; do
+        case "$action" in
+          tag*)
+            tag_status
+            ;;
+        esac
+      done
+    '';
+  };
+
+  topProcess = pkgs.writeShellApplication {
+    name = "polybar-topprocess";
+    runtimeInputs = [
+      pkgs.gawk
+      pkgs.gnugrep
+      pkgs.procps
+    ];
+    text = ''
+      top -d 5 -b \
+        | grep "PID USER" -A 1 --line-buffered \
+        | grep -v "\-\-\|PID USER" --line-buffered \
+        | awk '{print ($9>10) ? $12 : ""; system("")}'
+    '';
+  };
+
+  topIoRead = pkgs.writeShellApplication {
+    name = "polybar-topioread";
+    runtimeInputs = [
+      pkgs.gawk
+      pkgs.gnugrep
+      pkgs.iotop
+    ];
+    text = ''
+      iotop -d 10 -ob \
+        | grep -v grep \
+        | grep --line-buffered 'Total DISK' \
+        | awk '{print $5,$6; system("")}'
+    '';
+  };
+
+  topIoWrite = pkgs.writeShellApplication {
+    name = "polybar-topiowrite";
+    runtimeInputs = [
+      pkgs.gawk
+      pkgs.gnugrep
+      pkgs.iotop
+    ];
+    text = ''
+      iotop -d 10 -ob \
+        | grep -v grep \
+        | grep --line-buffered 'Total DISK' \
+        | awk '{print $12,$13; system("")}'
+    '';
+  };
+
+  ioRead = pkgs.writeShellApplication {
+    name = "polybar-ioread";
+    runtimeInputs = [ pkgs.gnused ];
+    text = ''
+      ${sudo} ${lib.getExe topIoRead} \
+        | sed --unbuffered 's/^\(.*[MG]\/s.*\)$/%{F'"''${BAR_PEAK}"'}\1%{F-}/' \
+        | sed --unbuffered 's/^\(.*[^MG]\/s.*\)$/%{F'"''${BAR_FG}"'}\1%{F-}/'
+    '';
+  };
+
+  ioWrite = pkgs.writeShellApplication {
+    name = "polybar-iowrite";
+    runtimeInputs = [ pkgs.gnused ];
+    text = ''
+      ${sudo} ${lib.getExe topIoWrite} \
+        | sed --unbuffered 's/^\(.*[MG]\/s.*\)$/%{F'"''${BAR_PEAK}"'}\1%{F-}/' \
+        | sed --unbuffered 's/^\(.*[^MG]\/s.*\)$/%{F'"''${BAR_FG}"'}\1%{F-}/'
+    '';
+  };
+
+  humanDuration = pkgs.writeShellApplication {
+    name = "polybar-human-duration";
+    runtimeInputs = [ pkgs.gnused ];
+    text = ''
+      dur_to_dateadd() {
+        sed -E '
+          /^P/!{
+            s/.*/ERROR: Invalid input - it has to start with P: "&"/
+            q1
+          }
+          s/^P//
+          s/$/\x01/
+          s/^([0-9]*([,.][0-9]*)?)Y(.*)/\3\1year /
+          s/^([0-9]*([,.][0-9]*)?)M(.*)/\3\1month /
+          s/^([0-9]*([,.][0-9]*)?)D(.*)/\3\1day /
+          /^T/{
+            s///
+            s/^([0-9]*([,.][0-9]*)?)H(.*)/\3\1h /
+            s/^([0-9]*([,.][0-9]*)?)M(.*)/\3\1m/
+            s/^([0-9]*([,.][0-9]*)?)S(.*)/\3/
+          }
+          /^\x01/!{
+            s/\x01.*//
+            s/.*/ERROR: Unparsable input: "&"/
+            q1
+          }
+          s///
+          s/,/./g
+        ' <<< "$1"
+      }
+
+      dur_to_dateadd "$1"
+    '';
+  };
+
+  timewarriorStatus = pkgs.writeShellApplication {
+    name = "polybar-timewarrior";
+    runtimeInputs = [ pkgs.timewarrior ];
+    text = ''
+      echo "$(timew get dom.active.tags.1) $(${lib.getExe humanDuration} "$(timew get dom.active.duration)")"
+    '';
+  };
+in
+{
   # Generated from the previous Polybar INI. Home Manager documents
   # services.polybar.settings as the Nix-native form for Polybar config.
   "bar/default" = {
@@ -90,21 +283,21 @@
 
   "module/hlwm-tags" = {
     "type" = "custom/script";
-    "exec" = "/home/felix/.config/herbstluftwm/tags.sh \${MONITOR_HLWM:-0}";
-    "exec-if" = "herbstclient version";
+    "exec" = "${lib.getExe hlwmTags} \${MONITOR_HLWM:-0}";
+    "exec-if" = "${herbstclient} version";
     "tail" = true;
   };
 
   "module/workspaces-xmonad" = {
     "type" = "custom/script";
-    "exec" = "tail -F /tmp/.xmonad-workspace-log";
-    "exec-if" = "[ -a /tmp/.xmonad-workspace-log ]";
+    "exec" = "${coreutils}/tail -F /tmp/.xmonad-workspace-log";
+    "exec-if" = "${coreutils}/test -a /tmp/.xmonad-workspace-log";
     "tail" = true;
   };
 
   "module/xwindow" = {
     "type" = "internal/xwindow";
-    "label" = "%{A2:xdotool getwindowfocus windowkill:}%title:0:49:...%%{A}";
+    "label" = "%{A2:${xdotool} getwindowfocus windowkill:}%title:0:49:...%%{A}";
   };
 
   "module/cpu" = {
@@ -125,7 +318,7 @@
 
   "module/process" = {
     "type" = "custom/script";
-    "exec" = "~/bin/topprocess";
+    "exec" = lib.getExe topProcess;
     "tail" = true;
     "format-foreground" = "\${env:BAR_PEAK:#FFD9C1}";
     "format-font" = 2;
@@ -133,19 +326,18 @@
 
   "module/docker" = {
     "type" = "custom/script";
-    "exec" = "docker ps -q | wc -l";
-    "exec-if" = "[ -n \"$(docker ps -q)\" ]";
+    "exec" = "${docker} ps -q | ${coreutils}/wc -l";
+    "exec-if" = "[ -n \"$(${docker} ps -q)\" ]";
     "interval" = 10;
     "format-prefix" = "docker ";
     "format-prefix-foreground" = "\${colors.foreground-alt}";
     "format-foreground" = "\${env:BAR_PEAK:#FFD9C1}";
-    "click-middle" = "docker stop $(docker ps -qa)";
+    "click-middle" = "${docker} stop $(${docker} ps -qa)";
   };
 
   "module/ioread" = {
     "type" = "custom/script";
-    "exec" =
-      "/usr/bin/env bash -c \"sudo ~/bin/topioread | sed --unbuffered 's/^\\\\(.*[MG]\\\\/s.*\\\\)$/%{F\${BAR_PEAK}}\\\\1%{F-}/' | sed --unbuffered 's/^\\\\(.*[^MG]\\\\/s.*\\\\)$/%{F\${BAR_FG}}\\\\1%{F-}/'\"";
+    "exec" = lib.getExe ioRead;
     "tail" = true;
     "label" = "%output:27%";
     "format-prefix" = "ioread ";
@@ -154,8 +346,7 @@
 
   "module/iowrite" = {
     "type" = "custom/script";
-    "exec" =
-      "/usr/bin/env bash -c \"sudo ~/bin/topiowrite | sed --unbuffered 's/^\\\\(.*[MG]\\\\/s.*\\\\)$/%{F\${BAR_PEAK}}\\\\1%{F-}/' | sed --unbuffered 's/^\\\\(.*[^MG]\\\\/s.*\\\\)$/%{F\${BAR_FG}}\\\\1%{F-}/'\"";
+    "exec" = lib.getExe ioWrite;
     "tail" = true;
     "label" = "%output:27%";
     "format-prefix" = "iowrite ";
@@ -169,24 +360,24 @@
     "label-close" = "x";
     "label-separator" = " | ";
     "menu-0-0" = "400MHz";
-    "menu-0-0-exec" = "sudo cpupower frequency-set -u 400MHz";
+    "menu-0-0-exec" = "${sudo} ${cpupower} frequency-set -u 400MHz";
     "menu-0-1" = "800MHz";
-    "menu-0-1-exec" = "sudo cpupower frequency-set -u 800MHz";
+    "menu-0-1-exec" = "${sudo} ${cpupower} frequency-set -u 800MHz";
     "menu-0-2" = "2GHz";
-    "menu-0-2-exec" = "sudo cpupower frequency-set -u 2GHz";
+    "menu-0-2-exec" = "${sudo} ${cpupower} frequency-set -u 2GHz";
     "menu-0-3" = "3GHz";
-    "menu-0-3-exec" = "sudo cpupower frequency-set -u 3GHz";
+    "menu-0-3-exec" = "${sudo} ${cpupower} frequency-set -u 3GHz";
     "menu-0-4" = "4GHz";
-    "menu-0-4-exec" = "sudo cpupower frequency-set -u 4GHz";
+    "menu-0-4-exec" = "${sudo} ${cpupower} frequency-set -u 4GHz";
     "menu-0-5" = "powersave";
-    "menu-0-5-exec" = "sudo cpupower frequency-set -g powersave";
+    "menu-0-5-exec" = "${sudo} ${cpupower} frequency-set -g powersave";
     "menu-0-6" = "performance";
-    "menu-0-6-exec" = "sudo cpupower frequency-set -g performance";
+    "menu-0-6-exec" = "${sudo} ${cpupower} frequency-set -g performance";
   };
 
   "module/cpufreq" = {
     "type" = "custom/script";
-    "exec" = "cpupower frequency-info -fm | grep -oP '(?<=frequency: )([^ ]+ [^ ]+)'";
+    "exec" = "${cpupower} frequency-info -fm | ${grep} -oP '(?<=frequency: )([^ ]+ [^ ]+)'";
     "label" = "%output:8...%";
     "interval" = 5;
     "click-left" = "#freqmenu.open.0";
@@ -258,7 +449,7 @@
 
   "module/ping" = {
     "type" = "custom/script";
-    "exec" = "ping -i 60 8.8.8.8 | awk -F 'time=' '/time=/ {print $2}'";
+    "exec" = "${ping} -i 60 8.8.8.8 | ${awk} -F 'time=' '/time=/ {print $2}'";
     "tail" = true;
     "label" = "%output:7%";
     "format-prefix" = "ping ";
@@ -267,7 +458,7 @@
 
   "module/volume" = {
     "type" = "internal/alsa";
-    "format-prefix" = "%{A1:pavucontrol &:}vol%{A} ";
+    "format-prefix" = "%{A1:${pavucontrol} &:}vol%{A} ";
     "format-prefix-foreground" = "\${colors.foreground-alt}";
     "format-volume-prefix" = "\${self.format-prefix}";
     "format-muted-prefix" = "\${self.format-prefix}";
@@ -316,9 +507,8 @@
 
   "module/timewarrior" = {
     "type" = "custom/script";
-    "exec" =
-      "echo \"$(timew get dom.active.tags.1) $(~/bin/human-duration $(timew get dom.active.duration))\"";
-    "exec-if" = "[ $(timew get dom.active) == 1 ]";
+    "exec" = lib.getExe timewarriorStatus;
+    "exec-if" = "[ \"$(${timew} get dom.active)\" = 1 ]";
     "interval" = 10;
     "format-prefix" = "tw ";
     "format-prefix-foreground" = "\${colors.foreground-alt}";

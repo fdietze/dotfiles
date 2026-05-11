@@ -14,18 +14,7 @@ let
   polybarRuntimePath = lib.makeBinPath [
     pkgs.bash
     pkgs.coreutils
-    pkgs.docker
-    pkgs.gawk
-    pkgs.gnugrep
-    pkgs.gnused
-    pkgs.herbstluftwm
-    pkgs.iotop
-    pkgs.iputils
-    pkgs.linuxPackages.cpupower
     pkgs.polybar
-    pkgs.procps
-    pkgs.timewarrior
-    pkgs.xdotool
   ];
   hlwmColors = {
     barBg = withHash stylixPalette.base00;
@@ -35,8 +24,18 @@ let
     barPeak = withHash stylixPalette.base0B;
     borderNormal = if theme == "light" then "#E8E9F2" else "#171717";
     borderFocused = withHash stylixPalette.base0B;
+    tagDefaultBg = withHash stylixPalette.base00;
+    tagEmptyFg =
+      if theme == "light" then withHash stylixPalette.base02 else withHash stylixPalette.base03;
+    tagUsedFg = withHash stylixPalette.base05;
+    tagSelectedFg = withHash stylixPalette.base00;
+    tagUrgentBg = withHash stylixPalette.base08;
+    tagFocusBg = withHash stylixPalette.base0B;
+    tagFocusOtherBg = withHash stylixPalette.base02;
+    tagUnfocusBg = withHash stylixPalette.base01;
+    tagUnfocusOtherBg = withHash stylixPalette.base00;
   };
-  polybarSettings = import ./polybar/settings.nix;
+  polybarSettings = import ./polybar/settings.nix { inherit lib pkgs; };
   themeSwitchCommand = mode: "${config.home.profileDirectory}/bin/theme-${mode}";
   applyHlwmTheme = pkgs.writeShellScript "apply-hlwm-theme-${theme}" ''
     #!${pkgs.bash}/bin/bash
@@ -63,9 +62,27 @@ let
     $hc attr theme.urgent.color orange
     $hc attr theme.urgent.title_color ${lib.escapeShellArg hlwmColors.barBg}
   '';
-  restartPolybar = pkgs.writeShellScript "restart-polybar-${theme}" ''
+  runPolybar = pkgs.writeShellScript "run-polybar-${theme}" ''
     #!${pkgs.bash}/bin/bash
     set -euo pipefail
+
+    polybar_pids=()
+
+    stop_privileged_helpers() {
+      /run/wrappers/bin/sudo ${pkgs.procps}/bin/pkill -f 'polybar-topioread|polybar-topiowrite|[.]iotop-wrapped -d 10 -ob' 2>/dev/null || true
+    }
+
+    stop_polybars() {
+      if [ "''${#polybar_pids[@]}" -gt 0 ]; then
+        ${pkgs.coreutils}/bin/kill "''${polybar_pids[@]}" 2>/dev/null || true
+        stop_privileged_helpers
+        wait "''${polybar_pids[@]}" 2>/dev/null || true
+      else
+        stop_privileged_helpers
+      fi
+    }
+
+    trap 'stop_polybars; exit 0' INT TERM
 
     export BAR_BG=${lib.escapeShellArg hlwmColors.barBg}
     export BAR_FG=${lib.escapeShellArg hlwmColors.barFg}
@@ -77,9 +94,15 @@ let
     export BAR_RAMP_WARN_0="%{F$BAR_WARN}▁%{F-}"
     export BAR_RAMP_WARN_1="%{F$BAR_WARN}▂%{F-}"
     export BAR_HEIGHT=24
-
-    ${pkgs.procps}/bin/pkill -x polybar || true
-    ${pkgs.coreutils}/bin/sleep 1
+    export BAR_TAG_DEFAULT_BG=${lib.escapeShellArg hlwmColors.tagDefaultBg}
+    export BAR_TAG_EMPTY_FG=${lib.escapeShellArg hlwmColors.tagEmptyFg}
+    export BAR_TAG_USED_FG=${lib.escapeShellArg hlwmColors.tagUsedFg}
+    export BAR_TAG_SELECTED_FG=${lib.escapeShellArg hlwmColors.tagSelectedFg}
+    export BAR_TAG_URGENT_BG=${lib.escapeShellArg hlwmColors.tagUrgentBg}
+    export BAR_TAG_FOCUS_BG=${lib.escapeShellArg hlwmColors.tagFocusBg}
+    export BAR_TAG_FOCUS_OTHER_BG=${lib.escapeShellArg hlwmColors.tagFocusOtherBg}
+    export BAR_TAG_UNFOCUS_BG=${lib.escapeShellArg hlwmColors.tagUnfocusBg}
+    export BAR_TAG_UNFOCUS_OTHER_BG=${lib.escapeShellArg hlwmColors.tagUnfocusOtherBg}
 
     echo "Polybar launch script started at $(${pkgs.coreutils}/bin/date)" > /tmp/polybar_launch.log
 
@@ -102,6 +125,7 @@ let
       export MONITOR_HLWM=$(${pkgs.coreutils}/bin/cut -d" " -f1 <<<"$PRIMARY")
       echo "Starting polybar on primary monitor '$PRIMARY' -> HLWM: $MONITOR_HLWM, Polybar: $MONITOR" >> /tmp/polybar_launch.log
       ${pkgs.polybar}/bin/polybar >> /tmp/polybar_launch.log 2>&1 &
+      polybar_pids+=("$!")
     else
       echo "No primary monitor found by script. Not starting Polybar on primary." >> /tmp/polybar_launch.log
     fi
@@ -117,9 +141,17 @@ let
       export MONITOR_HLWM=$(${pkgs.coreutils}/bin/cut -d" " -f1 <<<"$monitor")
       echo "Starting polybar on other monitor '$monitor' -> HLWM: $MONITOR_HLWM, Polybar: $MONITOR" >> /tmp/polybar_launch.log
       ${pkgs.polybar}/bin/polybar >> /tmp/polybar_launch.log 2>&1 &
+      polybar_pids+=("$!")
     done <<<"$OTHERS"
 
     echo "Polybar launch script finished at $(${pkgs.coreutils}/bin/date)" >> /tmp/polybar_launch.log
+
+    if [ "''${#polybar_pids[@]}" -eq 0 ]; then
+      echo "No Polybar instances were started." >> /tmp/polybar_launch.log
+      exit 1
+    fi
+
+    wait "''${polybar_pids[@]}"
   '';
 in
 lib.mkIf (desktop == "herbstluftwm") {
@@ -172,7 +204,7 @@ lib.mkIf (desktop == "herbstluftwm") {
   };
   systemd.user.services."polybar-${theme}" = {
     Unit = {
-      Description = "Restart Polybar for ${theme} theme";
+      Description = "Polybar for ${theme} theme";
       After = [
         "graphical-session.target"
         "hlwm-${theme}.service"
@@ -180,12 +212,13 @@ lib.mkIf (desktop == "herbstluftwm") {
       PartOf = [ currentThemeTarget ];
     };
     Service = {
-      Type = "oneshot";
-      KillMode = "none";
-      # Temporary workaround until the polybar config is migrated into Nix and
-      # can reference store paths directly instead of relying on a shell PATH.
-      Environment = "PATH=${polybarRuntimePath}:${config.home.homeDirectory}/bin:${config.home.profileDirectory}/bin:/run/wrappers/bin:/run/current-system/sw/bin";
-      ExecStart = "${restartPolybar}";
+      # systemd.kill(5) warns against KillMode=none because child processes
+      # escape the service lifecycle. Keep Polybar in the cgroup instead.
+      Type = "exec";
+      Environment = "PATH=${polybarRuntimePath}:/run/wrappers/bin";
+      ExecStart = "${runPolybar}";
+      Restart = "on-failure";
+      RestartSec = "2s";
     };
     Install.WantedBy = [ currentThemeTarget ];
   };
