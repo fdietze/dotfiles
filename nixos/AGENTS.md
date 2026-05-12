@@ -1,6 +1,6 @@
 - my dotfiles are managed with git where the GIT_DIR is pointing to a bare repo and the WORKTREE is pointing to my home directory. use `gitd` as a drop-in replacement for `git` to manage my dotfiles, for example `gitd status`.
 - the nixos and home manager configurations should be the source of truth
-- when switching the current system, make sure to stay on the same specialization.
+- when switching the current system, make sure to stay on the same specialization. You can simply use the already existing nrs script.
 - automatically read analyze relevant log files and/or run commands like journalctl to get them
 - automatically read relevant man pages
 - you can assume all binaries in the nix store exist when referencing like this: "${pkgs.mypackage}/bin/mycommand"

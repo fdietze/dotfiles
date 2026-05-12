@@ -71,7 +71,7 @@
           enableExtraDiagnostics = true;
 
           nix.enable = true;
-          ts.enable = true;
+          typescript.enable = true;
           json.enable = true;
           typst.enable = true;
           python.enable = true;
@@ -107,7 +107,10 @@
         # mini.indentscope.enable = true;
         utility = {
           # multicursors.enable = true;
-          # surround = true;
+          surround = {
+            enable = true;
+            useVendoredKeybindings = false;
+          };
           snacks-nvim = {
             enable = true;
             setupOpts = {
@@ -122,7 +125,10 @@
           nvim-web-devicons.enable = true;
           nvim-cursorline.enable = true;
         };
-        ui.illuminate.enable = true;
+        ui = {
+          colorizer.enable = true;
+          illuminate.enable = true;
+        };
 
         # minimap = {
         #   minimap-vim.enable = false;

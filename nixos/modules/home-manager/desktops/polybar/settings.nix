@@ -1,6 +1,9 @@
 {
   lib,
   pkgs,
+  polybarColors,
+  uiFonts,
+  garminHeartRateAddress,
   ...
 }:
 let
@@ -16,6 +19,15 @@ let
   sudo = "/run/wrappers/bin/sudo";
   timew = lib.getExe pkgs.timewarrior;
   xdotool = lib.getExe pkgs.xdotool;
+  statusbarFontSize = toString uiFonts.sizes.statusbar;
+  statusbarClockFontSize = toString (uiFonts.sizes.statusbar + 5);
+  statusbarHeight = toString (uiFonts.sizes.statusbar * 2 + 4);
+  statusbarFont =
+    style: offset:
+    "${uiFonts.monospace.name}:style=${style}:size=${statusbarFontSize};${toString offset}";
+  statusbarClockFont =
+    style: offset:
+    "${uiFonts.monospace.name}:style=${style}:size=${statusbarClockFontSize};${toString offset}";
 
   hlwmTags = pkgs.writeShellApplication {
     name = "polybar-hlwm-tags";
@@ -27,16 +39,16 @@ let
       hc() { herbstclient "$@"; }
       monitor="''${1:-0}"
 
-      default_bg="''${BAR_TAG_DEFAULT_BG:-''${BAR_BG:-#282A2E}}"
-      default_fg="''${BAR_FG:-#00FF00}"
-      empty_fg="''${BAR_TAG_EMPTY_FG:-''${BAR_FG_ALT:-#999999}}"
-      used_fg="''${BAR_TAG_USED_FG:-''${BAR_FG:-#00FF00}}"
-      selected_fg="''${BAR_TAG_SELECTED_FG:-''${BAR_BG:-#282A2E}}"
-      urgent_bg="''${BAR_TAG_URGENT_BG:-''${BAR_WARN:-#e60053}}"
-      focus_bg="''${BAR_TAG_FOCUS_BG:-''${BAR_PEAK:-#FFD9C1}}"
-      focus_other_bg="''${BAR_TAG_FOCUS_OTHER_BG:-''${BAR_FG_ALT:-#999999}}"
-      unfocus_bg="''${BAR_TAG_UNFOCUS_BG:-''${BAR_FG_ALT:-#999999}}"
-      unfocus_other_bg="''${BAR_TAG_UNFOCUS_OTHER_BG:-''${BAR_BG:-#282A2E}}"
+      default_bg=${lib.escapeShellArg polybarColors.tagDefaultBg}
+      default_fg=${lib.escapeShellArg polybarColors.foreground}
+      empty_fg=${lib.escapeShellArg polybarColors.tagEmptyFg}
+      used_fg=${lib.escapeShellArg polybarColors.tagUsedFg}
+      selected_fg=${lib.escapeShellArg polybarColors.tagSelectedFg}
+      urgent_bg=${lib.escapeShellArg polybarColors.tagUrgentBg}
+      focus_bg=${lib.escapeShellArg polybarColors.tagFocusBg}
+      focus_other_bg=${lib.escapeShellArg polybarColors.tagFocusOtherBg}
+      unfocus_bg=${lib.escapeShellArg polybarColors.tagUnfocusBg}
+      unfocus_other_bg=${lib.escapeShellArg polybarColors.tagUnfocusOtherBg}
 
       tag_status() {
         IFS=$'\t' read -ra tags <<< "$(hc tag_status "$monitor")"
@@ -133,8 +145,8 @@ let
     runtimeInputs = [ pkgs.gnused ];
     text = ''
       ${sudo} ${lib.getExe topIoRead} \
-        | sed --unbuffered 's/^\(.*[MG]\/s.*\)$/%{F'"''${BAR_PEAK}"'}\1%{F-}/' \
-        | sed --unbuffered 's/^\(.*[^MG]\/s.*\)$/%{F'"''${BAR_FG}"'}\1%{F-}/'
+        | sed --unbuffered 's/^\(.*[MG]\/s.*\)$/%{F${polybarColors.peak}}\1%{F-}/' \
+        | sed --unbuffered 's/^\(.*[^MG]\/s.*\)$/%{F${polybarColors.foreground}}\1%{F-}/'
     '';
   };
 
@@ -143,8 +155,8 @@ let
     runtimeInputs = [ pkgs.gnused ];
     text = ''
       ${sudo} ${lib.getExe topIoWrite} \
-        | sed --unbuffered 's/^\(.*[MG]\/s.*\)$/%{F'"''${BAR_PEAK}"'}\1%{F-}/' \
-        | sed --unbuffered 's/^\(.*[^MG]\/s.*\)$/%{F'"''${BAR_FG}"'}\1%{F-}/'
+        | sed --unbuffered 's/^\(.*[MG]\/s.*\)$/%{F${polybarColors.peak}}\1%{F-}/' \
+        | sed --unbuffered 's/^\(.*[^MG]\/s.*\)$/%{F${polybarColors.foreground}}\1%{F-}/'
     '';
   };
 
@@ -190,6 +202,53 @@ let
       echo "$(timew get dom.active.tags.1) $(${lib.getExe humanDuration} "$(timew get dom.active.duration)")"
     '';
   };
+
+  heartRateStatus =
+    let
+      heartRateScript = ./heart-rate.rs;
+    in
+    pkgs.writeShellApplication {
+      name = "polybar-heart-rate";
+      runtimeInputs = [
+        pkgs.cargo
+        pkgs.coreutils
+        pkgs.gcc
+        pkgs.pkg-config
+        pkgs.rust-script
+        pkgs.rustc
+      ];
+      text = ''
+        log="''${XDG_CACHE_HOME:-$HOME/.cache}/polybar-heart-rate.log"
+        mkdir -p "$(dirname "$log")"
+
+        export PKG_CONFIG_PATH="${pkgs.dbus.dev}/lib/pkgconfig:${pkgs.bluez.dev}/lib/pkgconfig''${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+        export LD_LIBRARY_PATH="${pkgs.dbus.lib}/lib:${pkgs.bluez}/lib''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+
+        while true; do
+          echo ""
+          set +o pipefail
+          rust-script ${heartRateScript} ${lib.escapeShellArg garminHeartRateAddress} 2>>"$log" \
+            | while IFS= read -r bpm; do
+                case "$bpm" in
+                  "" | *[!0-9]*)
+                    ;;
+                  *)
+                    if [ "$bpm" -gt 65 ]; then
+                      echo "%{F${polybarColors.foregroundAlt}}hr %{F-}%{F${polybarColors.warn}}%{T2}$bpm%{T-}%{F-}"
+                    else
+                      echo "%{F${polybarColors.foregroundAlt}}hr %{F-}$bpm"
+                    fi
+                    ;;
+                esac
+              done
+          set -o pipefail
+
+          echo ""
+          printf '%s heart-rate stream stopped, retrying\n' "$(date --iso-8601=seconds)" >> "$log"
+          sleep 10
+        done
+      '';
+    };
 in
 {
   # Generated from the previous Polybar INI. Home Manager documents
@@ -197,17 +256,36 @@ in
   "bar/default" = {
     "monitor" = "\${env:MONITOR:eDP-1}";
     "width" = "100%";
-    "height" = "\${env:BAR_HEIGHT:24}";
+    "height" = statusbarHeight;
     "fixed-center" = false;
     "background" = "\${colors.background}";
     "foreground" = "\${colors.foreground}";
-    "font-0" = "Monospace:style=Regular:size=10;2";
-    "font-1" = "Monospace:style=Bold:size=10;2";
-    "font-2" = "DejaVuSansM Nerd Font Mono:style=Regular:size=16;3";
+    "font-0" = statusbarFont "Regular" 2;
+    "font-1" = statusbarFont "Bold" 2;
+    "font-2" = statusbarClockFont "Regular" 3;
     "modules-left" = "hlwm-tags xwindow";
     "modules-center" = "";
-    "modules-right" =
-      "process docker cpu cpufreq freqmenu temperature memory filesystem ioread iowrite eth wifi volume battery timewarrior tray date time";
+    "modules-right" = lib.concatStringsSep " " [
+      "process"
+      "docker"
+      "cpu"
+      "cpufreq"
+      "freqmenu"
+      "temperature"
+      "memory"
+      "filesystem"
+      "ioread"
+      "iowrite"
+      "eth"
+      "wifi"
+      "volume"
+      "battery"
+      "heart-rate"
+      "timewarrior"
+      "tray"
+      "date"
+      "time"
+    ];
     "module-margin-left" = 1;
     "module-margin-right" = 2;
     "padding-right" = 1;
@@ -218,21 +296,22 @@ in
   };
 
   "colors" = {
-    "background" = "\${env:BAR_BG:#282A2E}";
-    "foreground" = "\${env:BAR_FG:#00FF00}";
-    "foreground-alt" = "\${env:BAR_FG_ALT:#999999}";
-    "warn" = "\${env:BAR_WARN:#e60053}";
+    "background" = polybarColors.background;
+    "foreground" = polybarColors.foreground;
+    "foreground-alt" = polybarColors.foregroundAlt;
+    "warn" = polybarColors.warn;
+    "peak" = polybarColors.peak;
   };
 
   "base" = {
-    "ramp-base-0" = "\${env:BAR_RAMP_0:%{F#999999}▁%{F-}}";
+    "ramp-base-0" = "%{F${polybarColors.foregroundAlt}}▁%{F-}";
     "ramp-base-1" = "▂";
     "ramp-base-2" = "▃";
     "ramp-base-3" = "▄";
     "ramp-base-4" = "▅";
     "ramp-base-5" = "▆";
     "ramp-base-6" = "▇";
-    "ramp-base-7" = "\${env:BAR_RAMP_7:%{F#FFD9C1}█%{F-}}";
+    "ramp-base-7" = "%{F${polybarColors.peak}}█%{F-}";
     "ramp-warn-0" = "▁";
     "ramp-warn-1" = "▂";
     "ramp-warn-2" = "▃";
@@ -320,7 +399,7 @@ in
     "type" = "custom/script";
     "exec" = lib.getExe topProcess;
     "tail" = true;
-    "format-foreground" = "\${env:BAR_PEAK:#FFD9C1}";
+    "format-foreground" = "\${colors.peak}";
     "format-font" = 2;
   };
 
@@ -331,7 +410,7 @@ in
     "interval" = 10;
     "format-prefix" = "docker ";
     "format-prefix-foreground" = "\${colors.foreground-alt}";
-    "format-foreground" = "\${env:BAR_PEAK:#FFD9C1}";
+    "format-foreground" = "\${colors.peak}";
     "click-middle" = "${docker} stop $(${docker} ps -qa)";
   };
 
@@ -495,8 +574,8 @@ in
     "label-charging" = "%time%";
     "label-discharging" = "%time%";
     "time-format" = "%H:%M";
-    "ramp-capacity-0" = "\${env:BAR_RAMP_WARN_0:#FF0000}";
-    "ramp-capacity-1" = "\${env:BAR_RAMP_WARN_1:#FF0000}";
+    "ramp-capacity-0" = "%{F${polybarColors.warn}}▁%{F-}";
+    "ramp-capacity-1" = "%{F${polybarColors.warn}}▂%{F-}";
     "ramp-capacity-2" = "▃";
     "ramp-capacity-3" = "▄";
     "ramp-capacity-4" = "▅";
@@ -512,7 +591,7 @@ in
     "interval" = 10;
     "format-prefix" = "tw ";
     "format-prefix-foreground" = "\${colors.foreground-alt}";
-    "format-foreground" = "\${env:BAR_PEAK:#FFD9C1}";
+    "format-foreground" = "\${colors.peak}";
   };
 
   "module/date" = {
@@ -532,4 +611,10 @@ in
     "label-font" = 3;
   };
 
+  "module/heart-rate" = {
+    "type" = "custom/script";
+    "exec" = lib.getExe heartRateStatus;
+    "tail" = true;
+    "label" = "%output%";
+  };
 }

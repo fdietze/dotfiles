@@ -1,4 +1,8 @@
-{pkgs, ...}: {
+{
+  config,
+  pkgs,
+  ...
+}: {
   programs.bash.enable = true;
   programs.zoxide = {
     enable = true;
@@ -60,9 +64,16 @@
     autosuggestion.enable = true;
     defaultKeymap = "viins"; # vi mode
     history = rec {
-      size = 100000000;
+      # zshoptions(1): SHARE_HISTORY already appends history and should not be
+      # combined with INC_APPEND_HISTORY. zsh has no native unbounded history,
+      # so use a practical upper bound.
+      size = 1000000000;
       save = size;
+      path = "${config.home.homeDirectory}/.zsh_history.local";
       extended = true; # save timestamps
+      share = true;
+      expireDuplicatesFirst = true;
+      findNoDups = true;
     };
 
     shellGlobalAliases = {
@@ -88,16 +99,8 @@
       setopt interactivecomments # allow comments in interactive shell
       setopt hash_list_all # rehash command path and completions on completion attempt
       setopt BANG_HIST                 # Treat the '!' character specially during expansion.
-      setopt INC_APPEND_HISTORY        # Write to the history file immediately, not when the shell exits.
-      setopt SHARE_HISTORY             # Share history between all sessions. <-- Disable this for now
-      setopt HIST_EXPIRE_DUPS_FIRST    # Expire duplicate entries first when trimming history.
-      setopt HIST_IGNORE_DUPS          # Don't record an entry that was just recorded again.
-      setopt HIST_FIND_NO_DUPS         # Do not display a line previously found.
-      setopt HIST_IGNORE_SPACE         # Don't record an entry starting with a space.
       setopt HIST_REDUCE_BLANKS        # Remove superfluous blanks before recording entry.
       setopt HIST_VERIFY               # Don't execute immediately upon history expansion.
-      # https://unix.stackexchange.com/questions/568907/why-do-i-lose-my-zsh-history
-      HISTFILE=~/.zsh_history.local
 
       # history prefix search
       autoload -U history-search-end # have the cursor placed at the end of the line once you have selected your desired command

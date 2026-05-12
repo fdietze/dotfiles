@@ -23,6 +23,7 @@
     applications = 12;
     desktop = 13;
     popups = 14;
+    statusbar = 11;
     terminal = 17;
   };
 }

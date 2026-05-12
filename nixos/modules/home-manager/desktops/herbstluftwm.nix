@@ -16,14 +16,12 @@ let
     pkgs.coreutils
     pkgs.polybar
   ];
-  hlwmColors = {
-    barBg = withHash stylixPalette.base00;
-    barFg = withHash stylixPalette.base05;
-    barFgAlt = if theme == "light" then "#888888" else withHash stylixPalette.base03;
-    barWarn = if theme == "light" then "#FF3F74" else "#FF5370";
-    barPeak = withHash stylixPalette.base0B;
-    borderNormal = if theme == "light" then "#E8E9F2" else "#171717";
-    borderFocused = withHash stylixPalette.base0B;
+  polybarColors = {
+    background = withHash stylixPalette.base00;
+    foreground = withHash stylixPalette.base05;
+    foregroundAlt = withHash stylixPalette.base03;
+    warn = withHash stylixPalette.base08;
+    peak = withHash stylixPalette.base0B;
     tagDefaultBg = withHash stylixPalette.base00;
     tagEmptyFg =
       if theme == "light" then withHash stylixPalette.base02 else withHash stylixPalette.base03;
@@ -35,7 +33,21 @@ let
     tagUnfocusBg = withHash stylixPalette.base01;
     tagUnfocusOtherBg = withHash stylixPalette.base00;
   };
-  polybarSettings = import ./polybar/settings.nix { inherit lib pkgs; };
+  hlwmColors = polybarColors // {
+    barBg = polybarColors.background;
+    barFg = polybarColors.foreground;
+    borderNormal = if theme == "light" then "#E8E9F2" else "#171717";
+    borderFocused = polybarColors.peak;
+  };
+  polybarSettings = import ./polybar/settings.nix {
+    inherit
+      lib
+      pkgs
+      polybarColors
+      uiFonts
+      ;
+    garminHeartRateAddress = "F0:99:19:32:80:03";
+  };
   themeSwitchCommand = mode: "${config.home.profileDirectory}/bin/theme-${mode}";
   applyHlwmTheme = pkgs.writeShellScript "apply-hlwm-theme-${theme}" ''
     #!${pkgs.bash}/bin/bash
@@ -83,26 +95,6 @@ let
     }
 
     trap 'stop_polybars; exit 0' INT TERM
-
-    export BAR_BG=${lib.escapeShellArg hlwmColors.barBg}
-    export BAR_FG=${lib.escapeShellArg hlwmColors.barFg}
-    export BAR_FG_ALT=${lib.escapeShellArg hlwmColors.barFgAlt}
-    export BAR_WARN=${lib.escapeShellArg hlwmColors.barWarn}
-    export BAR_PEAK=${lib.escapeShellArg hlwmColors.barPeak}
-    export BAR_RAMP_0="%{F$BAR_FG_ALT}▁%{F-}"
-    export BAR_RAMP_7="%{F$BAR_PEAK}█%{F-}"
-    export BAR_RAMP_WARN_0="%{F$BAR_WARN}▁%{F-}"
-    export BAR_RAMP_WARN_1="%{F$BAR_WARN}▂%{F-}"
-    export BAR_HEIGHT=24
-    export BAR_TAG_DEFAULT_BG=${lib.escapeShellArg hlwmColors.tagDefaultBg}
-    export BAR_TAG_EMPTY_FG=${lib.escapeShellArg hlwmColors.tagEmptyFg}
-    export BAR_TAG_USED_FG=${lib.escapeShellArg hlwmColors.tagUsedFg}
-    export BAR_TAG_SELECTED_FG=${lib.escapeShellArg hlwmColors.tagSelectedFg}
-    export BAR_TAG_URGENT_BG=${lib.escapeShellArg hlwmColors.tagUrgentBg}
-    export BAR_TAG_FOCUS_BG=${lib.escapeShellArg hlwmColors.tagFocusBg}
-    export BAR_TAG_FOCUS_OTHER_BG=${lib.escapeShellArg hlwmColors.tagFocusOtherBg}
-    export BAR_TAG_UNFOCUS_BG=${lib.escapeShellArg hlwmColors.tagUnfocusBg}
-    export BAR_TAG_UNFOCUS_OTHER_BG=${lib.escapeShellArg hlwmColors.tagUnfocusOtherBg}
 
     echo "Polybar launch script started at $(${pkgs.coreutils}/bin/date)" > /tmp/polybar_launch.log
 
@@ -185,8 +177,8 @@ lib.mkIf (desktop == "herbstluftwm") {
   services.polybar = {
     enable = true;
     settings = polybarSettings;
-    # Polybar is restarted by the theme-specific HLWM service below so it
-    # receives the current Stylix-derived environment variables.
+    # The theme-specific service below launches the concrete Polybar config for
+    # this specialization instead of Home Manager's default user service.
     script = ":";
   };
   systemd.user.services.polybar.Install.WantedBy = lib.mkForce [ ];

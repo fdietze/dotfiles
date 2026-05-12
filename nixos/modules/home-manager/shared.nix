@@ -43,6 +43,8 @@
         local path="$1"
         local uri="file://''${path}"
 
+        ${pkgs.coreutils}/bin/ln -sfn "''${path}" "$HOME/frottage/current-wallpaper.jpg"
+
         if [[ "''${XDG_CURRENT_DESKTOP:-}" == *GNOME* ]] || [[ "''${DESKTOP_SESSION:-}" == gnome ]]; then
           echo "Setting wallpaper using GNOME gsettings."
           ${pkgs.glib}/bin/gsettings set org.gnome.desktop.background picture-options 'zoom'
@@ -1174,7 +1176,6 @@ in {
     libsForQt5.qt5ct
     lxappearance
     ueberzugpp # view images in terminals without sixel support
-    i3lock
 
     # guis
     # anydesk # simple remote desktop
