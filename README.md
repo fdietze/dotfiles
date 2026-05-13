@@ -1,5 +1,8 @@
 # How I use my computer
 
+![dark mode screenshot](screenshot-dark.png)
+![light mode screenshot](screenshot-light.png)
+
 - Linux Distribution: [NixOS](https://nixos.org/) ([with flakes](https://nixos-and-flakes.thiscute.world/nixos-with-flakes/nixos-with-flakes-enabled))
 - Dotfiles: normal Git repository + [Home Manager](https://nix-community.github.io/home-manager/index.xhtml)
 - Shell: [ZSH](https://zsh.sourceforge.io/) (via Home Manager)
