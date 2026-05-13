@@ -33,6 +33,6 @@ block.
 - don't hardcode paths. whenever possible, use xdg dirs.
 
 configuration entrypoints:
-- flake.nix # nixos flake
-- configuration.nix # nixos
-- home.nix # home-manager
+- flake.nix # top-level NixOS flake
+- hosts/<hostname>/default.nix # host NixOS configuration
+- hosts/<hostname>/home.nix # host Home Manager configuration
