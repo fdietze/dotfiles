@@ -8,7 +8,6 @@
 }: let
   coreutils = "${pkgs.coreutils}/bin";
   cpupower = "${pkgs.linuxPackages.cpupower}/bin/cpupower";
-  docker = lib.getExe pkgs.docker;
   grep = lib.getExe pkgs.gnugrep;
   herbstclient = "${pkgs.herbstluftwm}/bin/herbstclient";
   pavucontrol = lib.getExe pkgs.pavucontrol;
@@ -29,7 +28,6 @@
     batteryCharging = "󰂄"; # mdi-battery-charging U+F0084
     calendar = "󰸗"; # mdi-calendar-month U+F0E17
     cpu = "󰘚"; # mdi-chip U+F061A
-    docker = "󰡨"; # mdi-docker U+F0868
     download = "󰇚"; # mdi-download U+F01DA
     ethernet = "󰈀"; # mdi-ethernet U+F0200
     filesystem = "󰋊"; # mdi-harddisk U+F02CA
@@ -64,7 +62,6 @@
       "modules-center" = "";
       "modules-right" = lib.concatStringsSep " " [
         "process"
-        "docker"
         "cpu"
         "cpufreq"
         "freqmenu"
@@ -76,6 +73,7 @@
         "wifi"
         "volume"
         "battery"
+        "battery-watts"
         "heart-rate"
         "timewarrior"
         "tray"
@@ -98,7 +96,6 @@
       "inherit" = "bar/default";
       "modules-right" = lib.concatStringsSep " " [
         "process"
-        "docker"
         "cpu"
         "cpufreq"
         "freqmenu"
@@ -110,6 +107,7 @@
         "wifi"
         "volume"
         "battery"
+        "battery-watts"
         "heart-rate"
         "timewarrior"
         "date"
@@ -252,19 +250,6 @@
       "tail" = true;
       "format-foreground" = "\${colors.peak}";
       "format-font" = 2;
-    };
-  };
-
-  dockerModule = {
-    "module/docker" = {
-      "type" = "custom/script";
-      "exec" = "${docker} ps -q | ${coreutils}/wc -l";
-      "exec-if" = "[ -n \"$(${docker} ps -q)\" ]";
-      "interval" = 10;
-      "format-prefix" = iconPrefix icons.docker;
-      "format-prefix-foreground" = "\${colors.foreground-alt}";
-      "format-foreground" = "\${colors.peak}";
-      "click-middle" = "${docker} stop $(${docker} ps -qa)";
     };
   };
 
@@ -623,7 +608,39 @@
     };
   };
 
-  batteryModule = {
+  batteryModule = let
+    batteryWatts = pkgs.writeShellApplication {
+      name = "polybar-battery-watts";
+      runtimeInputs = [
+        pkgs.coreutils
+        pkgs.gawk
+      ];
+      text = ''
+        battery=/sys/class/power_supply/BAT0
+
+        while true; do
+          if [ -r "$battery/power_now" ]; then
+            # power_now is exposed by the kernel in microwatts; reading sysfs is
+            # cheaper than polling UPower just to display the current draw.
+            awk '
+              {
+                watts = $1 / 1000000
+                if (watts >= 10) {
+                  printf "%.0fW\n", watts
+                } else {
+                  printf "%.1fW\n", watts
+                }
+              }
+            ' "$battery/power_now"
+          else
+            echo ""
+          fi
+
+          sleep 5
+        done
+      '';
+    };
+  in {
     "module/battery" = {
       "type" = "internal/battery";
       "battery" = "BAT0";
@@ -659,6 +676,14 @@
       "ramp-capacity-5" = "󰂀"; # mdi-battery-70 U+F0080
       "ramp-capacity-6" = "󰂁"; # mdi-battery-80 U+F0081
       "ramp-capacity-7" = "󰁹"; # mdi-battery U+F0079
+    };
+
+    "module/battery-watts" = {
+      "type" = "custom/script";
+      "exec" = lib.getExe batteryWatts;
+      "tail" = true;
+      "format-foreground" = "\${colors.foreground-alt}";
+      "label" = "%output%";
     };
   };
 
@@ -808,7 +833,6 @@ in
   baseSettings
   // workspaceModules
   // processModule
-  // dockerModule
   // cpuModules
   // memoryModule
   // filesystemModule

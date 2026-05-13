@@ -118,7 +118,9 @@ in
     # kernelPackages = pkgs.linuxPackages_zen;
     kernelParams = [
       "kvm.enable_virt_at_load=0" # fix virtualbox
-      "usbcore.autosuspend=-1" # Disable USB autosuspend globally to prevent issues with powertop
+      # Keep USB runtime suspend enabled so idle devices do not pin the CPU
+      # package out of deep sleep states; the value is the kernel default delay.
+      "usbcore.autosuspend=2"
       # "zswap.enabled=1" # enables zswap
       # "zswap.compressor=zstd" # compression algorithm
       # "zswap.max_pool_percent=5" # maximum percentage of RAM that zswap is allowed to use
