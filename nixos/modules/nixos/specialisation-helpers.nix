@@ -1,0 +1,76 @@
+{
+  lib,
+  lightBase16Scheme,
+}:
+let
+  desktopRegistry = import ../desktop-registry.nix;
+  inherit (desktopRegistry) themes themedDesktops unthemedDesktops;
+
+  hasThemeVariants = desktop: builtins.elem desktop themedDesktops;
+
+  specialisationName =
+    {
+      desktop,
+      theme ? null,
+    }:
+    if hasThemeVariants desktop then "${desktop}-${theme}" else desktop;
+
+  switchToConfigurationCommand =
+    name: "/nix/var/nix/profiles/system/specialisation/${name}/bin/switch-to-configuration switch";
+
+  mkDesktopSpecialisation =
+    {
+      desktop,
+      theme ? null,
+      extraConfig ? { },
+    }:
+    let
+      name = specialisationName { inherit desktop theme; };
+      myConfig =
+        if hasThemeVariants desktop then
+          { my = { inherit desktop theme; }; }
+        else
+          { my = { inherit desktop; }; };
+    in
+    lib.nameValuePair name {
+      configuration = myConfig // extraConfig;
+    };
+
+  mkThemedSpecialisation =
+    desktop: theme:
+    mkDesktopSpecialisation {
+      inherit desktop theme;
+      extraConfig = lib.optionalAttrs (theme == "light") {
+        stylix = {
+          polarity = lib.mkForce "light";
+          base16Scheme = lightBase16Scheme;
+        };
+      };
+    };
+
+  themedSpecialisations = lib.concatMap (
+    desktop: map (mkThemedSpecialisation desktop) themes
+  ) themedDesktops;
+
+  unthemedSpecialisations = map (
+    desktop: mkDesktopSpecialisation { inherit desktop; }
+  ) unthemedDesktops;
+
+  specialisationNames =
+    (lib.concatMap (
+      desktop:
+      map (
+        theme:
+        specialisationName {
+          inherit desktop theme;
+        }
+      ) themes
+    ) themedDesktops)
+    ++ unthemedDesktops;
+in
+{
+  inherit desktopRegistry hasThemeVariants specialisationName;
+
+  sudoSwitchCommands = map switchToConfigurationCommand specialisationNames;
+  specialisations = lib.listToAttrs (themedSpecialisations ++ unthemedSpecialisations);
+}

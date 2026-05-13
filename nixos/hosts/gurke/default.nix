@@ -5,30 +5,13 @@
   flake-inputs,
   uiFonts,
   ...
-}: let
+}:
+let
   breezyBinHome = "/run/current-system/sw/bin";
-  switchToConfigurationCommand = desktop: mode: "/nix/var/nix/profiles/system/specialisation/${desktop}-${mode}/bin/switch-to-configuration switch";
-  mkDesktopSpecialisation = {
-    desktop,
-    theme,
-    extraConfig ? {},
-  }: let
-    name = "${desktop}-${theme}";
-  in
-    lib.nameValuePair name {
-      configuration =
-        {
-          my = {
-            inherit desktop theme;
-          };
-        }
-        // extraConfig;
-    };
+  specialisationHelpers = import ../../modules/nixos/specialisation-helpers.nix {
+    inherit lib lightBase16Scheme;
+  };
   allowedSudoCommands = [
-    (switchToConfigurationCommand "gnome" "light")
-    (switchToConfigurationCommand "gnome" "dark")
-    (switchToConfigurationCommand "herbstluftwm" "light")
-    (switchToConfigurationCommand "herbstluftwm" "dark")
     "/home/felix/bin/topioread"
     "/home/felix/bin/topiowrite"
     "/run/current-system/sw/bin/cpupower frequency-set -u 400MHz"
@@ -38,7 +21,8 @@
     "/run/current-system/sw/bin/cpupower frequency-set -u 4GHz"
     "/run/current-system/sw/bin/cpupower frequency-set -g powersave"
     "/run/current-system/sw/bin/cpupower frequency-set -g performance"
-  ];
+  ]
+  ++ specialisationHelpers.sudoSwitchCommands;
 
   darkBase16Scheme = {
     # tokyo-night-moon
@@ -78,7 +62,8 @@
     base0E = "3b00cb"; # magenta (from normal.magenta)
     base0F = "65cabe"; # teal (from bright.cyan)
   };
-in {
+in
+{
   imports = [
     ../../modules/options.nix
     ../../modules/nixos/desktops/gnome.nix
@@ -126,7 +111,7 @@ in {
       nixpkgs.flake = flake-inputs.nixpkgs;
     };
     # nix path to correspond to my flakes
-    nixPath = ["nixpkgs=${flake-inputs.nixpkgs}"];
+    nixPath = [ "nixpkgs=${flake-inputs.nixpkgs}" ];
   };
 
   home-manager.backupFileExtension = "hm-bak";
@@ -175,7 +160,7 @@ in {
     };
 
     # Enable ARM64 emulation for Docker cross-architecture builds
-    binfmt.emulatedSystems = ["aarch64-linux"];
+    binfmt.emulatedSystems = [ "aarch64-linux" ];
 
     # extraModulePackages = [ config.boot.kernelPackages.exfat-nofuse ];
   };
@@ -205,13 +190,11 @@ in {
       wheelNeedsPassword = false;
       extraRules = [
         {
-          users = ["felix"];
-          commands =
-            map (command: {
-              inherit command;
-              options = ["NOPASSWD"];
-            })
-            allowedSudoCommands;
+          users = [ "felix" ];
+          commands = map (command: {
+            inherit command;
+            options = [ "NOPASSWD" ];
+          }) allowedSudoCommands;
         }
       ];
     };
@@ -286,7 +269,7 @@ in {
     # staticAccuracy = 1000.0;
   };
 
-  users.users.geoclue.extraGroups = ["networkmanager"]; # ?
+  users.users.geoclue.extraGroups = [ "networkmanager" ]; # ?
 
   powerManagement = {
     enable = true;
@@ -312,7 +295,7 @@ in {
       libvdpau-va-gl
       vpl-gpu-rt
     ];
-    extraPackages32 = with pkgs.pkgsi686Linux; [libva];
+    extraPackages32 = with pkgs.pkgsi686Linux; [ libva ];
   };
   hardware.acpilight.enable = true;
   environment.sessionVariables = {
@@ -321,7 +304,7 @@ in {
   }; # Force intel-media-driver
   hardware.sane = {
     enable = true; # scanners
-    extraBackends = [pkgs.hplipWithPlugin]; # HP scanner support
+    extraBackends = [ pkgs.hplipWithPlugin ]; # HP scanner support
   };
 
   hardware.bluetooth = {
@@ -416,7 +399,7 @@ in {
   # security.pam.services.betterlockscreen = { ... };
 
   programs.nix-ld.enable = true; # run non-nixos binaries on nixos
-  programs.nix-ld.libraries = [];
+  programs.nix-ld.libraries = [ ];
   programs.appimage.enable = true;
   programs.zsh.enable = true;
   programs.fish.enable = false;
@@ -438,49 +421,51 @@ in {
     };
   };
 
-  stylix = let
-  in {
-    # https://stylix.danth.me/index.html
-    enable = true;
-    autoEnable = false;
-    polarity = "dark";
-    fonts = {
-      serif = {
-        package = uiFonts.serif.package;
-        name = uiFonts.serif.name;
+  stylix =
+    let
+    in
+    {
+      # https://stylix.danth.me/index.html
+      enable = true;
+      autoEnable = false;
+      polarity = "dark";
+      fonts = {
+        serif = {
+          package = uiFonts.serif.package;
+          name = uiFonts.serif.name;
+        };
+        sansSerif = {
+          package = uiFonts.sans.package;
+          name = uiFonts.sans.name;
+        };
+        monospace = {
+          package = uiFonts.monospace.package;
+          name = uiFonts.monospace.name;
+        };
+        emoji = {
+          package = uiFonts.emoji.package;
+          name = uiFonts.emoji.name;
+        };
+        sizes = {
+          applications = uiFonts.sizes.applications;
+          desktop = uiFonts.sizes.desktop;
+          popups = uiFonts.sizes.popups;
+          terminal = uiFonts.sizes.terminal;
+        };
       };
-      sansSerif = {
-        package = uiFonts.sans.package;
-        name = uiFonts.sans.name;
-      };
-      monospace = {
-        package = uiFonts.monospace.package;
-        name = uiFonts.monospace.name;
-      };
-      emoji = {
-        package = uiFonts.emoji.package;
-        name = uiFonts.emoji.name;
-      };
-      sizes = {
-        applications = uiFonts.sizes.applications;
-        desktop = uiFonts.sizes.desktop;
-        popups = uiFonts.sizes.popups;
-        terminal = uiFonts.sizes.terminal;
+      base16Scheme = darkBase16Scheme;
+      targets = {
+        chromium.enable = true;
+        console.enable = true;
+        font-packages.enable = true;
+        fontconfig.enable = true;
+        gnome.enable = true;
+        gtk.enable = true;
+        gtksourceview.enable = true;
+        lightdm.enable = true;
+        qt.enable = true;
       };
     };
-    base16Scheme = darkBase16Scheme;
-    targets = {
-      chromium.enable = true;
-      console.enable = true;
-      font-packages.enable = true;
-      fontconfig.enable = true;
-      gnome.enable = true;
-      gtk.enable = true;
-      gtksourceview.enable = true;
-      lightdm.enable = true;
-      qt.enable = true;
-    };
-  };
   my = {
     desktop = lib.mkDefault "gnome";
     theme = lib.mkDefault "dark";
@@ -488,11 +473,16 @@ in {
 
   system.activationScripts."current-specialisation" = ''
     mkdir -p /run/nixos
-    printf '%s\n' ${lib.escapeShellArg (
-      if config.isSpecialisation
-      then "${config.my.desktop}-${config.my.theme}"
-      else ""
-    )} > /run/nixos/current-specialisation
+    printf '%s\n' ${
+      lib.escapeShellArg (
+        if config.isSpecialisation then
+          specialisationHelpers.specialisationName {
+            inherit (config.my) desktop theme;
+          }
+        else
+          ""
+      )
+    } > /run/nixos/current-specialisation
   '';
 
   home-manager.extraSpecialArgs = {
@@ -503,41 +493,11 @@ in {
     inherit uiFonts;
   };
 
-  specialisation = lib.listToAttrs [
-    (mkDesktopSpecialisation {
-      desktop = "gnome";
-      theme = "dark";
-    })
-    (mkDesktopSpecialisation {
-      desktop = "gnome";
-      theme = "light";
-      extraConfig = {
-        stylix = {
-          polarity = lib.mkForce "light";
-          # base16Scheme = lib.mkForce "${pkgs.base16-schemes}/share/themes/catppuccin-latte.yaml";
-          base16Scheme = lightBase16Scheme;
-        };
-      };
-    })
-    (mkDesktopSpecialisation {
-      desktop = "herbstluftwm";
-      theme = "dark";
-    })
-    (mkDesktopSpecialisation {
-      desktop = "herbstluftwm";
-      theme = "light";
-      extraConfig = {
-        stylix = {
-          polarity = lib.mkForce "light";
-          base16Scheme = lightBase16Scheme;
-        };
-      };
-    })
-  ];
+  specialisation = specialisationHelpers.specialisations;
 
   # Start the driver at boot
   systemd.services.fprintd = {
-    wantedBy = ["multi-user.target"];
+    wantedBy = [ "multi-user.target" ];
     serviceConfig.Type = "simple";
   };
   # Install the driver
@@ -545,7 +505,7 @@ in {
 
   services.xserver = {
     enable = true;
-    videoDrivers = ["modesetting"];
+    videoDrivers = [ "modesetting" ];
 
     xkb.layout = "de,de";
     xkb.variant = "neo,basic";
@@ -562,22 +522,22 @@ in {
   fonts = {
     enableDefaultPackages = true;
     enableGhostscriptFonts = true;
-    packages =
-      lib.unique
-      ([
-          uiFonts.serif.package
-          uiFonts.sans.package
-          uiFonts.monospace.package
-          uiFonts.emoji.package
-          uiFonts.icons.package
-        ]
-        ++ (with pkgs; [
-          corefonts # Arial, Verdana, ...
-          vista-fonts # Consolas, ...
-          # google-fonts # Droid Sans, Roboto, ...
-          roboto
-          # ubuntu_font_family
-        ]));
+    packages = lib.unique (
+      [
+        uiFonts.serif.package
+        uiFonts.sans.package
+        uiFonts.monospace.package
+        uiFonts.emoji.package
+        uiFonts.icons.package
+      ]
+      ++ (with pkgs; [
+        corefonts # Arial, Verdana, ...
+        vista-fonts # Consolas, ...
+        # google-fonts # Droid Sans, Roboto, ...
+        roboto
+        # ubuntu_font_family
+      ])
+    );
     # (nerdfonts.override {
     #   # https://github.com/NixOS/nixpkgs/blob/nixos-unstable/pkgs/data/fonts/nerdfonts/shas.nix
     #   fonts = [
@@ -604,7 +564,7 @@ in {
           uiFonts.monospace.name
           uiFonts.emoji.name
         ];
-        emoji = [uiFonts.emoji.name];
+        emoji = [ uiFonts.emoji.name ];
       };
     };
     fontDir.enable = true;
@@ -652,7 +612,7 @@ in {
 
     printing = {
       enable = true;
-      drivers = [pkgs.hplip];
+      drivers = [ pkgs.hplip ];
     };
 
     acpid.enable = true;
@@ -707,8 +667,8 @@ in {
   # };
   #
   # ensure the group exists
-  users.groups.plugdev = {};
-  users.groups.usb = {};
+  users.groups.plugdev = { };
+  users.groups.usb = { };
 
   services.udev.extraRules = ''
     SUBSYSTEM=="usb", ATTR{idVendor}=="cafe", ATTR{idProduct}=="4000", MODE="0660", GROUP="plugdev"
