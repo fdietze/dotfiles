@@ -319,13 +319,13 @@
           {
             mode = "n";
             key = "<leader>vh";
-            action = "<cmd>edit ~/nixos/home.nix<cr>";
+            action = "<cmd>edit ~/projects/dotfiles/hosts/gurke/home.nix<cr>";
             desc = "edit home.nix";
           }
           {
             mode = "n";
             key = "<leader>vn";
-            action = "<cmd>edit ~/nixos/configuration.nix<cr>";
+            action = "<cmd>edit ~/projects/dotfiles/hosts/gurke/default.nix<cr>";
             desc = "edit configuration.nix";
           }
           {

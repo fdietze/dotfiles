@@ -66,7 +66,7 @@
 
     # incubator
     s = "${pkgs.ddgr}/bin/ddgr";
-    vf = ''$EDITOR "$HOME"/nixos/flake.nix'';
+    vf = ''$EDITOR "$HOME"/projects/dotfiles/flake.nix'';
     vt = ''$EDITOR "$HOME"/MEGAsync/notes/todo.md'';
     lg = "lazygit";
     nrb = "sudo nixos-rebuild boot";
@@ -127,9 +127,9 @@
     t2 = "${pkgs.eza}/bin/eza --tree --color=always -L 2";
     t3 = "${pkgs.eza}/bin/eza --tree --color=always -L 3";
     tg = "tree-git";
-    vv = ''$EDITOR "$HOME"/nixos/home/nvf.nix'';
-    vn = ''$EDITOR "$HOME"/nixos/configuration.nix'';
-    vh = ''$EDITOR "$HOME"/nixos/hosts/gurke/home.nix'';
+    vv = ''$EDITOR "$HOME"/projects/dotfiles/modules/home-manager/nvf.nix'';
+    vn = ''$EDITOR "$HOME"/projects/dotfiles/hosts/gurke/default.nix'';
+    vh = ''$EDITOR "$HOME"/projects/dotfiles/hosts/gurke/home.nix'';
     vb = ''$EDITOR "$HOME"/.config/polybar/config.ini'';
     nrs = "nrs";
     ns = "nix-shell --run zsh";

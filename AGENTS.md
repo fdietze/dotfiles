@@ -1,4 +1,5 @@
-- my dotfiles are managed with git where the GIT_DIR is pointing to a bare repo and the WORKTREE is pointing to my home directory. use `gitd` as a drop-in replacement for `git` to manage my dotfiles, for example `gitd status`.
+- my dotfiles are managed with a normal git repository at `~/projects/dotfiles`. Use regular `git` and `tig` from that repository.
+- commit every meaningful change after it was verified
 - I value simplicity, minimalism and elegance. YAGNI, KISS, SoC.
 - configurations and programs should be resource friendly. Prefer rust(-script) over scripting languages. Allow the cpu to go into deep sleep states.
 - the nixos and home manager configurations should be the source of truth
