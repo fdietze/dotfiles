@@ -2,16 +2,15 @@
 set -Eeuo pipefail # https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail
 
 command -v apack
-command -v rmtrash
+command -v trash
 
 FILE=$1 # can also be a directory
 OUTFILE="$FILE.7z"
 
 if [[ -f "$OUTFILE" ]]; then
-    echo "File $OUTFILE already exists"
-    exit 1
+	echo "File $OUTFILE already exists"
+	exit 1
 fi
 
 apack "$OUTFILE" "$FILE"
-rmtrash -rfv "$FILE"
-
+trash put -rfv "$FILE"

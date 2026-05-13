@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-
-source dotfiles-env
-
-tig status
-

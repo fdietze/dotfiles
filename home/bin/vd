@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+repo="$HOME/projects/dotfiles"
+file="$(git -C "$repo" ls-files | fzf --preview 'pistol '"$repo"'/{} $FZF_PREVIEW_COLUMNS $FZF_PREVIEW_LINES' --bind 'ctrl-d:preview-page-down')"
+[[ -n $file ]] && $EDITOR "$repo/$file"

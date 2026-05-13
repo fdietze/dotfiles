@@ -10,7 +10,7 @@ rm -rf ~/.ivy2
 
 docker stop $(docker ps -q) || true
 docker system prune --all --volumes --force
-earthly prune --reset
+# earthly prune --reset
 
 nix-collect-garbage -d
 sudo nix-collect-garbage -d

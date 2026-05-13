@@ -1,0 +1,17 @@
+#!/bin/sh
+set -e
+
+# cvt 3440 1440 30 | grep Modeline | sed "s/Modeline \(.*\)/\1/"
+xrandr --newmode "3440x1440_30.00" 196.25 3440 3600 3952 4464 1440 1443 1453 1468 -hsync +vsync || true
+xrandr --addmode HDMI-1 "3440x1440_30.00"
+
+xrandr --output eDP-1 --mode 2560x1440 --pos 440x1440 --rotate normal \
+  --output DP-1 --off \
+  --output HDMI-1 --mode 3440x1440_30.00 --pos 0x0 --rotate normal \
+  --output DP-2 --off \
+  --output HDMI-2 --off
+
+"$HOME/bin/theme"
+
+sleep 10
+xinput | sed -n "s/.*WingCool Inc. TouchScreen.*id=\([0-9]*\).*pointer.*/\1/p" | xargs -I % xinput --map-to-output % DP-2

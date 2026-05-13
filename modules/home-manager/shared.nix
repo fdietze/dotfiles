@@ -7,6 +7,9 @@
   uiFonts,
   ...
 }:
+let
+  repoDir = "${config.home.homeDirectory}/projects/dotfiles";
+in
 {
   imports = [
     ./shell.nix
@@ -25,6 +28,8 @@
   home.homeDirectory = "/home/felix";
 
   home.sessionPath = [
+    # Keep personal scripts live-editable without requiring a Home Manager switch.
+    "${repoDir}/home/bin"
     "$HOME/bin"
     "$HOME/.cargo/bin"
     "$HOME/.npm-packages/bin"
@@ -76,14 +81,14 @@
     cat = "bat -n --paging=never";
     cd = "z";
     # rm = "${pkgs.trashy}/bin/trash put";
-    sec = "source $HOME/bin/secret-envs";
+    sec = "source ${repoDir}/home/bin/secret-envs";
     # aider = "sec && ${pkgs.aider-chat}/bin/aider --no-check-update";
     alors = "sec && alors";
     opencode = "sec && opencode";
     oc = "sec && opencode";
     c = "sec && opencode --agent 'chat' ";
-    cb = "sec && $HOME/bin/cb";
-    cq = "sec && $HOME/bin/cq";
+    cb = "sec && cb";
+    cq = "sec && cq";
     ssh = "sec && TERM=xterm-256color ssh"; # fix colors in some ssh connections
     scp = "sec && scp";
     rg = "rg --hidden  --no-follow --no-heading --glob '!.git/*' --smart-case"; # https://github.com/BurntSushi/ripgrep/issues/623

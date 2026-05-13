@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail
+set -Eeuo pipefail
+# %C(dim)%ad%C(reset)
+gitlog_cmd="git log --color=always --pretty=format:'%Cred%h %C(reset)%C(dim)%ad%x08%x08%x08%x08%x08%x08%x08%x08%x08%Creset%C(blue) %an %Creset%s%C(yellow)%d %Cgreen(%ar)%Creset' --abbrev-commit --date-order --date='format:%F %R'"
+extract_hash_cmd="grep -oE '[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]'" # {7} would be replaced by fzf preview
+
+bash -c "$gitlog_cmd" |
+  fzf --no-sort --exact --ansi --height 90% --reverse --no-scrollbar \
+    --preview "hash=\$(echo {} | $extract_hash_cmd); width=\${FZF_PREVIEW_COLUMNS:-\${COLUMNS:-80}}; git show \$hash --stat=\$width --format=reference --color=always && git show --color-words \$hash" \
+    --preview-window=wrap \
+    --bind "ctrl-d:preview-page-down,ctrl-u:preview-page-up,ctrl-a:reload($gitlog_cmd --all --graph),resize:refresh-preview" |
+  bash -c "$extract_hash_cmd" | tr '\n' ' '

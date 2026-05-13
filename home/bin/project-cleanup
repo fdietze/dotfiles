@@ -10,6 +10,7 @@ node_modules
 dist
 out
 target
+target-rust-analyzer
 .metals
 .bloop
 .bsp
@@ -21,6 +22,14 @@ build
 .devbox
 venv
 .venv
+.mypy_cache
+.aider.tags.cache.v3
+.rustup
+.pg_data
+.dart_tool
+.cpcache
+.clj-kondo
+.lsp
 __pycache__
 .jekyll-cache
 .sass-cache
@@ -30,25 +39,28 @@ EOF
 pattern=$(printf "^%s$|" "${lines[@]}") # generate regex
 pattern=${pattern%|}                    # Remove the trailing pipe
 
+echo "looking for files not owned by user $USER..."
+find . -not -user "$USER" -ls
+
 echo "looking for directories:"
 echo
 echo "$pattern" | tr -d '^$' | tr '|' '\n'
 echo
 dirlist=$(fd -u --prune -t d "$pattern")
 if [ -z "$dirlist" ]; then
-	echo "No matching directories found. Everything clean!"
-	exit 0
+  echo "No matching directories found. Everything clean!"
+  exit 0
 fi
 
 echo "$dirlist" | while read -r dir; do
-	size=$(du -sh "$dir" | cut -f1)
-	filecount=$(fd . -t f "$dir" | wc -l)
-	printf "%5s %6d files $dir\n" "$size" "$filecount"
+  size=$(du -sh "$dir" | cut -f1)
+  filecount=$(fd . -t f "$dir" | wc -l)
+  printf "%5s %6d files $dir\n" "$size" "$filecount"
 done | LC_ALL=C sort -k1h
 
 # TODO: get total size and count of all directories
 
 read -p "Press enter to delete the above directories"
 while read -r dir; do
-	trash put "$dir"
+  trash put "$dir"
 done <<<"$dirlist"

@@ -3,18 +3,15 @@ set -Eeuo pipefail # https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_
 # set -x # print all commands
 shopt -s expand_aliases
 
-source /etc/os-release # load linux distribution information
-case $NAME in
-NixOS)
-  # echo "checking nixos configuration"
-  # nix-instantiate '<nixpkgs/nixos>' -A system
-  echo "upgrading system"
-  (cd "$HOME/nixos" && nix flake update)
-  sudo nice -n 18 nixos-rebuild boot
-  echo "updating nix profile"
-  NIXPKGS_ALLOW_UNFREE=1 nice -n 18 nix profile upgrade '.*' --impure
-  ;;
-esac
+# echo "checking nixos configuration"
+# nix-instantiate '<nixpkgs/nixos>' -A system
+echo "upgrading system"
+(cd "$HOME/nixos" && nix flake update)
+sudo nice -n 18 nixos-rebuild boot
+echo "updating nix profile"
+NIXPKGS_ALLOW_UNFREE=1 nice -n 18 nix profile upgrade '.*' --impure
+
+devbox global update
 
 # echo "updating zgen plugins..."
 # zsh -c "source ~/.zgenom/zgenom.zsh && zgenom selfupdate && zgenom update"
@@ -31,8 +28,6 @@ esac
 
 # echo "updating coursier (scala)"
 # cs update
-
-devbox global update
 
 # echo "updating vim plugins..."
 # nvim --headless "+Lazy! update" "+Lazy! clean" +qa

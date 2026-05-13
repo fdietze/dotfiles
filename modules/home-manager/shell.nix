@@ -167,7 +167,7 @@
 
 
       insertCommitHash () {
-        commits=$(~/bin/git-select-commit)
+        commits=$($HOME/projects/dotfiles/home/bin/git-select-commit)
         [[ -z "$commits" ]] && zle reset-prompt && return 0
         LBUFFER+="$commits"
         local ret=$?
