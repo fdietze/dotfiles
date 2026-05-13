@@ -5,7 +5,11 @@
   ...
 }:
 lib.mkIf (config.my.desktop == "gnome") {
-  nixpkgs.overlays = [flake-inputs.breezy-desktop.overlays.default];
+  nixpkgs.overlays = [ flake-inputs.breezy-desktop.overlays.default ];
+
+  environment.sessionVariables.XDG_BIN_HOME = "/run/current-system/sw/bin";
+  programs.ssh.startAgent = false; # conflicts with gnome
+  stylix.targets.gnome.enable = true;
 
   # Install the driver
   services.desktopManager.gnome.enable = true;

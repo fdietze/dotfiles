@@ -249,6 +249,5 @@
     # anytype # p2p note taking
     # gitbutler # Git client for simultaneous branches on top of your existing workflow
 
-    geary # gnome email client
   ];
 }

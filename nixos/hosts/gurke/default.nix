@@ -7,7 +7,6 @@
   ...
 }:
 let
-  breezyBinHome = "/run/current-system/sw/bin";
   specialisationHelpers = import ../../modules/nixos/specialisation-helpers.nix {
     inherit lib lightBase16Scheme;
   };
@@ -300,7 +299,6 @@ in
   hardware.acpilight.enable = true;
   environment.sessionVariables = {
     LIBVA_DRIVER_NAME = "iHD";
-    XDG_BIN_HOME = breezyBinHome;
   }; # Force intel-media-driver
   hardware.sane = {
     enable = true; # scanners
@@ -459,10 +457,8 @@ in
         console.enable = true;
         font-packages.enable = true;
         fontconfig.enable = true;
-        gnome.enable = true;
         gtk.enable = true;
         gtksourceview.enable = true;
-        lightdm.enable = true;
         qt.enable = true;
       };
     };
@@ -570,8 +566,6 @@ in
     fontDir.enable = true;
   };
 
-  programs.ssh.startAgent = false; # conflicts with gnome
-
   services = {
     cron.enable = true;
     openssh = {
@@ -591,7 +585,7 @@ in
       openFirewall = true; # needed for printer discovery
     };
 
-    gvfs.enable = true; # gnome virtual file system
+    gvfs.enable = true; # virtual file system support for graphical file managers
     udisks2.enable = true; # allows to mount removable devices in graphical file managers
 
     journald = {

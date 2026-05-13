@@ -5,6 +5,8 @@
   ...
 }:
 lib.mkIf (config.my.desktop == "herbstluftwm") {
+  stylix.targets.lightdm.enable = true;
+
   services.displayManager = {
     defaultSession = "none+herbstluftwm";
     gdm.enable = false;

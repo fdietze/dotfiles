@@ -175,6 +175,7 @@ lib.mkIf (desktop == "gnome") {
     dconf-editor # gnome settings gui
     xr-linux-driver
     breezy-gnome # vr displays
+    geary # gnome email client
   ];
 
   dconf.settings."org/gnome/desktop/input-sources" = {
