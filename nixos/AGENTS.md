@@ -1,4 +1,6 @@
 - my dotfiles are managed with git where the GIT_DIR is pointing to a bare repo and the WORKTREE is pointing to my home directory. use `gitd` as a drop-in replacement for `git` to manage my dotfiles, for example `gitd status`.
+- I value simplicity, minimalism and elegance. YAGNI, KISS, SoC.
+- configurations and programs should be resource friendly. Prefer rust(-script) over scripting languages. Allow the cpu to go into deep sleep states.
 - the nixos and home manager configurations should be the source of truth
 - when switching the current system, make sure to stay on the same specialization. You can simply use the already existing nrs script.
 - automatically read analyze relevant log files and/or run commands like journalctl to get them

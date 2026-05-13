@@ -474,6 +474,11 @@ in
 
   services.blueman-applet.enable = true; # bluetooth tray icon, needs dconf
   services.mpris-proxy.enable = true; # bluetooth buttons
+  dconf.settings."org/blueman/general" = {
+    # Blueman defaults to full-color tray icons. Force its documented symbolic
+    # tray mode so Polybar receives a monochrome-friendly icon window.
+    symbolic-status-icons = true;
+  };
 
   services.flameshot = {
     enable = true;
@@ -674,6 +679,13 @@ in
 
   gtk = {
     enable = true;
+    iconTheme = {
+      # Prefer Adwaita's symbolic status icons for tray clients. Polybar's
+      # tray-foreground is only a protocol hint, so the GTK icon theme is the
+      # stronger declarative source for monochrome-capable apps.
+      name = "Adwaita";
+      package = pkgs.adwaita-icon-theme;
+    };
     theme = {
       # Keep GTK3 on a real theme package so xsettingsd's Net/ThemeName points
       # at an installed theme instead of falling back unpredictably.

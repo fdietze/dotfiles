@@ -246,6 +246,10 @@ lib.mkIf (desktop == "herbstluftwm") {
   services.xsettingsd = {
     enable = true;
     settings = {
+      # GTK apps in the X11 herbstluftwm session read the icon theme through
+      # XSettings. Keep this in sync with gtk.iconTheme for tray clients that
+      # resolve status icons from the session instead of settings.ini.
+      "Net/IconThemeName" = "Adwaita";
       "Net/ThemeName" = "adw-gtk3-${theme}";
     };
   };

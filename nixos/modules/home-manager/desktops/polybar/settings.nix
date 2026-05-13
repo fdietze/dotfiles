@@ -477,32 +477,127 @@
     };
   };
 
-  networkModules = {
+  networkModules = let
+    networkRates = pkgs.writeShellApplication {
+      name = "polybar-network-rates";
+      runtimeInputs = [
+        pkgs.coreutils
+        pkgs.gnugrep
+        pkgs.networkmanager
+      ];
+      text = ''
+        interface=$1
+        icon=$2
+        show_essid=$3
+        interval=$4
+        sysfs="/sys/class/net/$interface"
+
+        connected() {
+          if [ ! -d "$sysfs/statistics" ]; then
+            return 1
+          fi
+
+          if [ -r "$sysfs/carrier" ]; then
+            [ "$(cat "$sysfs/carrier" 2>/dev/null)" = 1 ]
+          else
+            [ "$(cat "$sysfs/operstate" 2>/dev/null)" = up ]
+          fi
+        }
+
+        read_bytes() {
+          printf '%s %s\n' \
+            "$(cat "$sysfs/statistics/rx_bytes" 2>/dev/null)" \
+            "$(cat "$sysfs/statistics/tx_bytes" 2>/dev/null)"
+        }
+
+        format_rate() {
+          local bytes=$1
+          local tenths
+          local unit
+          local rate
+
+          if [ "$bytes" -ge 1073741824 ]; then
+            tenths=$(((bytes * 10 + 536870912) / 1073741824))
+            unit=G/s
+          elif [ "$bytes" -ge 1048576 ]; then
+            tenths=$(((bytes * 10 + 524288) / 1048576))
+            unit=M/s
+          else
+            tenths=$(((bytes * 10 + 512) / 1024))
+            unit=K/s
+          fi
+
+          # Match the disk I/O module's highlight threshold and omit the "B"
+          # to keep the network module compact.
+          rate=$(printf '%3d.%d%s' "$((tenths / 10))" "$((tenths % 10))" "$unit")
+
+          if [ "$bytes" -gt 1048576 ]; then
+            printf '%%{F${polybarColors.peak}}%s%%{F-}' "$rate"
+          else
+            printf '%s' "$rate"
+          fi
+        }
+
+        essid() {
+          if [ "$show_essid" = 1 ]; then
+            nmcli -t -f active,ssid dev wifi \
+              | grep -E '^yes' \
+              | cut -d: -f2 \
+              || true
+          fi
+          return 0
+        }
+
+        while true; do
+          if connected; then
+            read -r prev_rx prev_tx < <(read_bytes)
+            sleep "$interval"
+
+            if connected; then
+              read -r current_rx current_tx < <(read_bytes)
+              rx_delta=$((current_rx - prev_rx))
+              tx_delta=$((current_tx - prev_tx))
+
+              if [ "$rx_delta" -lt 0 ]; then
+                rx_delta=0
+              fi
+              if [ "$tx_delta" -lt 0 ]; then
+                tx_delta=0
+              fi
+
+              prefix="%{F${polybarColors.foregroundAlt}}%{T4}$icon%{T-}%{F-} "
+              ssid=$(essid)
+              if [ -n "$ssid" ]; then
+                prefix="$prefix$ssid  "
+              fi
+
+              printf '%s%%{F${polybarColors.foregroundAlt}}%%{T4}${icons.download}%%{T-}%%{F-}%s  %%{F${polybarColors.foregroundAlt}}%%{T4}${icons.upload}%%{T-}%%{F-}%s\n' \
+                "$prefix" \
+                "$(format_rate "$((rx_delta / interval))")" \
+                "$(format_rate "$((tx_delta / interval))")"
+            else
+              echo ""
+            fi
+          else
+            echo ""
+            sleep "$interval"
+          fi
+        done
+      '';
+    };
+  in {
     "module/eth" = {
-      "type" = "internal/network";
-      "interface" = "enp0s20f0u1";
-      "interval" = "3.0";
-      "format-connected-prefix" = iconPrefix icons.ethernet;
-      "format-connected-prefix-foreground" = "\${colors.foreground-alt}";
-      "label-connected" = "▼%downspeed:9%  ▲%upspeed:9%";
-      "format-disconnected" = "";
+      "type" = "custom/script";
+      "exec" = "${lib.getExe networkRates} enp0s20f0u1 ${lib.escapeShellArg icons.ethernet} 0 3";
+      "tail" = true;
+      "label" = "%output%";
     };
 
     "module/wifi" = {
-      "type" = "internal/network";
-      "interface" = "wlp2s0";
-      "interval" = "5.0";
-      "format-connected" = "<label-connected>";
-      "format-connected-prefix" = iconPrefix icons.wifi;
-      "format-connected-prefix-foreground" = "\${colors.foreground-alt}";
-      "label-connected" = "%essid%  ▼%downspeed:9%  ▲%upspeed:9%";
-      "format-disconnected" = "";
-      "ramp-signal-0" = "\${base.ramp-base-0}";
-      "ramp-signal-1" = "\${base.ramp-base-1}";
-      "ramp-signal-2" = "\${base.ramp-base-2}";
-      "ramp-signal-3" = "\${base.ramp-base-3}";
-      "ramp-signal-4" = "\${base.ramp-base-4}";
-      "ramp-signal-foreground" = "\${colors.foreground}";
+      "type" = "custom/script";
+      "exec" = "${lib.getExe networkRates} wlp2s0 ${lib.escapeShellArg icons.wifi} 1 5";
+      "tail" = true;
+      "label" = "%output%";
     };
   };
 
@@ -534,6 +629,10 @@
       "battery" = "BAT0";
       "adapter" = "AC0";
       "full-at" = 98;
+      # Polybar's internal/battery low state supports animation-low; use a
+      # same-width blank frame so low battery visibly blinks without shifting
+      # neighbouring modules.
+      "low-at" = 15;
       "format-prefix-foreground" = "\${colors.foreground-alt}";
       "format-charging-prefix" = iconPrefix icons.batteryCharging;
       "format-full-prefix" = iconPrefix icons.batteryCharging;
@@ -543,10 +642,15 @@
       # battery prefix plus block ramp. Full stays compact: icon only.
       "format-charging" = "<label-charging>";
       "format-discharging" = "<ramp-capacity> <label-discharging>";
+      "format-low" = "<animation-low> <label-low>";
       "format-full" = "";
       "label-charging" = "%time%";
       "label-discharging" = "%time%";
+      "label-low" = "%time%";
       "time-format" = "%H:%M";
+      "animation-low-0" = "%{F${polybarColors.warn}}󰂎%{F-}";
+      "animation-low-1" = " ";
+      "animation-low-framerate" = 750;
       "ramp-capacity-0" = "%{F${polybarColors.warn}}󰂎%{F-}"; # mdi-battery-outline U+F008E
       "ramp-capacity-1" = "%{F${polybarColors.warn}}󰁺%{F-}"; # mdi-battery-10 U+F007A
       "ramp-capacity-2" = "󰁻"; # mdi-battery-20 U+F007B
@@ -690,6 +794,12 @@
   trayModule = {
     "module/tray" = {
       "type" = "internal/tray";
+      # Polybar can only hint tray colors via _NET_SYSTEM_TRAY_COLORS; many
+      # apps still choose their own icon assets, so GTK/Qt icon theme settings
+      # and per-app tray options remain the source of truth for stubborn icons.
+      # See Polybar's internal/tray documentation for tray-foreground.
+      "tray-background" = polybarColors.background;
+      "tray-foreground" = polybarColors.foregroundAlt;
       "tray-spacing" = "8px";
       "tray-size" = "75%";
     };
