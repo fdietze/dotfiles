@@ -631,7 +631,11 @@ let
               || true
           )"
 
-          echo "%{F${polybarColors.foregroundAlt}}${iconPrefix icons.bluetooth}%{F-}$connections"
+          if [ "$connections" -gt 0 ]; then
+            echo "%{F${polybarColors.foregroundAlt}}${iconPrefix icons.bluetooth}%{F-}%{F${polybarColors.peak}}$connections%{F-}"
+          else
+            echo "%{F${polybarColors.foregroundAlt}}${iconPrefix icons.bluetooth}0%{F-}"
+          fi
         '';
       };
     in
