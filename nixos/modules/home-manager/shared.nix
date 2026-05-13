@@ -10,115 +10,16 @@
 }:
 let
   currentThemeTarget = "theme-${theme}.target";
-  switchToConfigurationPath =
-    mode: "/nix/var/nix/profiles/system/specialisation/${desktop}-${mode}/bin/switch-to-configuration";
-  nrsScript = pkgs.writeShellScriptBin "nrs" ''
-    #!${pkgs.bash}/bin/bash
-    set -euo pipefail
-
-    if [[ -r /run/nixos/current-specialisation ]] && specialisation="$(${pkgs.coreutils}/bin/head -n1 /run/nixos/current-specialisation)" && [[ -n "$specialisation" ]]; then
-      exec sudo nixos-rebuild switch --specialisation "$specialisation"
-    else
-      exec sudo nixos-rebuild switch
-    fi
-  '';
-  mkThemeSwitchScript =
-    mode:
-    pkgs.writeShellScriptBin "theme-${mode}" ''
-      #!${pkgs.bash}/bin/bash
-      set -euo pipefail
-
-      sudo ${switchToConfigurationPath mode} switch
-      ${pkgs.systemd}/bin/systemctl --user daemon-reload
-      ${pkgs.systemd}/bin/systemctl --user stop theme-light.target theme-dark.target || true
-      exec ${pkgs.systemd}/bin/systemctl --user start theme-${mode}.target
-    '';
-  wallpaperTarget = mode: if mode == "light" then "desktop-light" else "desktop";
-  mkWallpaperScript =
-    mode:
-    pkgs.writeShellScript "apply-wallpaper-${mode}" ''
-      #!${pkgs.bash}/bin/bash
-      set -euo pipefail
-
-      set_wallpaper() {
-        local path="$1"
-        local uri="file://''${path}"
-
-        ${pkgs.coreutils}/bin/ln -sfn "''${path}" "$HOME/frottage/current-wallpaper.jpg"
-
-        if [[ "''${XDG_CURRENT_DESKTOP:-}" == *GNOME* ]] || [[ "''${DESKTOP_SESSION:-}" == gnome ]]; then
-          echo "Setting wallpaper using GNOME gsettings."
-          ${pkgs.glib}/bin/gsettings set org.gnome.desktop.background picture-options 'zoom'
-          ${pkgs.glib}/bin/gsettings set org.gnome.desktop.background picture-uri "''${uri}"
-          ${pkgs.glib}/bin/gsettings set org.gnome.desktop.background picture-uri-dark "''${uri}"
-        elif [[ -n "''${DISPLAY:-}" ]]; then
-          echo "Setting wallpaper using feh."
-          ${pkgs.feh}/bin/feh --bg-fill "''${path}"
-        else
-          echo "No supported wallpaper backend found for the current session." >&2
-        fi
-      }
-
-      TARGET=${wallpaperTarget mode}
-
-      current_hour_utc="$(${pkgs.coreutils}/bin/date -u +%H)"
-      current_date_utc="$(${pkgs.coreutils}/bin/date -u +%F)"
-
-      if ((10#$current_hour_utc < 1)); then
-        slot_date="$(${pkgs.coreutils}/bin/date -u -d 'yesterday' +%F)"
-        slot_hour="19"
-      elif ((10#$current_hour_utc < 7)); then
-        slot_date="$current_date_utc"
-        slot_hour="01"
-      elif ((10#$current_hour_utc < 13)); then
-        slot_date="$current_date_utc"
-        slot_hour="07"
-      elif ((10#$current_hour_utc < 19)); then
-        slot_date="$current_date_utc"
-        slot_hour="13"
-      else
-        slot_date="$current_date_utc"
-        slot_hour="19"
-      fi
-
-      TIMESTAMP_KEY="''${slot_date}_''${slot_hour}-00-00"
-      WALLPAPER_FILENAME="wallpaper-''${TARGET}-''${TIMESTAMP_KEY}.jpg"
-
-      ${pkgs.coreutils}/bin/mkdir -p "$HOME/frottage"
-
-      DOWNLOAD_URL="https://frottage.app/static/''${WALLPAPER_FILENAME}"
-      OUTPUT_PATH="$HOME/frottage/''${WALLPAPER_FILENAME}"
-      if [[ -e "$OUTPUT_PATH" ]]; then
-        echo "Using cached wallpaper for slot: ''${TIMESTAMP_KEY}"
-        set_wallpaper "$OUTPUT_PATH"
-        exit 0
-      fi
-
-      echo "Starting wallpaper download for theme: ''${TARGET}, slot: ''${TIMESTAMP_KEY}"
-      echo "Downloading $DOWNLOAD_URL to $OUTPUT_PATH with retries"
-
-      if ${pkgs.curl}/bin/curl --retry 5 --retry-delay 10 --retry-all-errors -sfSL -o "$OUTPUT_PATH" "$DOWNLOAD_URL"; then
-        echo "Download successful."
-        set_wallpaper "$OUTPUT_PATH"
-        exit 0
-      else
-        curl_exit_code=$?
-        echo "curl command failed after retries with exit code: $curl_exit_code." >&2
-        echo "Failed to download wallpaper from $DOWNLOAD_URL." >&2
-        echo "Falling back to the most recent cached wallpaper." >&2
-        latest_cached="$(${pkgs.findutils}/bin/find "$HOME/frottage" -maxdepth 1 -type f -name 'wallpaper-*.jpg' -printf '%T@ %p\n' | ${pkgs.coreutils}/bin/sort -nr | ${pkgs.coreutils}/bin/head -n1 | ${pkgs.gawk}/bin/awk '{print $2}')"
-        if [[ -n "''${latest_cached:-}" && -e "''${latest_cached}" ]]; then
-          set_wallpaper "$latest_cached" || true
-        fi
-        exit 1
-      fi
-    '';
 in
 {
   imports = [
     ./shell.nix
     ./git.nix
     ./yazi.nix
+    ./xdg.nix
+    ./packages.nix
+    ./theme-switching.nix
+    ./wallpaper.nix
     # ./home/dictate.nix
     ./nvf.nix
   ];
@@ -135,8 +36,6 @@ in
 
   # home.sessionCommand
 
-  home.file.".theme".text = theme;
-
   home.sessionVariables = {
     CLICOLOR_FORCE = 1; # ANSI colors should be enabled no matter what. (https://bixense.com/clicolors/)
 
@@ -151,22 +50,6 @@ in
 
     # QT_QPA_PLATFORMTHEME = "gtk2"; # let qt apps use gtk 2 themes
     # QT_AUTO_SCREEN_SCALE_FACTOR = 1; # honor screen DPI
-  };
-
-  xdg.userDirs = {
-    download = "${config.home.homeDirectory}/downloads";
-  };
-  xdg.configFile."mimeapps.list".force = true;
-  xdg.mimeApps = {
-    enable = true;
-    defaultApplications = {
-      "x-scheme-handler/http" = [ "firefox.desktop" ];
-      "x-scheme-handler/https" = [ "firefox.desktop" ];
-      "x-scheme-handler/about" = [ "firefox.desktop" ];
-      "image/jpeg" = [ "feh.desktop" ];
-      "image/png" = [ "feh.desktop" ];
-      "application/pdf" = [ "org.pwmt.zathura-pdf-mupdf.desktop" ];
-    };
   };
 
   programs.bat.enable = true;
@@ -252,7 +135,7 @@ in
     vn = ''$EDITOR "$HOME"/nixos/configuration.nix'';
     vh = ''$EDITOR "$HOME"/nixos/hosts/gurke/home.nix'';
     vb = ''$EDITOR "$HOME"/.config/polybar/config.ini'';
-    nrs = "${nrsScript}/bin/nrs";
+    nrs = "nrs";
     ns = "nix-shell --run zsh";
     ni = "nix profile install nixpkgs#";
     md = "mkdir -p";
@@ -594,8 +477,6 @@ in
     };
   };
 
-  xdg.autostart.enable = true; # Enable creation of XDG autostart entries.
-
   # systemd.user.services.keepassxc = {
   #   Unit = {
   #     Description = "KeePassXC password manager";
@@ -607,71 +488,6 @@ in
   #     Restart = "on-failure";
   #   };
   # };
-
-  systemd.user.services.frottage = {
-    Unit = {
-      Description = "Frottage";
-      After = [
-        "graphical-session-pre.target"
-        "network-online.target"
-        "nss-lookup.target"
-      ]; # Ensure graphical session and network are available
-      Wants = [
-        "network-online.target"
-        "nss-lookup.target"
-      ]; # Require network connection
-      PartOf = [
-        "graphical-session.target"
-      ]; # Tie service lifetime to graphical session
-    };
-    Service = {
-      Type = "oneshot";
-      ExecStart = "${mkWallpaperScript theme}";
-    };
-  };
-
-  systemd.user.targets."theme-light" = {
-    Unit.Description = "Apply light theme hooks";
-  };
-
-  systemd.user.targets."theme-dark" = {
-    Unit.Description = "Apply dark theme hooks";
-  };
-
-  systemd.user.services."wallpaper-${theme}" = {
-    Unit = {
-      Description = "Apply ${theme} wallpaper";
-      After = [
-        "graphical-session.target"
-        "network-online.target"
-        "nss-lookup.target"
-      ];
-      Wants = [
-        "network-online.target"
-        "nss-lookup.target"
-      ];
-      PartOf = [ currentThemeTarget ];
-    };
-    Service = {
-      Type = "oneshot";
-      ExecStart = "${mkWallpaperScript theme}";
-    };
-    Install.WantedBy = [ currentThemeTarget ];
-  };
-
-  systemd.user.timers.frottage = {
-    Unit = {
-      Description = "Frottage Timer";
-    };
-    Timer = {
-      OnActiveSec = "15s";
-      OnCalendar = "*-*-* 01,07,13,19:00:00 UTC";
-      Persistent = true; # Run job if missed due to suspend/shutdown
-    };
-    Install = {
-      WantedBy = [ "timers.target" ];
-    };
-  };
 
   # services.syncthing.enable = true;
 
@@ -982,261 +798,6 @@ in
     # TODO: https://github.com/portothree/dotfiles/blob/ef2274393816b8a2df0c8efbb80f852f9d0d20bd/config/keynav.nix#L7
     enable = false;
   };
-
-  home.packages = with pkgs; [
-    (mkThemeSwitchScript "light")
-    (mkThemeSwitchScript "dark")
-    nrsScript
-    # command line fu
-    # https://github.com/ibraheemdev/modern-unix
-    tmux
-    wget # download files
-    htop # fancy top
-    ncdu # disk space analyzer
-    gdu # disk space analyzer
-    pv # shell progress bar
-    pistol # file preview
-    bat # cat with syntax highlighting
-    lazygit # git tui
-    tig # git tui
-    dasel # transform data from csv/json/... (used by theme switcher)
-    jq # json parser
-    feh # image viewer
-    neovim-remote # send commands to neovim instances (used by theme switcher)
-    trashy # put files in trash instead of deleting them
-    playerctl # control media players, like spotify, vlc via cli / keybindings
-    pamixer # control pulseaudio via cli / keybindings
-    fd # find files by filename, alternative to `find`
-    tldr # quick command examples
-    speedtest-cli
-    gh # github cli
-    autorandr # automatic monitor profiles
-    xsel # clipboard
-    xclip # clipboard
-    tmate # invite someone else into your terminal via ssh
-    upterm # tmate alternative
-    imagemagick
-    ffmpeg-full
-    mediainfo
-    entr # run commands when files change
-    xcolor # simple color picker
-    qrencode
-    duf # better df
-    socat
-    ripgrep-all # ripgrep, but for documents
-    ngrok # remote http tunnel
-    chafa # preview images
-    dragon-drop # file drag and drop initiated from command line
-    pandoc # convert document formats
-    texliveSmall # required by pandoc
-    diff-so-fancy # diff viewer. TODO: replace with delta
-    kondo # clear project files
-    ouch # file compression
-    btop # system monitor
-    # curl-impersonate # curl mocking a real browser
-    espeak # text to speech
-    whisper-cpp # audio transcription
-    alsa-utils # audo recording
-    timewarrior # time tracking
-    nrfconnect # bluetooth ble
-    typst # modern latex alternative
-    pulsemixer # audio mixer tui
-    bluetuith # bluetooth tui
-    nethogs # network traffic monitor per process
-    yt-dlp # download youtube videos
-    flyctl # fly.io command line tool
-
-    networkmanagerapplet
-    xcwd # returns current directory of x application, used to spawn new termanals in the current directory: ~/bin/xcwd-home
-    arandr # manage monitors
-    bubblewrap # sandboxing tool
-
-    # system tools
-    openssl
-    man
-    pciutils
-    usbutils
-    hdparm
-    gparted
-    exfatprogs
-    ntfs3g
-    ntfsprogs
-    testdisk
-    lm_sensors
-    linuxPackages.cpupower
-    xkill
-    psmisc
-    wirelesstools
-    xbacklight
-    acpi
-    samba
-    cifs-utils
-    # mtpfs
-    jmtpfs
-    file
-    smem
-    dnsutils
-    smartmontools # hard drive diagnostics
-
-    # defaults
-    lsof
-    wget
-    curl
-    htop
-    atop
-    git-fire
-    moreutils # vipe, sponge
-    netcat
-    nmap
-    calc
-    tree
-    inotify-tools
-    zip
-    unzip
-    unrar
-    pavucontrol
-    mimeo
-    xdotool
-    gnumake
-    macchanger
-    miniserve
-    atool # archiver
-    p7zip # compressor
-    gnupg # cryptographic signing
-    ghostscript # pdf (nvim)
-    mermaid-cli # mermaid diagrams
-    # development
-    rust-script
-    python3
-    nodejs
-    pgcli
-    # earthly # better Dockerfiles
-    devbox # install dev tools in project
-    sqlite-interactive
-    visualvm # jvm profiling
-    clang # c-compiler, cc is required for nvim treesitter
-    coursier # scala package manager, used to install metals
-    # helix # modal editor
-    sccache # compile cache
-    devenv # nix based dev environments
-    # code-cursor # ai code editor
-    # antigravity-fhs # ai code editor from google
-    opencode # ai coding agent
-    # cursor-cli # ai coding agent
-    tree-sitter # syntax highlighting toolkit (used by nvim)
-    meld # git conflict resolution ui
-
-    # language servers/formatters/linters
-    nixd # nix language server
-    lua-language-server
-    luarocks
-    stylua
-    lua
-    # alejandra # nix code formatter
-    nil # nix language server
-    nixfmt
-    statix # nix linter
-    # go language server
-    gopls
-    # gotools
-    gofumpt
-    gomodifytags
-    impl
-    delve
-    # vtsls # TODO
-    tailwindcss-language-server
-    # nodePackages.prettier # css/js formatter
-    taplo # toml language server
-    docker-ls
-    # llm-ls
-    kotlin
-    kotlin-language-server
-    ktlint
-    ruff # python
-    pyright
-    # codeium # ai completion
-    hadolint # docker lint
-    vtsls # typescript
-    vscode-langservers-extracted
-
-    bash-language-server
-    shellcheck # shell language server
-    shfmt
-    marksman # markdown language server
-    markdownlint-cli2
-
-    # themeing
-    (polybar.override {
-      # PipeWire provides the PulseAudio-compatible server; Polybar needs this
-      # build flag for the native internal/pulseaudio volume module.
-      pulseSupport = true;
-    }) # status bar
-    # qogir-theme # gtk theme
-    # qogir-icon-theme # gtk theme
-    # tokyonight-gtk-theme
-    # gtk-engine-murrine
-    # gnome-themes-extra
-    # sassc # gtk theme engine
-    elementary-xfce-icon-theme
-    lxappearance
-    libsForQt5.qtstyleplugins # gtk style for qt
-    libsForQt5.qt5ct
-    lxappearance
-    ueberzugpp # view images in terminals without sixel support
-
-    # guis
-    # anydesk # simple remote desktop
-    google-chrome
-    nemo-with-extensions # file manager
-    file-roller
-    vscode
-    # jetbrains.idea-community-bin
-    android-studio
-    # jetbrains-toolbox # to install fleet editor: https://github.com/NixOS/nixpkgs/issues/242322#issuecomment-2264995861
-    # (jetbrains.plugins.addPlugins jetbrains.idea-community [
-    #   # https://github.com/NixOS/nixpkgs/blob/master/pkgs/applications/editors/jetbrains/plugins/plugins.json
-    #   "github-copilot"
-    # ])
-    # code-cursor # ai code editor
-    # windsurf # ai code editor
-    # zed-editor # ai code editor
-    # goose-cli # cli ai agent
-    # geminicommit
-    dbeaver-bin
-    # inkscape # svg editor, disabled because it is building from scratch because of stylix?
-    gcolor3
-    screenkey # screencast tool to display key presses
-    zoom-us # TODO
-    vlc # video player
-    mpv # video player
-    neovide # neovim gui
-    megasync # cloud file storage and sync
-    krusader # file manager with good directory comparison
-    keepassxc # password manager
-    libsecret.out # secret-tool to retrieve secrets from keepassxc
-    signal-desktop
-    telegram-desktop
-    spotify
-    psst # alternative spotify client
-    gthumb
-    libreoffice
-    sublime-merge
-    # scribus
-    # nheko # matrix client
-    kvirc # irc client
-    zathura # minimal pdf viewer with vim bindings
-    # Installed by programs.firefox so Home Manager can wrap it with policies.
-    # librewolf # firefox privacy fork
-    kazam
-    bottles # wine environment
-    lutris # wine
-    umu-launcher # for lutris
-    # vdhcoapp # for video download helper browser extension
-    # anytype # p2p note taking
-    # gitbutler # Git client for simultaneous branches on top of your existing workflow
-
-    geary # gnome email client
-  ];
 
   # This value determines the Home Manager release that your
   # configuration is compatible with. This helps avoid breakage
