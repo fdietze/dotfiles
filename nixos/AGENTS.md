@@ -25,6 +25,10 @@ block.
 - for refactorings, use nvd to verify that the generated nix code is exactly the same before and after and only shows the desired changes.
 - to know how other people configure something, search their dotfiles on github. Use corresponding file path and language where appropriate.
 - if you found a good reference or documentation for the task at hand, add a comment in the code referring to that documentation for future quick retreival
+- If code should be moved to another file, always do it with shell commands to preserve the content verbatim and avoid copy paste errors
+- If any command is missing to to the job or investigate, you can access any command via an ad-hoc nix-shell
+- always add comments to document why things are the way they are
+- don't hardcode paths. whenever possible, use xdg dirs.
 
 configuration entrypoints:
 - flake.nix # nixos flake

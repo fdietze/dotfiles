@@ -11,34 +11,127 @@ let
   stylixPalette = config.stylix.base16Scheme;
   withHash = value: "#${value}";
   currentThemeTarget = "theme-${theme}.target";
+  herbstclient = "${pkgs.herbstluftwm}/bin/herbstclient";
+  # PipeWire exposes a PulseAudio-compatible server on this system. Build
+  # Polybar with Pulse support so the native internal/pulseaudio module works.
+  polybar = pkgs.polybar.override {
+    pulseSupport = true;
+  };
   polybarRuntimePath = lib.makeBinPath [
     pkgs.bash
     pkgs.coreutils
-    pkgs.polybar
+    polybar
   ];
-  polybarColors = {
+  hlwmTitleFont = "${uiFonts.monospace.name}:size=${toString uiFonts.sizes.statusbar}";
+  hlwmTitleHeight = toString (uiFonts.sizes.statusbar + 6);
+  hlwmTitleDepth = toString (lib.max 4 (uiFonts.sizes.statusbar - 4));
+  sessionColors = {
     background = withHash stylixPalette.base00;
+    surface = withHash stylixPalette.base01;
+    surfaceRaised = withHash stylixPalette.base02;
     foreground = withHash stylixPalette.base05;
     foregroundAlt = withHash stylixPalette.base03;
     warn = withHash stylixPalette.base08;
-    peak = withHash stylixPalette.base0B;
+    urgent = withHash stylixPalette.base09;
+    accent = withHash stylixPalette.base0B;
+  };
+  polybarColors = {
+    background = sessionColors.background;
+    foreground = sessionColors.foreground;
+    foregroundAlt = sessionColors.foregroundAlt;
+    warn = sessionColors.warn;
+    peak = sessionColors.accent;
     tagDefaultBg = withHash stylixPalette.base00;
     tagEmptyFg =
       if theme == "light" then withHash stylixPalette.base02 else withHash stylixPalette.base03;
     tagUsedFg = withHash stylixPalette.base05;
     tagSelectedFg = withHash stylixPalette.base00;
-    tagUrgentBg = withHash stylixPalette.base08;
-    tagFocusBg = withHash stylixPalette.base0B;
+    tagUrgentBg = sessionColors.urgent;
+    tagFocusBg = sessionColors.accent;
     tagFocusOtherBg = withHash stylixPalette.base02;
     tagUnfocusBg = withHash stylixPalette.base01;
     tagUnfocusOtherBg = withHash stylixPalette.base00;
   };
-  hlwmColors = polybarColors // {
-    barBg = polybarColors.background;
-    barFg = polybarColors.foreground;
-    borderNormal = if theme == "light" then "#E8E9F2" else "#171717";
-    borderFocused = polybarColors.peak;
+  hlwmColors = {
+    barBg = sessionColors.background;
+    barFg = sessionColors.foreground;
+    borderNormal = sessionColors.surface;
+    borderFocused = sessionColors.accent;
+    urgent = sessionColors.urgent;
+    tabBg = sessionColors.surface;
+    tabMutedFg = sessionColors.foregroundAlt;
+    tabOuter = sessionColors.surfaceRaised;
   };
+  hlwmThemeCommands = ''
+    ${herbstclient} attr theme.border_width 3
+    ${herbstclient} set frame_border_width 1
+    ${herbstclient} attr theme.floating.border_width 3
+
+    ${herbstclient} set frame_border_active_color ${lib.escapeShellArg hlwmColors.borderFocused}
+    ${herbstclient} set frame_border_normal_color ${lib.escapeShellArg hlwmColors.borderNormal}
+
+    # Prefer theme attributes over the window_border_* compatibility aliases.
+    # See herbstluftwm(1), "theme".
+    ${herbstclient} attr theme.color ${lib.escapeShellArg hlwmColors.barBg}
+    ${herbstclient} attr theme.title_color ${lib.escapeShellArg hlwmColors.barFg}
+    ${herbstclient} attr theme.title_font ${lib.escapeShellArg hlwmTitleFont}
+    ${herbstclient} attr theme.title_height ${hlwmTitleHeight}
+    ${herbstclient} attr theme.title_depth ${hlwmTitleDepth}
+    ${herbstclient} attr theme.title_when one_tab
+    ${herbstclient} attr theme.active.color ${lib.escapeShellArg hlwmColors.borderFocused}
+    ${herbstclient} attr theme.active.title_color ${lib.escapeShellArg hlwmColors.barBg}
+    ${herbstclient} attr theme.active.title_font ${lib.escapeShellArg hlwmTitleFont}
+    ${herbstclient} attr theme.active.title_height ${hlwmTitleHeight}
+    ${herbstclient} attr theme.active.title_depth ${hlwmTitleDepth}
+    ${herbstclient} attr theme.active.tab_title_color ${lib.escapeShellArg hlwmColors.tabMutedFg}
+    ${herbstclient} attr theme.normal.color ${lib.escapeShellArg hlwmColors.barBg}
+    ${herbstclient} attr theme.normal.title_color ${lib.escapeShellArg hlwmColors.barFg}
+    ${herbstclient} attr theme.normal.title_font ${lib.escapeShellArg hlwmTitleFont}
+    ${herbstclient} attr theme.normal.title_height ${hlwmTitleHeight}
+    ${herbstclient} attr theme.normal.title_depth ${hlwmTitleDepth}
+    ${herbstclient} attr theme.normal.tab_title_color ${lib.escapeShellArg hlwmColors.tabMutedFg}
+    ${herbstclient} attr theme.urgent.color ${lib.escapeShellArg hlwmColors.urgent}
+    ${herbstclient} attr theme.urgent.inner_color ${lib.escapeShellArg hlwmColors.urgent}
+    ${herbstclient} attr theme.urgent.outer_color ${lib.escapeShellArg hlwmColors.urgent}
+    ${herbstclient} attr theme.urgent.title_color ${lib.escapeShellArg hlwmColors.barBg}
+    ${herbstclient} attr theme.urgent.title_font ${lib.escapeShellArg hlwmTitleFont}
+    ${herbstclient} attr theme.urgent.title_height ${hlwmTitleHeight}
+    ${herbstclient} attr theme.urgent.title_depth ${hlwmTitleDepth}
+    ${herbstclient} attr theme.tab_color ${lib.escapeShellArg hlwmColors.tabBg}
+    ${herbstclient} attr theme.tab_title_color ${lib.escapeShellArg hlwmColors.tabMutedFg}
+    ${herbstclient} attr theme.tab_outer_color ${lib.escapeShellArg hlwmColors.tabOuter}
+
+    # With smart_window_surroundings and tabbed_max, visible tabs use
+    # theme.minimal; see https://github.com/herbstluftwm/herbstluftwm/issues/1518
+    ${herbstclient} attr theme.minimal.color ${lib.escapeShellArg hlwmColors.barBg}
+    ${herbstclient} attr theme.minimal.title_color ${lib.escapeShellArg hlwmColors.barFg}
+    ${herbstclient} attr theme.minimal.title_font ${lib.escapeShellArg hlwmTitleFont}
+    ${herbstclient} attr theme.minimal.title_height ${hlwmTitleHeight}
+    ${herbstclient} attr theme.minimal.title_depth ${hlwmTitleDepth}
+    ${herbstclient} attr theme.minimal.title_when multiple_tabs
+    ${herbstclient} attr theme.minimal.active.color ${lib.escapeShellArg hlwmColors.borderFocused}
+    ${herbstclient} attr theme.minimal.active.title_color ${lib.escapeShellArg hlwmColors.barBg}
+    ${herbstclient} attr theme.minimal.active.title_font ${lib.escapeShellArg hlwmTitleFont}
+    ${herbstclient} attr theme.minimal.active.title_height ${hlwmTitleHeight}
+    ${herbstclient} attr theme.minimal.active.title_depth ${hlwmTitleDepth}
+    ${herbstclient} attr theme.minimal.active.tab_title_color ${lib.escapeShellArg hlwmColors.tabMutedFg}
+    ${herbstclient} attr theme.minimal.normal.color ${lib.escapeShellArg hlwmColors.barBg}
+    ${herbstclient} attr theme.minimal.normal.title_color ${lib.escapeShellArg hlwmColors.barFg}
+    ${herbstclient} attr theme.minimal.normal.title_font ${lib.escapeShellArg hlwmTitleFont}
+    ${herbstclient} attr theme.minimal.normal.title_height ${hlwmTitleHeight}
+    ${herbstclient} attr theme.minimal.normal.title_depth ${hlwmTitleDepth}
+    ${herbstclient} attr theme.minimal.normal.tab_title_color ${lib.escapeShellArg hlwmColors.tabMutedFg}
+    ${herbstclient} attr theme.minimal.urgent.color ${lib.escapeShellArg hlwmColors.urgent}
+    ${herbstclient} attr theme.minimal.urgent.inner_color ${lib.escapeShellArg hlwmColors.urgent}
+    ${herbstclient} attr theme.minimal.urgent.outer_color ${lib.escapeShellArg hlwmColors.urgent}
+    ${herbstclient} attr theme.minimal.urgent.title_color ${lib.escapeShellArg hlwmColors.barBg}
+    ${herbstclient} attr theme.minimal.urgent.title_font ${lib.escapeShellArg hlwmTitleFont}
+    ${herbstclient} attr theme.minimal.urgent.title_height ${hlwmTitleHeight}
+    ${herbstclient} attr theme.minimal.urgent.title_depth ${hlwmTitleDepth}
+    ${herbstclient} attr theme.minimal.tab_color ${lib.escapeShellArg hlwmColors.tabBg}
+    ${herbstclient} attr theme.minimal.tab_title_color ${lib.escapeShellArg hlwmColors.tabMutedFg}
+    ${herbstclient} attr theme.minimal.tab_outer_color ${lib.escapeShellArg hlwmColors.tabOuter}
+  '';
   polybarSettings = import ./polybar/settings.nix {
     inherit
       lib
@@ -53,26 +146,11 @@ let
     #!${pkgs.bash}/bin/bash
     set -euo pipefail
 
-    hc=${pkgs.herbstluftwm}/bin/herbstclient
-    $hc version >/dev/null 2>&1 || exit 0
+    ${herbstclient} version >/dev/null 2>&1 || exit 0
 
-    $hc attr theme.tiling.reset 1
-    $hc attr theme.floating.reset 1
-    $hc set window_border_width 3
-    $hc set frame_border_width 1
-    $hc attr theme.floating.border_width 3
-
-    $hc set frame_border_active_color ${lib.escapeShellArg hlwmColors.borderFocused}
-    $hc set frame_border_normal_color ${lib.escapeShellArg hlwmColors.borderNormal}
-    $hc set window_border_active_color ${lib.escapeShellArg hlwmColors.borderFocused}
-    $hc set window_border_normal_color ${lib.escapeShellArg hlwmColors.borderNormal}
-
-    $hc attr theme.color ${lib.escapeShellArg hlwmColors.barBg}
-    $hc attr theme.title_color ${lib.escapeShellArg hlwmColors.barFg}
-    $hc attr theme.active.color ${lib.escapeShellArg hlwmColors.borderFocused}
-    $hc attr theme.active.title_color ${lib.escapeShellArg hlwmColors.barBg}
-    $hc attr theme.urgent.color orange
-    $hc attr theme.urgent.title_color ${lib.escapeShellArg hlwmColors.barBg}
+    ${herbstclient} attr theme.tiling.reset 1
+    ${herbstclient} attr theme.floating.reset 1
+    ${hlwmThemeCommands}
   '';
   runPolybar = pkgs.writeShellScript "run-polybar-${theme}" ''
     #!${pkgs.bash}/bin/bash
@@ -80,46 +158,44 @@ let
 
     polybar_pids=()
 
-    stop_privileged_helpers() {
-      /run/wrappers/bin/sudo ${pkgs.procps}/bin/pkill -f 'polybar-topioread|polybar-topiowrite|[.]iotop-wrapped -d 10 -ob' 2>/dev/null || true
-    }
-
     stop_polybars() {
       if [ "''${#polybar_pids[@]}" -gt 0 ]; then
         ${pkgs.coreutils}/bin/kill "''${polybar_pids[@]}" 2>/dev/null || true
-        stop_privileged_helpers
         wait "''${polybar_pids[@]}" 2>/dev/null || true
-      else
-        stop_privileged_helpers
       fi
     }
 
     trap 'stop_polybars; exit 0' INT TERM
 
-    echo "Polybar launch script started at $(${pkgs.coreutils}/bin/date)" > /tmp/polybar_launch.log
+    # Log to stdout/stderr so systemd-journald owns the lifecycle logs. This
+    # avoids a stale /tmp log file and keeps `journalctl --user -u polybar-*`
+    # as the single debugging entrypoint.
+    echo "Polybar launch script started at $(${pkgs.coreutils}/bin/date)"
 
     HLWM_MONITOR_IDS=$(${pkgs.herbstluftwm}/bin/herbstclient list_monitors | ${pkgs.coreutils}/bin/cut -d':' -f1)
-    echo "HLWM_MONITOR_IDS: $HLWM_MONITOR_IDS" >> /tmp/polybar_launch.log
+    echo "HLWM_MONITOR_IDS: $HLWM_MONITOR_IDS"
 
-    POLYBAR_MONITOR_IDS_PRIMARY=$(${pkgs.polybar}/bin/polybar --list-monitors | ${pkgs.gawk}/bin/awk -F: '{print $1 ($2~/primary/?" (primary)":"")}')
-    echo "POLYBAR_MONITOR_IDS_PRIMARY: $POLYBAR_MONITOR_IDS_PRIMARY" >> /tmp/polybar_launch.log
+    POLYBAR_MONITOR_IDS_PRIMARY=$(${polybar}/bin/polybar --list-monitors | ${pkgs.gawk}/bin/awk -F: '{print $1 ($2~/primary/?" (primary)":"")}')
+    echo "POLYBAR_MONITOR_IDS_PRIMARY: $POLYBAR_MONITOR_IDS_PRIMARY"
 
     MERGED=$(${pkgs.coreutils}/bin/paste -d " " <(${pkgs.coreutils}/bin/echo "$HLWM_MONITOR_IDS") <(${pkgs.coreutils}/bin/echo "$POLYBAR_MONITOR_IDS_PRIMARY"))
-    echo "MERGED: $MERGED" >> /tmp/polybar_launch.log
+    echo "MERGED: $MERGED"
 
     PRIMARY=$(${pkgs.gnugrep}/bin/grep "primary" <<<"$MERGED" || true)
     OTHERS=$(${pkgs.gnugrep}/bin/grep -v "primary" <<<"$MERGED" || true)
-    echo "PRIMARY: $PRIMARY" >> /tmp/polybar_launch.log
-    echo "OTHERS: $OTHERS" >> /tmp/polybar_launch.log
+    echo "PRIMARY: $PRIMARY"
+    echo "OTHERS: $OTHERS"
 
     if [ -n "$PRIMARY" ]; then
       export MONITOR=$(${pkgs.coreutils}/bin/cut -d" " -f2 <<<"$PRIMARY")
       export MONITOR_HLWM=$(${pkgs.coreutils}/bin/cut -d" " -f1 <<<"$PRIMARY")
-      echo "Starting polybar on primary monitor '$PRIMARY' -> HLWM: $MONITOR_HLWM, Polybar: $MONITOR" >> /tmp/polybar_launch.log
-      ${pkgs.polybar}/bin/polybar >> /tmp/polybar_launch.log 2>&1 &
+      echo "Starting primary polybar on '$PRIMARY' -> HLWM: $MONITOR_HLWM, Polybar: $MONITOR"
+      # Only the primary bar contains the internal tray. Secondary bars inherit
+      # the same styling but omit tray ownership.
+      ${polybar}/bin/polybar default &
       polybar_pids+=("$!")
     else
-      echo "No primary monitor found by script. Not starting Polybar on primary." >> /tmp/polybar_launch.log
+      echo "No primary monitor found by script. Not starting Polybar on primary."
     fi
 
     ${pkgs.coreutils}/bin/sleep 2
@@ -131,15 +207,15 @@ let
 
       export MONITOR=$(${pkgs.coreutils}/bin/cut -d" " -f2 <<<"$monitor")
       export MONITOR_HLWM=$(${pkgs.coreutils}/bin/cut -d" " -f1 <<<"$monitor")
-      echo "Starting polybar on other monitor '$monitor' -> HLWM: $MONITOR_HLWM, Polybar: $MONITOR" >> /tmp/polybar_launch.log
-      ${pkgs.polybar}/bin/polybar >> /tmp/polybar_launch.log 2>&1 &
+      echo "Starting secondary polybar on '$monitor' -> HLWM: $MONITOR_HLWM, Polybar: $MONITOR"
+      ${polybar}/bin/polybar secondary &
       polybar_pids+=("$!")
     done <<<"$OTHERS"
 
-    echo "Polybar launch script finished at $(${pkgs.coreutils}/bin/date)" >> /tmp/polybar_launch.log
+    echo "Polybar launch script finished at $(${pkgs.coreutils}/bin/date)"
 
     if [ "''${#polybar_pids[@]}" -eq 0 ]; then
-      echo "No Polybar instances were started." >> /tmp/polybar_launch.log
+      echo "No Polybar instances were started."
       exit 1
     fi
 
@@ -176,11 +252,13 @@ lib.mkIf (desktop == "herbstluftwm") {
   services.network-manager-applet.enable = true;
   services.polybar = {
     enable = true;
+    package = polybar;
     settings = polybarSettings;
     # The theme-specific service below launches the concrete Polybar config for
     # this specialization instead of Home Manager's default user service.
     script = ":";
   };
+  xdg.configFile."polybar/config.ini".force = true;
   systemd.user.services.polybar.Install.WantedBy = lib.mkForce [ ];
   systemd.user.services."hlwm-${theme}" = {
     Unit = {
@@ -202,6 +280,12 @@ lib.mkIf (desktop == "herbstluftwm") {
         "hlwm-${theme}.service"
       ];
       PartOf = [ currentThemeTarget ];
+      # Home Manager's sd-switch activation restarts user services when
+      # X-Restart-Triggers changes.
+      X-Restart-Triggers = [
+        config.xdg.configFile."polybar/config.ini".source
+      ];
+      X-SwitchMethod = "restart";
     };
     Service = {
       # systemd.kill(5) warns against KillMode=none because child processes
@@ -535,17 +619,8 @@ lib.mkIf (desktop == "herbstluftwm") {
         	fi
         done
 
-        # tabs
-        herbstclient attr theme.title_font 'Monospace:pixelsize=16'  # example using Xft
-        herbstclient attr theme.title_height 15 # Pixel height for title text
-        herbstclient attr theme.title_depth 5  # Pixels below title text
-        herbstclient attr theme.title_when one_tab # tabbed mode in 'max' layout
-        herbstclient attr theme.minimal.title_height 25
-        herbstclient attr theme.minimal.title_when multiple_tabs
-        # herbstclient attr theme.minimal.color $BAR_BG
-        # herbstclient attr theme.minimal.title_color $BAR_FG
-        # herbstclient attr theme.minimal.title_depth 8
-        # herbstclient attr theme.minimal.title_font "Monospace:pixelsize=20"
+        # Keep startup styling in sync with the theme-switching service.
+        ${hlwmThemeCommands}
 
         # frottage & # set wallpaper
 

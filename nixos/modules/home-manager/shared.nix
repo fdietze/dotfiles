@@ -7,9 +7,11 @@
   theme,
   uiFonts,
   ...
-}: let
+}:
+let
   currentThemeTarget = "theme-${theme}.target";
-  switchToConfigurationPath = mode: "/nix/var/nix/profiles/system/specialisation/${desktop}-${mode}/bin/switch-to-configuration";
+  switchToConfigurationPath =
+    mode: "/nix/var/nix/profiles/system/specialisation/${desktop}-${mode}/bin/switch-to-configuration";
   nrsScript = pkgs.writeShellScriptBin "nrs" ''
     #!${pkgs.bash}/bin/bash
     set -euo pipefail
@@ -20,7 +22,8 @@
       exec sudo nixos-rebuild switch
     fi
   '';
-  mkThemeSwitchScript = mode:
+  mkThemeSwitchScript =
+    mode:
     pkgs.writeShellScriptBin "theme-${mode}" ''
       #!${pkgs.bash}/bin/bash
       set -euo pipefail
@@ -30,11 +33,9 @@
       ${pkgs.systemd}/bin/systemctl --user stop theme-light.target theme-dark.target || true
       exec ${pkgs.systemd}/bin/systemctl --user start theme-${mode}.target
     '';
-  wallpaperTarget = mode:
-    if mode == "light"
-    then "desktop-light"
-    else "desktop";
-  mkWallpaperScript = mode:
+  wallpaperTarget = mode: if mode == "light" then "desktop-light" else "desktop";
+  mkWallpaperScript =
+    mode:
     pkgs.writeShellScript "apply-wallpaper-${mode}" ''
       #!${pkgs.bash}/bin/bash
       set -euo pipefail
@@ -112,7 +113,8 @@
         exit 1
       fi
     '';
-in {
+in
+{
   imports = [
     ./shell.nix
     ./git.nix
@@ -158,12 +160,12 @@ in {
   xdg.mimeApps = {
     enable = true;
     defaultApplications = {
-      "x-scheme-handler/http" = ["firefox.desktop"];
-      "x-scheme-handler/https" = ["firefox.desktop"];
-      "x-scheme-handler/about" = ["firefox.desktop"];
-      "image/jpeg" = ["feh.desktop"];
-      "image/png" = ["feh.desktop"];
-      "application/pdf" = ["org.pwmt.zathura-pdf-mupdf.desktop"];
+      "x-scheme-handler/http" = [ "firefox.desktop" ];
+      "x-scheme-handler/https" = [ "firefox.desktop" ];
+      "x-scheme-handler/about" = [ "firefox.desktop" ];
+      "image/jpeg" = [ "feh.desktop" ];
+      "image/png" = [ "feh.desktop" ];
+      "application/pdf" = [ "org.pwmt.zathura-pdf-mupdf.desktop" ];
     };
   };
 
@@ -172,7 +174,7 @@ in {
     enable = true;
     enableZshIntegration = true;
     nix-direnv.enable = true;
-    config = {}; # don't generate direnv.toml and use the existing one instead
+    config = { }; # don't generate direnv.toml and use the existing one instead
   };
 
   home.shell = {
@@ -200,7 +202,7 @@ in {
     alors = "sec && alors";
     opencode = "sec && opencode";
     oc = "sec && opencode";
-    c = ''sec && opencode --agent 'chat' '';
+    c = "sec && opencode --agent 'chat' ";
     cb = "sec && $HOME/bin/cb";
     cq = "sec && $HOME/bin/cq";
     ssh = "sec && TERM=xterm-256color ssh"; # fix colors in some ssh connections
@@ -319,7 +321,6 @@ in {
       gnome.enable = desktop == "gnome";
       qt.enable = true;
       alacritty.enable = true;
-      firefox.enable = true;
     };
   };
 
@@ -644,13 +645,13 @@ in {
         "network-online.target"
         "nss-lookup.target"
       ];
-      PartOf = [currentThemeTarget];
+      PartOf = [ currentThemeTarget ];
     };
     Service = {
       Type = "oneshot";
       ExecStart = "${mkWallpaperScript theme}";
     };
-    Install.WantedBy = [currentThemeTarget];
+    Install.WantedBy = [ currentThemeTarget ];
   };
 
   systemd.user.timers.frottage = {
@@ -663,7 +664,7 @@ in {
       Persistent = true; # Run job if missed due to suspend/shutdown
     };
     Install = {
-      WantedBy = ["timers.target"];
+      WantedBy = [ "timers.target" ];
     };
   };
 
@@ -676,10 +677,7 @@ in {
     theme = {
       # Keep GTK3 on a real theme package so xsettingsd's Net/ThemeName points
       # at an installed theme instead of falling back unpredictably.
-      name =
-        if theme == "light"
-        then "adw-gtk3"
-        else "adw-gtk3-dark";
+      name = if theme == "light" then "adw-gtk3" else "adw-gtk3-dark";
       package = pkgs.adw-gtk3;
     };
   };
@@ -765,7 +763,7 @@ in {
                   ];
                 }
               ];
-              definedAliases = ["ddg"];
+              definedAliases = [ "ddg" ];
             };
             "google" = {
               urls = [
@@ -779,7 +777,7 @@ in {
                   ];
                 }
               ];
-              definedAliases = ["g"];
+              definedAliases = [ "g" ];
             };
             "Home Manager Options" = {
               urls = [
@@ -793,7 +791,7 @@ in {
                   ];
                 }
               ];
-              definedAliases = ["vh"];
+              definedAliases = [ "vh" ];
             };
             "Nix Packages" = {
               urls = [
@@ -811,7 +809,7 @@ in {
                   ];
                 }
               ];
-              definedAliases = ["np"];
+              definedAliases = [ "np" ];
             };
             "NixOs Options" = {
               urls = [
@@ -829,7 +827,7 @@ in {
                   ];
                 }
               ];
-              definedAliases = ["np"];
+              definedAliases = [ "np" ];
             };
             "youtube" = {
               urls = [
@@ -843,7 +841,7 @@ in {
                   ];
                 }
               ];
-              definedAliases = ["y"];
+              definedAliases = [ "y" ];
             };
             "Wikipedia" = {
               urls = [
@@ -857,7 +855,7 @@ in {
                   ];
                 }
               ];
-              definedAliases = ["w"];
+              definedAliases = [ "w" ];
             };
             "GitHub" = {
               urls = [
@@ -871,7 +869,7 @@ in {
                   ];
                 }
               ];
-              definedAliases = ["gh"];
+              definedAliases = [ "gh" ];
             };
             "GitHub Code" = {
               urls = [
@@ -889,19 +887,12 @@ in {
                   ];
                 }
               ];
-              definedAliases = ["ghc"];
+              definedAliases = [ "ghc" ];
             };
           };
           default = "ddg";
         };
       };
-    };
-  };
-  programs.firefox = {
-    # https://gitlab.com/usmcamp0811/dotfiles/-/blob/fb584a888680ff909319efdcbf33d863d0c00eaa/modules/home/apps/firefox/default.nix
-    enable = false;
-    profiles = {
-      my-profile = {};
     };
   };
   programs.qutebrowser = {
@@ -1163,7 +1154,11 @@ in {
     markdownlint-cli2
 
     # themeing
-    polybar # status bar
+    (polybar.override {
+      # PipeWire provides the PulseAudio-compatible server; Polybar needs this
+      # build flag for the native internal/pulseaudio volume module.
+      pulseSupport = true;
+    }) # status bar
     # qogir-theme # gtk theme
     # qogir-icon-theme # gtk theme
     # tokyonight-gtk-theme
@@ -1218,7 +1213,7 @@ in {
     # nheko # matrix client
     kvirc # irc client
     zathura # minimal pdf viewer with vim bindings
-    firefox # browser
+    # Installed by programs.firefox so Home Manager can wrap it with policies.
     # librewolf # firefox privacy fork
     kazam
     bottles # wine environment

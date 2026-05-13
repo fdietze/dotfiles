@@ -442,7 +442,7 @@ in {
   in {
     # https://stylix.danth.me/index.html
     enable = true;
-    autoEnable = true;
+    autoEnable = false;
     polarity = "dark";
     fonts = {
       serif = {
@@ -469,10 +469,17 @@ in {
       };
     };
     base16Scheme = darkBase16Scheme;
-    # targets = {
-    #   console.enable = true;
-    #   gtk.enable = true;
-    # };
+    targets = {
+      chromium.enable = true;
+      console.enable = true;
+      font-packages.enable = true;
+      fontconfig.enable = true;
+      gnome.enable = true;
+      gtk.enable = true;
+      gtksourceview.enable = true;
+      lightdm.enable = true;
+      qt.enable = true;
+    };
   };
   my = {
     desktop = lib.mkDefault "gnome";
@@ -491,6 +498,7 @@ in {
   home-manager.extraSpecialArgs = {
     desktop = config.my.desktop;
     theme = config.my.theme;
+    inherit flake-inputs;
     nvf = flake-inputs.nvf;
     inherit uiFonts;
   };
@@ -561,6 +569,7 @@ in {
           uiFonts.sans.package
           uiFonts.monospace.package
           uiFonts.emoji.package
+          uiFonts.icons.package
         ]
         ++ (with pkgs; [
           corefonts # Arial, Verdana, ...

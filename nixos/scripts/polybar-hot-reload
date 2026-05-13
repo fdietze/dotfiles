@@ -1,0 +1,106 @@
+#!/usr/bin/env nix-shell
+#!nix-shell -i bash -p bash coreutils entr systemd
+# shellcheck shell=bash
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+Usage:
+  scripts/polybar-hot-reload [--once] [WATCH_FILE...]
+
+Regenerate ~/.config/polybar/config.ini from the current flake and restart the
+active theme-specific Polybar user service. Without --once, watch relevant files
+with entr and rerun on changes.
+
+Environment overrides:
+  DESKTOP   Desktop specialisation to evaluate, default from /run/nixos/current-specialisation
+  THEME     Theme specialisation to evaluate, default from /run/nixos/current-specialisation
+EOF
+}
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$repo_root"
+
+once=false
+case "${1:-}" in
+  --once)
+    once=true
+    shift
+    ;;
+  -h | --help)
+    usage
+    exit 0
+    ;;
+esac
+
+detect_specialisation() {
+  if [[ -n "${DESKTOP:-}" && -n "${THEME:-}" ]]; then
+    return
+  fi
+
+  if [[ ! -r /run/nixos/current-specialisation ]]; then
+    echo "Cannot read /run/nixos/current-specialisation; set DESKTOP and THEME." >&2
+    exit 1
+  fi
+
+  local specialisation
+  specialisation="$(head -n1 /run/nixos/current-specialisation)"
+  if [[ -z "$specialisation" || "$specialisation" != *-* ]]; then
+    echo "No active specialisation detected; set DESKTOP and THEME." >&2
+    exit 1
+  fi
+
+  DESKTOP="${DESKTOP:-${specialisation%-*}}"
+  THEME="${THEME:-${specialisation##*-}}"
+}
+
+reload_polybar() {
+  detect_specialisation
+
+  if [[ "$DESKTOP" != "herbstluftwm" ]]; then
+    echo "Active desktop is '$DESKTOP', not herbstluftwm. Refusing to restart Polybar." >&2
+    exit 1
+  fi
+
+  local config_source
+  config_source="$(
+    nix build --impure --no-link --print-out-paths \
+      --expr '{ desktop, theme }:
+        let
+          flake = builtins.getFlake (toString ./.);
+          cfg = (flake.nixosConfigurations.gurke.extendModules {
+            modules = [{ my.desktop = desktop; my.theme = theme; }];
+          }).config.home-manager.users.felix;
+        in
+          cfg.xdg.configFile."polybar/config.ini".source
+      ' \
+      --argstr desktop "$DESKTOP" \
+      --argstr theme "$THEME"
+  )"
+
+  mkdir -p "$HOME/.config/polybar"
+  ln -sfn "$config_source" "$HOME/.config/polybar/config.ini"
+  systemctl --user restart "polybar-$THEME.service"
+  printf 'Reloaded polybar-%s.service with %s\n' "$THEME" "$config_source"
+}
+
+if "$once"; then
+  reload_polybar
+  exit 0
+fi
+
+watch_files=(
+  modules/home-manager/desktops/polybar/settings.nix
+  modules/home-manager/desktops/polybar/heart-rate.rs
+  modules/home-manager/desktops/herbstluftwm.nix
+  fonts.nix
+  flake.nix
+  flake.lock
+)
+
+if [[ "$#" -gt 0 ]]; then
+  watch_files=("$@")
+fi
+
+reload_polybar
+printf '%s\n' "${watch_files[@]}" | entr -r "$repo_root/scripts/polybar-hot-reload" --once

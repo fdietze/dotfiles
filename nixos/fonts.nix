@@ -19,6 +19,11 @@
     name = "Noto Color Emoji";
   };
 
+  icons = {
+    package = pkgs.material-design-icons;
+    name = "Material Design Icons";
+  };
+
   sizes = {
     applications = 12;
     desktop = 13;
