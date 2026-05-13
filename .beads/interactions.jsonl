@@ -1,0 +1,1 @@
+{"id":"int-eaab9587","kind":"field_change","created_at":"2026-05-13T18:17:50.71490703Z","actor":"Felix Dietze","issue_id":"dotfiles-ix2","extra":{"field":"status","new_value":"closed","old_value":"in_progress","reason":"Replaced polybar-topprocess with a compiled procfs sampler and enabled NetworkManager Wi-Fi power save; remaining xwindow title warning filed separately."}}

@@ -243,20 +243,102 @@ let
 
   processModule =
     let
-      topProcess = pkgs.writeShellApplication {
-        name = "polybar-topprocess";
-        runtimeInputs = [
-          pkgs.gawk
-          pkgs.gnugrep
-          pkgs.procps
-        ];
-        text = ''
-          top -d 5 -b \
-            | grep "PID USER" -A 1 --line-buffered \
-            | grep -v "\-\-\|PID USER" --line-buffered \
-            | awk '{print ($9>10) ? $12 : ""; system("")}'
-        '';
-      };
+      topProcess = pkgs.writers.writeRustBin "polybar-topprocess" { } ''
+        use std::{
+            collections::{HashMap, HashSet},
+            fs,
+            io::{self, Write},
+            thread,
+            time::Duration,
+        };
+
+        const INTERVAL: Duration = Duration::from_secs(5);
+        const CLK_TCK: u64 = 100;
+        const THRESHOLD_PERCENT: u64 = 10;
+
+        fn parse_stat(stat: &str) -> Option<(String, u64)> {
+            let command_start = stat.find('(')? + 1;
+            let command_end = stat.rfind(") ")?;
+            let command = stat[command_start..command_end]
+                .chars()
+                .filter(|character| character.is_ascii_graphic() || character.is_ascii_whitespace())
+                .collect::<String>()
+                .trim()
+                .to_owned();
+            let fields: Vec<&str> = stat[(command_end + 2)..].split_whitespace().collect();
+            let utime = fields.get(11)?.parse::<u64>().ok()?;
+            let stime = fields.get(12)?.parse::<u64>().ok()?;
+
+            Some((command, utime + stime))
+        }
+
+        fn read_process_ticks() -> HashMap<u32, (String, u64)> {
+            let mut processes = HashMap::new();
+
+            let Ok(entries) = fs::read_dir("/proc") else {
+                return processes;
+            };
+
+            for entry in entries.flatten() {
+                let file_name = entry.file_name();
+                let Some(pid_name) = file_name.to_str() else {
+                    continue;
+                };
+                let Ok(pid) = pid_name.parse::<u32>() else {
+                    continue;
+                };
+
+                let stat_path = entry.path().join("stat");
+                let Ok(stat) = fs::read_to_string(stat_path) else {
+                    continue;
+                };
+                if let Some(process) = parse_stat(&stat) {
+                    processes.insert(pid, process);
+                }
+            }
+
+            processes
+        }
+
+        fn main() {
+            let mut previous: HashMap<u32, u64> = HashMap::new();
+
+            loop {
+                let processes = read_process_ticks();
+                let mut seen = HashSet::with_capacity(processes.len());
+                let mut best_command = "";
+                let mut best_delta = 0;
+
+                for (pid, (command, ticks)) in &processes {
+                    seen.insert(*pid);
+
+                    if let Some(previous_ticks) = previous.get(pid) {
+                        let delta = ticks.saturating_sub(*previous_ticks);
+                        if delta > best_delta {
+                            best_delta = delta;
+                            best_command = command;
+                        }
+                    }
+
+                    previous.insert(*pid, *ticks);
+                }
+
+                previous.retain(|pid, _| seen.contains(pid));
+
+                // /proc/<pid>/stat CPU time is cheap to sample and avoids keeping
+                // `top | grep | awk` alive just to show one process above 10%.
+                let percent = best_delta * 100 / (CLK_TCK * INTERVAL.as_secs());
+                if percent > THRESHOLD_PERCENT {
+                    println!("{best_command}");
+                } else {
+                    println!();
+                }
+                let _ = io::stdout().flush();
+
+                thread::sleep(INTERVAL);
+            }
+        }
+      '';
     in
     {
       "module/process" = {

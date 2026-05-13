@@ -205,6 +205,7 @@ in
     # wireless.enable = true;  # Enables wireless support via wpa_supplicant.
     networkmanager = {
       enable = true;
+      wifi.powersave = true; # NetworkManager.conf wifi.powersave; lets iwlwifi enter lower-power states on battery.
       plugins = with pkgs; [
         networkmanager-openvpn
       ];
