@@ -6,10 +6,14 @@
 
 config_version: 2
 settings:
+  colors.webpage.bg:
+    global: null
   colors.webpage.darkmode.algorithm:
     global: lightness-cielab
   colors.webpage.darkmode.enabled:
-    global: true
+    global: false
+  colors.webpage.darkmode.policy.page:
+    global: always
   completion.cmd_history_max_items:
     global: 10000
   completion.quick:
@@ -41,10 +45,25 @@ settings:
   content.register_protocol_handler:
     https://calendar.google.com?cid=%25s: true
     https://mail.google.com?extsrc=mailto&url=%25s: true
+  editor.command:
+    global:
+    - neovide
+    - -f
+    - '{file}'
+    - -c
+    - normal {line}G{column0}l
+  fileselect.folder.command:
+    global:
+    - xterm
+    - -e
+    - ranger
+    - --choosedir={}
+  fonts.completion.entry:
+    global: default_size default_family
   fonts.default_family:
-    global: Roboto Mono
+    global: null
   fonts.default_size:
-    global: 8pt
+    global: 16pt
   fonts.downloads:
     global: default_size default_family
   hints.chars:
@@ -105,4 +124,22 @@ settings:
   window.hide_decoration:
     global: true
   zoom.default:
-    global: 75%
+    global: 150%
+  zoom.levels:
+    global:
+    - 25%
+    - 33%
+    - 50%
+    - 67%
+    - 75%
+    - 90%
+    - 100%
+    - 110%
+    - 125%
+    - 150%
+    - 175%
+    - 200%
+    - 250%
+    - 300%
+    - 400%
+    - 500%

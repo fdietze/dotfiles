@@ -13,6 +13,7 @@ in
 {
   imports = [
     ./shell.nix
+    ./dotfiles.nix
     ./git.nix
     ./yazi.nix
     ./xdg.nix
