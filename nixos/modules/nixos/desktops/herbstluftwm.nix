@@ -13,7 +13,7 @@ lib.mkIf (config.my.desktop == "herbstluftwm") {
   services.xserver = {
     displayManager.lightdm = {
       enable = true;
-      # background = "/home/felix/frottage/wallpaper.jpg";
+      # background = "$HOME/.cache/frottage/current-wallpaper.jpg";
       greeters.gtk.enable = true;
     };
     windowManager.herbstluftwm.enable = true;
@@ -21,8 +21,8 @@ lib.mkIf (config.my.desktop == "herbstluftwm") {
 
   xdg.portal = {
     enable = true;
-    configPackages = [pkgs.xdg-desktop-portal-gtk];
-    extraPortals = [pkgs.xdg-desktop-portal-gtk];
+    configPackages = [ pkgs.xdg-desktop-portal-gtk ];
+    extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
     xdgOpenUsePortal = false; # make xdg-open use the portal to open programs
     config.common.default = "gtk";
   };
@@ -35,12 +35,12 @@ lib.mkIf (config.my.desktop == "herbstluftwm") {
   programs.xss-lock = {
     enable = true;
     # i3lock(1) recommends this xss-lock pattern so suspend waits until the screen is locked.
-    extraOptions = ["--transfer-sleep-lock"];
+    extraOptions = [ "--transfer-sleep-lock" ];
     lockerCommand = ''
       ${config.programs.i3lock.package}/bin/i3lock-color \
             --nofork \
             --ignore-empty-password \
-            --image=/home/felix/frottage/current-wallpaper.jpg \
+            --image="$HOME/.cache/frottage/current-wallpaper.jpg" \
             --ring-width=10 --line-uses-inside \
             --ring-color=222436FF   --ringver-color=C3E88DFF   --ringwrong-color=C53B53FF \
             --inside-color=000000AA --insidever-color=000000AA --insidewrong-color=000000AA \

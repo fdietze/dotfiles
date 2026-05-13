@@ -354,7 +354,7 @@
         disabledTrayIcon = false;
         drawColor = "#9ECE6A";
         filenamePattern = "%F_%H-%M-%S";
-        savePath = "/home/felix/screenshots";
+        savePath = config.xdg.userDirs.extraConfig.XDG_SCREENSHOTS_DIR;
         savePathFixed = true;
         showStartupLaunchMessage = false;
       };

@@ -19,8 +19,10 @@ let
       set_wallpaper() {
         local path="$1"
         local uri="file://''${path}"
+        local cache_dir="''${XDG_CACHE_HOME:-$HOME/.cache}/frottage"
 
-        ${pkgs.coreutils}/bin/ln -sfn "''${path}" "$HOME/frottage/current-wallpaper.jpg"
+        ${pkgs.coreutils}/bin/mkdir -p "$cache_dir"
+        ${pkgs.coreutils}/bin/ln -sfn "''${path}" "$cache_dir/current-wallpaper.jpg"
 
         if [[ "''${XDG_CURRENT_DESKTOP:-}" == *GNOME* ]] || [[ "''${DESKTOP_SESSION:-}" == gnome ]]; then
           echo "Setting wallpaper using GNOME gsettings."
@@ -60,10 +62,11 @@ let
       TIMESTAMP_KEY="''${slot_date}_''${slot_hour}-00-00"
       WALLPAPER_FILENAME="wallpaper-''${TARGET}-''${TIMESTAMP_KEY}.jpg"
 
-      ${pkgs.coreutils}/bin/mkdir -p "$HOME/frottage"
+      CACHE_DIR="''${XDG_CACHE_HOME:-$HOME/.cache}/frottage"
+      ${pkgs.coreutils}/bin/mkdir -p "$CACHE_DIR"
 
       DOWNLOAD_URL="https://frottage.app/static/''${WALLPAPER_FILENAME}"
-      OUTPUT_PATH="$HOME/frottage/''${WALLPAPER_FILENAME}"
+      OUTPUT_PATH="$CACHE_DIR/''${WALLPAPER_FILENAME}"
       if [[ -e "$OUTPUT_PATH" ]]; then
         echo "Using cached wallpaper for slot: ''${TIMESTAMP_KEY}"
         set_wallpaper "$OUTPUT_PATH"
@@ -82,7 +85,7 @@ let
         echo "curl command failed after retries with exit code: $curl_exit_code." >&2
         echo "Failed to download wallpaper from $DOWNLOAD_URL." >&2
         echo "Falling back to the most recent cached wallpaper." >&2
-        latest_cached="$(${pkgs.findutils}/bin/find "$HOME/frottage" -maxdepth 1 -type f -name 'wallpaper-*.jpg' -printf '%T@ %p\n' | ${pkgs.coreutils}/bin/sort -nr | ${pkgs.coreutils}/bin/head -n1 | ${pkgs.gawk}/bin/awk '{print $2}')"
+        latest_cached="$(${pkgs.findutils}/bin/find "$CACHE_DIR" -maxdepth 1 -type f -name 'wallpaper-*.jpg' -printf '%T@ %p\n' | ${pkgs.coreutils}/bin/sort -nr | ${pkgs.coreutils}/bin/head -n1 | ${pkgs.gawk}/bin/awk '{print $2}')"
         if [[ -n "''${latest_cached:-}" && -e "''${latest_cached}" ]]; then
           set_wallpaper "$latest_cached" || true
         fi

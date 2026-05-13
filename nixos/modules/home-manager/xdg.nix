@@ -2,6 +2,9 @@
 {
   xdg.userDirs = {
     download = "${config.home.homeDirectory}/downloads";
+    extraConfig = {
+      XDG_SCREENSHOTS_DIR = "${config.home.homeDirectory}/screenshots";
+    };
   };
 
   xdg.configFile."mimeapps.list".force = true;
