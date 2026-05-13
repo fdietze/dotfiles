@@ -459,10 +459,12 @@ lib.mkIf (desktop == "herbstluftwm") {
         "9"
       ];
       keybinds = {
-        Mod4-d = "spawn sh -c 'alacritty --working-directory \"$($HOME/bin/xcwd-home)\"'";
+        # Use PATH for repo-managed helper scripts so editing home/bin remains
+        # immediate and bindings do not depend on the removed ~/bin directory.
+        Mod4-d = "spawn sh -c 'alacritty --working-directory \"$(xcwd-home)\"'";
         # Mod4-d =
-        #   "spawn sh -c '${pkgs.ghostty}/bin/ghostty --working-directory=\"$($HOME/bin/xcwd-home)\"'";
-        # Mod4-d = "spawn sh -c 'wezterm start --cwd \"$($HOME/bin/xcwd-home)\"'";
+        #   "spawn sh -c '${pkgs.ghostty}/bin/ghostty --working-directory=\"$(xcwd-home)\"'";
+        # Mod4-d = "spawn sh -c 'wezterm start --cwd \"$(xcwd-home)\"'";
         Mod4-y = "spawn rofi -show run -modi run,calc,emoji";
         Mod4-b = "spawn rofi-bluetooth";
         Mod4-j = "spawn $BROWSER";
