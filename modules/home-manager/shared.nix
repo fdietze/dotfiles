@@ -88,8 +88,6 @@ in
     opencode = "sec && opencode";
     oc = "sec && opencode";
     c = "sec && opencode --agent 'chat' ";
-    cb = "sec && cb";
-    cq = "sec && cq";
     ssh = "sec && TERM=xterm-256color ssh"; # fix colors in some ssh connections
     scp = "sec && scp";
     rg = "rg --hidden  --no-follow --no-heading --glob '!.git/*' --smart-case"; # https://github.com/BurntSushi/ripgrep/issues/623
@@ -480,7 +478,7 @@ in
 
   # services.syncthing.enable = true;
 
-  # services.megasync.enable = true; # is started in ~/.xprofile
+  # services.megasync.enable = true;
 
   gtk = {
     enable = true;

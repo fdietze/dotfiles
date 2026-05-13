@@ -5,6 +5,7 @@
   config,
   lib,
   pkgs,
+  hostLocal,
   modulesPath,
   ...
 }:
@@ -26,18 +27,18 @@
   boot.extraModulePackages = [ ];
 
   fileSystems."/" = {
-    device = "/dev/disk/by-uuid/bcfc9aca-bb80-4af1-8541-ae34fd5c6f06";
+    device = hostLocal.disks.root;
     fsType = "ext4";
     options = [ "noatime" ];
   };
 
   fileSystems."/boot" = {
-    device = "/dev/disk/by-uuid/CBB0-3A80";
+    device = hostLocal.disks.boot;
     fsType = "vfat";
   };
 
   swapDevices = [
-    { device = "/dev/disk/by-uuid/31593de0-1b27-46f7-8a2a-3d83cead21bf"; }
+    { device = hostLocal.disks.swap; }
   ];
 
   # Enables DHCP on each ethernet and wireless interface. In case of scripted networking

@@ -11,7 +11,5 @@ xrandr --output eDP-1 --mode 2560x1440 --pos 440x1440 --rotate normal \
   --output DP-2 --off \
   --output HDMI-2 --off
 
-"$HOME/bin/theme"
-
 sleep 10
 xinput | sed -n "s/.*WingCool Inc. TouchScreen.*id=\([0-9]*\).*pointer.*/\1/p" | xargs -I % xinput --map-to-output % DP-2

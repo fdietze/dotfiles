@@ -51,12 +51,16 @@
     uiFonts = import ./fonts.nix {
       pkgs = nixpkgs.legacyPackages.x86_64-linux;
     };
+    # Machine-local identifiers are isolated here so public exposure is explicit
+    # and easy to revisit without mixing them into reusable modules.
+    gurkeLocal = import ./hosts/gurke/local.nix;
   in {
     nixosConfigurations = {
       "gurke" = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         specialArgs = {
           flake-inputs = inputs;
+          hostLocal = gurkeLocal;
           inherit uiFonts;
         };
         modules = [

@@ -3,6 +3,7 @@
   lib,
   pkgs,
   flake-inputs,
+  hostLocal,
   uiFonts,
   ...
 }:
@@ -140,7 +141,7 @@ in
     # https://gist.github.com/martijnvermaat/76f2e24d0239470dd71050358b4d5134
     initrd.luks.devices = {
       root = {
-        device = "/dev/disk/by-uuid/81409765-5560-4b29-8f5c-235f27b58f85";
+        device = hostLocal.disks.luksRoot;
         preLVM = true;
         allowDiscards = true;
       };
@@ -484,6 +485,7 @@ in
     theme = config.my.theme;
     inherit flake-inputs;
     nvf = flake-inputs.nvf;
+    inherit hostLocal;
     inherit uiFonts;
   };
 
