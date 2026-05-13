@@ -20,6 +20,7 @@ use tokio::time;
 use uuid::Uuid;
 
 const HEART_RATE_MEASUREMENT_UUID: Uuid = Uuid::from_u128(0x00002a37_0000_1000_8000_00805f9b34fb);
+const NOTIFICATION_TIMEOUT: Duration = Duration::from_secs(20);
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -48,7 +49,9 @@ async fn main() -> Result<()> {
                 && characteristic.properties.contains(CharPropFlags::NOTIFY)
         })
         .ok_or_else(|| {
-            anyhow!("device does not expose the standard Heart Rate Measurement notify characteristic")
+            anyhow!(
+                "device does not expose the standard Heart Rate Measurement notify characteristic"
+            )
         })?;
 
     let mut notifications = peripheral
@@ -63,7 +66,21 @@ async fn main() -> Result<()> {
 
     eprintln!("subscribed to standard BLE heart-rate notifications");
     let mut last_bpm = None;
-    while let Some(notification) = notifications.next().await {
+    loop {
+        // BLE notification activity is the liveness signal here; if it stalls,
+        // exit so the Polybar wrapper can clear the module and retry scanning.
+        let notification = match time::timeout(NOTIFICATION_TIMEOUT, notifications.next()).await {
+            Ok(Some(notification)) => notification,
+            Ok(None) => {
+                eprintln!("heart-rate notification stream closed");
+                return Ok(());
+            }
+            Err(_) => bail!(
+                "no heart-rate notifications received for {}s",
+                NOTIFICATION_TIMEOUT.as_secs()
+            ),
+        };
+
         if let Some(bpm) = decode_heart_rate(&notification) {
             if last_bpm != Some(bpm) {
                 println!("{bpm}");
@@ -71,12 +88,12 @@ async fn main() -> Result<()> {
             }
         }
     }
-
-    Ok(())
 }
 
 async fn first_adapter() -> Result<Adapter> {
-    let manager = Manager::new().await.context("failed to create BLE manager")?;
+    let manager = Manager::new()
+        .await
+        .context("failed to create BLE manager")?;
     manager
         .adapters()
         .await
