@@ -11,8 +11,6 @@ let
     inherit lib lightBase16Scheme;
   };
   allowedSudoCommands = [
-    "/home/felix/bin/topioread"
-    "/home/felix/bin/topiowrite"
     "/run/current-system/sw/bin/cpupower frequency-set -u 400MHz"
     "/run/current-system/sw/bin/cpupower frequency-set -u 800MHz"
     "/run/current-system/sw/bin/cpupower frequency-set -u 2GHz"
