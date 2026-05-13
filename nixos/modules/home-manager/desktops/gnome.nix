@@ -169,6 +169,8 @@ let
   );
 in
 lib.mkIf (desktop == "gnome") {
+  stylix.targets.gnome.enable = true;
+
   home.packages = with pkgs; [
     dconf-editor # gnome settings gui
     xr-linux-driver

@@ -3,14 +3,10 @@
   config,
   lib,
   pkgs,
-  desktop,
   theme,
   uiFonts,
   ...
 }:
-let
-  currentThemeTarget = "theme-${theme}.target";
-in
 {
   imports = [
     ./shell.nix
@@ -197,11 +193,9 @@ in
     # };
 
     targets = {
-      dunst.enable = desktop == "herbstluftwm";
       rofi.enable = false;
       neovim.enable = false;
       nvf.enable = false;
-      gnome.enable = desktop == "gnome";
       qt.enable = true;
       alacritty.enable = true;
     };
@@ -297,17 +291,6 @@ in
         file_manager = "${pkgs.nemo-with-extensions}/bin/nemo";
       };
     };
-  };
-
-  services.redshift = {
-    # Redshift adjusts the color temperature of your screen. This may help your eyes hurt less if you are working in front of the screen at night.
-    enable = true;
-    provider = "geoclue2";
-  };
-
-  services.unclutter = {
-    # hide mouse after some seconds of no movement
-    enable = true;
   };
 
   services.espanso = {
@@ -536,8 +519,6 @@ in
     git = true;
     icons = "auto";
   };
-  services.network-manager-applet.enable = true;
-
   # programs.ssh = {
   #   enable = true;
   # };
@@ -746,53 +727,6 @@ in
     '';
   };
   programs.chromium.enable = true;
-
-  programs.autorandr = {
-    enable = true;
-    profiles = {
-      default = {
-        fingerprint = {
-          eDP-1 = "00ffffffffffff0006af362000000000001b0104a51f117802fbd5a65334b6250e505400000001010101010101010101010101010101e65f00a0a0a040503020350035ae100000180000000f0000000000000000000000000020000000fe0041554f0a202020202020202020000000fe004231343051414e30322e30200a00d2";
-        };
-        config = {
-          eDP-1 = {
-            enable = true;
-            crtc = 0;
-            primary = true;
-            position = "0x0";
-            mode = "2560x1440";
-            rate = "60.01";
-          };
-        };
-      };
-      portable-monitor-left = {
-        fingerprint = {
-          DP-2 = "00ffffffffffff004a8bb5a501010101141e0104b5351d783fee91a3544c99260f5054210800d1c001010101950001018180010181c040d000a0f0703e803020350061632100001a000000fc004d473134302d555430310a2020000000ff0064656d6f7365742d310a203020000000fd00283d88883c010a20202020202001d702032df2529001020304131f2021223c3d3e4c5d5e5f60e200c023097f0783010000e305c000e6060501525200023a801871382d40582c250061632100001e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000032";
-          eDP-1 = "00ffffffffffff0006af362000000000001b0104a51f117802fbd5a65334b6250e505400000001010101010101010101010101010101e65f00a0a0a040503020350035ae100000180000000f0000000000000000000000000020000000fe0041554f0a202020202020202020000000fe004231343051414e30322e30200a00d2";
-        };
-        config = {
-          DP-2 = {
-            enable = true;
-            crtc = 1;
-            position = "0x0";
-            mode = "3840x2160";
-            rate = "59.98";
-          };
-          eDP-1 = {
-            enable = true;
-            crtc = 0;
-            primary = true;
-            position = "3840x360";
-            mode = "2560x1440";
-            rate = "60.01";
-          };
-        };
-      };
-    };
-    hooks.postswitch = {
-      run-theme = "${pkgs.systemd}/bin/systemctl --user start ${currentThemeTarget}";
-    };
-  };
 
   services.keynav = {
     # TODO: https://github.com/portothree/dotfiles/blob/ef2274393816b8a2df0c8efbb80f852f9d0d20bd/config/keynav.nix#L7
