@@ -1,0 +1,82 @@
+#! /usr/bin/env nix-shell
+#! nix-shell -i zsh --packages zsh android-tools adbfs-rootless avahi coreutils util-linux gawk
+set -euo pipefail
+
+firestick_name="${FIRESTICK_NAME:-Felix's Fire TV}"
+fallback_addr="${FIRESTICK_FALLBACK_ADDR:-10.5.51.9:5555}"
+mountpoint="${FIRESTICK_MOUNT:-$HOME/firestick}"
+
+log() {
+  print -ru2 -- "mount-firestick: $*"
+}
+
+discover_firestick() {
+  if (( ${+commands[avahi-browse]} )); then
+    log "discovering '$firestick_name' via mDNS (_amzn-wplay._tcp), waiting up to 6s"
+    timeout 6s avahi-browse -rt _amzn-wplay._tcp 2>/dev/null |
+      awk -v target="$firestick_name" '
+        /address = \[/ {
+          addr = $3
+          gsub(/[][]/, "", addr)
+        }
+        /txt = / && index($0, "n=" target) {
+          if (addr != "") {
+            print addr ":5555"
+            exit
+          }
+        }
+      '
+  else
+    log "avahi-browse is not available; skipping mDNS discovery"
+  fi
+}
+
+if [[ -n "${FIRESTICK_ADDR:-}" ]]; then
+  firestick_addr="$FIRESTICK_ADDR"
+  log "using FIRESTICK_ADDR=$firestick_addr"
+else
+  firestick_addr="$(discover_firestick)"
+  if [[ -n "$firestick_addr" ]]; then
+    log "discovered Fire Stick at $firestick_addr"
+  else
+    firestick_addr="$fallback_addr"
+    log "mDNS discovery did not find '$firestick_name'; falling back to $firestick_addr"
+  fi
+fi
+
+if findmnt -r "$mountpoint" >/dev/null 2>&1; then
+  log "already mounted at $mountpoint"
+  exit 0
+fi
+
+log "creating mountpoint $mountpoint"
+mkdir -p "$mountpoint"
+
+log "connecting ADB to $firestick_addr"
+adb_connect_output="$(adb connect "$firestick_addr" 2>&1 || true)"
+log "adb connect: $adb_connect_output"
+
+state="$(adb devices | awk -v addr="$firestick_addr" '$1 == addr { print $2 }')"
+log "ADB state for $firestick_addr: ${state:-missing}"
+
+case "$state" in
+  device)
+    ;;
+  unauthorized)
+    echo "Fire Stick is reachable but unauthorized. Accept the ADB debugging prompt on the TV, then rerun this script." >&2
+    exit 2
+    ;;
+  "")
+    echo "Fire Stick not found at $firestick_addr." >&2
+    exit 1
+    ;;
+  *)
+    echo "Fire Stick is in unexpected ADB state: $state" >&2
+    exit 1
+    ;;
+esac
+
+log "mounting with adbfs at $mountpoint"
+adbfs "$mountpoint"
+
+log "mounted Fire Stick at $mountpoint"

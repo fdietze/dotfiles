@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail # https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail
+
+# light or dark
+THEME=$(cat "$HOME/.theme" || echo dark)
+
+case $THEME in
+light)
+  TARGET=desktop-light
+  ;;
+dark)
+  TARGET=desktop
+  ;;
+esac
+
+mkdir -p ~/frottage
+cd ~/frottage
+wget --timestamping --retry-on-host-error --tries=60 --waitretry=60 "https://frottage.app/static/wallpaper-$TARGET-latest.jpg"
+cp "wallpaper-$TARGET-latest.jpg" wallpaper.jpg
+feh --bg-fill "wallpaper.jpg"
+magick wallpaper.jpg -resize 2560x1440^ -gravity center -extent 2560x1440 wallpaper.png

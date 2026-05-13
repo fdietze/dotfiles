@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail # https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail
+
+# light or dark
+THEME=$(cat "$HOME/.theme" || echo dark)
+
+case $THEME in
+light)
+	TARGET=desktop-light
+	;;
+dark)
+	TARGET=desktop
+	;;
+esac
+
+PROMPT=$(cat "$HOME/downloads/frottage-prompt")
+cp "$HOME/downloads/wallpaper-$TARGET-latest.jpg" "$HOME/.wpfr/saved/frottage-$TARGET-$(date +%Y-%m-%d-%H-%M-%S)-$PROMPT.jpg"
