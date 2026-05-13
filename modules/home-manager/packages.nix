@@ -53,6 +53,7 @@
     alsa-utils # audo recording
     timewarrior # time tracking
     nrfconnect # bluetooth ble
+    overskride # on-demand bluetooth manager; no always-running tray applet
     typst # modern latex alternative
     pulsemixer # audio mixer tui
     bluetuith # bluetooth tui

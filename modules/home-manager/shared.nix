@@ -342,13 +342,10 @@ in
 
   services.playerctld.enable = true;
 
-  services.blueman-applet.enable = true; # bluetooth tray icon, needs dconf
+  # Bluetooth is managed on demand via Polybar and Overskride, avoiding a tray
+  # applet that keeps waking up during otherwise idle sessions.
+  services.blueman-applet.enable = false;
   services.mpris-proxy.enable = true; # bluetooth buttons
-  dconf.settings."org/blueman/general" = {
-    # Blueman defaults to full-color tray icons. Force its documented symbolic
-    # tray mode so Polybar receives a monochrome-friendly icon window.
-    symbolic-status-icons = true;
-  };
 
   services.flameshot = {
     enable = true;
