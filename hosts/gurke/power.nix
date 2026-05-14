@@ -1,0 +1,53 @@
+{ lib, ... }:
+
+{
+  powerManagement = {
+    enable = true;
+    # powertop --auto-tune is a broad one-shot writer for kernel power knobs.
+    # Keep TLP as the declarative policy owner and use powertop only manually
+    # when investigating wakeups or power draw.
+    powertop.enable = false;
+  };
+
+  services = {
+    # GNOME enables power-profiles-daemon by default for its UI. Keep GNOME as
+    # display/session behavior only; TLP is the single host power policy owner.
+    power-profiles-daemon.enable = lib.mkForce false;
+
+    thermald.enable = true;
+
+    # nixos-hardware enables TLP for laptops by default; keep it explicit here
+    # because host power policy should not depend on the selected desktop.
+    tlp = {
+      enable = true;
+      settings = {
+        # intel_pstate "powersave" still boosts on demand, then drops back down
+        # according to EPP when work is done.
+        CPU_SCALING_GOVERNOR_ON_AC = "powersave";
+        CPU_SCALING_GOVERNOR_ON_BAT = "powersave";
+        CPU_ENERGY_PERF_POLICY_ON_AC = "balance_performance";
+        CPU_ENERGY_PERF_POLICY_ON_BAT = "power";
+
+        # TLP recommends percentage P-state limits with intel_pstate. On this
+        # ThinkPad, 50% maps to the verified 1.8GHz battery cap.
+        CPU_MIN_PERF_ON_BAT = 10;
+        CPU_MAX_PERF_ON_BAT = 50;
+
+        # AC may use turbo for responsiveness; battery should trade peak speed
+        # for lower heat and longer runtime.
+        CPU_BOOST_ON_AC = 1;
+        CPU_BOOST_ON_BAT = 0;
+        CPU_HWP_DYN_BOOST_ON_AC = 0;
+        CPU_HWP_DYN_BOOST_ON_BAT = 0;
+
+        # Keep the currently active ThinkPad battery care thresholds.
+        START_CHARGE_THRESH_BAT0 = 75;
+        STOP_CHARGE_THRESH_BAT0 = 80;
+
+        # TLP's USB_DENYLIST keeps matching devices out of USB autosuspend;
+        # tlp.conf(5) documents the supported vendor:product syntax.
+        USB_DENYLIST = [ "046d:c52b" ];
+      };
+    };
+  };
+}

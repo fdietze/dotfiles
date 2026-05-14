@@ -64,6 +64,7 @@ in
 {
   imports = [
     ../../modules/options.nix
+    ./power.nix
     ../../modules/nixos/desktops/gnome.nix
     ../../modules/nixos/desktops/herbstluftwm.nix
   ];
@@ -291,23 +292,12 @@ in
 
   users.users.geoclue.extraGroups = [ "networkmanager" ]; # ?
 
-  powerManagement = {
-    enable = true;
-    powertop.enable = true;
-  };
-  services.tlp.settings = {
-    # TLP's USB_DENYLIST keeps matching devices out of USB autosuspend:
-    # see ${pkgs.tlp}/etc/tlp.conf for the supported vendor:product syntax.
-    USB_DENYLIST = [ "046d:c52b" ];
-  };
   services.upower = {
     enable = true;
     percentageLow = 20;
     percentageCritical = 10;
     criticalPowerAction = "Hibernate";
   };
-
-  services.thermald.enable = true;
 
   hardware.graphics = {
     enable = true;

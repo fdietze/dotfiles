@@ -51,31 +51,4 @@ lib.mkIf (config.my.desktop == "herbstluftwm") {
     '';
   };
 
-  services.auto-cpufreq = {
-    enable = true;
-    settings = {
-      battery = {
-        governor = "powersave";
-        turbo = "never";
-      };
-      charger = {
-        governor = "powersave";
-        turbo = "auto";
-      };
-    };
-  };
-
-  #   services.tlp = {
-  #     enable = true;
-  #     settings = {
-  #       tlp_DEFAULT_MODE = "BAT";
-  #       CPU_SCALING_GOVERNOR_ON_BAT = "powersave";
-  # # CPU_SCALING_GOVERNOR_ON_AC = "powersave";
-  #       DEVICES_TO_DISABLE_ON_STARTUP = "bluetooth";
-  #
-  # #Optional helps save long term battery health
-  #       START_CHARGE_THRESH_BAT0 = 40; # 40 and bellow it starts to charge
-  #         STOP_CHARGE_THRESH_BAT0 = 80; # 80 and above it stops charging
-  #     };
-  #   };
 }
