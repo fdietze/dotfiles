@@ -16,7 +16,7 @@ use x11rb::{
 };
 use zbus::{
     fdo::ObjectManagerProxy, message::Type as MessageType, zvariant::OwnedValue,
-    Connection as DBusConnection, MatchRule, MessageStream,
+    Connection as DBusConnection, MatchRule, MessageStream, Proxy,
 };
 
 use crate::state::{BluetoothState, HeartRateState, LinkState, StatusState};
@@ -47,8 +47,9 @@ impl Samplers {
         self.state.disk_read_bytes_per_s = read_bytes;
         self.state.disk_write_bytes_per_s = write_bytes;
 
-        self.state.ethernet = self.ethernet.sample("enp0s20f0u1", interval, false);
-        self.state.wifi = self.wifi.sample("wlp2s0", interval, true);
+        self.state.ethernet = self.ethernet.sample("enp0s20f0u1", interval);
+        self.state.wifi = self.wifi.sample("wlp2s0", interval);
+        self.state.wifi.ssid = read_networkmanager_wifi_ssid().await;
         self.state.battery_watts = read_battery_watts();
         self.state.heart_rate = read_heart_rate();
 
@@ -175,7 +176,7 @@ struct NetworkSampler {
 }
 
 impl NetworkSampler {
-    fn sample(&mut self, interface: &str, interval: Duration, show_ssid: bool) -> LinkState {
+    fn sample(&mut self, interface: &str, interval: Duration) -> LinkState {
         let sysfs = PathBuf::from("/sys/class/net").join(interface);
         if !connected(&sysfs) {
             self.previous = None;
@@ -196,7 +197,7 @@ impl NetworkSampler {
 
         LinkState {
             connected: true,
-            ssid: show_ssid.then(read_wifi_ssid).flatten(),
+            ssid: None,
             rx_bytes_per_s,
             tx_bytes_per_s,
         }
@@ -413,14 +414,53 @@ fn read_network_bytes(sysfs: &Path) -> Option<(u64, u64)> {
     Some((rx, tx))
 }
 
-fn read_wifi_ssid() -> Option<String> {
-    let output = Command::new("nmcli")
-        .args(["-t", "-f", "active,ssid", "dev", "wifi"])
-        .output()
+async fn read_networkmanager_wifi_ssid() -> Option<String> {
+    let connection = DBusConnection::system().await.ok()?;
+    let manager = Proxy::new(
+        &connection,
+        "org.freedesktop.NetworkManager",
+        "/org/freedesktop/NetworkManager",
+        "org.freedesktop.NetworkManager",
+    )
+    .await
+    .ok()?;
+    let active_connection_path: zbus::zvariant::OwnedObjectPath =
+        manager.get_property("PrimaryConnection").await.ok()?;
+    if active_connection_path.as_str() == "/" {
+        return None;
+    }
+
+    let active_connection = Proxy::new(
+        &connection,
+        "org.freedesktop.NetworkManager",
+        active_connection_path.as_str(),
+        "org.freedesktop.NetworkManager.Connection.Active",
+    )
+    .await
+    .ok()?;
+    let connection_type: String = active_connection.get_property("Type").await.ok()?;
+    if connection_type != "802-11-wireless" {
+        return None;
+    }
+
+    let access_point_path: zbus::zvariant::OwnedObjectPath = active_connection
+        .get_property("SpecificObject")
+        .await
         .ok()?;
-    let text = String::from_utf8(output.stdout).ok()?;
-    text.lines()
-        .find_map(|line| line.strip_prefix("yes:").map(|ssid| ssid.to_owned()))
+    if access_point_path.as_str() == "/" {
+        return active_connection.get_property("Id").await.ok();
+    }
+
+    let access_point = Proxy::new(
+        &connection,
+        "org.freedesktop.NetworkManager",
+        access_point_path.as_str(),
+        "org.freedesktop.NetworkManager.AccessPoint",
+    )
+    .await
+    .ok()?;
+    let ssid: Vec<u8> = access_point.get_property("Ssid").await.ok()?;
+    String::from_utf8(ssid).ok().filter(|ssid| !ssid.is_empty())
 }
 
 async fn read_bluetooth() -> BluetoothState {
