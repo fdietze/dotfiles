@@ -30,13 +30,6 @@ pub fn render_right(state: &StatusState, config: &RenderConfig) -> String {
         parts.push(render_cpu(&state.cpu_cores, config));
     }
 
-    if let Some(freq) = &state.cpu_freq {
-        parts.push(format!(
-            "%{{A1:#freqmenu.open.0:}}{}%{{A}}",
-            truncate(freq, 8)
-        ));
-    }
-
     if let Some(temp) = state.temperature_c {
         if temp >= 90 {
             parts.push(format!(

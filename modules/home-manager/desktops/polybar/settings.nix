@@ -72,6 +72,7 @@ let
       "modules-center" = "";
       "modules-right" = lib.concatStringsSep " " [
         "status"
+        "cpufreq"
         "freqmenu"
         "volume"
         "battery"
@@ -95,6 +96,7 @@ let
       "inherit" = "bar/default";
       "modules-right" = lib.concatStringsSep " " [
         "status"
+        "cpufreq"
         "freqmenu"
         "volume"
         "battery"
@@ -214,7 +216,8 @@ let
 
       "module/xwindow" = {
         "type" = "custom/script";
-        "exec" = "${lib.getExe polybarStatus} title --tail --close-command ${lib.escapeShellArg "${xdotool} getwindowfocus windowkill"}";
+        "exec" =
+          "${lib.getExe polybarStatus} title --tail --close-command ${lib.escapeShellArg "${xdotool} getwindowfocus windowkill"}";
         "tail" = true;
         "label" = "%output%";
       };
@@ -240,6 +243,19 @@ let
         (lib.escapeShellArg (lib.getExe pkgs.overskride))
         "--timew"
         (lib.escapeShellArg timew)
+      ];
+      "tail" = true;
+      "label" = "%output%";
+    };
+
+    "module/cpufreq" = {
+      "type" = "custom/script";
+      # Keep frequency as a separate module so Polybar's native menu expands at
+      # the frequency position instead of at the end of the combined status text.
+      "exec" = lib.concatStringsSep " " [
+        (lib.getExe polybarStatus)
+        "cpu-freq"
+        "--tail"
       ];
       "tail" = true;
       "label" = "%output%";

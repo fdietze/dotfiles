@@ -7,12 +7,17 @@ use std::{
     time::Duration,
 };
 
+use futures_util::TryStreamExt;
+use tokio::{sync::mpsc, time};
 use x11rb::{
     connection::Connection,
     protocol::{xproto::AtomEnum, xproto::ConnectionExt, xproto::Window},
     rust_connection::RustConnection,
 };
-use zbus::{fdo::ObjectManagerProxy, zvariant::OwnedValue, Connection as DBusConnection};
+use zbus::{
+    fdo::ObjectManagerProxy, message::Type as MessageType, zvariant::OwnedValue,
+    Connection as DBusConnection, MatchRule, MessageStream,
+};
 
 use crate::state::{BluetoothState, HeartRateState, LinkState, StatusState};
 
@@ -48,7 +53,6 @@ impl Samplers {
         self.state.heart_rate = read_heart_rate();
 
         if first_sample || self.tick % 2 == 0 {
-            self.state.cpu_freq = read_cpu_freq();
             self.state.temperature_c = read_temperature_c();
             let (memory, swap) = read_memory();
             self.state.memory_percent = memory;
@@ -66,6 +70,11 @@ impl Samplers {
             self.state.root_free = read_root_free();
         }
 
+        self.state.clone()
+    }
+
+    pub fn set_bluetooth(&mut self, bluetooth: BluetoothState) -> StatusState {
+        self.state.bluetooth = bluetooth;
         self.state.clone()
     }
 }
@@ -264,7 +273,7 @@ fn read_cpu_times() -> Vec<CpuTimes> {
         .collect()
 }
 
-fn read_cpu_freq() -> Option<String> {
+pub fn read_cpu_freq() -> Option<String> {
     let mut mhz_values = Vec::new();
     for entry in fs::read_dir("/sys/devices/system/cpu/cpufreq")
         .ok()?
@@ -416,6 +425,33 @@ fn read_wifi_ssid() -> Option<String> {
 
 async fn read_bluetooth() -> BluetoothState {
     read_bluetooth_dbus().await.unwrap_or_default()
+}
+
+pub async fn watch_bluetooth(sender: mpsc::Sender<BluetoothState>) {
+    loop {
+        if watch_bluetooth_once(&sender).await.is_err() {
+            time::sleep(Duration::from_secs(30)).await;
+        }
+    }
+}
+
+async fn watch_bluetooth_once(sender: &mpsc::Sender<BluetoothState>) -> zbus::Result<()> {
+    let connection = DBusConnection::system().await?;
+    let rule = MatchRule::builder()
+        .msg_type(MessageType::Signal)
+        .interface("org.freedesktop.DBus.Properties")?
+        .member("PropertiesChanged")?
+        .path_namespace("/org/bluez")?
+        .build();
+    let mut stream = MessageStream::for_match_rule(rule, &connection, Some(8)).await?;
+
+    while stream.try_next().await?.is_some() {
+        if let Some(bluetooth) = read_bluetooth_dbus().await {
+            let _ = sender.send(bluetooth).await;
+        }
+    }
+
+    Ok(())
 }
 
 async fn read_bluetooth_dbus() -> Option<BluetoothState> {

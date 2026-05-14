@@ -10,10 +10,10 @@ use std::{
 };
 
 use clap::{Parser, Subcommand};
-use collectors::{active_window_title, Samplers};
+use collectors::{active_window_title, read_cpu_freq, watch_bluetooth, Samplers};
 use render::{render_right, render_title};
 use state::RenderConfig;
-use tokio::time;
+use tokio::{sync::mpsc, time};
 
 #[derive(Debug, Parser)]
 #[command(version, about = "Low-wakeup Polybar status helper")]
@@ -25,6 +25,7 @@ struct Cli {
 #[derive(Debug, Subcommand)]
 enum Command {
     Right(RightArgs),
+    CpuFreq(CpuFreqArgs),
     Title(TitleArgs),
     Battery(BatteryArgs),
     ToggleHeartRate,
@@ -52,6 +53,15 @@ struct RightArgs {
 
     #[arg(long)]
     timew: String,
+}
+
+#[derive(Debug, Parser)]
+struct CpuFreqArgs {
+    #[arg(long)]
+    tail: bool,
+
+    #[arg(long)]
+    once: bool,
 }
 
 #[derive(Debug, Parser)]
@@ -93,6 +103,7 @@ async fn main() -> anyhow_free::Result<()> {
 
     match cli.command {
         Command::Right(args) => run_right(args).await,
+        Command::CpuFreq(args) => run_cpu_freq(args).await,
         Command::Title(args) => run_title(args).await,
         Command::Battery(args) => run_battery(args).await,
         Command::ToggleHeartRate => toggle_heart_rate(),
@@ -111,6 +122,8 @@ async fn run_right(args: RightArgs) -> anyhow_free::Result<()> {
             .unwrap_or_else(|| "polybar-status".to_owned()),
     );
     let mut samplers = Samplers::default();
+    let (bluetooth_sender, mut bluetooth_receiver) = mpsc::channel(4);
+    tokio::spawn(watch_bluetooth(bluetooth_sender));
 
     if args.once {
         // Prime delta-based collectors once so --once still prints meaningful
@@ -125,19 +138,45 @@ async fn run_right(args: RightArgs) -> anyhow_free::Result<()> {
     }
 
     let mut previous = String::new();
+    let state = samplers.sample(interval, &args.timew).await;
+    let rendered = render_right(&state, &config);
+    if rendered != previous {
+        println!("{rendered}");
+        io::stdout().flush()?;
+        previous = rendered;
+    }
+    if !args.tail {
+        return Ok(());
+    }
+
     loop {
-        let state = samplers.sample(interval, &args.timew).await;
+        let state = tokio::select! {
+            Some(bluetooth) = bluetooth_receiver.recv() => samplers.set_bluetooth(bluetooth),
+            _ = time::sleep(interval) => samplers.sample(interval, &args.timew).await,
+        };
         let rendered = render_right(&state, &config);
         if rendered != previous {
             println!("{rendered}");
             io::stdout().flush()?;
             previous = rendered;
         }
+    }
+}
 
-        if !args.tail {
+async fn run_cpu_freq(args: CpuFreqArgs) -> anyhow_free::Result<()> {
+    let mut previous = String::new();
+    loop {
+        let rendered = render_cpu_freq();
+        if rendered != previous {
+            println!("{rendered}");
+            io::stdout().flush()?;
+            previous = rendered;
+        }
+
+        if args.once || !args.tail {
             break;
         }
-        time::sleep(interval).await;
+        time::sleep(Duration::from_secs(5)).await;
     }
 
     Ok(())
@@ -172,6 +211,27 @@ async fn run_battery(args: BatteryArgs) -> anyhow_free::Result<()> {
     }
 
     Ok(())
+}
+
+fn render_cpu_freq() -> String {
+    read_cpu_freq()
+        .map(|frequency| format!("%{{A1:#freqmenu.open.0:}}{}%{{A}}", truncate(&frequency, 8)))
+        .unwrap_or_default()
+}
+
+fn truncate(value: &str, max_chars: usize) -> String {
+    let mut chars = value.chars();
+    let mut truncated = String::new();
+    for _ in 0..max_chars {
+        let Some(character) = chars.next() else {
+            return value.to_owned();
+        };
+        truncated.push(character);
+    }
+    if chars.next().is_some() {
+        truncated.push_str("...");
+    }
+    truncated
 }
 
 async fn run_title(args: TitleArgs) -> anyhow_free::Result<()> {

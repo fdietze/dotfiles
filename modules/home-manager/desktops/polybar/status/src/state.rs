@@ -2,7 +2,6 @@
 pub struct StatusState {
     pub hot_process: Option<String>,
     pub cpu_cores: Vec<u8>,
-    pub cpu_freq: Option<String>,
     pub temperature_c: Option<i64>,
     pub memory_percent: Option<u8>,
     pub swap_percent: Option<u8>,
