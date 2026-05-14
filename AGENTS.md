@@ -7,6 +7,7 @@
 - automatically read analyze relevant log files and/or run commands like journalctl to get them
 - automatically read relevant man pages
 - you can assume all binaries in the nix store exist when referencing like this: "${pkgs.mypackage}/bin/mycommand"
+- never search or grep the full nix store
 - you can read specific files and dirs, like ~/bin or ~/.config IN $HOME, but not list files in home
 - use `nixos-option` to find nixos options, e.g. services.xserver.xkb.layout
 - to figure out what exactly some software is doing, trace the nix build down to the source code. 
