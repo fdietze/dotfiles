@@ -12,6 +12,7 @@ use x11rb::{
     protocol::{xproto::AtomEnum, xproto::ConnectionExt, xproto::Window},
     rust_connection::RustConnection,
 };
+use zbus::{fdo::ObjectManagerProxy, zvariant::OwnedValue, Connection as DBusConnection};
 
 use crate::state::{BluetoothState, HeartRateState, LinkState, StatusState};
 
@@ -30,7 +31,7 @@ pub struct Samplers {
 }
 
 impl Samplers {
-    pub fn sample(&mut self, interval: Duration, timew: &str) -> StatusState {
+    pub async fn sample(&mut self, interval: Duration, timew: &str) -> StatusState {
         self.tick = self.tick.saturating_add(1);
         let first_sample = self.tick == 1;
 
@@ -56,17 +57,14 @@ impl Samplers {
         }
 
         if first_sample || self.tick % 6 == 0 {
-            // bluetoothctl touches D-Bus and can wake services; keep it much
+            // BlueZ D-Bus state is cheap enough at this cadence, but still much
             // slower than the direct /proc and /sys counters.
-            self.state.bluetooth = read_bluetooth();
+            self.state.bluetooth = read_bluetooth().await;
         }
 
         if first_sample || self.tick % 12 == 0 {
             self.state.root_free = read_root_free();
         }
-
-        self.state.date = formatted_date("%Y-%m-%d %a");
-        self.state.time = formatted_date("%H:%M");
 
         self.state.clone()
     }
@@ -416,37 +414,45 @@ fn read_wifi_ssid() -> Option<String> {
         .find_map(|line| line.strip_prefix("yes:").map(|ssid| ssid.to_owned()))
 }
 
-fn read_bluetooth() -> BluetoothState {
-    let show = Command::new("bluetoothctl")
-        .arg("show")
-        .output()
-        .ok()
-        .and_then(|output| String::from_utf8(output.stdout).ok())
-        .unwrap_or_default();
-    let powered = show.contains("Powered: yes");
-    if !powered {
-        return BluetoothState {
-            powered: false,
-            connected_devices: 0,
-        };
+async fn read_bluetooth() -> BluetoothState {
+    read_bluetooth_dbus().await.unwrap_or_default()
+}
+
+async fn read_bluetooth_dbus() -> Option<BluetoothState> {
+    let connection = DBusConnection::system().await.ok()?;
+    let object_manager = ObjectManagerProxy::builder(&connection)
+        .destination("org.bluez")
+        .ok()?
+        .path("/")
+        .ok()?
+        .cache_properties(zbus::proxy::CacheProperties::No)
+        .build()
+        .await
+        .ok()?;
+    let objects = object_manager.get_managed_objects().await.ok()?;
+
+    let mut powered = false;
+    let mut connected_devices = 0;
+    for interfaces in objects.values() {
+        if let Some(adapter) = interfaces.get("org.bluez.Adapter1") {
+            powered |= bool_property(adapter, "Powered").unwrap_or(false);
+        }
+
+        if let Some(device) = interfaces.get("org.bluez.Device1") {
+            if bool_property(device, "Connected").unwrap_or(false) {
+                connected_devices += 1;
+            }
+        }
     }
 
-    let connected_devices = Command::new("bluetoothctl")
-        .args(["devices", "Connected"])
-        .output()
-        .ok()
-        .and_then(|output| String::from_utf8(output.stdout).ok())
-        .map(|text| {
-            text.lines()
-                .filter(|line| line.starts_with("Device "))
-                .count() as u32
-        })
-        .unwrap_or(0);
-
-    BluetoothState {
+    Some(BluetoothState {
         powered,
         connected_devices,
-    }
+    })
+}
+
+fn bool_property(properties: &HashMap<String, OwnedValue>, name: &str) -> Option<bool> {
+    bool::try_from(properties.get(name)?).ok()
 }
 
 fn read_battery_watts() -> Option<f64> {
@@ -527,16 +533,6 @@ fn component(value: &str, suffix: char) -> Option<String> {
         .map(|index| index + 1)
         .unwrap_or(0);
     Some(value[start..end].to_owned())
-}
-
-fn formatted_date(format: &str) -> String {
-    Command::new("date")
-        .arg(format!("+{format}"))
-        .output()
-        .ok()
-        .and_then(|output| String::from_utf8(output.stdout).ok())
-        .map(|value| value.trim().to_owned())
-        .unwrap_or_default()
 }
 
 fn read_process_ticks() -> HashMap<u32, (String, u64)> {

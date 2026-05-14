@@ -687,6 +687,9 @@ in
   services.udev.extraRules = ''
     SUBSYSTEM=="usb", ATTR{idVendor}=="cafe", ATTR{idProduct}=="4000", MODE="0660", GROUP="plugdev"
     SUBSYSTEM=="usb", ATTR{idVendor}=="0bda", ATTR{idProduct}=="8771", MODE="0660", GROUP="plugdev"
+    # The Logitech Unifying receiver can miss wakeups after system suspend when
+    # USB runtime autosuspend is enabled globally; keep only this dongle active.
+    ACTION=="add|change", SUBSYSTEM=="usb", ATTR{idVendor}=="046d", ATTR{idProduct}=="c52b", ATTR{power/control}="on"
   '';
 
   # KEYBOARD_KEY_70052=slash

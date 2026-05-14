@@ -93,9 +93,6 @@ pub fn render_right(state: &StatusState, config: &RenderConfig) -> String {
         }
     }
 
-    parts.push(state.date.clone());
-    parts.push(format!("%{{T3}}{}%{{T-}}", state.time));
-
     parts.join("  ")
 }
 
@@ -351,8 +348,6 @@ mod tests {
             },
             battery_watts: Some(8.42),
             heart_rate: HeartRateState::Disabled,
-            date: "2026-05-14 Thu".to_owned(),
-            time: "09:41".to_owned(),
             ..StatusState::default()
         };
 
@@ -361,15 +356,13 @@ mod tests {
         assert!(output.contains("home"));
         assert!(output.contains("%{T4}󰂯%{T-}"));
         assert!(output.contains("8.4W"));
-        assert!(output.contains("%{T3}09:41%{T-}"));
+        assert!(!output.contains("09:41"));
     }
 
     #[test]
     fn suppresses_disconnected_links_and_hot_process_absence() {
         let state = StatusState {
             bluetooth: BluetoothState::default(),
-            date: "2026-05-14 Thu".to_owned(),
-            time: "09:41".to_owned(),
             ..StatusState::default()
         };
 

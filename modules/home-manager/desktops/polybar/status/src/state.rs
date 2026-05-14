@@ -15,8 +15,6 @@ pub struct StatusState {
     pub battery_watts: Option<f64>,
     pub heart_rate: HeartRateState,
     pub timewarrior: Option<String>,
-    pub date: String,
-    pub time: String,
 }
 
 #[derive(Debug, Clone, Default, PartialEq)]

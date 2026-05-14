@@ -76,6 +76,8 @@ let
         "volume"
         "battery"
         "tray"
+        "date"
+        "time"
       ];
       "module-margin-left" = 1;
       "module-margin-right" = 2;
@@ -96,6 +98,8 @@ let
         "freqmenu"
         "volume"
         "battery"
+        "date"
+        "time"
       ];
     };
 
@@ -776,86 +780,25 @@ let
     };
   };
 
-  batteryModule =
-    let
-      batteryWatts = pkgs.writeShellApplication {
-        name = "polybar-battery-watts";
-        runtimeInputs = [
-          pkgs.coreutils
-          pkgs.gawk
-        ];
-        text = ''
-          battery=/sys/class/power_supply/BAT0
-
-          while true; do
-            if [ -r "$battery/power_now" ]; then
-              # power_now is exposed by the kernel in microwatts; reading sysfs is
-              # cheaper than polling UPower just to display the current draw.
-              awk '
-                {
-                  watts = $1 / 1000000
-                  if (watts >= 10) {
-                    printf "%.0fW\n", watts
-                  } else {
-                    printf "%.1fW\n", watts
-                  }
-                }
-              ' "$battery/power_now"
-            else
-              echo ""
-            fi
-
-            sleep 5
-          done
-        '';
-      };
-    in
-    {
-      "module/battery" = {
-        "type" = "internal/battery";
-        "battery" = "BAT0";
-        "adapter" = "AC0";
-        "full-at" = 98;
-        # Polybar's internal/battery low state supports animation-low; use a
-        # same-width blank frame so low battery visibly blinks without shifting
-        # neighbouring modules.
-        "low-at" = 15;
-        "format-prefix-foreground" = "\${colors.foreground-alt}";
-        "format-charging-prefix" = iconPrefix icons.batteryCharging;
-        "format-full-prefix" = iconPrefix icons.batteryCharging;
-        "format-charging-prefix-foreground" = "\${self.format-prefix-foreground}";
-        "format-full-prefix-foreground" = "\${self.format-prefix-foreground}";
-        # Capacity icons carry the battery state more directly than a generic
-        # battery prefix plus block ramp. Full stays compact: icon only.
-        "format-charging" = "<label-charging>";
-        "format-discharging" = "<ramp-capacity> <label-discharging>";
-        "format-low" = "<animation-low> <label-low>";
-        "format-full" = "";
-        "label-charging" = "%time%";
-        "label-discharging" = "%time%";
-        "label-low" = "%time%";
-        "time-format" = "%H:%M";
-        "animation-low-0" = "%{F${polybarColors.warn}}󰂎%{F-}";
-        "animation-low-1" = " ";
-        "animation-low-framerate" = 750;
-        "ramp-capacity-0" = "%{F${polybarColors.warn}}󰂎%{F-}"; # mdi-battery-outline U+F008E
-        "ramp-capacity-1" = "%{F${polybarColors.warn}}󰁺%{F-}"; # mdi-battery-10 U+F007A
-        "ramp-capacity-2" = "󰁻"; # mdi-battery-20 U+F007B
-        "ramp-capacity-3" = "󰁽"; # mdi-battery-40 U+F007D
-        "ramp-capacity-4" = "󰁿"; # mdi-battery-60 U+F007F
-        "ramp-capacity-5" = "󰂀"; # mdi-battery-70 U+F0080
-        "ramp-capacity-6" = "󰂁"; # mdi-battery-80 U+F0081
-        "ramp-capacity-7" = "󰁹"; # mdi-battery U+F0079
-      };
-
-      "module/battery-watts" = {
-        "type" = "custom/script";
-        "exec" = lib.getExe batteryWatts;
-        "tail" = true;
-        "format-foreground" = "\${colors.foreground-alt}";
-        "label" = "%output%";
-      };
+  batteryModule = {
+    "module/battery" = {
+      "type" = "custom/script";
+      # Polybar's internal/battery can blink an animation or render %time% in a
+      # label, but not both together. The Rust helper blinks the whole low
+      # battery label while keeping the normal icon/time shape.
+      "exec" = lib.concatStringsSep " " [
+        (lib.getExe polybarStatus)
+        "battery"
+        "--tail"
+        "--foreground-alt"
+        (lib.escapeShellArg polybarColors.foregroundAlt)
+        "--warn"
+        (lib.escapeShellArg polybarColors.warn)
+      ];
+      "tail" = true;
+      "label" = "%output%";
     };
+  };
 
   timeModules =
     let
@@ -1068,4 +1011,5 @@ baseSettings
 // statusModule
 // volumeModule
 // batteryModule
+// timeModules
 // trayModule
