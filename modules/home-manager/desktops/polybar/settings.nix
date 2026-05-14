@@ -15,6 +15,7 @@ let
   sudo = "/run/wrappers/bin/sudo";
   timew = lib.getExe pkgs.timewarrior;
   xdotool = lib.getExe pkgs.xdotool;
+  polybarStatus = pkgs.callPackage ./status/package.nix { };
   statusbarFontSize = toString uiFonts.sizes.statusbar;
   statusbarClockFontSize = toString (uiFonts.sizes.statusbar + 5);
   statusbarIconFontSize = toString (uiFonts.sizes.statusbar + 3);
@@ -70,25 +71,11 @@ let
       "modules-left" = "hlwm-tags xwindow";
       "modules-center" = "";
       "modules-right" = lib.concatStringsSep " " [
-        "process"
-        "cpu"
-        "cpufreq"
+        "status"
         "freqmenu"
-        "temperature"
-        "memory"
-        "filesystem"
-        "io"
-        "eth"
-        "wifi"
-        "bluetooth"
         "volume"
         "battery"
-        "battery-watts"
-        "heart-rate"
-        "timewarrior"
         "tray"
-        "date"
-        "time"
       ];
       "module-margin-left" = 1;
       "module-margin-right" = 2;
@@ -105,24 +92,10 @@ let
     "bar/secondary" = {
       "inherit" = "bar/default";
       "modules-right" = lib.concatStringsSep " " [
-        "process"
-        "cpu"
-        "cpufreq"
+        "status"
         "freqmenu"
-        "temperature"
-        "memory"
-        "filesystem"
-        "io"
-        "eth"
-        "wifi"
-        "bluetooth"
         "volume"
         "battery"
-        "battery-watts"
-        "heart-rate"
-        "timewarrior"
-        "date"
-        "time"
       ];
     };
 
@@ -236,10 +209,60 @@ let
       };
 
       "module/xwindow" = {
-        "type" = "internal/xwindow";
-        "label" = "%{A2:${xdotool} getwindowfocus windowkill:}%title:0:49:...%%{A}";
+        "type" = "custom/script";
+        "exec" = "${lib.getExe polybarStatus} title --tail --close-command ${lib.escapeShellArg "${xdotool} getwindowfocus windowkill"}";
+        "tail" = true;
+        "label" = "%output%";
       };
     };
+
+  statusModule = {
+    "module/status" = {
+      "type" = "custom/script";
+      # One Rust process owns the right-side state and emits a fresh Polybar
+      # line only when the rendered output changes, replacing several shell
+      # pollers that kept the CPU awake.
+      "exec" = lib.concatStringsSep " " [
+        (lib.getExe polybarStatus)
+        "right"
+        "--tail"
+        "--foreground-alt"
+        (lib.escapeShellArg polybarColors.foregroundAlt)
+        "--peak"
+        (lib.escapeShellArg polybarColors.peak)
+        "--warn"
+        (lib.escapeShellArg polybarColors.warn)
+        "--overskride"
+        (lib.escapeShellArg (lib.getExe pkgs.overskride))
+        "--timew"
+        (lib.escapeShellArg timew)
+      ];
+      "tail" = true;
+      "label" = "%output%";
+    };
+
+    "module/freqmenu" = {
+      "type" = "custom/menu";
+      "expand-right" = true;
+      "label-open" = "";
+      "label-close" = "x";
+      "label-separator" = " | ";
+      "menu-0-0" = "400MHz";
+      "menu-0-0-exec" = "${sudo} ${cpupower} frequency-set -u 400MHz";
+      "menu-0-1" = "800MHz";
+      "menu-0-1-exec" = "${sudo} ${cpupower} frequency-set -u 800MHz";
+      "menu-0-2" = "2GHz";
+      "menu-0-2-exec" = "${sudo} ${cpupower} frequency-set -u 2GHz";
+      "menu-0-3" = "3GHz";
+      "menu-0-3-exec" = "${sudo} ${cpupower} frequency-set -u 3GHz";
+      "menu-0-4" = "4GHz";
+      "menu-0-4-exec" = "${sudo} ${cpupower} frequency-set -u 4GHz";
+      "menu-0-5" = "powersave";
+      "menu-0-5-exec" = "${sudo} ${cpupower} frequency-set -g powersave";
+      "menu-0-6" = "performance";
+      "menu-0-6-exec" = "${sudo} ${cpupower} frequency-set -g performance";
+    };
+  };
 
   processModule =
     let
@@ -1042,15 +1065,7 @@ let
 in
 baseSettings
 // workspaceModules
-// processModule
-// cpuModules
-// memoryModule
-// filesystemModule
-// ioModules
-// networkModules
-// bluetoothModule
+// statusModule
 // volumeModule
 // batteryModule
-// timeModules
-// heartRateModule
 // trayModule

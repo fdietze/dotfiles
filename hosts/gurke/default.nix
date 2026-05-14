@@ -206,6 +206,23 @@ in
     networkmanager = {
       enable = true;
       wifi.powersave = true; # NetworkManager.conf wifi.powersave; lets iwlwifi enter lower-power states on battery.
+      dispatcherScripts = [
+        {
+          type = "basic";
+          source = pkgs.writeText "wifi-powersave" ''
+            if [ "''${DEVICE_IFACE:-}" = "wlp2s0" ]; then
+              case "$2" in
+                up | connectivity-change | dhcp4-change)
+                  # NetworkManager writes wifi.powersave=3, but this adapter can
+                  # still come up with runtime power_save off. Enforce the driver
+                  # state on connection events so the setting survives reconnects.
+                  ${pkgs.iw}/bin/iw dev "$DEVICE_IFACE" set power_save on || true
+                  ;;
+              esac
+            fi
+          '';
+        }
+      ];
       plugins = with pkgs; [
         networkmanager-openvpn
       ];

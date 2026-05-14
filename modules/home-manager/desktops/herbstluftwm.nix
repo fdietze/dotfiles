@@ -20,7 +20,11 @@ let
   };
   polybarRuntimePath = lib.makeBinPath [
     pkgs.bash
+    # polybar-status deliberately calls stable CLI tools for slow Bluetooth and
+    # Wi-Fi labels while keeping hot counters on direct /proc and /sys reads.
+    pkgs.bluez
     pkgs.coreutils
+    pkgs.networkmanager
     polybar
   ];
   bluetoothToggle = pkgs.writeShellApplication {

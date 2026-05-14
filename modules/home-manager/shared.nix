@@ -345,6 +345,14 @@ in
   # Bluetooth is managed on demand via Polybar and Overskride, avoiding a tray
   # applet that keeps waking up during otherwise idle sessions.
   services.blueman-applet.enable = false;
+  # NixOS' blueman package still exports an XDG autostart file for
+  # blueman-applet; a user-level Hidden entry masks it for this session.
+  xdg.configFile."autostart/blueman.desktop".text = ''
+    [Desktop Entry]
+    Type=Application
+    Name=Blueman Applet
+    Hidden=true
+  '';
   services.mpris-proxy.enable = true; # bluetooth buttons
 
   services.flameshot = {
