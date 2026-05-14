@@ -4,6 +4,8 @@ const FONT_ICON: u8 = 4;
 const FONT_BOLD: u8 = 2;
 
 // Icons mirror the Material Design codepoints configured in settings.nix.
+const ICON_ARROW_DOWN_THICK: &str = "󰁆";
+const ICON_ARROW_UP_THICK: &str = "󰁞";
 const ICON_BLUETOOTH: &str = "󰂯";
 const ICON_BLUETOOTH_OFF: &str = "󰂲";
 const ICON_DISK: &str = "󰆼";
@@ -46,12 +48,12 @@ pub fn render_right(state: &StatusState, config: &RenderConfig) -> String {
         config.foreground_alt,
         FONT_ICON,
         ICON_DISK,
-        ICON_DOWNLOAD,
+        ICON_ARROW_DOWN_THICK,
         format_rate(state.disk_read_bytes_per_s, true, config),
         config.foreground_alt,
         FONT_ICON,
         ICON_DISK,
-        ICON_UPLOAD,
+        ICON_ARROW_UP_THICK,
         format_rate(state.disk_write_bytes_per_s, true, config)
     ));
 
@@ -344,8 +346,8 @@ mod tests {
         };
 
         let output = render_right(&state, &config());
-        assert!(output.contains("%{F#555555}%{T4}󰆼󰇚%{T-}%{F-}   1.0K/s"));
-        assert!(output.contains("%{F#555555}%{T4}󰆼󰕒%{T-}%{F-}   2.0K/s"));
+        assert!(output.contains("%{F#555555}%{T4}󰆼󰁆%{T-}%{F-}   1.0K/s"));
+        assert!(output.contains("%{F#555555}%{T4}󰆼󰁞%{T-}%{F-}   2.0K/s"));
     }
 
     #[test]
