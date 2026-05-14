@@ -11,7 +11,6 @@ pub struct StatusState {
     pub ethernet: LinkState,
     pub wifi: LinkState,
     pub bluetooth: BluetoothState,
-    pub battery_watts: Option<f64>,
     pub heart_rate: HeartRateState,
     pub timewarrior: Option<String>,
 }

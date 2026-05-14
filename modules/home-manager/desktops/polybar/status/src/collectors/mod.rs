@@ -48,7 +48,6 @@ impl Samplers {
         self.state.ethernet = self.ethernet.sample("enp0s20f0u1", interval);
         self.state.wifi = self.wifi.sample("wlp2s0", interval);
         self.state.wifi.ssid = read_networkmanager_wifi_ssid().await;
-        self.state.battery_watts = read_battery_watts();
         self.state.heart_rate = read_heart_rate();
 
         if first_sample || self.tick % 2 == 0 {
@@ -529,7 +528,7 @@ fn bool_property(properties: &HashMap<String, OwnedValue>, name: &str) -> Option
     bool::try_from(properties.get(name)?).ok()
 }
 
-fn read_battery_watts() -> Option<f64> {
+pub fn read_battery_watts() -> Option<f64> {
     let microwatts = fs::read_to_string("/sys/class/power_supply/BAT0/power_now")
         .ok()?
         .trim()

@@ -6,6 +6,7 @@ const FONT_BOLD: u8 = 2;
 // Icons mirror the Material Design codepoints configured in settings.nix.
 const ICON_BLUETOOTH: &str = "󰂯";
 const ICON_BLUETOOTH_OFF: &str = "󰂲";
+const ICON_DISK: &str = "󰆼";
 const ICON_DOWNLOAD: &str = "󰇚";
 const ICON_ETHERNET: &str = "󰈀";
 const ICON_HEART_RATE: &str = "󰋑";
@@ -41,10 +42,14 @@ pub fn render_right(state: &StatusState, config: &RenderConfig) -> String {
     }
 
     parts.push(format!(
-        "%{{F{}}}R%{{F-}} {} %{{F{}}}W%{{F-}} {}",
+        "%{{F{}}}%{{T{}}}{}⇣%{{T-}}%{{F-}} {} %{{F{}}}%{{T{}}}{}⇡%{{T-}}%{{F-}} {}",
         config.foreground_alt,
+        FONT_ICON,
+        ICON_DISK,
         format_rate(state.disk_read_bytes_per_s, true, config),
         config.foreground_alt,
+        FONT_ICON,
+        ICON_DISK,
         format_rate(state.disk_write_bytes_per_s, true, config)
     ));
 
@@ -56,14 +61,6 @@ pub fn render_right(state: &StatusState, config: &RenderConfig) -> String {
     }
 
     parts.push(render_bluetooth(&state.bluetooth, config));
-
-    if let Some(watts) = state.battery_watts {
-        parts.push(format!(
-            "%{{F{}}}{}%{{F-}}",
-            config.foreground_alt,
-            format_watts(watts)
-        ));
-    }
 
     parts.push(render_heart_rate(&state.heart_rate, config));
 
@@ -81,6 +78,10 @@ pub fn render_hot_process(process: Option<&str>, peak: &str) -> String {
         .filter(|process| !process.is_empty())
         .map(|process| format!("%{{F{peak}}}%{{T{FONT_BOLD}}}{process}%{{T-}}%{{F-}}"))
         .unwrap_or_default()
+}
+
+pub fn render_battery_watts(watts: Option<f64>) -> String {
+    watts.map(format_watts).unwrap_or_default()
 }
 
 pub fn render_title(title: &str, close_command: &str) -> String {
@@ -332,6 +333,20 @@ mod tests {
     }
 
     #[test]
+    fn renders_disk_throughput_with_disk_arrows() {
+        let state = StatusState {
+            disk_read_bytes_per_s: 1024,
+            disk_write_bytes_per_s: 2048,
+            bluetooth: BluetoothState::default(),
+            ..StatusState::default()
+        };
+
+        let output = render_right(&state, &config());
+        assert!(output.contains("%{F#555555}%{T4}󰆼⇣%{T-}%{F-}   1.0K/s"));
+        assert!(output.contains("%{F#555555}%{T4}󰆼⇡%{T-}%{F-}   2.0K/s"));
+    }
+
+    #[test]
     fn renders_hot_process_separately() {
         assert_eq!(
             render_hot_process(Some("rustc"), "#00ff00"),
@@ -355,7 +370,6 @@ mod tests {
                 powered: true,
                 connected_devices: 2,
             },
-            battery_watts: Some(8.42),
             heart_rate: HeartRateState::Disabled,
             ..StatusState::default()
         };
@@ -364,8 +378,14 @@ mod tests {
         assert!(output.contains("%{T4}󰖩%{T-}"));
         assert!(output.contains("home"));
         assert!(output.contains("%{T4}󰂯%{T-}"));
-        assert!(output.contains("8.4W"));
         assert!(!output.contains("09:41"));
+    }
+
+    #[test]
+    fn renders_battery_watts_in_normal_font() {
+        assert_eq!(render_battery_watts(Some(8.42)), "8.4W");
+        assert_eq!(render_battery_watts(Some(12.1)), "12W");
+        assert_eq!(render_battery_watts(None), "");
     }
 
     #[test]

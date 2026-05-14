@@ -78,6 +78,7 @@ let
         "status"
         "volume"
         "battery"
+        "batterywatts"
         "tray"
         "date"
         "time"
@@ -104,6 +105,7 @@ let
         "status"
         "volume"
         "battery"
+        "batterywatts"
         "date"
         "time"
       ];
@@ -846,6 +848,19 @@ let
         (lib.escapeShellArg polybarColors.foregroundAlt)
         "--warn"
         (lib.escapeShellArg polybarColors.warn)
+      ];
+      "tail" = true;
+      "label" = "%output%";
+    };
+
+    "module/batterywatts" = {
+      "type" = "custom/script";
+      # Keep power draw next to the battery instead of the generic status
+      # block, and render it in the normal foreground for readability.
+      "exec" = lib.concatStringsSep " " [
+        (lib.getExe polybarStatus)
+        "battery-watts"
+        "--tail"
       ];
       "tail" = true;
       "label" = "%output%";

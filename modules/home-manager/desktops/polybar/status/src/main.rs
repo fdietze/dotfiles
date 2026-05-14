@@ -11,9 +11,12 @@ use std::{
 
 use clap::{Parser, Subcommand};
 use collectors::{
-    active_window_title, read_cpu_freq, watch_bluetooth, CpuSampler, ProcessSampler, Samplers,
+    active_window_title, read_battery_watts, read_cpu_freq, watch_bluetooth, CpuSampler,
+    ProcessSampler, Samplers,
 };
-use render::{render_cpu_load, render_hot_process, render_right, render_title};
+use render::{
+    render_battery_watts, render_cpu_load, render_hot_process, render_right, render_title,
+};
 use state::RenderConfig;
 use tokio::{sync::mpsc, time};
 
@@ -32,6 +35,7 @@ enum Command {
     CpuFreq(CpuFreqArgs),
     Title(TitleArgs),
     Battery(BatteryArgs),
+    BatteryWatts(BatteryWattsArgs),
     ToggleHeartRate,
 }
 
@@ -128,6 +132,15 @@ struct BatteryArgs {
     full_at: u8,
 }
 
+#[derive(Debug, Parser)]
+struct BatteryWattsArgs {
+    #[arg(long)]
+    tail: bool,
+
+    #[arg(long)]
+    once: bool,
+}
+
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> anyhow_free::Result<()> {
     let cli = Cli::parse();
@@ -139,6 +152,7 @@ async fn main() -> anyhow_free::Result<()> {
         Command::CpuFreq(args) => run_cpu_freq(args).await,
         Command::Title(args) => run_title(args).await,
         Command::Battery(args) => run_battery(args).await,
+        Command::BatteryWatts(args) => run_battery_watts(args).await,
         Command::ToggleHeartRate => toggle_heart_rate(),
     }
 }
@@ -294,6 +308,26 @@ async fn run_battery(args: BatteryArgs) -> anyhow_free::Result<()> {
             low_blink_on = true;
             time::sleep(Duration::from_secs(30)).await;
         }
+    }
+
+    Ok(())
+}
+
+async fn run_battery_watts(args: BatteryWattsArgs) -> anyhow_free::Result<()> {
+    let mut previous = String::new();
+
+    loop {
+        let rendered = render_battery_watts(read_battery_watts());
+        if rendered != previous {
+            println!("{rendered}");
+            io::stdout().flush()?;
+            previous = rendered;
+        }
+
+        if args.once || !args.tail {
+            break;
+        }
+        time::sleep(Duration::from_secs(5)).await;
     }
 
     Ok(())
