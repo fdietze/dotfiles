@@ -26,10 +26,6 @@ pub fn render_right(state: &StatusState, config: &RenderConfig) -> String {
         }
     }
 
-    if !state.cpu_cores.is_empty() {
-        parts.push(render_cpu(&state.cpu_cores, config));
-    }
-
     if let Some(temp) = state.temperature_c {
         if temp >= 90 {
             parts.push(format!(
@@ -130,15 +126,15 @@ pub fn sanitize_title(title: &str) -> String {
     sanitized.trim().to_owned()
 }
 
-fn render_cpu(cores: &[u8], config: &RenderConfig) -> String {
+pub fn render_cpu_load(cores: &[u8], foreground_alt: &str, peak: &str) -> String {
     cores
         .iter()
         .map(|percent| {
             let ramp = ramp(*percent);
             if *percent >= 88 {
-                format!("%{{F{}}}{}%{{F-}}", config.peak, ramp)
+                format!("%{{F{}}}{}%{{F-}}", peak, ramp)
             } else if *percent == 0 {
-                format!("%{{F{}}}{}%{{F-}}", config.foreground_alt, ramp)
+                format!("%{{F{}}}{}%{{F-}}", foreground_alt, ramp)
             } else {
                 ramp.to_owned()
             }
@@ -322,6 +318,14 @@ mod tests {
         assert_eq!(
             render_title("⠦ dotfiles", "xdotool getwindowfocus windowkill"),
             "%{A2:xdotool getwindowfocus windowkill:}dotfiles%{A}"
+        );
+    }
+
+    #[test]
+    fn renders_zero_cpu_cores_dimmed() {
+        assert_eq!(
+            render_cpu_load(&[0, 1, 100], "#555555", "#00ff00"),
+            "%{F#555555}▁%{F-}▁%{F#00ff00}█%{F-}"
         );
     }
 

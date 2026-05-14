@@ -80,12 +80,12 @@ impl Samplers {
 }
 
 #[derive(Debug, Default)]
-struct CpuSampler {
+pub struct CpuSampler {
     previous: Vec<CpuTimes>,
 }
 
 impl CpuSampler {
-    fn sample(&mut self) -> Vec<u8> {
+    pub fn sample(&mut self) -> Vec<u8> {
         let current = read_cpu_times();
         let percentages = current
             .iter()

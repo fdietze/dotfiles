@@ -10,8 +10,8 @@ use std::{
 };
 
 use clap::{Parser, Subcommand};
-use collectors::{active_window_title, read_cpu_freq, watch_bluetooth, Samplers};
-use render::{render_right, render_title};
+use collectors::{active_window_title, read_cpu_freq, watch_bluetooth, CpuSampler, Samplers};
+use render::{render_cpu_load, render_right, render_title};
 use state::RenderConfig;
 use tokio::{sync::mpsc, time};
 
@@ -25,6 +25,7 @@ struct Cli {
 #[derive(Debug, Subcommand)]
 enum Command {
     Right(RightArgs),
+    CpuLoad(CpuLoadArgs),
     CpuFreq(CpuFreqArgs),
     Title(TitleArgs),
     Battery(BatteryArgs),
@@ -53,6 +54,21 @@ struct RightArgs {
 
     #[arg(long)]
     timew: String,
+}
+
+#[derive(Debug, Parser)]
+struct CpuLoadArgs {
+    #[arg(long)]
+    tail: bool,
+
+    #[arg(long)]
+    once: bool,
+
+    #[arg(long)]
+    foreground_alt: String,
+
+    #[arg(long)]
+    peak: String,
 }
 
 #[derive(Debug, Parser)]
@@ -103,11 +119,37 @@ async fn main() -> anyhow_free::Result<()> {
 
     match cli.command {
         Command::Right(args) => run_right(args).await,
+        Command::CpuLoad(args) => run_cpu_load(args).await,
         Command::CpuFreq(args) => run_cpu_freq(args).await,
         Command::Title(args) => run_title(args).await,
         Command::Battery(args) => run_battery(args).await,
         Command::ToggleHeartRate => toggle_heart_rate(),
     }
+}
+
+async fn run_cpu_load(args: CpuLoadArgs) -> anyhow_free::Result<()> {
+    let interval = Duration::from_secs(5);
+    let mut sampler = CpuSampler::default();
+    let mut previous = String::new();
+
+    let _ = sampler.sample();
+    time::sleep(Duration::from_millis(500)).await;
+
+    loop {
+        let rendered = render_cpu_load(&sampler.sample(), &args.foreground_alt, &args.peak);
+        if rendered != previous {
+            println!("{rendered}");
+            io::stdout().flush()?;
+            previous = rendered;
+        }
+
+        if args.once || !args.tail {
+            break;
+        }
+        time::sleep(interval).await;
+    }
+
+    Ok(())
 }
 
 async fn run_right(args: RightArgs) -> anyhow_free::Result<()> {

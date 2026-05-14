@@ -71,9 +71,10 @@ let
       "modules-left" = "hlwm-tags xwindow";
       "modules-center" = "";
       "modules-right" = lib.concatStringsSep " " [
-        "status"
+        "cpuload"
         "cpufreq"
         "freqmenu"
+        "status"
         "volume"
         "battery"
         "tray"
@@ -95,9 +96,10 @@ let
     "bar/secondary" = {
       "inherit" = "bar/default";
       "modules-right" = lib.concatStringsSep " " [
-        "status"
+        "cpuload"
         "cpufreq"
         "freqmenu"
+        "status"
         "volume"
         "battery"
         "date"
@@ -243,6 +245,23 @@ let
         (lib.escapeShellArg (lib.getExe pkgs.overskride))
         "--timew"
         (lib.escapeShellArg timew)
+      ];
+      "tail" = true;
+      "label" = "%output%";
+    };
+
+    "module/cpuload" = {
+      "type" = "custom/script";
+      # Keep CPU load separate so the frequency label and its native menu stay
+      # visually attached to the load ramps.
+      "exec" = lib.concatStringsSep " " [
+        (lib.getExe polybarStatus)
+        "cpu-load"
+        "--tail"
+        "--foreground-alt"
+        (lib.escapeShellArg polybarColors.foregroundAlt)
+        "--peak"
+        (lib.escapeShellArg polybarColors.peak)
       ];
       "tail" = true;
       "label" = "%output%";
