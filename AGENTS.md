@@ -30,7 +30,7 @@ block.
 - if you found a good reference or documentation for the task at hand, add a comment in the code referring to that documentation for future quick retreival
 - If code should be moved to another file, always do it with shell commands to preserve the content verbatim and avoid copy paste errors
 - If any command is missing to to the job or investigate, you can access any command via an ad-hoc nix-shell
-- always add comments to document why things are the way they are
+- always add comments to document why things are the way they are. The comments should only refer to the current code, not to past code.
 - don't hardcode paths. whenever possible, use xdg dirs.
 
 configuration entrypoints:
