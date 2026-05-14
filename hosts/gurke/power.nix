@@ -28,8 +28,13 @@
         CPU_ENERGY_PERF_POLICY_ON_AC = "balance_performance";
         CPU_ENERGY_PERF_POLICY_ON_BAT = "power";
 
-        # TLP recommends percentage P-state limits with intel_pstate. On this
-        # ThinkPad, 50% maps to the verified 1.8GHz battery cap.
+        # TLP does not reset omitted P-state limits when switching profiles;
+        # keep AC explicitly uncapped and battery capped.
+        CPU_MIN_PERF_ON_AC = 10;
+        CPU_MAX_PERF_ON_AC = 100;
+
+        # Use percentage P-state limits instead of fixed frequencies so the
+        # battery cap scales with each CPU's own performance range.
         CPU_MIN_PERF_ON_BAT = 10;
         CPU_MAX_PERF_ON_BAT = 50;
 
