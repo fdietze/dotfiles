@@ -305,6 +305,11 @@ in
     enable = true;
     powertop.enable = true;
   };
+  services.tlp.settings = {
+    # TLP's USB_DENYLIST keeps matching devices out of USB autosuspend:
+    # see ${pkgs.tlp}/etc/tlp.conf for the supported vendor:product syntax.
+    USB_DENYLIST = [ "046d:c52b" ];
+  };
   services.upower = {
     enable = true;
     percentageLow = 20;
@@ -701,7 +706,7 @@ in
     SUBSYSTEM=="usb", ATTR{idVendor}=="0bda", ATTR{idProduct}=="8771", MODE="0660", GROUP="plugdev"
     # The Logitech Unifying receiver can miss wakeups after system suspend when
     # USB runtime autosuspend is enabled globally; keep only this dongle active.
-    ACTION=="add|change", SUBSYSTEM=="usb", ATTR{idVendor}=="046d", ATTR{idProduct}=="c52b", ATTR{power/control}="on"
+    ACTION=="add|change", SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ATTR{idVendor}=="046d", ATTR{idProduct}=="c52b", TEST=="power/control", ATTR{power/control}="on"
   '';
 
   # KEYBOARD_KEY_70052=slash
