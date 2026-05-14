@@ -42,7 +42,7 @@ pub fn render_right(state: &StatusState, config: &RenderConfig) -> String {
     }
 
     parts.push(format!(
-        "%{{F{}}}%{{T{}}}{}⇣%{{T-}}%{{F-}} {} %{{F{}}}%{{T{}}}{}⇡%{{T-}}%{{F-}} {}",
+        "%{{F{}}}%{{T{}}}{}%{{T-}}⇣%{{F-}} {} %{{F{}}}%{{T{}}}{}%{{T-}}⇡%{{F-}} {}",
         config.foreground_alt,
         FONT_ICON,
         ICON_DISK,
@@ -342,8 +342,8 @@ mod tests {
         };
 
         let output = render_right(&state, &config());
-        assert!(output.contains("%{F#555555}%{T4}󰆼⇣%{T-}%{F-}   1.0K/s"));
-        assert!(output.contains("%{F#555555}%{T4}󰆼⇡%{T-}%{F-}   2.0K/s"));
+        assert!(output.contains("%{F#555555}%{T4}󰆼%{T-}⇣%{F-}   1.0K/s"));
+        assert!(output.contains("%{F#555555}%{T4}󰆼%{T-}⇡%{F-}   2.0K/s"));
     }
 
     #[test]
