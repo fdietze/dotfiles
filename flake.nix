@@ -79,8 +79,6 @@
             ];
             home-manager.users.felix = ./hosts/gurke/home.nix;
           }
-
-          breezy-desktop.nixosModules.breezy-desktop
         ];
       };
     };
