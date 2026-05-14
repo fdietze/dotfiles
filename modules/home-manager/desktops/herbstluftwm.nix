@@ -185,6 +185,23 @@ let
     stop_polybars() {
       if [ "''${#polybar_pids[@]}" -gt 0 ]; then
         ${pkgs.coreutils}/bin/kill "''${polybar_pids[@]}" 2>/dev/null || true
+        # Polybar can block on tailing custom modules during shutdown. Keep
+        # theme switches bounded instead of waiting for systemd's stop timeout.
+        for _ in $(${pkgs.coreutils}/bin/seq 1 20); do
+          alive=()
+          for pid in "''${polybar_pids[@]}"; do
+            if ${pkgs.coreutils}/bin/kill -0 "$pid" 2>/dev/null; then
+              alive+=("$pid")
+            fi
+          done
+          if [ "''${#alive[@]}" -eq 0 ]; then
+            break
+          fi
+          ${pkgs.coreutils}/bin/sleep 0.1
+        done
+        if [ "''${#alive[@]}" -gt 0 ]; then
+          ${pkgs.coreutils}/bin/kill -KILL "''${alive[@]}" 2>/dev/null || true
+        fi
         wait "''${polybar_pids[@]}" 2>/dev/null || true
       fi
     }
