@@ -127,18 +127,8 @@ in
     ]; # https://github.com/NixOS/nixpkgs/issues/363887
     # Use the systemd-boot EFI boot loader.
     loader.systemd-boot.enable = true;
-    loader.systemd-boot.extraInstallCommands = ''
-      default_entry="$(${pkgs.findutils}/bin/find /boot/loader/entries -maxdepth 1 -name 'nixos-generation-*-specialisation-herbstluftwm-dark.conf' -printf '%f\n' | ${pkgs.coreutils}/bin/sort -V | ${pkgs.coreutils}/bin/tail -n1)"
-      if [[ -n "$default_entry" ]]; then
-        # Keep the boot menu available, but preselect the working
-        # herbstluftwm dark specialisation for normal boots.
-        if ${pkgs.gnugrep}/bin/grep -q '^default ' /boot/loader/loader.conf; then
-          ${pkgs.gnused}/bin/sed -i "s|^default .*|default $default_entry|" /boot/loader/loader.conf
-        else
-          printf 'default %s\n' "$default_entry" >> /boot/loader/loader.conf
-        fi
-      fi
-    '';
+    # systemd-boot writes the current plain generation as loader.conf's default,
+    # which keeps the first menu entry preselected.
     loader.timeout = null; # Show the boot menu until a specialization is chosen.
     loader.efi.canTouchEfiVariables = true;
     supportedFilesystems = [
@@ -499,8 +489,10 @@ in
       };
     };
   my = {
-    desktop = lib.mkDefault "gnome";
-    theme = lib.mkDefault "dark";
+    # The unnamed generation is the boot menu's top entry. Keep it explicit so
+    # option defaults cannot silently turn it into a GNOME configuration.
+    desktop = "herbstluftwm";
+    theme = "dark";
   };
 
   system.activationScripts."current-specialisation" = ''

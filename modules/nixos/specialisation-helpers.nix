@@ -28,9 +28,14 @@ let
       name = specialisationName { inherit desktop theme; };
       myConfig =
         if hasThemeVariants desktop then
-          { my = { inherit desktop theme; }; }
+          {
+            my = {
+              desktop = lib.mkForce desktop;
+              theme = lib.mkForce theme;
+            };
+          }
         else
-          { my = { inherit desktop; }; };
+          { my.desktop = lib.mkForce desktop; };
     in
     lib.nameValuePair name {
       configuration = myConfig // extraConfig;

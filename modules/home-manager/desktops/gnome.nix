@@ -1,5 +1,5 @@
 {
-  desktop ? "gnome",
+  desktop,
   theme,
   lib,
   pkgs,
