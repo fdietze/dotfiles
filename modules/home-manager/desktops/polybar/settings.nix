@@ -71,6 +71,7 @@ let
       "modules-left" = "hlwm-tags xwindow";
       "modules-center" = "";
       "modules-right" = lib.concatStringsSep " " [
+        "hotprocess"
         "cpuload"
         "cpufreq"
         "freqmenu"
@@ -96,6 +97,7 @@ let
     "bar/secondary" = {
       "inherit" = "bar/default";
       "modules-right" = lib.concatStringsSep " " [
+        "hotprocess"
         "cpuload"
         "cpufreq"
         "freqmenu"
@@ -245,6 +247,21 @@ let
         (lib.escapeShellArg (lib.getExe pkgs.overskride))
         "--timew"
         (lib.escapeShellArg timew)
+      ];
+      "tail" = true;
+      "label" = "%output%";
+    };
+
+    "module/hotprocess" = {
+      "type" = "custom/script";
+      # Keep the hot process separate so Polybar can place it immediately left
+      # of the CPU load panel without moving the rest of the status line.
+      "exec" = lib.concatStringsSep " " [
+        (lib.getExe polybarStatus)
+        "hot-process"
+        "--tail"
+        "--peak"
+        (lib.escapeShellArg polybarColors.peak)
       ];
       "tail" = true;
       "label" = "%output%";

@@ -29,7 +29,6 @@ pub struct Samplers {
     tick: u64,
     state: StatusState,
     cpu: CpuSampler,
-    processes: ProcessSampler,
     disk: DiskSampler,
     ethernet: NetworkSampler,
     wifi: NetworkSampler,
@@ -40,7 +39,6 @@ impl Samplers {
         self.tick = self.tick.saturating_add(1);
         let first_sample = self.tick == 1;
 
-        self.state.hot_process = self.processes.sample(interval);
         self.state.cpu_cores = self.cpu.sample();
 
         let (read_bytes, write_bytes) = self.disk.sample(interval);
@@ -117,12 +115,12 @@ impl CpuTimes {
 }
 
 #[derive(Debug, Default)]
-struct ProcessSampler {
+pub struct ProcessSampler {
     previous: HashMap<u32, u64>,
 }
 
 impl ProcessSampler {
-    fn sample(&mut self, interval: Duration) -> Option<String> {
+    pub fn sample(&mut self, interval: Duration) -> Option<String> {
         let processes = read_process_ticks();
         let mut seen = HashSet::with_capacity(processes.len());
         let mut best_command = String::new();

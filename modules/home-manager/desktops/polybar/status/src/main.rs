@@ -10,8 +10,10 @@ use std::{
 };
 
 use clap::{Parser, Subcommand};
-use collectors::{active_window_title, read_cpu_freq, watch_bluetooth, CpuSampler, Samplers};
-use render::{render_cpu_load, render_right, render_title};
+use collectors::{
+    active_window_title, read_cpu_freq, watch_bluetooth, CpuSampler, ProcessSampler, Samplers,
+};
+use render::{render_cpu_load, render_hot_process, render_right, render_title};
 use state::RenderConfig;
 use tokio::{sync::mpsc, time};
 
@@ -25,6 +27,7 @@ struct Cli {
 #[derive(Debug, Subcommand)]
 enum Command {
     Right(RightArgs),
+    HotProcess(HotProcessArgs),
     CpuLoad(CpuLoadArgs),
     CpuFreq(CpuFreqArgs),
     Title(TitleArgs),
@@ -66,6 +69,18 @@ struct CpuLoadArgs {
 
     #[arg(long)]
     foreground_alt: String,
+
+    #[arg(long)]
+    peak: String,
+}
+
+#[derive(Debug, Parser)]
+struct HotProcessArgs {
+    #[arg(long)]
+    tail: bool,
+
+    #[arg(long)]
+    once: bool,
 
     #[arg(long)]
     peak: String,
@@ -119,12 +134,41 @@ async fn main() -> anyhow_free::Result<()> {
 
     match cli.command {
         Command::Right(args) => run_right(args).await,
+        Command::HotProcess(args) => run_hot_process(args).await,
         Command::CpuLoad(args) => run_cpu_load(args).await,
         Command::CpuFreq(args) => run_cpu_freq(args).await,
         Command::Title(args) => run_title(args).await,
         Command::Battery(args) => run_battery(args).await,
         Command::ToggleHeartRate => toggle_heart_rate(),
     }
+}
+
+async fn run_hot_process(args: HotProcessArgs) -> anyhow_free::Result<()> {
+    let interval = Duration::from_secs(5);
+    let warmup = Duration::from_millis(500);
+    let mut sampler = ProcessSampler::default();
+    let mut previous = String::new();
+    let mut sample_interval = warmup;
+
+    let _ = sampler.sample(warmup);
+    time::sleep(warmup).await;
+
+    loop {
+        let rendered = render_hot_process(sampler.sample(sample_interval).as_deref(), &args.peak);
+        if rendered != previous {
+            println!("{rendered}");
+            io::stdout().flush()?;
+            previous = rendered;
+        }
+
+        if args.once || !args.tail {
+            break;
+        }
+        time::sleep(interval).await;
+        sample_interval = interval;
+    }
+
+    Ok(())
 }
 
 async fn run_cpu_load(args: CpuLoadArgs) -> anyhow_free::Result<()> {

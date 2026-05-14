@@ -17,15 +17,6 @@ const RAMPS: [&str; 8] = ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"
 pub fn render_right(state: &StatusState, config: &RenderConfig) -> String {
     let mut parts = Vec::new();
 
-    if let Some(process) = &state.hot_process {
-        if !process.is_empty() {
-            parts.push(format!(
-                "%{{F{}}}%{{T{}}}{}%{{T-}}%{{F-}}",
-                config.peak, FONT_BOLD, process
-            ));
-        }
-    }
-
     if let Some(temp) = state.temperature_c {
         if temp >= 90 {
             parts.push(format!(
@@ -83,6 +74,13 @@ pub fn render_right(state: &StatusState, config: &RenderConfig) -> String {
     }
 
     parts.join("  ")
+}
+
+pub fn render_hot_process(process: Option<&str>, peak: &str) -> String {
+    process
+        .filter(|process| !process.is_empty())
+        .map(|process| format!("%{{F{peak}}}%{{T{FONT_BOLD}}}{process}%{{T-}}%{{F-}}"))
+        .unwrap_or_default()
 }
 
 pub fn render_title(title: &str, close_command: &str) -> String {
@@ -144,9 +142,7 @@ pub fn render_cpu_load(cores: &[u8], foreground_alt: &str, peak: &str) -> String
 }
 
 fn render_memory(memory: u8, swap: u8, config: &RenderConfig) -> String {
-    let memory_ramp = if memory >= 88 {
-        format!("%{{F{}}}{}%{{F-}}", config.warn, ramp(memory))
-    } else if memory == 0 {
+    let memory_ramp = if memory == 0 {
         format!("%{{F{}}}{}%{{F-}}", config.foreground_alt, ramp(memory))
     } else {
         ramp(memory).to_owned()
@@ -327,6 +323,22 @@ mod tests {
             render_cpu_load(&[0, 1, 100], "#555555", "#00ff00"),
             "%{F#555555}▁%{F-}▁%{F#00ff00}█%{F-}"
         );
+    }
+
+    #[test]
+    fn keeps_ram_neutral_and_swap_warned() {
+        assert_eq!(render_memory(100, 0, &config()), "█");
+        assert_eq!(render_memory(100, 100, &config()), "█%{F#ff0000}█%{F-}");
+    }
+
+    #[test]
+    fn renders_hot_process_separately() {
+        assert_eq!(
+            render_hot_process(Some("rustc"), "#00ff00"),
+            "%{F#00ff00}%{T2}rustc%{T-}%{F-}"
+        );
+        assert_eq!(render_hot_process(None, "#00ff00"), "");
+        assert_eq!(render_hot_process(Some(""), "#00ff00"), "");
     }
 
     #[test]
