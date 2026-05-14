@@ -1,11 +1,15 @@
 {
   config,
   flake-inputs,
+  lib,
   pkgs,
   ...
-}: let
-  firefoxAddons = flake-inputs.firefox-addons.packages.${pkgs.system};
-  extensionXpi = addon: "${addon}/share/mozilla/extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}/${addon.addonId}.xpi";
+}:
+let
+  firefoxAddons = flake-inputs.firefox-addons.packages.${pkgs.stdenv.hostPlatform.system};
+  extensionXpi =
+    addon:
+    "${addon}/share/mozilla/extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}/${addon.addonId}.xpi";
   managedExtensions = with firefoxAddons; [
     consent-o-matic
     ctrl-number-to-switch-tabs
@@ -19,10 +23,29 @@
     ublock-origin
     vimium
   ];
-in {
+  profilePath = "${config.home.homeDirectory}/.mozilla/firefox/pcakttgr.default-default";
+  ensureKeyword = keyword: url: ''
+    DELETE FROM moz_keywords
+      WHERE keyword = '${keyword}'
+         OR place_id IN (SELECT id FROM moz_places WHERE url = '${url}');
+    INSERT INTO moz_keywords (keyword, place_id, post_data)
+      SELECT '${keyword}', id, NULL FROM moz_places WHERE url = '${url}' LIMIT 1;
+  '';
+  bookmarkKeywordSql = pkgs.writeText "firefox-bookmark-keywords.sql" ''
+    PRAGMA foreign_keys = ON;
+    BEGIN IMMEDIATE;
+    ${ensureKeyword "blend" "https://fdietze.github.io/blend/"}
+    ${ensureKeyword "cal" "https://calendar.google.com/calendar/u/0/r"}
+    ${ensureKeyword "dkb" "https://www.dkb.de/banking"}
+    ${ensureKeyword "gm" "https://mail.google.com/mail/u/0/#inbox"}
+    ${ensureKeyword "todo" "https://to-do.live.com/tasks/AQMkADAwATNiZmYAZC04NGQ3LTIwZjgtMDACLTAwCgAuAAAD3baDRxAbx0_y4oq963F-OgEAsXRJSnW4pka7P111dILhqAAGgNCMBQAAAA=="}
+    COMMIT;
+  '';
+in
+{
   stylix.targets.firefox = {
     enable = true;
-    profileNames = ["default-default"];
+    profileNames = [ "default-default" ];
   };
 
   programs.firefox = {
@@ -75,6 +98,7 @@ in {
           order = [
             "ddg"
             "google"
+            "Google Maps"
             "Home Manager Options"
             "Nix Packages"
             "NixOS Options"
@@ -99,7 +123,7 @@ in {
                   ];
                 }
               ];
-              definedAliases = ["ddg"];
+              definedAliases = [ "ddg" ];
             };
             "google" = {
               urls = [
@@ -113,7 +137,15 @@ in {
                   ];
                 }
               ];
-              definedAliases = ["g"];
+              definedAliases = [ "g" ];
+            };
+            "Google Maps" = {
+              urls = [
+                {
+                  template = "https://www.google.com/maps/search/{searchTerms}";
+                }
+              ];
+              definedAliases = [ "m" ];
             };
             "Home Manager Options" = {
               urls = [
@@ -127,7 +159,7 @@ in {
                   ];
                 }
               ];
-              definedAliases = ["vh"];
+              definedAliases = [ "vh" ];
             };
             "Nix Packages" = {
               urls = [
@@ -145,7 +177,7 @@ in {
                   ];
                 }
               ];
-              definedAliases = ["np"];
+              definedAliases = [ "np" ];
             };
             "NixOS Options" = {
               urls = [
@@ -163,7 +195,7 @@ in {
                   ];
                 }
               ];
-              definedAliases = ["no"];
+              definedAliases = [ "no" ];
             };
             "youtube" = {
               urls = [
@@ -177,7 +209,7 @@ in {
                   ];
                 }
               ];
-              definedAliases = ["y"];
+              definedAliases = [ "y" ];
             };
             "Wikipedia" = {
               urls = [
@@ -191,7 +223,7 @@ in {
                   ];
                 }
               ];
-              definedAliases = ["w"];
+              definedAliases = [ "w" ];
             };
             "GitHub" = {
               urls = [
@@ -205,7 +237,7 @@ in {
                   ];
                 }
               ];
-              definedAliases = ["gh"];
+              definedAliases = [ "gh" ];
             };
             "GitHub Code" = {
               urls = [
@@ -223,11 +255,24 @@ in {
                   ];
                 }
               ];
-              definedAliases = ["ghc"];
+              definedAliases = [ "ghc" ];
             };
           };
         };
       };
     };
   };
+
+  home.activation.firefoxBookmarkKeywords = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    profile=${lib.escapeShellArg profilePath}
+    places="$profile/places.sqlite"
+
+    if [[ -e "$profile/lock" || -e "$profile/.parentlock" ]]; then
+      echo "Skipping Firefox bookmark keyword migration because Firefox appears to be running."
+    elif [[ ! -w "$places" ]]; then
+      echo "Skipping Firefox bookmark keyword migration because $places is not writable."
+    else
+      ${pkgs.sqlite}/bin/sqlite3 "$places" < ${bookmarkKeywordSql}
+    fi
+  '';
 }
