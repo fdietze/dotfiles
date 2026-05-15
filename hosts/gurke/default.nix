@@ -119,9 +119,6 @@ in
     # kernelPackages = pkgs.linuxPackages_zen;
     kernelParams = [
       "kvm.enable_virt_at_load=0" # fix virtualbox
-      # Keep USB runtime suspend enabled so idle devices do not pin the CPU
-      # package out of deep sleep states; the value is the kernel default delay.
-      "usbcore.autosuspend=2"
       # "zswap.enabled=1" # enables zswap
       # "zswap.compressor=zstd" # compression algorithm
       # "zswap.max_pool_percent=5" # maximum percentage of RAM that zswap is allowed to use
@@ -208,21 +205,15 @@ in
     # wireless.enable = true;  # Enables wireless support via wpa_supplicant.
     networkmanager = {
       enable = true;
-      wifi.powersave = true; # NetworkManager.conf wifi.powersave; lets iwlwifi enter lower-power states on battery.
       dispatcherScripts = [
         {
           type = "basic";
-          source = pkgs.writeText "wifi-powersave" ''
-            if [ "''${DEVICE_IFACE:-}" = "wlp2s0" ]; then
-              case "$2" in
-                up | connectivity-change | dhcp4-change)
-                  # NetworkManager writes wifi.powersave=3, but this adapter can
-                  # still come up with runtime power_save off. Enforce the driver
-                  # state on connection events so the setting survives reconnects.
-                  ${pkgs.iw}/bin/iw dev "$DEVICE_IFACE" set power_save on || true
-                  ;;
-              esac
-            fi
+          source = pkgs.writeText "network-timezone-update" ''
+            case "$2" in
+              up | connectivity-change)
+                ${pkgs.systemd}/bin/systemctl --no-block start update-timezone-on-network.service || true
+                ;;
+            esac
           '';
         }
       ];
@@ -230,6 +221,9 @@ in
         networkmanager-openvpn
       ];
     };
+    # NetworkManager enables ModemManager by default. Disable it on this host
+    # because the internal WWAN device is unused and the probes show up in logs.
+    modemmanager.enable = false;
     networkmanager.dns = "systemd-resolved";
 
     # cloudflare dns servers: https://developers.cloudflare.com/1.1.1.1/ip-addresses/
@@ -251,9 +245,8 @@ in
       9000 # firebase auth
     ]; # devserver
     # firewall.allowedUDPPorts = [ 8123 ]; # Stream Audio from VirtualBox
-    firewall.allowedUDPPorts = [
-      5353 # mDNS (Multicast DNS) for printer discovery
-      427 # SLP (Service Location Protocol)
+    firewall.allowedUDPPorts = lib.mkIf config.services.printing.enable [
+      427 # SLP (Service Location Protocol) for printer discovery
     ];
 
     extraHosts = ''
@@ -269,16 +262,13 @@ in
     # dnsovertls = "opportunistic";
   };
 
-  services.tailscale.enable = true;
-
   # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
   # time.timeZone = "Europe/Berlin";
   # time.timeZone = "Europe/Sofia";
   # time.timeZone = "Europe/Lisbon";
   # time.timeZone = "Indian/Mauritius";
-  services.automatic-timezoned.enable = true; # relies on geoclue to work: https://github.com/NixOS/nixpkgs/issues/321121
-
   location.provider = "geoclue2";
+  services.automatic-timezoned.enable = true; # relies on geoclue to work: https://github.com/NixOS/nixpkgs/issues/321121
   services.geoclue2 = {
     enable = true;
     # geoProviderUrl =
@@ -289,8 +279,31 @@ in
     # staticAltitude = 900.0;
     # staticAccuracy = 1000.0;
   };
+  users.users.geoclue.extraGroups = [ "networkmanager" ];
 
-  users.users.geoclue.extraGroups = [ "networkmanager" ]; # ?
+  systemd.services = {
+    # Keep automatic-timezoned available, but run it only after NetworkManager
+    # reports a network change. Geoclue is then stopped again after one update
+    # window so location polling does not remain a background cost.
+    automatic-timezoned.wantedBy = lib.mkForce [ ];
+    automatic-timezoned-geoclue-agent.wantedBy = lib.mkForce [ ];
+    # Keep the package and unit installed for manual use, but do not start the
+    # daemon at boot. `systemctl start tailscaled` brings it online when needed.
+    tailscaled.wantedBy = lib.mkForce [ ];
+    update-timezone-on-network = {
+      description = "Update timezone after network changes";
+      after = [ "NetworkManager.service" ];
+      serviceConfig.Type = "oneshot";
+      script = ''
+        ${pkgs.systemd}/bin/systemctl start automatic-timezoned.service
+        ${pkgs.coreutils}/bin/sleep 90
+        ${pkgs.systemd}/bin/systemctl stop \
+          automatic-timezoned.service \
+          automatic-timezoned-geoclue-agent.service \
+          geoclue.service || true
+      '';
+    };
+  };
 
   services.upower = {
     enable = true;
@@ -386,21 +399,25 @@ in
   };
 
   environment = {
-    systemPackages = with pkgs; [
-      # only the bare minimum here
-      git
-      neovim
-      hplipWithPlugin # HP printer utilities (hp-setup, hp-toolbox, etc.)
+    systemPackages =
+      with pkgs;
+      [
+        # only the bare minimum here
+        git
+        neovim
 
-      # xdg-utils # Provides xdg-screensaver and other desktop integration tools
-      # Remove lockers managed by home-manager or unused
-      # i3lock       # Dependency for betterlockscreen
-      # betterlockscreen # The new locker
+        # xdg-utils # Provides xdg-screensaver and other desktop integration tools
+        # Remove lockers managed by home-manager or unused
+        # i3lock       # Dependency for betterlockscreen
+        # betterlockscreen # The new locker
 
-      # workaround for rust-analyzer with openblas not finding CC
-      # gcc
-      # gfortran
-    ];
+        # workaround for rust-analyzer with openblas not finding CC
+        # gcc
+        # gfortran
+      ]
+      ++ lib.optionals config.services.printing.enable [
+        hplipWithPlugin # HP printer utilities (hp-setup, hp-toolbox, etc.)
+      ];
   };
 
   services.ollama.enable = false; # local ai models
@@ -592,16 +609,18 @@ in
       settings.PasswordAuthentication = false;
       settings.X11Forwarding = true;
     };
+    tailscale.enable = true;
 
     fstrim.enable = true; # periodic SSD TRIM of mounted partitions in background
 
     avahi = {
-      # network discovery
-      enable = true;
+      # Network discovery. Keep disabled by default; enable when mDNS service
+      # discovery or printer discovery is actually needed.
+      enable = false;
       nssmdns4 = true;
       publish.enable = true;
       publish.addresses = true;
-      openFirewall = true; # needed for printer discovery
+      openFirewall = true;
     };
 
     gvfs.enable = true; # virtual file system support for graphical file managers
@@ -624,7 +643,7 @@ in
     # };
 
     printing = {
-      enable = true;
+      enable = false;
       drivers = [ pkgs.hplip ];
     };
 

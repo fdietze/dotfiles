@@ -1,6 +1,45 @@
-{ lib, ... }:
+{ lib, pkgs, ... }:
 
 {
+  boot = {
+    kernelParams = [
+      # Keep USB runtime suspend enabled so idle devices do not pin the CPU
+      # package out of deep sleep states; the value is the kernel default delay.
+      "usbcore.autosuspend=2"
+
+      # i915 documents PSR/FBC as panel self-refresh and framebuffer
+      # compression toggles; both reduce display memory traffic on static UI.
+      "i915.enable_psr=1"
+      "i915.enable_fbc=1"
+    ];
+
+    # iwlwifi exposes power_save as a module parameter; setting it here makes
+    # the driver default match NetworkManager's per-connection powersave policy.
+    extraModprobeConfig = ''
+      options iwlwifi power_save=1
+    '';
+  };
+
+  networking.networkmanager = {
+    wifi.powersave = true; # NetworkManager.conf wifi.powersave writes mode 3.
+    dispatcherScripts = [
+      {
+        type = "basic";
+        source = pkgs.writeText "wifi-powersave" ''
+          if [ "''${DEVICE_IFACE:-}" = "wlp2s0" ]; then
+            case "$2" in
+              up | connectivity-change | dhcp4-change)
+                # NetworkManager can still leave the driver with power_save
+                # off after reconnects; enforce the actual iwlwifi state too.
+                ${pkgs.iw}/bin/iw dev "$DEVICE_IFACE" set power_save on || true
+                ;;
+            esac
+          fi
+        '';
+      }
+    ];
+  };
+
   powerManagement = {
     enable = true;
     # powertop --auto-tune is a broad one-shot writer for kernel power knobs.
