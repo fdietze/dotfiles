@@ -202,6 +202,7 @@ in
       nvf.enable = false;
       qt.enable = true;
       alacritty.enable = true;
+      gtk.enable = true;
     };
   };
 
@@ -495,10 +496,11 @@ in
       package = pkgs.adwaita-icon-theme;
     };
     theme = {
-      # Keep GTK3 on a real theme package so xsettingsd's Net/ThemeName points
-      # at an installed theme instead of falling back unpredictably.
-      name = if theme == "light" then "adw-gtk3" else "adw-gtk3-dark";
-      package = pkgs.adw-gtk3;
+      # Force the polarity-matched adw-gtk3 variant; Stylix's gtk target sets
+      # `adw-gtk3` (the light/base variant) and would otherwise win/conflict.
+      # Stylix's base16 recolor is applied via gtk.css on top of this base.
+      name = lib.mkForce (if theme == "light" then "adw-gtk3" else "adw-gtk3-dark");
+      package = lib.mkForce pkgs.adw-gtk3;
     };
   };
 

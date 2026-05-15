@@ -75,6 +75,8 @@ in
           "browser.search.suggest.enabled" = false;
           "browser.startup.homepage" = "chrome://browser/content/blanktab.html";
           "browser.tabs.inTitlebar" = 0;
+          "browser.theme.toolbar-theme" = 2;
+          "browser.theme.content-theme" = 2;
           "browser.urlbar.showSearchSuggestionsFirst" = false;
           "font.default.x-western" = "sans-serif";
           "layout.css.devPixelsPerPx" = "1.6";
