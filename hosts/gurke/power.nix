@@ -6,11 +6,6 @@
       # Keep USB runtime suspend enabled so idle devices do not pin the CPU
       # package out of deep sleep states; the value is the kernel default delay.
       "usbcore.autosuspend=2"
-
-      # i915 documents PSR/FBC as panel self-refresh and framebuffer
-      # compression toggles; both reduce display memory traffic on static UI.
-      "i915.enable_psr=1"
-      "i915.enable_fbc=1"
     ];
 
     # iwlwifi exposes power_save as a module parameter; setting it here makes
