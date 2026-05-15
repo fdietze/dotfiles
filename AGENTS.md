@@ -33,6 +33,8 @@ block.
 - If any command is missing to to the job or investigate, you can access any command via an ad-hoc nix-shell
 - always add comments to document why things are the way they are. The comments should only refer to the current code, not to past code.
 - don't hardcode paths. whenever possible, use xdg dirs.
+- build incrementally during refactors, to catch errors early
+- if a task is not straightforward, think about which refactor would make the task easy. Then do this refactoring first and commit it before attempting the task.
 
 configuration entrypoints:
 - flake.nix # top-level NixOS flake
