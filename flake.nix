@@ -35,6 +35,11 @@
     };
 
     breezy-desktop.url = "github:johnrizzo1/breezy-desktop-nixos";
+
+    noctalia = {
+      url = "github:noctalia-dev/noctalia-shell";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = {
@@ -46,6 +51,7 @@
     home-manager,
     nix-index-database,
     breezy-desktop,
+    noctalia,
     ...
   } @ inputs: let
     uiFonts = import ./fonts.nix {
@@ -76,6 +82,7 @@
             home-manager.useUserPackages = true;
             home-manager.sharedModules = [
               nix-index-database.homeModules.nix-index
+              noctalia.homeModules.default
             ];
             home-manager.users.felix = ./hosts/gurke/home.nix;
           }

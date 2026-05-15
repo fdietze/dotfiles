@@ -1,10 +1,10 @@
 {
   lib,
-  lightBase16Scheme,
 }:
 let
   desktopRegistry = import ../desktop-registry.nix;
   inherit (desktopRegistry) themes themedDesktops unthemedDesktops;
+  base16 = import ../themes/base16.nix;
 
   hasThemeVariants = desktop: builtins.elem desktop themedDesktops;
 
@@ -48,7 +48,7 @@ let
       extraConfig = lib.optionalAttrs (theme == "light") {
         stylix = {
           polarity = lib.mkForce "light";
-          base16Scheme = lightBase16Scheme;
+          base16Scheme = base16.light;
         };
       };
     };

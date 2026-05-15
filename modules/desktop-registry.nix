@@ -8,6 +8,7 @@ let
     "herbstluftwm"
   ];
   unthemedDesktops = [
+    "noctalia-niri"
   ];
 in
 {

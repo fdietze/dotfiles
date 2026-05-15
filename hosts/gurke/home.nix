@@ -6,5 +6,6 @@
     ../../modules/home-manager/firefox.nix
     ../../modules/home-manager/desktops/gnome.nix
     ../../modules/home-manager/desktops/herbstluftwm.nix
+    ../../modules/home-manager/desktops/noctalia-niri.nix
   ];
 }

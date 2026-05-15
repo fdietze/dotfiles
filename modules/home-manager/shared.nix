@@ -18,6 +18,7 @@ in
     ./yazi.nix
     ./xdg.nix
     ./packages.nix
+    ./stylix.nix
     ./theme-switching.nix
     ./wallpaper.nix
     # ./home/dictate.nix
@@ -186,24 +187,6 @@ in
     interactiveShellInit = ''
       set fish_greeting # Disable greeting
     '';
-  };
-
-  stylix = {
-    autoEnable = false;
-    # cursor = {
-    #   name = "Vanilla-DMZ";
-    #   package = pkgs.vanilla-dmz;
-    #   size = 128;
-    # };
-
-    targets = {
-      rofi.enable = false;
-      neovim.enable = false;
-      nvf.enable = false;
-      qt.enable = true;
-      alacritty.enable = true;
-      gtk.enable = true;
-    };
   };
 
   # programs.atuin = {
