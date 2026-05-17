@@ -1,6 +1,8 @@
-{ lib, pkgs, ... }:
-
 {
+  lib,
+  pkgs,
+  ...
+}: {
   boot = {
     kernelParams = [
       # Keep USB runtime suspend enabled so idle devices do not pin the CPU
@@ -60,7 +62,7 @@
         CPU_SCALING_GOVERNOR_ON_AC = "powersave";
         CPU_SCALING_GOVERNOR_ON_BAT = "powersave";
         CPU_ENERGY_PERF_POLICY_ON_AC = "balance_performance";
-        CPU_ENERGY_PERF_POLICY_ON_BAT = "power";
+        CPU_ENERGY_PERF_POLICY_ON_BAT = "balance_performance";
 
         # TLP does not reset omitted P-state limits when switching profiles;
         # keep AC explicitly uncapped and battery capped.
@@ -85,7 +87,7 @@
 
         # TLP's USB_DENYLIST keeps matching devices out of USB autosuspend;
         # tlp.conf(5) documents the supported vendor:product syntax.
-        USB_DENYLIST = [ "046d:c52b" ];
+        USB_DENYLIST = ["046d:c52b"];
       };
     };
   };
