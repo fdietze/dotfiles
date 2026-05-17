@@ -169,7 +169,7 @@ lib.mkIf (desktop == "noctalia-niri") {
       Mod+Shift+U { move-column-to-monitor-left; }
 
       // ===== System =====
-      Mod+Shift+Y      { load-config-file; }
+      Mod+Shift+Y      { spawn "niri" "msg" "action" "load-config-file"; }
       Mod+Shift+X      { quit; }
       Mod+Ctrl+Shift+Q { spawn "systemctl" "poweroff"; }
       Mod+Ctrl+Shift+X { spawn "systemctl" "poweroff"; }
