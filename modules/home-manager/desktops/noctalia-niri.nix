@@ -1,17 +1,20 @@
 {
+  config,
   desktop,
   lib,
   pkgs,
   ...
 }:
+let
+  repoDir = "${config.home.homeDirectory}/projects/dotfiles";
+in
 lib.mkIf (desktop == "noctalia-niri") {
   # https://docs.noctalia.dev/v4/getting-started/nixos/
-  programs.noctalia-shell = {
-    enable = true;
-    # Starter; expand once concrete preferences settle. Defaults already cover
-    # bar, dock, launcher, lockscreen and wallpaper management.
-    settings = { };
-  };
+  # Intentionally no `settings` here — the noctalia HM module would render a
+  # read-only symlink at ~/.config/noctalia/settings.json, but the GUI must be
+  # able to write to it. Settings are tracked via the mkOutOfStoreSymlink
+  # below instead.
+  programs.noctalia-shell.enable = true;
 
   # Noctalia does not theme GTK/Qt apps itself and points users at nwg-look /
   # qt6ct (https://docs.noctalia.dev/v4/getting-started/faq/). Stylix is gated
@@ -24,6 +27,22 @@ lib.mkIf (desktop == "noctalia-niri") {
   home.sessionVariables = {
     QT_QPA_PLATFORMTHEME = "qt6ct";
   };
+
+  # noctalia writes its full state (settings.json, colors.json, plugins, color
+  # schemes) on every GUI change. mkOutOfStoreSymlink makes ~/.config/noctalia
+  # a plain symlink to the repo so noctalia can keep writing while git tracks
+  # the result. The repo path must exist before activation — bootstrap done in
+  # home/noctalia/.
+  xdg.configFile."noctalia".source =
+    config.lib.file.mkOutOfStoreSymlink "${repoDir}/home/noctalia";
+
+  # noctalia generates this file to push its active color scheme into niri's
+  # focus-ring/border/shadow/tab-indicator colors. niri 26.04 does not load
+  # extra .kdl files automatically; tracking it here keeps the palette in git
+  # and lets a future niri release (or a manual include) pick it up without
+  # losing data.
+  xdg.configFile."niri/noctalia.kdl".source =
+    config.lib.file.mkOutOfStoreSymlink "${repoDir}/home/niri/noctalia.kdl";
 
   # Raw KDL matches the repo's existing convention of writing tool configs
   # directly (cf. polybar's config.ini in herbstluftwm.nix).
