@@ -28,6 +28,16 @@ lib.mkIf (desktop == "noctalia-niri") {
     QT_QPA_PLATFORMTHEME = "qt6ct";
   };
 
+  # Pull alacritty's color palette from noctalia's live color scheme. Noctalia
+  # renders home/noctalia/templates/alacritty.toml into this output path
+  # whenever the active scheme changes (see home/noctalia/user-templates.toml).
+  # The output lives under ~/.config/noctalia which is a mkOutOfStoreSymlink
+  # into the repo, so the rendered file is tracked in git and exists on first
+  # boot — without that, alacritty would fail to start on a missing import.
+  programs.alacritty.settings.general.import = [
+    "${config.home.homeDirectory}/.config/noctalia/generated/alacritty-colors.toml"
+  ];
+
   # noctalia writes its full state (settings.json, colors.json, plugins, color
   # schemes) on every GUI change. mkOutOfStoreSymlink makes ~/.config/noctalia
   # a plain symlink to the repo so noctalia can keep writing while git tracks
