@@ -339,21 +339,6 @@ in
   '';
   services.mpris-proxy.enable = true; # bluetooth buttons
 
-  services.flameshot = {
-    enable = true;
-    settings = {
-      General = {
-        contrastOpacity = 51;
-        disabledTrayIcon = false;
-        drawColor = "#9ECE6A";
-        filenamePattern = "%F_%H-%M-%S";
-        savePath = config.xdg.userDirs.extraConfig.XDG_SCREENSHOTS_DIR;
-        savePathFixed = true;
-        showStartupLaunchMessage = false;
-      };
-    };
-  };
-
   programs.keepassxc = {
     autostart = true;
     enable = true;

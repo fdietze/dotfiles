@@ -61,7 +61,6 @@
     yt-dlp # download youtube videos
     flyctl # fly.io command line tool
 
-    networkmanagerapplet
     xcwd # returns current directory of x application, used to spawn new termanals in the current directory: ~/bin/xcwd-home
     arandr # manage monitors
     bubblewrap # sandboxing tool

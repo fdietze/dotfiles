@@ -344,6 +344,20 @@ lib.mkIf (desktop == "herbstluftwm") {
     };
   };
   services.network-manager-applet.enable = true;
+  services.flameshot = {
+    enable = true;
+    settings = {
+      General = {
+        contrastOpacity = 51;
+        disabledTrayIcon = false;
+        drawColor = "#9ECE6A";
+        filenamePattern = "%F_%H-%M-%S";
+        savePath = config.xdg.userDirs.extraConfig.XDG_SCREENSHOTS_DIR;
+        savePathFixed = true;
+        showStartupLaunchMessage = false;
+      };
+    };
+  };
   services.redshift = {
     # Redshift adjusts the color temperature of your screen. This may help your eyes hurt less if you are working in front of the screen at night.
     enable = true;
