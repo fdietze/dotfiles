@@ -5,7 +5,7 @@
 - the nixos and home manager configurations should be the source of truth
 - when switching the current system, make sure to stay on the same specialization. You can simply use the already existing nrs script.
 - automatically read analyze relevant log files and/or run commands like journalctl to get them
-- automatically read relevant man pages
+- automatically read relevant man pages and documentation websites before deciding or implementing anything
 - you can assume all binaries in the nix store exist when referencing like this: "${pkgs.mypackage}/bin/mycommand"
 - never search or grep the full nix store
 - you can read specific files and dirs, like ~/bin or ~/.config IN $HOME, but not list files in home
@@ -26,7 +26,7 @@
 - If it is only used by one option block, move it into a local let right above that
 block.
 - Prefer the narrowest scope that still keeps the code readable.
-- for refactorings, use nvd to verify that the generated nix code is exactly the same before and after and only shows the desired changes.
+- for refactorings, use nvd to verify that the generated nix code is exactly the same before and after and only shows the desired changes. When comparing specializations, anchor on `/nix/var/nix/profiles/system/specialisation/<name>` — not `/run/current-system/specialisation/<name>`, which only resolves when the parent toplevel is booted (check `cat /run/nixos/current-specialisation` to see which spec is active).
 - to know how other people configure something, search their dotfiles on github. Use corresponding file path and language where appropriate.
 - if you found a good reference or documentation for the task at hand, add a comment in the code referring to that documentation for future quick retreival
 - If code should be moved to another file, always do it with shell commands to preserve the content verbatim and avoid copy paste errors
