@@ -142,9 +142,8 @@ in
         // Mirrors hlwm's split/remove/explode bindings. Niri's column
         // model: windows live in columns side-by-side; multiple windows
         // can stack vertically inside one column.
-        Mod+R     { consume-window-into-column; }   // pull next column's window into current → vertical stack (hlwm: split bottom)
-        Mod+M     { expel-window-from-column; }     // pop focused window out of its stack → own column (hlwm: split explode)
-        Mod+comma { consume-window-into-column; }   // alias — same "merge" intent as hlwm `remove`
+        Mod+R     { consume-window-into-column; }   // pull next column's window into current
+        Mod+comma { expel-window-from-column; }     // pop focused window out of its stack
 
         // ===== Focus (Arrow keys + neo i/a/l/e) =====
         Mod+Left  { focus-column-left; }
