@@ -4,7 +4,11 @@
   nvf,
   theme,
   ...
-}: {
+}: let
+  nvimSchemes = import ../themes/nvim-schemes.nix;
+  mkNvrArgs = cmds: lib.concatMapStringsSep " " (c: "-c ${lib.escapeShellArg c}") cmds;
+  mkLuaList = cmds: "{ " + lib.concatMapStringsSep ", " (c: "[[${c}]]") cmds + " }";
+in {
   imports = [
     nvf.homeManagerModules.default
   ];
@@ -29,14 +33,8 @@
 
         theme = {
           enable = true;
-          name =
-            if theme == "light"
-            then "catppuccin"
-            else "tokyonight";
-          style =
-            if theme == "light"
-            then "latte"
-            else "moon";
+          name = nvimSchemes.${theme}.plugin;
+          style = nvimSchemes.${theme}.style;
         };
         # Keep both theme plugins present so already-running Neovim instances can
         # switch live when the active specialization changes.
@@ -500,6 +498,37 @@
           }
         ];
 
+        # When noctalia is the active compositor, nvim's build-time theme is
+        # baked in (dark for the noctalia spec) but the user can flip schemes
+        # at runtime. Re-apply the correct scheme at startup by reading the
+        # same trigger file the retint script uses. No-op on themed desktops
+        # (gnome/herbstluftwm) where the trigger file doesn't exist.
+        luaConfigRC.noctaliaTheme = lib.mkAfter ''
+          do
+            local trigger = vim.fn.expand("~/.config/noctalia/generated/nvim-trigger.txt")
+            local fh = io.open(trigger, "r")
+            if fh then
+              local content = fh:read("*a")
+              fh:close()
+              local hex = content:match("#(%x%x%x%x%x%x)")
+              if hex then
+                local r = tonumber(hex:sub(1,2), 16)
+                local g = tonumber(hex:sub(3,4), 16)
+                local b = tonumber(hex:sub(5,6), 16)
+                local luma = 299*r + 587*g + 114*b
+                local schemes = {
+                  dark  = ${mkLuaList nvimSchemes.dark.applyCommands},
+                  light = ${mkLuaList nvimSchemes.light.applyCommands},
+                }
+                local cmds = luma < 128000 and schemes.dark or schemes.light
+                for _, c in ipairs(cmds) do
+                  pcall(vim.cmd, c)
+                end
+              end
+            end
+          end
+        '';
+
         luaConfigRC.keymaps = lib.mkBefore ''
           -- Smart Home
           vim.keymap.set("n", "<Home>", function()
@@ -561,26 +590,12 @@
       #!${pkgs.bash}/bin/bash
       set -euo pipefail
 
-      THEME=${lib.escapeShellArg theme}
-
       while read -r nvim_instance; do
         if [[ -z "$nvim_instance" ]]; then
           continue
         fi
-
-        case "$THEME" in
-          light)
-            ${pkgs.neovim-remote}/bin/nvr --servername "$nvim_instance" \
-              -c "set background=light" \
-              -c "lua require('catppuccin').setup({ flavour = 'latte' })" \
-              -c "colorscheme catppuccin"
-            ;;
-          dark)
-            ${pkgs.neovim-remote}/bin/nvr --servername "$nvim_instance" \
-              -c "set background=dark" \
-              -c "colorscheme tokyonight-moon"
-            ;;
-        esac
+        ${pkgs.neovim-remote}/bin/nvr --servername "$nvim_instance" \
+          ${mkNvrArgs nvimSchemes.${theme}.applyCommands}
       done < <(${pkgs.neovim-remote}/bin/nvr --serverlist)
     '';
   in {
@@ -594,5 +609,43 @@
       ExecStart = "${applyNvimTheme}";
     };
     Install.WantedBy = [currentThemeTarget];
+  };
+
+  # Runtime retint for compositors that switch schemes without re-activating
+  # home-manager (e.g. noctalia). Reads colorSchemes.darkMode from noctalia's
+  # settings.json and dispatches the same nvr commands as applyNvimTheme.
+  # Installed at a stable HM-owned path so post-hooks in
+  # home/noctalia/user-templates.toml can reference it without breaking on
+  # every rebuild.
+  home.file."bin/noctalia-retint-nvim" = {
+    executable = true;
+    source = pkgs.writeShellScript "noctalia-retint-nvim" ''
+      #!${pkgs.bash}/bin/bash
+      set -euo pipefail
+
+      # Determine light/dark from the just-rendered trigger output, not from
+      # settings.json — noctalia writes settings.json AFTER firing post_hooks,
+      # so darkMode there is stale at this point. The trigger template renders
+      # background = '#rrggbb' of the new active scheme, so its luminance is
+      # the authoritative signal.
+      trigger="$HOME/.config/noctalia/generated/nvim-trigger.txt"
+      hex=$(${pkgs.gnugrep}/bin/grep -oE "#[0-9a-fA-F]{6}" "$trigger" | head -n1)
+      hex=''${hex#\#}
+      r=$((16#''${hex:0:2}))
+      g=$((16#''${hex:2:2}))
+      b=$((16#''${hex:4:2}))
+      # Rec. 601 luma * 1000, threshold at mid-grey (128 * 1000 = 128000).
+      luma=$(( (299*r + 587*g + 114*b) ))
+      if (( luma < 128000 )); then
+        args=( ${mkNvrArgs nvimSchemes.dark.applyCommands} )
+      else
+        args=( ${mkNvrArgs nvimSchemes.light.applyCommands} )
+      fi
+
+      while read -r nvim_instance; do
+        [[ -z "$nvim_instance" ]] && continue
+        ${pkgs.neovim-remote}/bin/nvr --servername "$nvim_instance" "''${args[@]}" || true
+      done < <(${pkgs.neovim-remote}/bin/nvr --serverlist)
+    '';
   };
 }

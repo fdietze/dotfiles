@@ -1,0 +1,6 @@
+# Dummy template whose only purpose is to fire its post_hook whenever
+# noctalia re-renders templates (i.e. on scheme / dark-mode change).
+# The {{...}} placeholder guarantees the output changes when colors
+# change, so noctalia rewrites the file and invokes post_hook instead
+# of skipping a no-op render.
+background = '#ffffff'
