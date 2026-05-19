@@ -14,11 +14,41 @@ let
     #!${pkgs.bash}/bin/bash
     set -euo pipefail
 
-    if [[ -r /run/nixos/current-specialisation ]] && specialisation="$(${pkgs.coreutils}/bin/head -n1 /run/nixos/current-specialisation)" && [[ -n "$specialisation" ]]; then
-      exec sudo nixos-rebuild switch --specialisation "$specialisation"
+    # nrs [<specialisation>]
+    #   No arg: re-apply the currently active specialisation (or parent
+    #   toplevel if none).
+    #   With arg: switch to <specialisation> — works across desktops/DMs.
+    #
+    # When the target spec uses a different greetd default_session, the
+    # running compositor (and the terminal running this command) will be
+    # killed mid-switch. Wrap the rebuild in a transient systemd unit so
+    # activation survives session death.
+
+    if [[ $# -ge 1 ]]; then
+      specialisation="$1"
+    elif [[ -r /run/nixos/current-specialisation ]]; then
+      specialisation="$(${pkgs.coreutils}/bin/head -n1 /run/nixos/current-specialisation)"
     else
-      exec sudo nixos-rebuild switch
+      specialisation=""
     fi
+
+    cmd=( nixos-rebuild switch --use-remote-sudo )
+    if [[ -n "$specialisation" ]]; then
+      cmd+=( --specialisation "$specialisation" )
+    fi
+
+    # systemd-run as root puts the unit in system.slice (survives session
+    # death), but --uid/--gid run the payload as the invoking user so the
+    # flake's git fetch doesn't trip libgit2's ownership check. nixos-rebuild
+    # then sudos internally (NOPASSWD via wheel) for the activation phase.
+    exec sudo ${pkgs.systemd}/bin/systemd-run \
+      --collect --pipe --wait --service-type=oneshot \
+      --unit="nrs-$$" \
+      --uid="$(${pkgs.coreutils}/bin/id -u)" \
+      --gid="$(${pkgs.coreutils}/bin/id -g)" \
+      --setenv=HOME="$HOME" \
+      --setenv=PATH="$PATH" \
+      -- "''${cmd[@]}"
   '';
   mkThemeSwitchScript =
     mode:
