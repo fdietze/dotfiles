@@ -84,6 +84,16 @@ in
         gaps 4
       }
 
+      workspace "1"
+      workspace "2"
+      workspace "3"
+      workspace "4"
+      workspace "5"
+      workspace "6"
+      workspace "7"
+      workspace "8"
+      workspace "9"
+
       window-rule {
         geometry-corner-radius 2
         clip-to-geometry true
@@ -188,12 +198,28 @@ in
         Mod+Shift+7 { move-column-to-workspace 7; }
         Mod+Shift+8 { move-column-to-workspace 8; }
         Mod+Shift+9 { move-column-to-workspace 9; }
+        // Move column to workspace N without following — mirrors hlwm's
+        // Mod4-Shift-Ctrl-<digit> (move_index without use_index).
+        Mod+Shift+Ctrl+1 { move-column-to-workspace 1 focus=false; }
+        Mod+Shift+Ctrl+2 { move-column-to-workspace 2 focus=false; }
+        Mod+Shift+Ctrl+3 { move-column-to-workspace 3 focus=false; }
+        Mod+Shift+Ctrl+4 { move-column-to-workspace 4 focus=false; }
+        Mod+Shift+Ctrl+5 { move-column-to-workspace 5 focus=false; }
+        Mod+Shift+Ctrl+6 { move-column-to-workspace 6 focus=false; }
+        Mod+Shift+Ctrl+7 { move-column-to-workspace 7 focus=false; }
+        Mod+Shift+Ctrl+8 { move-column-to-workspace 8 focus=false; }
+        Mod+Shift+Ctrl+9 { move-column-to-workspace 9 focus=false; }
 
         // Cycle through workspaces (hlwm c/v).
-        Mod+C       { focus-workspace-down; }
-        Mod+Shift+C { move-column-to-workspace-down; }
-        Mod+V       { focus-workspace-up; }
-        Mod+Shift+V { move-column-to-workspace-up; }
+        Mod+C            { focus-workspace-down; }
+        Mod+Shift+C      { move-column-to-workspace-down; }
+        Mod+Shift+Ctrl+C { move-column-to-workspace-down focus=false; }
+        Mod+V            { focus-workspace-up; }
+        Mod+Shift+V      { move-column-to-workspace-up; }
+        Mod+Shift+Ctrl+V { move-column-to-workspace-up focus=false; }
+
+        // Toggle back to the previously focused workspace (hlwm Mod4-w).
+        Mod+W { focus-workspace-previous; }
 
         // ===== Resize (hlwm Shift+g/r/n/t) =====
         Mod+Shift+N { set-column-width "-10%"; }
@@ -215,6 +241,11 @@ in
         Mod+Ctrl+Shift+Y { spawn "systemctl" "reboot"; }
         Mod+Escape       { spawn "noctalia-shell" "ipc" "call" "lockScreen" "lock"; }
 
+        // ===== Theme — mirrors herbstluftwm's Mod+Ctrl+k/s. Noctalia handles
+        // automatic dark/light switching on its own; these just force it.
+        Mod+Ctrl+K { spawn "noctalia-shell" "ipc" "call" "darkMode" "setLight"; }
+        Mod+Ctrl+S { spawn "noctalia-shell" "ipc" "call" "darkMode" "setDark"; }
+
         // ===== Audio — noctalia IPC drives the OSD =====
         XF86AudioRaiseVolume { spawn "noctalia-shell" "ipc" "call" "volume" "increase"; }
         XF86AudioLowerVolume { spawn "noctalia-shell" "ipc" "call" "volume" "decrease"; }
@@ -229,8 +260,9 @@ in
         Mod+Ctrl+G { spawn "noctalia-shell" "ipc" "call" "brightness" "increase"; }
         Mod+Ctrl+R { spawn "noctalia-shell" "ipc" "call" "brightness" "decrease"; }
         // Fine adjust (1%) — noctalia IPC has no step argument, so go direct.
-        Mod+Ctrl+Shift+G { spawn "brightnessctl" "set" "+1%"; }
-        Mod+Ctrl+Shift+R { spawn "brightnessctl" "set" "1%-"; }
+        // Absolute path because niri's spawn doesn't see user PATH additions.
+        Mod+Ctrl+Shift+G { spawn "${pkgs.brightnessctl}/bin/brightnessctl" "set" "+1%"; }
+        Mod+Ctrl+Shift+R { spawn "${pkgs.brightnessctl}/bin/brightnessctl" "set" "1%-"; }
 
         // ===== Bluetooth =====
         XF86Bluetooth { spawn "noctalia-shell" "ipc" "call" "bluetooth" "toggle"; }

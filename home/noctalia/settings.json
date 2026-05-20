@@ -83,7 +83,7 @@
                 {
                     "characterCount": 2,
                     "colorizeIcons": false,
-                    "emptyColor": "secondary",
+                    "emptyColor": "none",
                     "enableScrollWheel": true,
                     "focusedColor": "primary",
                     "followFocusedScreen": false,
@@ -92,8 +92,8 @@
                     "hideUnoccupied": false,
                     "iconScale": 0.8,
                     "id": "Workspace",
-                    "labelMode": "index",
-                    "occupiedColor": "secondary",
+                    "labelMode": "name",
+                    "occupiedColor": "tertiary",
                     "pillSize": 0.6,
                     "showApplications": true,
                     "showApplicationsHover": false,
@@ -200,7 +200,7 @@
                 {
                     "clockColor": "none",
                     "customFont": "",
-                    "formatHorizontal": "yyyy-mm-dd ddd HH:mm",
+                    "formatHorizontal": "yyyy-MM-dd ddd HH:mm",
                     "formatVertical": "HH mm - dd MM",
                     "id": "Clock",
                     "tooltipFormat": "HH:mm ddd, MMM dd",
@@ -266,7 +266,7 @@
                 "id": "weather-card"
             },
             {
-                "enabled": true,
+                "enabled": false,
                 "id": "media-sysmon-card"
             }
         ],
@@ -281,9 +281,6 @@
                     "id": "Bluetooth"
                 },
                 {
-                    "id": "WallpaperSelector"
-                },
-                {
                     "id": "NoctaliaPerformance"
                 }
             ],
@@ -296,9 +293,6 @@
                 },
                 {
                     "id": "KeepAwake"
-                },
-                {
-                    "id": "NightLight"
                 }
             ]
         }
@@ -361,7 +355,7 @@
         "enableLockScreenMediaControls": false,
         "enableShadows": false,
         "forceBlackScreenCorners": false,
-        "iRadiusRatio": 0.55,
+        "iRadiusRatio": 1,
         "keybinds": {
             "keyDown": [
                 "Down"
@@ -395,7 +389,7 @@
         ],
         "lockScreenTint": 0,
         "passwordChars": true,
-        "radiusRatio": 0.77,
+        "radiusRatio": 1,
         "reverseScroll": false,
         "scaleRatio": 1,
         "screenRadiusRatio": 1,
@@ -441,7 +435,7 @@
         "firstDayOfWeek": -1,
         "hideWeatherCityName": false,
         "hideWeatherTimezone": false,
-        "name": "Beau Bassin-Rose Hill",
+        "name": "Port Louis",
         "showCalendarEvents": true,
         "showCalendarWeather": true,
         "showWeekNumberInCalendar": false,
