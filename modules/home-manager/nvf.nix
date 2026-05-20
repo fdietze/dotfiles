@@ -96,8 +96,31 @@ in {
         fzf-lua.enable = true;
 
         terminal.toggleterm.enable = true;
-        # statusline.lualine.enable = true;
-        mini.statusline.enable = true;
+        statusline.lualine = {
+          enable = true;
+          theme = "auto";
+          globalStatus = true;
+          activeSection = {
+            a = [''"mode"''];
+            b = [''"branch"''];
+            c = [
+              ''"filename"''
+            ];
+            x = [
+              ''
+                {
+                  function() return vim.fn.wordcount().words .. " words" end,
+                  cond = function()
+                    return vim.tbl_contains({ "markdown", "text", "gitcommit" }, vim.bo.filetype)
+                  end,
+                }
+              ''
+            ];
+            y = [''"filetype"''];
+            z = [''"location"'' ''"progress"''];
+          };
+        };
+        # mini.statusline.enable = true;
         # tabline.nvimBufferline.enable = true;
         mini.tabline.enable = true;
         # autocomplete.nvim-cmp.enable = true;
@@ -560,16 +583,20 @@ in {
           function smart_diagnostic_goto()
             local has_errors = next(vim.diagnostic.get(0, { severity = vim.diagnostic.severity.ERROR })) ~= nil
             if has_errors then
-              vim.diagnostic.goto_next({ severity = vim.diagnostic.severity.ERROR, float = true })
+              vim.diagnostic.jump({ count = 1, severity = vim.diagnostic.severity.ERROR, float = true })
             else
               local has_warnings = next(vim.diagnostic.get(0, { severity = vim.diagnostic.severity.WARN })) ~= nil
               if has_warnings then
-                vim.diagnostic.goto_next({ severity = vim.diagnostic.severity.WARN, float = true })
+                vim.diagnostic.jump({ count = 1, severity = vim.diagnostic.severity.WARN, float = true })
               else
-                vim.diagnostic.goto_next({ float = true })
+                vim.diagnostic.jump({ count = 1, float = true })
               end
             end
           end
+
+          -- keep the LSP log from growing unboundedly (was 7.7 GB)
+          -- one-shot cleanup: truncate -s 0 ~/.local/state/nvf/lsp.log
+          vim.lsp.set_log_level("WARN")
 
           function smart_goto_definition()
             local clients = vim.lsp.get_clients({ bufnr = 0 })
