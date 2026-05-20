@@ -92,7 +92,7 @@ in
       workspace "6"
       workspace "7"
       workspace "8"
-      workspace "9"
+      // workspace "9" is a dynamic workspace by niri
 
       window-rule {
         geometry-corner-radius 2
