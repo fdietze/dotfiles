@@ -223,7 +223,6 @@
     vlc # video player
     mpv # video player
     neovide # neovim gui
-    megasync # cloud file storage and sync
     krusader # file manager with good directory comparison
     keepassxc # password manager
     libsecret.out # secret-tool to retrieve secrets from keepassxc
@@ -252,5 +251,15 @@
     # Repo-managed Rust helper: focused-window cwd for "new terminal here" keybindings.
     # Replaces home/bin/xcwd-home (bash) and works on both X11 (xdotool) and niri (niri msg).
     (pkgs.callPackage ./bin/xcwd-home/package.nix {})
+
+    (pkgs.symlinkJoin {
+      name = "megasync";
+      paths = [pkgs.megasync];
+      buildInputs = [pkgs.makeWrapper];
+      postBuild = ''
+        wrapProgram $out/bin/megasync \
+          --set QT_QPA_PLATFORM wayland
+      '';
+    }) # cloud file storage and sync
   ];
 }
