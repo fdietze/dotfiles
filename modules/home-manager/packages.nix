@@ -252,6 +252,16 @@
     # Replaces home/bin/xcwd-home (bash) and works on both X11 (xdotool) and niri (niri msg).
     (pkgs.callPackage ./bin/xcwd-home/package.nix {})
 
+    # Wrap `claude` in the nono sandbox so it can't touch the rest of the system.
+    (pkgs.writeShellScriptBin "claude" ''
+      exec ${pkgs.nono}/bin/nono run --profile claude -- ${pkgs.claude-code}/bin/claude --dangerously-skip-permissions "$@"
+    '')
+
+    # Escape hatch: stock Claude on the host, with its own sandbox + permission prompts intact.
+    (pkgs.writeShellScriptBin "vanilla-claude" ''
+      exec ${pkgs.claude-code}/bin/claude "$@"
+    '')
+
     (pkgs.symlinkJoin {
       name = "megasync";
       paths = [pkgs.megasync];
