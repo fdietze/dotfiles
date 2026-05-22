@@ -3,4 +3,4 @@
 # The {{...}} placeholder guarantees the output changes when colors
 # change, so noctalia rewrites the file and invokes post_hook instead
 # of skipping a no-op render.
-background = '#ffffff'
+background = '#222436'

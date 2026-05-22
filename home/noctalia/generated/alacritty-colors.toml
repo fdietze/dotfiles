@@ -4,33 +4,33 @@
 # inject_terminal_colors). Our Base16 scheme always provides one.
 
 [colors.primary]
-background = '#ffffff'
-foreground = '#000000'
+background = '#222436'
+foreground = '#c8d3f5'
 
 [colors.cursor]
-text   = '#ffffff'
-cursor = '#000000'
+text   = '#222436'
+cursor = '#c8d3f5'
 
 [colors.selection]
-text       = '#000000'
-background = '#999999'
+text       = '#c8d3f5'
+background = '#2d3f76'
 
 [colors.normal]
-black   = '#ffffff'
-red     = '#ff0088'
-green   = '#19af00'
-yellow  = '#ff7e00'
-blue    = '#0a94ff'
-magenta = '#3b00cb'
-cyan    = '#00cab2'
-white   = '#000000'
+black   = '#222436'
+red     = '#ff757f'
+green   = '#c3e88d'
+yellow  = '#ff966c'
+blue    = '#82aaff'
+magenta = '#c099ff'
+cyan    = '#86e1fc'
+white   = '#c8d3f5'
 
 [colors.bright]
-black   = '#666666'
-red     = '#ff0088'
-green   = '#19af00'
-yellow  = '#ffa34a'
-blue    = '#0a94ff'
-magenta = '#3b00cb'
-cyan    = '#00cab2'
-white   = '#000000'
+black   = '#636da6'
+red     = '#ff757f'
+green   = '#c3e88d'
+yellow  = '#ffc777'
+blue    = '#82aaff'
+magenta = '#c099ff'
+cyan    = '#86e1fc'
+white   = '#c8d3f5'
