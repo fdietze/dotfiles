@@ -92,11 +92,25 @@ in
       workspace "6"
       workspace "7"
       workspace "8"
-      // workspace "9" is a dynamic workspace by niri
+      workspace "9"
 
       window-rule {
         geometry-corner-radius 2
         clip-to-geometry true
+      }
+
+      // Main KeePassXC window only — title is "<database> - KeePassXC".
+      // Auto-type prompts and password dialogs have different title shapes,
+      // so they fall through to the default (open on focused workspace).
+      // niri has no is-dialog matcher; title regex is the available proxy.
+      window-rule {
+        match app-id="^org\\.keepassxc\\.KeePassXC$" title=" - KeePassXC$"
+        open-on-workspace "8"
+      }
+
+      window-rule {
+        match app-id="^spotify$"
+        open-on-workspace "9"
       }
 
       debug {
