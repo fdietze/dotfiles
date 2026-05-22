@@ -135,6 +135,7 @@ in
     vv = ''$EDITOR "$HOME"/projects/dotfiles/modules/home-manager/nvf.nix'';
     vn = ''$EDITOR "$HOME"/projects/dotfiles/hosts/gurke/default.nix'';
     vh = ''$EDITOR "$HOME"/projects/dotfiles/hosts/gurke/home.nix'';
+    vp = ''$EDITOR "$HOME"/projects/dotfiles/modules/home-manager/packages.nix'';
     vb = ''$EDITOR "$HOME"/.config/polybar/config.ini'';
     nrs = "nrs";
     ns = "nix-shell --run zsh";
