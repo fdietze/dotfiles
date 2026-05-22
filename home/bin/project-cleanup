@@ -25,7 +25,6 @@ venv
 .mypy_cache
 .aider.tags.cache.v3
 .rustup
-.pg_data
 .dart_tool
 .cpcache
 .clj-kondo
