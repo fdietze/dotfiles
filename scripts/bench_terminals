@@ -1,0 +1,106 @@
+#!/usr/bin/env bash
+# Benchmark terminal emulator startup latency.
+#
+# For each installed terminal it measures the time from spawning the process to
+# the moment a command is actually executing *inside* the new window. Each run
+# uses a fresh probe script that timestamps a marker file from inside the
+# terminal; the outer shell subtracts the spawn time to get spawn->ready.
+#
+# Result is one line per terminal+mode with five runs and a median.
+# Usage: bench_terminals [RUNS]
+#   RUNS  number of measurements per terminal (default 5)
+set -u
+
+runs=${1:-5}
+D=$(mktemp -d -t bench-terminals.XXXXXX)
+trap 'rm -rf "$D"' EXIT
+
+have()      { command -v "$1" >/dev/null 2>&1; }
+median()    { printf '%s\n' "$@" | sort -n | awk '{a[NR]=$1} END{print a[int((NR+1)/2)]}'; }
+
+# Run one terminal-mode N times. Args: label, then the command that spawns
+# the terminal and runs "$1" (the probe path).
+bench() {
+  local label=$1; shift
+  local results=()
+  local i marker probe t0 t1
+  for ((i=1; i<=runs; i++)); do
+    marker="$D/m_${label// /_}_$i"
+    probe="$D/p_${label// /_}_$i.sh"
+    rm -f "$marker"
+    cat >"$probe" <<EOF
+#!/usr/bin/env bash
+date +%s.%N > "$marker"
+EOF
+    chmod +x "$probe"
+    t0=$(date +%s.%N)
+    "$@" "$probe" >/dev/null 2>&1 &
+    local count=0
+    while [ ! -s "$marker" ] && [ $count -lt 500 ]; do
+      sleep 0.02; count=$((count+1))
+    done
+    if [ -s "$marker" ]; then
+      t1=$(cat "$marker")
+      results+=( "$(awk -v a="$t0" -v b="$t1" 'BEGIN{printf "%.3f", b-a}')" )
+    else
+      results+=( "FAIL" )
+    fi
+    sleep 0.4
+  done
+  local med
+  med=$(median "${results[@]}" 2>/dev/null)
+  # Pad numeric runs for alignment.
+  printf '%-32s' "$label"
+  for r in "${results[@]}"; do printf ' %6s' "$r"; done
+  printf '   median=%s s\n' "$med"
+}
+
+# Header.
+printf '\n=== Terminal startup benchmark — %s runs each ===\n' "$runs"
+printf 'measurement: spawn -> in-terminal command-start (seconds, lower = better)\n\n'
+printf '%-32s' "terminal"
+for ((i=1; i<=runs; i++)); do printf ' %6s' "run$i"; done
+printf '\n'
+printf '%-32s' "$(printf -- '-%.0s' $(seq 32))"
+for ((i=1; i<=runs; i++)); do printf ' %6s' "------"; done
+printf '\n'
+
+# ----- alacritty -----
+if have alacritty; then
+  bench "alacritty cold" alacritty -e
+fi
+
+# ----- kitty -----
+if have kitty; then
+  bench "kitty cold" kitty
+  # Warm single-instance daemon: launch detached without a command so kitty
+  # opens its default shell and stays alive. Passing `true` would cause the
+  # instance to exit immediately and the subsequent --single-instance calls
+  # would fall back to cold-start.
+  kitty --single-instance --detach >/dev/null 2>&1 || true
+  sleep 1.5
+  bench "kitty single-instance (warm)" kitty --single-instance
+  pkill -x kitty 2>/dev/null || true
+fi
+
+# ----- wezterm -----
+if have wezterm-gui; then
+  bench "wezterm-gui cold" wezterm-gui start --always-new-process --
+elif have wezterm; then
+  bench "wezterm cold" wezterm start --always-new-process --
+fi
+
+# ----- ghostty -----
+if have ghostty; then
+  bench "ghostty default" ghostty -e
+  # warm a single-instance window in the background, then measure
+  ghostty --gtk-single-instance=true -e "sleep 60" >/dev/null 2>&1 &
+  GH_PID=$!
+  sleep 2
+  bench "ghostty single-instance (warm)" ghostty --gtk-single-instance=true -e
+  kill "$GH_PID" 2>/dev/null || true
+fi
+
+echo
+echo "Note: 'warm' rows pre-seed a daemon/instance; first user-visible launch on"
+echo "a fresh login still pays cold-start cost. 'cold' rows are the worst case."
