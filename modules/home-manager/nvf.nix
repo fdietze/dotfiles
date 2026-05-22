@@ -171,6 +171,33 @@ in {
           gitsigns.enable = false;
         };
 
+        lazy.plugins."nvim-toggler" = {
+          package = pkgs.vimUtils.buildVimPlugin {
+            pname = "nvim-toggler";
+            version = "unstable";
+            src = pkgs.fetchFromGitHub {
+              owner = "nguyenvukhang";
+              repo = "nvim-toggler";
+              rev = "467808600882fd6c9e33b9dbc4889b1b80cfd917";
+              hash = "sha256-5+pFsPtA2u1m5tjkJHW9hDb/dM848jdhwnu3OWKgeIU=";
+            };
+          };
+          setupModule = "nvim-toggler";
+          setupOpts = {
+            remove_default_keybinds = true;
+          };
+          keys = [
+            {
+              key = "gs";
+              mode = ["n" "v"];
+              desc = "Toggle word under cursor";
+              action = "function() require('nvim-toggler').toggle() end";
+              lua = true;
+              silent = true;
+            }
+          ];
+        };
+
         autocmds = [
           {
             # automatically close terminal when process exited
