@@ -250,6 +250,13 @@ in
   };
   programs.wezterm = {
     enable = true;
+    package = pkgs.wezterm.overrideAttrs (old: {
+      patches =
+        (old.patches or [])
+        ++ [
+          ./patches/wezterm-pr4991-fix-additional-emit.patch
+        ];
+    });
     enableZshIntegration = true;
     extraConfig = ''
       return {
