@@ -1,6 +1,6 @@
 { pkgs, ... }:
 {
-  home.packages = with pkgs; [
+  home.packages = (with pkgs; [
     # command line fu
     # https://github.com/ibraheemdev/modern-unix
     tmux
@@ -61,7 +61,6 @@
     yt-dlp # download youtube videos
     flyctl # fly.io command line tool
 
-    xcwd # returns current directory of x application, used to spawn new termanals in the current directory: ~/bin/xcwd-home
     arandr # manage monitors
     bubblewrap # sandboxing tool
 
@@ -249,5 +248,9 @@
     # anytype # p2p note taking
     # gitbutler # Git client for simultaneous branches on top of your existing workflow
 
+  ]) ++ [
+    # Repo-managed Rust helper: focused-window cwd for "new terminal here" keybindings.
+    # Replaces home/bin/xcwd-home (bash) and works on both X11 (xdotool) and niri (niri msg).
+    (pkgs.callPackage ./bin/xcwd-home/package.nix {})
   ];
 }

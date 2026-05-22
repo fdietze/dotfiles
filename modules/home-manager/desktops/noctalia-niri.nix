@@ -148,7 +148,7 @@ in
       // IPC so the bar's OSD reflects the change.
       binds {
         // ===== Spawn apps =====
-        Mod+D { spawn "alacritty"; }
+        Mod+D { spawn "sh" "-c" "alacritty --working-directory \"$(xcwd-home)\""; }
         Mod+Y { spawn "noctalia-shell" "ipc" "call" "launcher" "toggle"; }
         Mod+J { spawn "sh" "-c" "$BROWSER"; }
         Mod+apostrophe { spawn "sh" "-c" "$BROWSER"; }
