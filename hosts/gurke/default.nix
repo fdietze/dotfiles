@@ -310,11 +310,11 @@ in {
     settings.General.Experimental = true; # bluetooth battery percentage
   };
   services.blueman = {
-    enable = true;
+    enable = false;
     # Home Manager owns blueman-applet.service. If NixOS also starts the applet,
     # systemd merges duplicate ExecStart= entries; systemd.service(5) only
     # allows that for Type=oneshot.
-    withApplet = false;
+    # withApplet = false;
   };
 
   security.rtkit.enable = true; # allows certain user-level processes to run with real-time priorities, good for media editing and playing
