@@ -15,6 +15,7 @@ in
         nvf.enable = false;
         qt.enable = true;
         alacritty.enable = true;
+        kitty.enable = true;
         gtk.enable = true;
       };
     };

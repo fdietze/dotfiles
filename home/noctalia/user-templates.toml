@@ -15,6 +15,17 @@ input_path  = "/home/felix/projects/dotfiles/home/noctalia/templates/alacritty.t
 output_path = "/home/felix/.config/noctalia/generated/alacritty-colors.toml"
 post_hook   = ""
 
+# kitty's `auto_reload_config` (poll interval in seconds, set in
+# modules/home-manager/shared.nix) only watches kitty.conf itself, not files
+# brought in via `include`. SIGUSR1 forces a full config re-read in all
+# running kitty windows. Process comm is `.kitty-wrapped` under the nix
+# wrapper (not plain `kitty`), so match that exactly. `|| true` keeps the
+# hook clean when no kitty is running.
+[templates.kitty]
+input_path  = "/home/felix/projects/dotfiles/home/noctalia/templates/kitty-colors.conf"
+output_path = "/home/felix/.config/noctalia/generated/kitty-colors.conf"
+post_hook   = "pkill -SIGUSR1 -x .kitty-wrapped 2>/dev/null || true"
+
 # Fires noctalia-retint-nvim on every scheme/dark-mode change so running
 # Neovim instances pick up the new colorscheme via nvr. The rendered output
 # is just a one-line trigger; the real work happens in the post_hook script

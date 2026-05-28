@@ -38,6 +38,17 @@ in
       "${config.home.homeDirectory}/.config/noctalia/generated/alacritty-colors.toml"
     ];
 
+    # Kitty: live colors from noctalia. The generated file is included into
+    # kitty.conf via extraConfig. Path resolves through the noctalia
+    # mkOutOfStoreSymlink at ~/.config/noctalia, so the file is always present
+    # (seed is tracked in git) and gets rewritten in place by noctalia's
+    # template engine on every scheme change. SIGUSR1 reload is handled in
+    # home/noctalia/user-templates.toml since kitty's auto_reload_config does
+    # not watch include'd files.
+    programs.kitty.extraConfig = ''
+      include ${config.home.homeDirectory}/.config/noctalia/generated/kitty-colors.conf
+    '';
+
     # noctalia writes its full state (settings.json, colors.json, plugins, color
     # schemes) on every GUI change. mkOutOfStoreSymlink makes ~/.config/noctalia
     # a plain symlink to the repo so noctalia can keep writing while git tracks

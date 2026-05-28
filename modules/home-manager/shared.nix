@@ -245,8 +245,58 @@ in {
     };
   };
   programs.kitty = {
-    enable = false;
+    enable = true;
+    shellIntegration = {
+      enableBashIntegration = true;
+      enableZshIntegration = true;
+      enableFishIntegration = true;
+    };
+    # mkDefault so stylix's kitty target (themed desktops) wins by normal
+    # priority. On unthemed desktops (noctalia-niri) stylix is gated off and
+    # this becomes the active font setting.
+    font = lib.mkDefault {
+      name = uiFonts.monospace.name;
+      size = uiFonts.sizes.terminal;
+    };
+    settings = {
+      window_padding_width = 2;
+      cursor_shape = "beam";
+      cursor_blink_interval = 0;
+      scrollback_lines = 100000;
+      confirm_os_window_close = 0;
+      # Re-read kitty.conf when it changes. Value is debounce delay in
+      # seconds (kitty 0.42+); negative disables. Only watches kitty.conf
+      # itself — live theme switching pushes a SIGUSR1 via the noctalia
+      # post_hook because `include`d files are not watched.
+      # https://sw.kovidgoyal.net/kitty/conf/#opt-kitty.auto_reload_config
+      auto_reload_config = 1;
+      enable_audio_bell = "no";
+    };
   };
+  # Validate the generated kitty.conf at build time, mirroring the
+  # `niri validate` pattern in noctalia-niri.nix. kitty has no first-class
+  # validate subcommand, so we drive its own config loader via `+runpy` and
+  # fail the build if any line fails to parse. Missing `include` targets
+  # (e.g. ~/.config/noctalia/generated/kitty-colors.conf when noctalia hasn't
+  # rendered yet) are warnings only and do not fail the check.
+  home.packages = [
+    (pkgs.runCommand "kitty-config-check" {
+      nativeBuildInputs = [pkgs.kitty];
+      conf = config.xdg.configFile."kitty/kitty.conf".source;
+    } ''
+      kitty +runpy '
+      import sys
+      from kitty.config import load_config
+      bad = []
+      load_config(sys.argv[1], accumulate_bad_lines=bad)
+      if bad:
+          for b in bad:
+              print(f"kitty.conf line {b.number}: {b.exception} | {b.line!r}", file=sys.stderr)
+          sys.exit(1)
+      ' "$conf"
+      mkdir -p $out
+    '')
+  ];
   programs.wezterm = {
     enable = true;
     package = pkgs.wezterm.overrideAttrs (old: {
