@@ -59,6 +59,67 @@ in
     # a plain symlink to the repo so noctalia can keep writing while git tracks
     # the result. The repo path must exist before activation — bootstrap done in
     # home/noctalia/.
+    # VR solo-mode: when XREAL One Pro glasses are plugged in, disable every
+    # other output so the glasses are the only active display; re-enable on
+    # unplug. niri has no conditional output profiles and its event-stream
+    # doesn't emit hotplug events, so we react to drm uevents via udevadm and
+    # apply via `niri msg output`. udevadm monitor blocks on netlink, so the
+    # service is event-driven (no polling → CPU stays idle for deep sleep).
+    systemd.user.services.niri-vr-solo = {
+      Unit = {
+        Description = "Disable non-VR outputs when XREAL One Pro is connected";
+        PartOf = ["graphical-session.target"];
+        After = ["graphical-session.target"];
+      };
+      Install.WantedBy = ["graphical-session.target"];
+      Service = {
+        ExecStart = let
+          script = pkgs.writeShellScript "niri-vr-solo" ''
+            set -u
+            niri=${pkgs.niri}/bin/niri
+            jq=${pkgs.jq}/bin/jq
+            udevadm=${pkgs.systemd}/bin/udevadm
+            # EDID model string for the XREAL One Pro glasses (see `niri msg outputs`).
+            vr_model="XREAL One Pro"
+
+            apply() {
+              local outputs vr others o
+              outputs=$("$niri" msg -j outputs) || return 0
+              vr=$(echo "$outputs" | "$jq" -r --arg m "$vr_model" \
+                'to_entries[] | select(.value.model==$m) | .key' | head -n1)
+              if [ -n "$vr" ]; then
+                # VR present — turn every other connected output off. Skip ones
+                # already off (current_mode == null) to avoid noisy uevent loops.
+                others=$(echo "$outputs" | "$jq" -r --arg vr "$vr" \
+                  'to_entries[] | select(.key != $vr and .value.current_mode != null) | .key')
+                for o in $others; do
+                  "$niri" msg output "$o" off || true
+                done
+              else
+                # VR gone — re-enable any connected output that's currently off.
+                others=$(echo "$outputs" | "$jq" -r \
+                  'to_entries[] | select(.value.current_mode == null) | .key')
+                for o in $others; do
+                  "$niri" msg output "$o" on || true
+                done
+              fi
+            }
+
+            # Apply once at startup so boot/login with glasses already plugged
+            # converges immediately, then react to every drm change. apply() is
+            # idempotent (skips when state already matches), so we just call it
+            # per udev line — no debounce loop needed.
+            apply
+            "$udevadm" monitor --udev --subsystem-match=drm | while read -r _line; do
+              apply
+            done
+          '';
+        in "${script}";
+        Restart = "on-failure";
+        RestartSec = 5;
+      };
+    };
+
     xdg.configFile."noctalia".source =
       config.lib.file.mkOutOfStoreSymlink "${repoDir}/home/noctalia";
 
@@ -143,6 +204,15 @@ in
           }
           // Built-in panel needs no block — niri auto-places it next to the
           // external when both are connected, and at 0,0 when standalone.
+
+          // XREAL One Pro VR glasses (HDMI/DP). When plugged, the niri-vr-solo
+          // user service (below) disables all other outputs so the glasses are
+          // the only active display. Block is keyed by EDID make+model so it
+          // follows the device across connectors.
+          output "Nreal XREAL One Pro Unknown" {
+            scale 1.0
+            position x=0 y=0
+          }
 
           workspace "1"
           workspace "2"
