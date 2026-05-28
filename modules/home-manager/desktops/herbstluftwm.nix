@@ -509,10 +509,9 @@ in
         keybinds = {
           # Use PATH for repo-managed helper scripts so editing home/bin remains
           # immediate and bindings do not depend on the removed ~/bin directory.
-          Mod4-d = "spawn sh -c 'alacritty --working-directory \"$(xcwd-home)\"'";
-          # Mod4-d =
-          #   "spawn sh -c '${pkgs.ghostty}/bin/ghostty --working-directory=\"$(xcwd-home)\"'";
-          # Mod4-d = "spawn sh -c 'wezterm start --cwd \"$(xcwd-home)\"'";
+          # terminal-here wraps $TERMINAL (kitty) with xcwd-home for cwd inheritance.
+          # See modules/home-manager/launchers.nix.
+          Mod4-d = "spawn terminal-here";
           Mod4-y = "spawn rofi -show run -modi run,calc,emoji";
           Mod4-b = "spawn ${lib.getExe pkgs.overskride}";
           Mod4-Ctrl-b = "spawn ${lib.getExe bluetoothToggle}";

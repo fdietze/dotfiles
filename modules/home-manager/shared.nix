@@ -18,6 +18,7 @@ in {
     ./packages.nix
     ./stylix.nix
     ./theme-switching.nix
+    ./launchers.nix
     ./wallpaper.nix
     # ./home/dictate.nix
     ./nvf.nix

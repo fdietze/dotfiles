@@ -322,7 +322,9 @@ in
 
       "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0" = {
         binding = "<Super>d";
-        command = "alacritty";
+        # terminal-here wraps $TERMINAL (kitty) with xcwd-home for cwd inheritance.
+        # See modules/home-manager/launchers.nix.
+        command = "terminal-here";
         name = "Terminal";
       };
 

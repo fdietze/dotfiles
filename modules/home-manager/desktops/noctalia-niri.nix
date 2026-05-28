@@ -148,7 +148,9 @@ in
       // IPC so the bar's OSD reflects the change.
       binds {
         // ===== Spawn apps =====
-        Mod+D { spawn "sh" "-c" "alacritty --working-directory \"$(xcwd-home)\""; }
+        // terminal-here wraps $TERMINAL (kitty) with xcwd-home for cwd inheritance.
+        // See modules/home-manager/launchers.nix.
+        Mod+D { spawn "terminal-here"; }
         Mod+Y { spawn "noctalia-shell" "ipc" "call" "launcher" "toggle"; }
         Mod+J { spawn "sh" "-c" "$BROWSER"; }
         Mod+apostrophe { spawn "sh" "-c" "$BROWSER"; }
