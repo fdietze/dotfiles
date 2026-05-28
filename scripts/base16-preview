@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+# Prints base16 swatches (true-color) for the dark and light palettes defined
+# in modules/themes/base16.nix. Parses the .nix file directly so it can't drift
+# from the source.
+#
+# Usage: base16-preview [dark|light|both]   (default: both)
+
+set -euo pipefail
+
+variant="${1:-both}"
+case "$variant" in dark|light|both) ;; *) echo "usage: $0 [dark|light|both]" >&2; exit 1 ;; esac
+
+script_dir="$(cd "$(dirname "$0")" && pwd)"
+nix_file="$script_dir/../modules/themes/base16.nix"
+
+# awk: emit "<variant> <key> <hex>" for every baseXX = "rrggbb" line, scoped to
+# the dark { ... } or light { ... } block we're currently inside. base16.nix
+# has exactly that shape — no nested attrsets — so brace-depth tracking is
+# enough and we don't need an actual nix evaluator.
+mapfile -t entries < <(
+  awk '
+    /^\s*dark\s*=\s*{/   { v="dark"; next }
+    /^\s*light\s*=\s*{/  { v="light"; next }
+    /^\s*};\s*$/         { v=""; next }
+    v != "" && match($0, /(base[0-9A-F]{2})\s*=\s*"([0-9a-fA-F]{6})"/, m) {
+      print v, m[1], tolower(m[2])
+    }
+  ' "$nix_file"
+)
+
+# Role notes are semantic context; base16.nix only carries hex values. Keep
+# them here so the renderer stays a pure presentation layer.
+declare -A role=(
+  [base00]="bg"
+  [base01]="bg highlight / statusbar"
+  [base02]="selection bg"
+  [base03]="comments, invisibles"
+  [base04]="statusbar fg, secondary text"
+  [base05]="default fg"
+  [base06]="fg (reused)"
+  [base07]="terminal white_bright"
+  [base08]="red    - variables, errors"
+  [base09]="orange - numbers, constants"
+  [base0A]="yellow - classes, search hl"
+  [base0B]="green  - strings"
+  [base0C]="cyan   - support, regex"
+  [base0D]="blue   - functions"
+  [base0E]="magenta- keywords"
+  [base0F]="teal   - deprecated"
+)
+
+# Page bg/fg used for the "FG on base00" sample, picked from each variant's
+# own base00/base05 so the sample shows real on-canvas legibility.
+declare -A page_bg page_fg
+for e in "${entries[@]}"; do
+  read -r v k h <<<"$e"
+  case "$k" in
+    base00) page_bg[$v]="$h" ;;
+    base05) page_fg[$v]="$h" ;;
+  esac
+done
+
+hex_rgb() { printf '%d %d %d' "$((16#${1:0:2}))" "$((16#${1:2:2}))" "$((16#${1:4:2}))"; }
+
+render_variant() {
+  local v="$1"
+  read -r pr pg pb <<<"$(hex_rgb "${page_bg[$v]}")"
+
+  printf '\n  \033[1mbase16 %s scheme\033[0m  (from modules/themes/base16.nix)\n\n' "$v"
+  printf '  %-7s %-9s %-14s %-26s %s\n' "Key" "Hex" "Swatch" "FG on base00" "Role"
+  printf '  %s\n' "──────────────────────────────────────────────────────────────────────────"
+
+  for e in "${entries[@]}"; do
+    read -r ev k h <<<"$e"
+    [[ "$ev" == "$v" ]] || continue
+    read -r r g b <<<"$(hex_rgb "$h")"
+    printf '  %-7s #%s  \033[48;2;%d;%d;%dm            \033[0m  \033[48;2;%d;%d;%dm\033[38;2;%d;%d;%dm  Aa Bb 123 fn()  \033[0m  %s\n' \
+      "$k" "$h" "$r" "$g" "$b" "$pr" "$pg" "$pb" "$r" "$g" "$b" "${role[$k]:-}"
+  done
+  printf '\n'
+}
+
+case "$variant" in
+  dark|light) render_variant "$variant" ;;
+  both)       render_variant dark; render_variant light ;;
+esac
