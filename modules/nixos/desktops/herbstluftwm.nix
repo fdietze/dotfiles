@@ -23,8 +23,8 @@ lib.mkIf (config.my.desktop == "herbstluftwm") {
 
   xdg.portal = {
     enable = true;
-    configPackages = [ pkgs.xdg-desktop-portal-gtk ];
-    extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+    configPackages = [pkgs.xdg-desktop-portal-gtk];
+    extraPortals = [pkgs.xdg-desktop-portal-gtk];
     xdgOpenUsePortal = false; # make xdg-open use the portal to open programs
     config.common.default = "gtk";
   };
@@ -37,7 +37,7 @@ lib.mkIf (config.my.desktop == "herbstluftwm") {
   programs.xss-lock = {
     enable = true;
     # i3lock(1) recommends this xss-lock pattern so suspend waits until the screen is locked.
-    extraOptions = [ "--transfer-sleep-lock" ];
+    extraOptions = ["--transfer-sleep-lock"];
     # xss-lock does not run the locker through a shell; systemd expands %h for this user service.
     lockerCommand = ''
       ${config.programs.i3lock.package}/bin/i3lock-color \
@@ -51,5 +51,4 @@ lib.mkIf (config.my.desktop == "herbstluftwm") {
             --verif-color=00000000 --wrong-color=00000000
     '';
   };
-
 }

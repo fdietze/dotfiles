@@ -4,12 +4,10 @@
   desktop,
   theme,
   ...
-}:
-let
+}: let
   desktopRegistry = import ../desktop-registry.nix;
   hasThemeVariants = builtins.elem desktop desktopRegistry.themedDesktops;
-  switchToConfigurationPath =
-    mode: "/nix/var/nix/profiles/system/specialisation/${desktop}-${mode}/bin/switch-to-configuration";
+  switchToConfigurationPath = mode: "/nix/var/nix/profiles/system/specialisation/${desktop}-${mode}/bin/switch-to-configuration";
   nrsScript = pkgs.writeShellScriptBin "nrs" ''
     #!${pkgs.bash}/bin/bash
     set -euo pipefail
@@ -50,8 +48,7 @@ let
       --setenv=PATH="$PATH" \
       -- "''${cmd[@]}"
   '';
-  mkThemeSwitchScript =
-    mode:
+  mkThemeSwitchScript = mode:
     pkgs.writeShellScriptBin "theme-${mode}" ''
       #!${pkgs.bash}/bin/bash
       set -euo pipefail
@@ -61,19 +58,19 @@ let
       ${pkgs.systemd}/bin/systemctl --user stop theme-light.target theme-dark.target || true
       exec ${pkgs.systemd}/bin/systemctl --user start theme-${mode}.target
     '';
-in
-{
+in {
   home.file.".theme" = lib.mkIf hasThemeVariants {
     text = theme;
   };
 
-  home.packages = [
-    nrsScript
-  ]
-  ++ lib.optionals hasThemeVariants [
-    (mkThemeSwitchScript "light")
-    (mkThemeSwitchScript "dark")
-  ];
+  home.packages =
+    [
+      nrsScript
+    ]
+    ++ lib.optionals hasThemeVariants [
+      (mkThemeSwitchScript "light")
+      (mkThemeSwitchScript "dark")
+    ];
 
   systemd.user.targets = lib.mkIf hasThemeVariants {
     "theme-light".Unit.Description = "Apply light theme hooks";

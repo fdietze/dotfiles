@@ -4,12 +4,9 @@
   lib,
   pkgs,
   ...
-}:
-let
+}: let
   firefoxAddons = flake-inputs.firefox-addons.packages.${pkgs.stdenv.hostPlatform.system};
-  extensionXpi =
-    addon:
-    "${addon}/share/mozilla/extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}/${addon.addonId}.xpi";
+  extensionXpi = addon: "${addon}/share/mozilla/extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}/${addon.addonId}.xpi";
   managedExtensions = with firefoxAddons; [
     consent-o-matic
     ctrl-number-to-switch-tabs
@@ -41,11 +38,10 @@ let
     ${ensureKeyword "todo" "https://to-do.live.com/tasks/AQMkADAwATNiZmYAZC04NGQ3LTIwZjgtMDACLTAwCgAuAAAD3baDRxAbx0_y4oq963F-OgEAsXRJSnW4pka7P111dILhqAAGgNCMBQAAAA=="}
     COMMIT;
   '';
-in
-{
+in {
   stylix.targets.firefox = {
     enable = true;
-    profileNames = [ "default-default" ];
+    profileNames = ["default-default"];
   };
 
   programs.firefox = {
@@ -125,7 +121,7 @@ in
                   ];
                 }
               ];
-              definedAliases = [ "ddg" ];
+              definedAliases = ["ddg"];
             };
             "google" = {
               urls = [
@@ -139,7 +135,7 @@ in
                   ];
                 }
               ];
-              definedAliases = [ "g" ];
+              definedAliases = ["g"];
             };
             "Google Maps" = {
               urls = [
@@ -147,7 +143,7 @@ in
                   template = "https://www.google.com/maps/search/{searchTerms}";
                 }
               ];
-              definedAliases = [ "m" ];
+              definedAliases = ["m"];
             };
             "Home Manager Options" = {
               urls = [
@@ -161,7 +157,7 @@ in
                   ];
                 }
               ];
-              definedAliases = [ "vh" ];
+              definedAliases = ["vh"];
             };
             "Nix Packages" = {
               urls = [
@@ -179,7 +175,7 @@ in
                   ];
                 }
               ];
-              definedAliases = [ "np" ];
+              definedAliases = ["np"];
             };
             "NixOS Options" = {
               urls = [
@@ -197,7 +193,7 @@ in
                   ];
                 }
               ];
-              definedAliases = [ "no" ];
+              definedAliases = ["no"];
             };
             "youtube" = {
               urls = [
@@ -211,7 +207,7 @@ in
                   ];
                 }
               ];
-              definedAliases = [ "y" ];
+              definedAliases = ["y"];
             };
             "Wikipedia" = {
               urls = [
@@ -225,7 +221,7 @@ in
                   ];
                 }
               ];
-              definedAliases = [ "w" ];
+              definedAliases = ["w"];
             };
             "GitHub" = {
               urls = [
@@ -239,7 +235,7 @@ in
                   ];
                 }
               ];
-              definedAliases = [ "gh" ];
+              definedAliases = ["gh"];
             };
             "GitHub Code" = {
               urls = [
@@ -257,7 +253,7 @@ in
                   ];
                 }
               ];
-              definedAliases = [ "ghc" ];
+              definedAliases = ["ghc"];
             };
           };
         };
@@ -265,7 +261,7 @@ in
     };
   };
 
-  home.activation.firefoxBookmarkKeywords = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+  home.activation.firefoxBookmarkKeywords = lib.hm.dag.entryAfter ["writeBoundary"] ''
     profile=${lib.escapeShellArg profilePath}
     places="$profile/places.sqlite"
 

@@ -2,7 +2,6 @@
   lib,
   rustPlatform,
 }:
-
 rustPlatform.buildRustPackage {
   pname = "polybar-status";
   version = "0.1.0";

@@ -3,9 +3,7 @@
   pkgs,
   lib,
   ...
-}:
-
-let
+}: let
   # Download the Intel OpenVINO models
   whisper-small-models-zip = pkgs.fetchurl {
     url = "https://huggingface.co/Intel/whisper.cpp-openvino-models/resolve/main/ggml-small-models.zip";
@@ -16,8 +14,8 @@ let
   whisper-small-models = pkgs.stdenv.mkDerivation {
     name = "whisper-small-openvino-models";
     src = whisper-small-models-zip;
-    nativeBuildInputs = [ pkgs.unzip pkgs.sox ];
-    buildInputs = [ pkgs.openvino whisper-cpp-openvino ];
+    nativeBuildInputs = [pkgs.unzip pkgs.sox];
+    buildInputs = [pkgs.openvino whisper-cpp-openvino];
 
     unpackPhase = ''
       unzip $src
@@ -36,7 +34,7 @@ let
 
       # Set up OpenVINO environment
       export LD_LIBRARY_PATH="${pkgs.openvino}/runtime/lib/intel64:$LD_LIBRARY_PATH"
-      
+
       # Run whisper-cli to trigger cache generation
       # The cache will be created in $out/ggml-small-encoder-openvino-cache
       cd $out
@@ -47,7 +45,7 @@ let
         --no-timestamps \
         --model $out/ggml-small.bin \
         -f "$DUMMY_WAV" || true
-      
+
       # Verify the cache was created
       if [ -d "$out/ggml-small-encoder-openvino-cache" ]; then
         echo "OpenVINO cache successfully pre-generated"
@@ -59,12 +57,14 @@ let
 
   # Build whisper-cpp with OpenVINO support
   whisper-cpp-openvino = pkgs.whisper-cpp.overrideAttrs (oldAttrs: {
-    nativeBuildInputs = (oldAttrs.nativeBuildInputs or [ ]) ++ [ pkgs.openvino ];
-    buildInputs = (oldAttrs.buildInputs or [ ]) ++ [ pkgs.openvino ];
-    cmakeFlags = (oldAttrs.cmakeFlags or [ ]) ++ [
-      "-DWHISPER_OPENVINO=ON"
-      "-DOpenVINO_DIR=${pkgs.openvino}/runtime/cmake"
-    ];
+    nativeBuildInputs = (oldAttrs.nativeBuildInputs or []) ++ [pkgs.openvino];
+    buildInputs = (oldAttrs.buildInputs or []) ++ [pkgs.openvino];
+    cmakeFlags =
+      (oldAttrs.cmakeFlags or [])
+      ++ [
+        "-DWHISPER_OPENVINO=ON"
+        "-DOpenVINO_DIR=${pkgs.openvino}/runtime/cmake"
+      ];
     doInstallCheck = false;
   });
 
@@ -132,9 +132,7 @@ let
     # Clean up the temporary files.
     rm -f "$STATE_FILE" "$WAV_FILE"
   '';
-
-in
-{
+in {
   # Install the scripts and dependencies
   home.packages = [
     dictate-start

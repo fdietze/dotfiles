@@ -1,5 +1,4 @@
-{ config, ... }:
-{
+{config, ...}: {
   xdg.userDirs = {
     download = "${config.home.homeDirectory}/downloads";
     extraConfig = {
@@ -11,12 +10,12 @@
   xdg.mimeApps = {
     enable = true;
     defaultApplications = {
-      "x-scheme-handler/http" = [ "firefox.desktop" ];
-      "x-scheme-handler/https" = [ "firefox.desktop" ];
-      "x-scheme-handler/about" = [ "firefox.desktop" ];
-      "image/jpeg" = [ "feh.desktop" ];
-      "image/png" = [ "feh.desktop" ];
-      "application/pdf" = [ "org.pwmt.zathura-pdf-mupdf.desktop" ];
+      "x-scheme-handler/http" = ["firefox.desktop"];
+      "x-scheme-handler/https" = ["firefox.desktop"];
+      "x-scheme-handler/about" = ["firefox.desktop"];
+      "image/jpeg" = ["feh.desktop"];
+      "image/png" = ["feh.desktop"];
+      "application/pdf" = ["org.pwmt.zathura-pdf-mupdf.desktop"];
     };
   };
 

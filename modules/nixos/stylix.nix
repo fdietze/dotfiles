@@ -3,13 +3,11 @@
   lib,
   uiFonts,
   ...
-}:
-let
+}: let
   desktopRegistry = import ../desktop-registry.nix;
   base16 = import ../themes/base16.nix;
   isThemed = builtins.elem config.my.desktop desktopRegistry.themedDesktops;
-in
-{
+in {
   # Stylix is enabled unconditionally so its home-manager auto-wire always
   # declares the stylix.* HM option path. Themed desktops opt their targets
   # in via the `targets` block below; unthemed desktops (noctalia-niri) leave

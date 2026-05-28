@@ -6,23 +6,22 @@
   hostLocal,
   uiFonts,
   ...
-}:
-let
+}: let
   specialisationHelpers = import ../../modules/nixos/specialisation-helpers.nix {
     inherit lib;
   };
-  allowedSudoCommands = [
-    "/run/current-system/sw/bin/cpupower frequency-set -u 400MHz"
-    "/run/current-system/sw/bin/cpupower frequency-set -u 800MHz"
-    "/run/current-system/sw/bin/cpupower frequency-set -u 2GHz"
-    "/run/current-system/sw/bin/cpupower frequency-set -u 3GHz"
-    "/run/current-system/sw/bin/cpupower frequency-set -u 4GHz"
-    "/run/current-system/sw/bin/cpupower frequency-set -g powersave"
-    "/run/current-system/sw/bin/cpupower frequency-set -g performance"
-  ]
-  ++ specialisationHelpers.sudoSwitchCommands;
-in
-{
+  allowedSudoCommands =
+    [
+      "/run/current-system/sw/bin/cpupower frequency-set -u 400MHz"
+      "/run/current-system/sw/bin/cpupower frequency-set -u 800MHz"
+      "/run/current-system/sw/bin/cpupower frequency-set -u 2GHz"
+      "/run/current-system/sw/bin/cpupower frequency-set -u 3GHz"
+      "/run/current-system/sw/bin/cpupower frequency-set -u 4GHz"
+      "/run/current-system/sw/bin/cpupower frequency-set -g powersave"
+      "/run/current-system/sw/bin/cpupower frequency-set -g performance"
+    ]
+    ++ specialisationHelpers.sudoSwitchCommands;
+in {
   imports = [
     ../../modules/options.nix
     ./power.nix
@@ -67,7 +66,7 @@ in
       "felix"
     ];
     # https://docs.noctalia.dev/v4/getting-started/nixos/
-    settings.substituters = [ "https://noctalia.cachix.org" ];
+    settings.substituters = ["https://noctalia.cachix.org"];
     settings.trusted-public-keys = [
       "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
     ];
@@ -78,7 +77,7 @@ in
       nixpkgs.flake = flake-inputs.nixpkgs;
     };
     # nix path to correspond to my flakes
-    nixPath = [ "nixpkgs=${flake-inputs.nixpkgs}" ];
+    nixPath = ["nixpkgs=${flake-inputs.nixpkgs}"];
   };
 
   home-manager.backupFileExtension = "hm-bak";
@@ -128,7 +127,7 @@ in
     };
 
     # Enable ARM64 emulation for Docker cross-architecture builds
-    binfmt.emulatedSystems = [ "aarch64-linux" ];
+    binfmt.emulatedSystems = ["aarch64-linux"];
 
     # extraModulePackages = [ config.boot.kernelPackages.exfat-nofuse ];
   };
@@ -158,11 +157,13 @@ in
       wheelNeedsPassword = false;
       extraRules = [
         {
-          users = [ "felix" ];
-          commands = map (command: {
-            inherit command;
-            options = [ "NOPASSWD" ];
-          }) allowedSudoCommands;
+          users = ["felix"];
+          commands =
+            map (command: {
+              inherit command;
+              options = ["NOPASSWD"];
+            })
+            allowedSudoCommands;
         }
       ];
     };
@@ -247,20 +248,20 @@ in
     # staticAltitude = 900.0;
     # staticAccuracy = 1000.0;
   };
-  users.users.geoclue.extraGroups = [ "networkmanager" ];
+  users.users.geoclue.extraGroups = ["networkmanager"];
 
   systemd.services = {
     # Keep automatic-timezoned available, but run it only after NetworkManager
     # reports a network change. Geoclue is then stopped again after one update
     # window so location polling does not remain a background cost.
-    automatic-timezoned.wantedBy = lib.mkForce [ ];
-    automatic-timezoned-geoclue-agent.wantedBy = lib.mkForce [ ];
+    automatic-timezoned.wantedBy = lib.mkForce [];
+    automatic-timezoned-geoclue-agent.wantedBy = lib.mkForce [];
     # Keep the package and unit installed for manual use, but do not start the
     # daemon at boot. `systemctl start tailscaled` brings it online when needed.
-    tailscaled.wantedBy = lib.mkForce [ ];
+    tailscaled.wantedBy = lib.mkForce [];
     update-timezone-on-network = {
       description = "Update timezone after network changes";
-      after = [ "NetworkManager.service" ];
+      after = ["NetworkManager.service"];
       serviceConfig.Type = "oneshot";
       script = ''
         ${pkgs.systemd}/bin/systemctl start automatic-timezoned.service
@@ -291,7 +292,7 @@ in
       libvdpau-va-gl
       vpl-gpu-rt
     ];
-    extraPackages32 = with pkgs.pkgsi686Linux; [ libva ];
+    extraPackages32 = with pkgs.pkgsi686Linux; [libva];
   };
   hardware.acpilight.enable = true;
   environment.sessionVariables = {
@@ -299,7 +300,7 @@ in
   }; # Force intel-media-driver
   hardware.sane = {
     enable = true; # scanners
-    extraBackends = [ pkgs.hplipWithPlugin ]; # HP scanner support
+    extraBackends = [pkgs.hplipWithPlugin]; # HP scanner support
   };
 
   hardware.bluetooth = {
@@ -367,8 +368,7 @@ in
   };
 
   environment = {
-    systemPackages =
-      with pkgs;
+    systemPackages = with pkgs;
       [
         # only the bare minimum here
         git
@@ -398,7 +398,7 @@ in
   # security.pam.services.betterlockscreen = { ... };
 
   programs.nix-ld.enable = true; # run non-nixos binaries on nixos
-  programs.nix-ld.libraries = [ ];
+  programs.nix-ld.libraries = [];
   programs.appimage.enable = true;
   programs.zsh.enable = true;
   programs.fish.enable = false;
@@ -431,12 +431,12 @@ in
     mkdir -p /run/nixos
     printf '%s\n' ${
       lib.escapeShellArg (
-        if config.isSpecialisation then
+        if config.isSpecialisation
+        then
           specialisationHelpers.specialisationName {
             inherit (config.my) desktop theme;
           }
-        else
-          ""
+        else ""
       )
     } > /run/nixos/current-specialisation
   '';
@@ -454,7 +454,7 @@ in
 
   # Start the driver at boot
   systemd.services.fprintd = {
-    wantedBy = [ "multi-user.target" ];
+    wantedBy = ["multi-user.target"];
     serviceConfig.Type = "simple";
   };
   # Install the driver
@@ -462,7 +462,7 @@ in
 
   services.xserver = {
     enable = true;
-    videoDrivers = [ "modesetting" ];
+    videoDrivers = ["modesetting"];
 
     xkb.layout = "de,de";
     xkb.variant = "neo,basic";
@@ -521,7 +521,7 @@ in
           uiFonts.monospace.name
           uiFonts.emoji.name
         ];
-        emoji = [ uiFonts.emoji.name ];
+        emoji = [uiFonts.emoji.name];
       };
     };
     fontDir.enable = true;
@@ -569,7 +569,7 @@ in
 
     printing = {
       enable = false;
-      drivers = [ pkgs.hplip ];
+      drivers = [pkgs.hplip];
     };
 
     acpid.enable = true;
@@ -624,8 +624,8 @@ in
   # };
   #
   # ensure the group exists
-  users.groups.plugdev = { };
-  users.groups.usb = { };
+  users.groups.plugdev = {};
+  users.groups.usb = {};
 
   services.udev.extraRules = ''
     SUBSYSTEM=="usb", ATTR{idVendor}=="cafe", ATTR{idProduct}=="4000", MODE="0660", GROUP="plugdev"

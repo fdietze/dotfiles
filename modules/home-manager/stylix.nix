@@ -2,21 +2,20 @@
   desktop,
   lib,
   ...
-}:
-let
+}: let
   desktopRegistry = import ../desktop-registry.nix;
   hasThemeVariants = builtins.elem desktop desktopRegistry.themedDesktops;
 in
-lib.mkIf hasThemeVariants {
-  stylix = {
-    autoEnable = false;
-    targets = {
-      rofi.enable = false;
-      neovim.enable = false;
-      nvf.enable = false;
-      qt.enable = true;
-      alacritty.enable = true;
-      gtk.enable = true;
+  lib.mkIf hasThemeVariants {
+    stylix = {
+      autoEnable = false;
+      targets = {
+        rofi.enable = false;
+        neovim.enable = false;
+        nvf.enable = false;
+        qt.enable = true;
+        alacritty.enable = true;
+        gtk.enable = true;
+      };
     };
-  };
-}
+  }

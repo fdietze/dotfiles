@@ -6,11 +6,9 @@
   theme,
   uiFonts,
   ...
-}:
-let
+}: let
   repoDir = "${config.home.homeDirectory}/projects/dotfiles";
-in
-{
+in {
   imports = [
     ./shell.nix
     ./dotfiles.nix
@@ -60,7 +58,7 @@ in
     enable = true;
     enableZshIntegration = true;
     nix-direnv.enable = true;
-    config = { }; # don't generate direnv.toml and use the existing one instead
+    config = {}; # don't generate direnv.toml and use the existing one instead
   };
 
   home.shell = {
@@ -475,7 +473,11 @@ in
       # Force the polarity-matched adw-gtk3 variant; Stylix's gtk target sets
       # `adw-gtk3` (the light/base variant) and would otherwise win/conflict.
       # Stylix's base16 recolor is applied via gtk.css on top of this base.
-      name = lib.mkForce (if theme == "light" then "adw-gtk3" else "adw-gtk3-dark");
+      name = lib.mkForce (
+        if theme == "light"
+        then "adw-gtk3"
+        else "adw-gtk3-dark"
+      );
       package = lib.mkForce pkgs.adw-gtk3;
     };
   };
@@ -559,7 +561,7 @@ in
                   ];
                 }
               ];
-              definedAliases = [ "ddg" ];
+              definedAliases = ["ddg"];
             };
             "google" = {
               urls = [
@@ -573,7 +575,7 @@ in
                   ];
                 }
               ];
-              definedAliases = [ "g" ];
+              definedAliases = ["g"];
             };
             "Home Manager Options" = {
               urls = [
@@ -587,7 +589,7 @@ in
                   ];
                 }
               ];
-              definedAliases = [ "vh" ];
+              definedAliases = ["vh"];
             };
             "Nix Packages" = {
               urls = [
@@ -605,7 +607,7 @@ in
                   ];
                 }
               ];
-              definedAliases = [ "np" ];
+              definedAliases = ["np"];
             };
             "NixOs Options" = {
               urls = [
@@ -623,7 +625,7 @@ in
                   ];
                 }
               ];
-              definedAliases = [ "np" ];
+              definedAliases = ["np"];
             };
             "youtube" = {
               urls = [
@@ -637,7 +639,7 @@ in
                   ];
                 }
               ];
-              definedAliases = [ "y" ];
+              definedAliases = ["y"];
             };
             "Wikipedia" = {
               urls = [
@@ -651,7 +653,7 @@ in
                   ];
                 }
               ];
-              definedAliases = [ "w" ];
+              definedAliases = ["w"];
             };
             "GitHub" = {
               urls = [
@@ -665,7 +667,7 @@ in
                   ];
                 }
               ];
-              definedAliases = [ "gh" ];
+              definedAliases = ["gh"];
             };
             "GitHub Code" = {
               urls = [
@@ -683,7 +685,7 @@ in
                   ];
                 }
               ];
-              definedAliases = [ "ghc" ];
+              definedAliases = ["ghc"];
             };
           };
           default = "ddg";

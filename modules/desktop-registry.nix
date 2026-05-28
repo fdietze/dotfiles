@@ -10,8 +10,7 @@ let
   unthemedDesktops = [
     "noctalia-niri"
   ];
-in
-{
+in {
   inherit themes themedDesktops unthemedDesktops;
 
   desktops = themedDesktops ++ unthemedDesktops;

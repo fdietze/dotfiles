@@ -4,14 +4,15 @@
   desktop,
   theme,
   ...
-}:
-let
+}: let
   desktopRegistry = import ../desktop-registry.nix;
   hasThemeVariants = builtins.elem desktop desktopRegistry.themedDesktops;
   currentThemeTarget = "theme-${theme}.target";
-  wallpaperTarget = mode: if mode == "light" then "desktop-light" else "desktop";
-  mkWallpaperScript =
-    mode:
+  wallpaperTarget = mode:
+    if mode == "light"
+    then "desktop-light"
+    else "desktop";
+  mkWallpaperScript = mode:
     pkgs.writeShellScript "apply-wallpaper-${mode}" ''
       #!${pkgs.bash}/bin/bash
       set -euo pipefail
@@ -93,61 +94,61 @@ let
       fi
     '';
 in
-lib.mkIf hasThemeVariants {
-  systemd.user.services.frottage = {
-    Unit = {
-      Description = "Frottage";
-      After = [
-        "graphical-session-pre.target"
-        "network-online.target"
-        "nss-lookup.target"
-      ]; # Ensure graphical session and network are available
-      Wants = [
-        "network-online.target"
-        "nss-lookup.target"
-      ]; # Require network connection
-      PartOf = [
-        "graphical-session.target"
-      ]; # Tie service lifetime to graphical session
+  lib.mkIf hasThemeVariants {
+    systemd.user.services.frottage = {
+      Unit = {
+        Description = "Frottage";
+        After = [
+          "graphical-session-pre.target"
+          "network-online.target"
+          "nss-lookup.target"
+        ]; # Ensure graphical session and network are available
+        Wants = [
+          "network-online.target"
+          "nss-lookup.target"
+        ]; # Require network connection
+        PartOf = [
+          "graphical-session.target"
+        ]; # Tie service lifetime to graphical session
+      };
+      Service = {
+        Type = "oneshot";
+        ExecStart = "${mkWallpaperScript theme}";
+      };
     };
-    Service = {
-      Type = "oneshot";
-      ExecStart = "${mkWallpaperScript theme}";
-    };
-  };
 
-  systemd.user.services."wallpaper-${theme}" = {
-    Unit = {
-      Description = "Apply ${theme} wallpaper";
-      After = [
-        "graphical-session.target"
-        "network-online.target"
-        "nss-lookup.target"
-      ];
-      Wants = [
-        "network-online.target"
-        "nss-lookup.target"
-      ];
-      PartOf = [ currentThemeTarget ];
+    systemd.user.services."wallpaper-${theme}" = {
+      Unit = {
+        Description = "Apply ${theme} wallpaper";
+        After = [
+          "graphical-session.target"
+          "network-online.target"
+          "nss-lookup.target"
+        ];
+        Wants = [
+          "network-online.target"
+          "nss-lookup.target"
+        ];
+        PartOf = [currentThemeTarget];
+      };
+      Service = {
+        Type = "oneshot";
+        ExecStart = "${mkWallpaperScript theme}";
+      };
+      Install.WantedBy = [currentThemeTarget];
     };
-    Service = {
-      Type = "oneshot";
-      ExecStart = "${mkWallpaperScript theme}";
-    };
-    Install.WantedBy = [ currentThemeTarget ];
-  };
 
-  systemd.user.timers.frottage = {
-    Unit = {
-      Description = "Frottage Timer";
+    systemd.user.timers.frottage = {
+      Unit = {
+        Description = "Frottage Timer";
+      };
+      Timer = {
+        OnActiveSec = "15s";
+        OnCalendar = "*-*-* 01,07,13,19:00:00 UTC";
+        Persistent = true; # Run job if missed due to suspend/shutdown
+      };
+      Install = {
+        WantedBy = ["timers.target"];
+      };
     };
-    Timer = {
-      OnActiveSec = "15s";
-      OnCalendar = "*-*-* 01,07,13,19:00:00 UTC";
-      Persistent = true; # Run job if missed due to suspend/shutdown
-    };
-    Install = {
-      WantedBy = [ "timers.target" ];
-    };
-  };
-}
+  }

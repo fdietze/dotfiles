@@ -1,5 +1,4 @@
-{ pkgs, ... }:
-{
+{pkgs, ...}: {
   home.shellAliases = {
     g = "git";
     gs = "git status";

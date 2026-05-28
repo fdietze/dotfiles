@@ -1,11 +1,6 @@
-{
-  lib,
-  ...
-}:
-let
+{lib, ...}: let
   desktopRegistry = import ./desktop-registry.nix;
-in
-{
+in {
   options.my = {
     desktop = lib.mkOption {
       type = lib.types.enum desktopRegistry.desktops;

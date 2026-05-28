@@ -3,7 +3,6 @@
   rustPlatform,
   git,
 }:
-
 rustPlatform.buildRustPackage {
   pname = "xcwd-home";
   version = "0.1.0";
@@ -12,7 +11,7 @@ rustPlatform.buildRustPackage {
   cargoLock.lockFile = ./Cargo.lock;
 
   # Integration tests spawn `git init` to verify the git-root promotion policy.
-  nativeCheckInputs = [ git ];
+  nativeCheckInputs = [git];
 
   meta.mainProgram = "xcwd-home";
 }

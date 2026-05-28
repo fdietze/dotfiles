@@ -1,6 +1,4 @@
-{
-  ...
-}: {
+{...}: {
   imports = [
     ../../modules/home-manager/shared.nix
     ../../modules/home-manager/firefox.nix
