@@ -274,6 +274,10 @@ in {
       # https://sw.kovidgoyal.net/kitty/conf/#opt-kitty.auto_reload_config
       auto_reload_config = 1;
       enable_audio_bell = "no";
+      # Allow apps (e.g. nvim OSC 52) to read/write clipboard without the
+      # confirmation popup. Default includes *-ask variants which prompt.
+      # https://sw.kovidgoyal.net/kitty/conf/#opt-kitty.clipboard_control
+      clipboard_control = "write-clipboard write-primary read-clipboard read-primary no-append";
     };
   };
   # Validate the generated kitty.conf at build time, mirroring the
