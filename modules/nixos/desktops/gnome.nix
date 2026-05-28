@@ -60,7 +60,6 @@ in
       defaultSession = "gnome";
       gdm = {
         enable = true;
-        wayland = true;
       };
     };
 
