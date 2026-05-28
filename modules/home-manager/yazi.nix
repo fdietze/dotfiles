@@ -31,18 +31,20 @@ lib.mkMerge [
           prepend_fetchers = [
             {
               id = "git";
+              group = "git";
               url = "*";
               run = "git";
             }
             {
               id = "git";
+              group = "git";
               url = "*/";
               run = "git";
             }
           ];
           prepend_previewers = [
             {
-              name = "*.parquet";
+              url = "*.parquet";
               run = "${pkgs.pqrs}/bin/pqrs head";
             }
             # Archive previewer
@@ -150,6 +152,7 @@ lib.mkMerge [
           p = "${homeDir}/projects";
           d = "${homeDir}/downloads";
           o = "${homeDir}/documents";
+          c = "${homeDir}/.config";
           m = "${homeDir}/MEGAsync";
           s = "${homeDir}/screenshots";
           D = "${homeDir}/Downloads";
@@ -181,7 +184,7 @@ lib.mkMerge [
             {
               on = [
                 "g"
-                "c"
+                "C"
               ];
               run = "plugin vcs-files";
               desc = "Show changed files in current git repo";
