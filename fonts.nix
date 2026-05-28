@@ -29,6 +29,6 @@
     desktop = 13;
     popups = 14;
     statusbar = 11;
-    terminal = 17;
+    terminal = 13;
   };
 }
