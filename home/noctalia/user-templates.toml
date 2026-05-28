@@ -40,3 +40,14 @@ input_path  = "/home/felix/projects/dotfiles/home/noctalia/templates/nvim-trigge
 output_path = "/home/felix/.config/noctalia/generated/nvim-trigger.txt"
 post_hook   = "/home/felix/bin/noctalia-retint-nvim"
 
+# Drives niri's focus-ring/border/shadow/tab-indicator colors from noctalia's
+# active scheme. The template is a copy of noctalia's stock niri.kdl
+# (Assets/Templates/niri.kdl) — kept in-repo so it can carry a runtime-generated
+# header. niri's config.kdl includes this file at the top level; niri auto-
+# watches included files for changes, so the post_hook is just a no-op load
+# trigger to keep behaviour consistent across noctalia template targets.
+[templates.niri]
+input_path  = "/home/felix/projects/dotfiles/home/noctalia/templates/niri.kdl"
+output_path = "/home/felix/.config/noctalia/generated/niri.kdl"
+post_hook   = "niri msg action load-config-file 2>/dev/null || true"
+
