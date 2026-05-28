@@ -221,17 +221,20 @@ in {
     enable = true;
     settings = {
       terminal.osc52 = "CopyPaste";
-      # font = {
-      #   normal.family = uiFonts.monospace.name;
-      #   size = uiFonts.sizes.terminal;
-      # };
+      # mkDefault so stylix's alacritty target (themed desktops) wins by normal
+      # priority. On unthemed desktops (noctalia-niri) stylix is gated off and
+      # this becomes the active font setting — without it alacritty falls back
+      # to its built-in 11pt default and renders smaller than kitty/wezterm.
+      font = lib.mkDefault {
+        normal.family = uiFonts.monospace.name;
+        size = uiFonts.sizes.terminal;
+      };
       scrolling.history = 100000;
       window.padding.x = 2;
       cursor.style = {
         blinking = "Never";
         shape = "Beam";
       };
-      # general.import = ["~/.config/alacritty/theme.toml"];
       keyboard.bindings = [
         # Maps Shift+Enter to send a special escape code.
         # We use a standard CSI sequence: \x1b[13;2u
@@ -308,8 +311,10 @@ in {
     });
     enableZshIntegration = true;
     extraConfig = ''
-      return {
-        color_scheme = "tokyonight_storm",
+      local wezterm = require 'wezterm'
+      local config = {
+        font = wezterm.font("${uiFonts.monospace.name}"),
+        font_size = ${toString uiFonts.sizes.terminal}.0,
         default_cursor_style = 'SteadyBar',
         cursor_blink_rate = 0,
         enable_tab_bar = false,
@@ -321,6 +326,22 @@ in {
         },
         enable_kitty_keyboard = true,
       }
+      -- Pull live colors from noctalia when running under noctalia-niri.
+      -- On other desktops this file won't exist and pcall returns false, so
+      -- stylix (or whatever theme mechanism is active) fills in the colors.
+      --
+      -- wezterm only watches its top-level config file for changes; files
+      -- loaded via dofile() are NOT auto-watched. Without explicit
+      -- add_to_config_reload_watch_list, switching theme via noctalia would
+      -- only take effect after wezterm's main config touched, leading to the
+      -- "launches in opposite theme / sometimes switches" race symptom.
+      local noctalia_path = os.getenv("HOME") .. "/.config/noctalia/generated/wezterm-colors.lua"
+      wezterm.add_to_config_reload_watch_list(noctalia_path)
+      local ok, noctalia_colors = pcall(dofile, noctalia_path)
+      if ok and type(noctalia_colors) == "table" then
+        for k, v in pairs(noctalia_colors) do config[k] = v end
+      end
+      return config
     '';
   };
   # programs.helix.enable = false;

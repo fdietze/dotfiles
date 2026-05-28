@@ -16,6 +16,7 @@ in
         qt.enable = true;
         alacritty.enable = true;
         kitty.enable = true;
+        wezterm.enable = true;
         gtk.enable = true;
       };
     };

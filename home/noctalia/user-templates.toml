@@ -15,6 +15,11 @@ input_path  = "/home/felix/projects/dotfiles/home/noctalia/templates/alacritty.t
 output_path = "/home/felix/.config/noctalia/generated/alacritty-colors.toml"
 post_hook   = ""
 
+[templates.wezterm]
+input_path  = "/home/felix/projects/dotfiles/home/noctalia/templates/wezterm-colors.lua"
+output_path = "/home/felix/.config/noctalia/generated/wezterm-colors.lua"
+post_hook   = ""
+
 # kitty's `auto_reload_config` (poll interval in seconds, set in
 # modules/home-manager/shared.nix) only watches kitty.conf itself, not files
 # brought in via `include`. SIGUSR1 forces a full config re-read in all
