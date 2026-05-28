@@ -553,6 +553,23 @@ in {
         # at runtime. Re-apply the correct scheme at startup by reading the
         # same trigger file the retint script uses. No-op on themed desktops
         # (gnome/herbstluftwm) where the trigger file doesn't exist.
+        # Auto-fetch missing flake inputs in nil LSP instead of prompting.
+        # See https://github.com/oxalica/nil/blob/main/docs/configuration.md
+        luaConfigRC.nilSettings = lib.mkAfter ''
+          vim.lsp.config("nil", {
+            settings = {
+              ["nil"] = {
+                nix = {
+                  flake = {
+                    autoArchive = true,
+                    autoEvalInputs = true,
+                  },
+                },
+              },
+            },
+          })
+        '';
+
         luaConfigRC.noctaliaTheme = lib.mkAfter ''
           do
             local trigger = vim.fn.expand("~/.config/noctalia/generated/nvim-trigger.txt")
