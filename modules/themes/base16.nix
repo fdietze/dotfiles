@@ -23,7 +23,7 @@
     base00 = "ffffff"; # bg (from primary.background)
     base01 = "eeeeee"; # bg_highlight (Generated light gray)
     base02 = "999999"; # bg_visual (from bright.black)
-    base03 = "666666"; # comment (from primary.dim_foreground)
+    base03 = "777777"; # comment (from primary.dim_foreground)
     base04 = "333333"; # fg_dark (Generated dark gray)
     base05 = "000000"; # fg (from primary.foreground)
     base06 = "000000"; # fg (reused primary.foreground)
@@ -35,6 +35,7 @@
     base0C = "00cab2"; # cyan (from normal.cyan)
     base0D = "0a94ff"; # blue (from normal.blue)
     base0E = "3b00cb"; # magenta (from normal.magenta)
-    base0F = "65cabe"; # teal (from bright.cyan)
+    base0F = "2da37a"; # teal (sea green; shifted from sabuni bright.cyan to
+                       # separate from base0C in light mode)
   };
 }
