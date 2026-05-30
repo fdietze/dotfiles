@@ -45,35 +45,11 @@ configuration entrypoints:
 - hosts/<hostname>/default.nix # host NixOS configuration
 - hosts/<hostname>/home.nix # host Home Manager configuration
 
+# Desktop specialisations and per-desktop gating
+- Each desktop is a NixOS specialisation built by `modules/nixos/specialisation-helpers.nix`, which sets `my.desktop` (and `my.theme` for themed desktops) via `lib.mkForce`. Boot picks one; `nrs [<spec>]` switches.
+- ALL desktop modules are imported unconditionally (e.g. both `desktops/herbstluftwm.nix` and `desktops/noctalia-niri.nix` in `hosts/<host>/home.nix`), then each guards its whole body with `lib.mkIf (desktop == "<name>")`. Only the matching desktop's block is active per specialisation, so home-manager config IS effectively spec-scoped even though the imports are shared.
+- Practical consequence: settings placed inside a `lib.mkIf (desktop == "X")` block (e.g. `xresources.properties` for the X11 desktop) only land in that specialisation's generation — they do not leak into other desktops.
+- Display managers differ per desktop: herbstluftwm uses lightdm (its `session-wrapper` sources `~/.xprofile`, runs `xrdb -merge ~/.Xresources`, then `eval exec ~/.xsession` to launch the WM — so `~/.Xresources` / home-manager `xresources.properties` are merged); noctalia-niri uses greetd running `niri-session` directly, which never runs `xrdb`, so X resources are inert there.
+
 # Process-improvement intake
 whenever the user makes a remark about *how to work* — a new rule, a refinement, an anti-pattern to avoid, a clarification of an existing convention — update AGENTS.md in the same turn. Don't acknowledge the rule only in chat; the chat is ephemeral, AGENTS.md is durable. Commit immediately, no batching. If the remark contradicts an existing rule, replace the old text rather than appending; AGENTS.md must speak with one voice. If you're unsure whether a remark is a process tweak or a one-off ask, default to writing it down — over-recording is cheap, under-recording is silent regression.
-
-<!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:ccf33ec3 -->
-## Beads Issue Tracker
-
-This project uses **bd (beads)** for issue tracking. Run `bd prime` to see full workflow context and commands.
-
-### Quick Reference
-
-```bash
-bd ready              # Find available work
-bd show <id>          # View issue details
-bd update <id> --claim  # Claim work
-bd close <id>         # Complete work
-```
-
-### Rules
-
-- Use `bd` for ALL task tracking — do NOT use TodoWrite, TaskCreate, or markdown TODO lists
-- Run `bd prime` for detailed command reference and session close protocol
-- Use `bd remember` for persistent knowledge — do NOT use MEMORY.md files
-- don't push/pull dolt
-
-**Architecture in one line:** issues live in a local Dolt DB; sync uses `refs/dolt/data` on your git remote; `.beads/issues.jsonl` is a passive export. See https://github.com/gastownhall/beads/blob/main/docs/SYNC_CONCEPTS.md for details and anti-patterns.
-
-## Session Completion
-
-1. **File issues for remaining work** - Create issues for anything that needs follow-up
-2. **Update issue status** - Close finished work, update in-progress items
-
-<!-- END BEADS INTEGRATION -->
