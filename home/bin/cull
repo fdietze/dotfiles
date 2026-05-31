@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail # https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail
+
+# cull — fullscreen photo/video reviewer + culler for the current directory.
+# Spec: docs/superpowers/specs/2026-05-31-cull-photo-culling-design.md
+
+command -v mpv >/dev/null 2>&1 || { echo "cull: mpv not found" >&2; exit 1; }
+command -v exiftool >/dev/null 2>&1 || { echo "cull: exiftool not found" >&2; exit 1; }
+
+# Supported extensions (exiftool -ext is case-insensitive).
+EXTS=(jpg jpeg png heic webp gif tiff tif bmp mp4 mov mkv avi webm m4v)
+ext_args=()
+for e in "${EXTS[@]}"; do ext_args+=(-ext "$e"); done
+
+tmpd="${XDG_RUNTIME_DIR:-/tmp}"
+datefile="$(mktemp "$tmpd/cull-dates.XXXXXX")"
+luafile="$(mktemp "$tmpd/cull-script.XXXXXX.lua")"
+trap 'rm -f "$datefile" "$luafile"' EXIT
+
+# Collect media in pwd (non-recursive: directory arg "." without -r) and get a
+# sortable date key = first non-"-" of DateTimeOriginal/CreateDate/MediaCreateDate/
+# FileModifyDate (-f prints "-" for missing; FileModifyDate always exists).
+# Known limitation: filenames containing "|" would break field splitting (rare).
+mapfile -t lines < <(
+  exiftool -m -f -q -d "%Y%m%d%H%M%S" "${ext_args[@]}" \
+    -p '${DateTimeOriginal}|${CreateDate}|${MediaCreateDate}|${FileModifyDate}|${FilePath}' . 2>/dev/null \
+  | awk -F'|' '{
+      key="00000000000000";
+      for (i=1; i<=4; i++) { if ($i != "-") { key=$i; break } }
+      print key "\t" $5
+    }' \
+  | sort -n
+)
+
+if [ "${#lines[@]}" -eq 0 ]; then
+  echo "cull: no images or videos in $(pwd)" >&2
+  exit 0
+fi
+
+# Split sorted lines into the mpv playlist and the path->date map for the overlay.
+playlist=()
+: > "$datefile"
+for line in "${lines[@]}"; do
+  key="${line%%$'\t'*}"
+  path="${line#*$'\t'}"
+  playlist+=("$path")
+  human="${key:0:4}-${key:4:2}-${key:6:2} ${key:8:2}:${key:10:2}:${key:12:2}"
+  printf '%s\t%s\n' "$path" "$human" >> "$datefile"
+done
+
+# (mpv launch added in Task 2)
+printf '%s\n' "${playlist[@]}"   # TEMPORARY: dry-run output, removed in Task 2
