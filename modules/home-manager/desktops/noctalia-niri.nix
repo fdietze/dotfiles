@@ -178,7 +178,9 @@ in
             // to steal focus, plus niri's set-urgent action). Colors come from
             // the noctalia include below — niri merges per-field, so an empty
             // `border { }` block is fine here as long as the include sets them.
-            border { }
+            border {
+              width 2
+            }
             tab-indicator {
               off
             }
