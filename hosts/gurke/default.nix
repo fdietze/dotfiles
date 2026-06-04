@@ -154,7 +154,7 @@ in {
   security = {
     sudo = {
       enable = true;
-      wheelNeedsPassword = false;
+      wheelNeedsPassword = true;
       extraRules = [
         {
           users = ["felix"];
