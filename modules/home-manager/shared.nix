@@ -278,6 +278,18 @@ in {
       # confirmation popup. Default includes *-ask variants which prompt.
       # https://sw.kovidgoyal.net/kitty/conf/#opt-kitty.clipboard_control
       clipboard_control = "write-clipboard write-primary read-clipboard read-primary no-append";
+      # Remote control socket — used by xcwd-home to query the focused
+      # window's cwd. /proc-based detection is unreliable on this system:
+      # (1) leaf_pid heuristic picks kitty's __atexit__ helper over the
+      # user's shell (newer starttime), (2) yama ptrace_scope=1 blocks
+      # /proc/<pid>/cwd readlink from non-ancestor callers — xcwd-home
+      # spawned by niri is sibling-subtree to the focused kitty.
+      # socket-only = no control via kitten ESC sequences, only the unix
+      # socket. Per-PID abstract socket avoids collisions across instances.
+      # https://sw.kovidgoyal.net/kitty/conf/#opt-kitty.allow_remote_control
+      # https://sw.kovidgoyal.net/kitty/conf/#opt-kitty.listen_on
+      allow_remote_control = "socket-only";
+      listen_on = "unix:@kitty-{kitty_pid}";
     };
   };
   # Validate the generated kitty.conf at build time, mirroring the

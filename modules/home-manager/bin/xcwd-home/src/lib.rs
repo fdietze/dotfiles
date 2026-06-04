@@ -56,8 +56,9 @@ pub fn apply_policy(dir: &Path, home: &Path) -> PathBuf {
     dir.to_path_buf()
 }
 
-// Tiny JSON pid extractor — niri's focused-window output is small and we only need one field.
-// Avoids pulling in serde_json (and the lockfile/network churn that adds under nix).
+// Tiny JSON field extractors — niri's focused-window and kitten @ ls outputs
+// are small and we only need one field. Avoids pulling in serde_json (and the
+// lockfile/network churn that adds under nix).
 pub fn extract_pid(json: &str) -> Option<i32> {
     let i = json.find("\"pid\"")?;
     let rest = json[i + 5..].trim_start();
@@ -68,6 +69,30 @@ pub fn extract_pid(json: &str) -> Option<i32> {
     rest[..end].parse().ok()
 }
 
+// kitten @ ls JSON: top-level OS windows array, each containing tabs/windows
+// objects. Only the inner window has a `cwd` field, so the first match is the
+// target window's cwd (we filter to one via --match state:focused).
+pub fn extract_cwd(json: &str) -> Option<String> {
+    let i = json.find("\"cwd\"")?;
+    let rest = json[i + 5..].trim_start();
+    let rest = rest.strip_prefix(':')?.trim_start();
+    let rest = rest.strip_prefix('"')?;
+    let end = rest.find('"')?;
+    Some(rest[..end].to_owned())
+}
+
+// /proc/<pid>/comm of a kitty window process is ".kitty-wrapped" (nix wrapper)
+// or "kitty". comm is world-readable (unlike /proc/<pid>/cwd), so this works
+// even for non-ancestor windows under yama ptrace_scope=1.
+pub fn is_kitty(pid: i32) -> bool {
+    fs::read_to_string(format!("/proc/{pid}/comm"))
+        .map(|c| c.contains("kitty"))
+        .unwrap_or(false)
+}
+
+// PID of the focused window's owning process. niri exposes it via IPC; X11
+// WMs (herbstluftwm) via xdotool. The pid is the terminal's server process —
+// for kitty that owns the remote-control socket queried by kitty_cwd.
 pub fn focused_pid() -> Option<i32> {
     if env::var_os("NIRI_SOCKET").is_some() {
         let out = Command::new("niri")
@@ -92,6 +117,25 @@ pub fn focused_pid() -> Option<i32> {
     None
 }
 
+// Query the focused kitty window's cwd via the per-PID remote control socket.
+// Bypasses /proc traversal entirely: under yama ptrace_scope=1 a non-ancestor
+// caller cannot readlink /proc/<shell>/cwd, and the leaf_pid heuristic picks
+// kitty's __atexit__ helper over the user's shell anyway.
+// Requires `allow_remote_control` + matching `listen_on` in kitty.conf
+// (configured in modules/home-manager/shared.nix).
+pub fn kitty_cwd(kitty_pid: i32) -> Option<PathBuf> {
+    let sock = format!("unix:@kitty-{kitty_pid}");
+    let out = Command::new("kitten")
+        .args(["@", "--to", &sock, "ls", "--match", "state:focused"])
+        .output()
+        .ok()?;
+    if !out.status.success() {
+        return None;
+    }
+    let s = std::str::from_utf8(&out.stdout).ok()?;
+    extract_cwd(s).map(PathBuf::from)
+}
+
 #[cfg(test)]
 mod unit {
     use super::*;
@@ -110,6 +154,12 @@ mod unit {
     #[test]
     fn extract_pid_missing() {
         assert_eq!(extract_pid(r#"{"title":"x"}"#), None);
+    }
+
+    #[test]
+    fn extract_cwd_basic() {
+        let json = r#"[{"tabs":[{"windows":[{"cwd":"/home/x/p","pid":2}]}]}]"#;
+        assert_eq!(extract_cwd(json), Some("/home/x/p".to_owned()));
     }
 
     #[test]
