@@ -57,9 +57,93 @@ local options = require 'mp.options'
 local o = { datefile = "" }
 options.read_options(o, "cull")
 
+-- Load the path -> human-date map written by the launcher. Index by full path and
+-- by basename, because mpv's "path" property may differ from the launched string.
+local dates, dates_by_name = {}, {}
+if o.datefile ~= "" then
+  local f = io.open(o.datefile, "r")
+  if f then
+    for line in f:lines() do
+      local p, d = line:match("^(.*)\t(.*)$")
+      if p then
+        dates[p] = d
+        dates_by_name[p:match("[^/]+$") or p] = d
+      end
+    end
+    f:close()
+  end
+end
+
+-- Persistent bottom-center date overlay, refreshed on each loaded file.
+local overlay = mp.create_osd_overlay("ass-events")
+local function show_date()
+  local p = mp.get_property("path") or ""
+  local name = mp.get_property("filename") or ""
+  local d = dates[p] or dates_by_name[name] or name
+  overlay.data = string.format("{\\an3\\fs28\\bord2}%s", d)
+  overlay:update()
+end
+mp.register_event("file-loaded", show_date)
+
 -- Arrow keys: navigate the playlist (override mpv's default LEFT/RIGHT seek).
 mp.add_key_binding("LEFT",  "cull-prev", function() mp.commandv("playlist-prev") end)
 mp.add_key_binding("RIGHT", "cull-next", function() mp.commandv("playlist-next") end)
+
+-- Home/End: jump to the first/last entry.
+mp.add_key_binding("HOME", "cull-first", function() mp.commandv("set", "playlist-pos", 0) end)
+mp.add_key_binding("END",  "cull-last", function()
+  local n = mp.get_property_number("playlist-count") or 1
+  mp.commandv("set", "playlist-pos", n - 1)
+end)
+
+-- On-screen feedback (~1.5s, plain text).
+local function feedback(text)
+  mp.osd_message(text, 1.5)
+end
+
+-- Absolute path of the current item (mpv paths are relative to working-directory).
+local function abs_current()
+  local p = mp.get_property("path")
+  if not p then return nil end
+  return utils.join_path(mp.get_property("working-directory"), p)
+end
+
+-- Absolute path of a target subdir in working-directory.
+local function subdir(name)
+  return utils.join_path(mp.get_property("working-directory"), name)
+end
+
+local function run(args)
+  local r = mp.command_native({ name = "subprocess", playback_only = false, args = args })
+  return r.status == 0
+end
+
+-- Del: move current file into ./trash and advance to the next.
+mp.add_key_binding("DEL", "cull-trash", function()
+  local src = abs_current(); if not src then return end
+  local dst = subdir("trash")
+  run({ "mkdir", "-p", dst })
+  if run({ "mv", "--", src, dst .. "/" }) then
+    feedback("→ trash")
+    mp.commandv("playlist-remove", "current")   -- auto-advances to next
+  else
+    feedback("✗ trash")
+  end
+end)
+
+-- 1 / 2: copy current file into ./1 or ./2, stay on the current item.
+local function copy_to(name)
+  local src = abs_current(); if not src then return end
+  local dst = subdir(name)
+  run({ "mkdir", "-p", dst })
+  if run({ "cp", "--", src, dst .. "/" }) then
+    feedback("→ " .. name .. " ✓")
+  else
+    feedback("✗ " .. name)
+  end
+end
+mp.add_key_binding("1", "cull-copy1", function() copy_to("1") end)
+mp.add_key_binding("2", "cull-copy2", function() copy_to("2") end)
 LUA
 
 mpv \
