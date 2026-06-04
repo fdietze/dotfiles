@@ -39,7 +39,7 @@
     }
   },
   "plugin": [
-    "@tarquinen/opencode-dcp@v3.1.3"
+    "@tarquinen/opencode-dcp@latest"
   ],
   "experimental": {
     "batch_tool": true
