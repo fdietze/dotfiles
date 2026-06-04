@@ -223,6 +223,15 @@
       vlc # video player
       mpv # video player
       neovide # neovim gui
+      (symlinkJoin {
+        name = "megasync";
+        paths = [megasync];
+        buildInputs = [makeWrapper];
+        postBuild = ''
+          wrapProgram $out/bin/megasync \
+            --set QT_QPA_PLATFORM "wayland;xcb"
+        '';
+      }) # cloud file storage and sync
       krusader # file manager with good directory comparison
       keepassxc # password manager
       libsecret.out # secret-tool to retrieve secrets from keepassxc
@@ -253,23 +262,18 @@
       (pkgs.callPackage ./bin/xcwd-home/package.nix {})
 
       # Wrap `claude` in the nono sandbox so it can't touch the rest of the system.
+      # `nice -n 19` + `ionice -c 3` keep claude from starving interactive work of
+      # CPU/IO when it spawns heavy subprocesses (builds, ripgrep over the tree).
       (pkgs.writeShellScriptBin "claude" ''
-        exec ${pkgs.nono}/bin/nono run --profile claude -- ${pkgs.claude-code}/bin/claude --dangerously-skip-permissions "$@"
+        exec ${pkgs.util-linux}/bin/ionice -c 3 ${pkgs.coreutils}/bin/nice -n 19 \
+          ${pkgs.nono}/bin/nono run --profile claude -- \
+          ${pkgs.claude-code}/bin/claude --dangerously-skip-permissions "$@"
       '')
 
       # Escape hatch: stock Claude on the host, with its own sandbox + permission prompts intact.
       (pkgs.writeShellScriptBin "vanilla-claude" ''
-        exec ${pkgs.claude-code}/bin/claude "$@"
+        exec ${pkgs.util-linux}/bin/ionice -c 3 ${pkgs.coreutils}/bin/nice -n 19 \
+          ${pkgs.claude-code}/bin/claude "$@"
       '')
-
-      (pkgs.symlinkJoin {
-        name = "megasync";
-        paths = [pkgs.megasync];
-        buildInputs = [pkgs.makeWrapper];
-        postBuild = ''
-          wrapProgram $out/bin/megasync \
-            --set QT_QPA_PLATFORM wayland
-        '';
-      }) # cloud file storage and sync
     ];
 }
