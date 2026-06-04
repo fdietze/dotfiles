@@ -351,7 +351,7 @@ in
         General = {
           contrastOpacity = 51;
           disabledTrayIcon = false;
-          drawColor = "#9ECE6A";
+          drawColor = sessionColors.accent;
           filenamePattern = "%F_%H-%M-%S";
           savePath = config.xdg.userDirs.extraConfig.XDG_SCREENSHOTS_DIR;
           savePathFixed = true;
@@ -436,22 +436,7 @@ in
     #   };
     # };
 
-    services.dunst = {
-      # https://github.com/dunst-project/dunst/blob/master/dunstrc
-      # old configFile = "$HOME/.config/dunst/dunstrc.old";
-      enable = true;
-      # settings = {
-      #   global = {
-      #     frame_width = 1;
-      #     frame_color = "#9ECE6A";
-      #     font = "Monospace 7";
-      #   };
-      #   urgency_normal = {
-      #     background = "#191C26";
-      #     foreground = "#eceff1";
-      #   };
-      # };
-    };
+    services.dunst.enable = true;
 
     programs.rofi = {
       # application launcher, window switcher, ssh launcher
