@@ -342,7 +342,20 @@ in {
     enable = true;
     enableOnBoot = false;
   };
+  # libvirt + virt-manager for KVM/QEMU VMs (alternative to VirtualBox).
+  # Wayland-native, virtio-gpu+virgl gives proper 3D for Linux guests.
+  # KVM and VBox coexist since kernel 6.0.
   programs.virt-manager.enable = true;
+  virtualisation.libvirtd = {
+    enable = true;
+    qemu = {
+      package = pkgs.qemu_kvm;
+      swtpm.enable = true; # vTPM (needed by Win11 etc.); OVMF is on by default
+    };
+  };
+  # SPICE USB redirect + virt-viewer integration
+  virtualisation.spiceUSBRedirection.enable = true;
+  services.spice-vdagentd.enable = true;
   virtualisation.containers.enable = true;
   virtualisation = {
     podman = {
@@ -659,6 +672,7 @@ in {
         "vboxusers"
         "adbusers"
         "kvm"
+        "libvirtd" # virt-manager / libvirtd socket access
         "scanner" # for HP scanner support
         "lp" # for printer access
       ];
