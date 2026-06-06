@@ -16,6 +16,8 @@ in {
     ./yazi.nix
     ./xdg.nix
     ./packages.nix
+    # Temporary scaffolding: a later task folds this into a core profile.
+    ./profiles/packages-cli.nix
     ./stylix.nix
     ./theme-switching.nix
     ./launchers.nix
