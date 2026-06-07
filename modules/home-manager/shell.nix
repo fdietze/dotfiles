@@ -85,6 +85,16 @@
     };
 
     initContent = ''
+      # Claude Code spawns `$SHELL -i` at startup and dumps all aliases /
+      # functions into ~/.claude/shell-snapshots/<file>.sh, which it sources
+      # before every Bash tool call. This makes Claude see e.g. `cat=bat`
+      # and get confused. The snapshot generator sources $HOME/.zshrc
+      # directly (ZDOTDIR is ignored on that codepath, verified via strings
+      # /nix/store/.../claude-code/bin/.claude-wrapped). Short-circuit here
+      # so Claude's snapshot stays empty; interactive sessions are
+      # unaffected because CLAUDECODE is only set by the Claude CLI.
+      [[ -n "$CLAUDECODE" ]] && return
+
       # old:
       # https://github.com/dottr/dottr/tree/master/yolk/zsh
       # https://github.com/fdietze/dotfiles/blob/master/.zshrc.vimode
