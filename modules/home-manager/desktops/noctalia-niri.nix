@@ -263,6 +263,17 @@ in
             open-on-workspace "8"
           }
 
+          // Unlock / secret-request dialogs open parented to the main KeePassXC
+          // window, so niri places them on workspace 8 and does NOT auto-focus
+          // them (parented children skip auto-focus). Force focus so niri
+          // switches to ws 8 the moment the prompt appears — otherwise an app
+          // requests a secret and the dialog sits unnoticed on another
+          // workspace. See niri wiki "Configuration: Window Rules > open-focused".
+          window-rule {
+            match app-id="^org\\.keepassxc\\.KeePassXC$" title="^Unlock Database - KeePassXC$"
+            open-focused true
+          }
+
           window-rule {
             match app-id="^VirtualBox Manager$"
             open-on-workspace "6"
