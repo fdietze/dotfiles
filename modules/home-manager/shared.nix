@@ -210,16 +210,21 @@ in {
   # };
 
   programs.ghostty = {
-    enable = false;
+    enable = true;
     enableBashIntegration = true;
     enableZshIntegration = true;
     enableFishIntegration = true;
     settings = {
+      # mkDefault so stylix's ghostty target (themed desktops) wins by normal
+      # priority — it sets font-family (monospace + emoji) and font-size from the
+      # same uiFonts source. On unthemed desktops (noctalia-niri) stylix is gated
+      # off and these become the active font settings. Mirrors the alacritty
+      # font = lib.mkDefault pattern below.
+      font-family = lib.mkDefault uiFonts.monospace.name;
+      font-size = lib.mkDefault uiFonts.sizes.terminal;
       window-padding-x = 2;
       window-decoration = "none";
-      font-family = uiFonts.monospace.name;
-      font-size = uiFonts.sizes.terminal;
-      confirm-close-surface = false; # don't confirm to close when a command is running
+      confirm-close-surface = false;
     };
   };
   programs.alacritty = {

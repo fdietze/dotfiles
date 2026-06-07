@@ -51,3 +51,16 @@ input_path  = "/home/felix/projects/dotfiles/home/noctalia/templates/niri.kdl"
 output_path = "/home/felix/.config/noctalia/generated/niri.kdl"
 post_hook   = "niri msg action load-config-file 2>/dev/null || true"
 
+# Ghostty pulls these colors via a `config-file` include (see noctalia-niri.nix)
+# and does not watch include'd files, so a reload must be forced. SIGUSR2 is
+# ghostty's ReloadSignal (Type=notify-reload in its shipped systemd unit). The
+# process comm under the nix wrapper is `.ghostty-wrapped`, but that is 16 chars
+# and Linux truncates comm to 15 (`.ghostty-wrappe`), so unlike kitty we cannot
+# `-x` match the full name; an unanchored match on `ghostty` hits the truncated
+# comm and won't match this hook's own shell. `|| true` keeps it clean when no
+# ghostty is running.
+[templates.ghostty]
+input_path  = "/home/felix/projects/dotfiles/home/noctalia/templates/ghostty-colors"
+output_path = "/home/felix/.config/noctalia/generated/ghostty-colors"
+post_hook   = "pkill -SIGUSR2 ghostty 2>/dev/null || true"
+

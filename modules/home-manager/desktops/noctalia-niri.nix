@@ -62,6 +62,20 @@ in
       include ${config.home.homeDirectory}/.config/noctalia/generated/kitty-colors.conf
     '';
 
+    # Ghostty: live colors from noctalia via a config-file include (ghostty's
+    # native split-config mechanism). config-file is processed at the end of the
+    # main config, so the generated palette overrides ghostty's defaults. The
+    # `?` prefix marks it optional: ghostty validates its config at HM activation
+    # (programs.ghostty's onChange runs `ghostty +validate-config`), and this
+    # file is noctalia-generated, so optional avoids a hard activation failure if
+    # it is ever absent. SIGUSR2 reload is handled in
+    # home/noctalia/user-templates.toml (ghostty's ReloadSignal, see its shipped
+    # systemd unit) since ghostty does not watch include'd files itself.
+    # https://ghostty.org/docs/config#splitting-into-multiple-files
+    programs.ghostty.settings.config-file = [
+      "?${config.home.homeDirectory}/.config/noctalia/generated/ghostty-colors"
+    ];
+
     # noctalia writes its full state (settings.json, colors.json, plugins, color
     # schemes) on every GUI change. mkOutOfStoreSymlink makes ~/.config/noctalia
     # a plain symlink to the repo so noctalia can keep writing while git tracks
