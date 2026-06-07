@@ -27,6 +27,14 @@ in
       # before niri starts the user session; without it $DISPLAY stays unset and
       # X11-only apps (VirtualBox, older Electron, etc.) refuse to launch.
       xwayland-satellite
+      # NetworkManager secret + polkit agent. Noctalia's wifi panel calls
+      # `nmcli connection up id <ssid>` via QML Process (no tty), so nmcli
+      # does not self-register as a secret agent; without an agent in the
+      # session NM returns "Secrets were required" even for system-stored
+      # psk-flags=0 profiles, and noctalia then deletes the saved profile
+      # (Services/Networking/NetworkService.qml forget() on secrets-error).
+      # nm-applet fills both agent roles; spawned headless from niri below.
+      networkmanagerapplet
     ];
 
     home.sessionVariables = {
@@ -150,6 +158,12 @@ in
           // Launch noctalia from the compositor. Systemd-startup is deprecated
           // upstream; spawn-at-startup is the supported entry point.
           spawn-at-startup "noctalia-shell"
+
+          // NetworkManager secret + polkit agent. Required so noctalia's wifi
+          // panel can connect to saved profiles; see home.packages comment.
+          // Tray icon is hidden because no system tray is rendered in this
+          // niri/noctalia session — agent keeps running headless.
+          spawn-at-startup "nm-applet" "--indicator"
 
           // Ask clients to skip drawing their own title bar / window decorations.
           // GTK/libadwaita and most Qt apps honour this; Electron typically does not.
