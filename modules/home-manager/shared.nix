@@ -296,6 +296,15 @@ in {
       allow_remote_control = "socket-only";
       listen_on = "unix:@kitty-{kitty_pid}";
     };
+    # Font-Zoom auf ctrl+plus/minus/0 wie in alacritty. kittys Defaults
+    # (kitty_mod+equal/minus/backspace) bleiben zusätzlich aktiv.
+    # https://sw.kovidgoyal.net/kitty/actions/#change-font-size
+    keybindings = {
+      "ctrl+plus" = "change_font_size current +1.0";
+      "ctrl+equal" = "change_font_size current +1.0";
+      "ctrl+minus" = "change_font_size current -1.0";
+      "ctrl+0" = "change_font_size current 0";
+    };
   };
   # Validate the generated kitty.conf at build time, mirroring the
   # `niri validate` pattern in noctalia-niri.nix. kitty has no first-class
@@ -305,19 +314,19 @@ in {
   # rendered yet) are warnings only and do not fail the check.
   home.packages = [
     (pkgs.runCommand "kitty-config-check" {
-      nativeBuildInputs = [pkgs.kitty];
+      nativeBuildInputs = [ pkgs.kitty ];
       conf = config.xdg.configFile."kitty/kitty.conf".source;
     } ''
       kitty +runpy '
-      import sys
-      from kitty.config import load_config
-      bad = []
-      load_config(sys.argv[1], accumulate_bad_lines=bad)
-      if bad:
-          for b in bad:
-              print(f"kitty.conf line {b.number}: {b.exception} | {b.line!r}", file=sys.stderr)
-          sys.exit(1)
-      ' "$conf"
+import sys
+from kitty.config import load_config
+bad = []
+load_config(sys.argv[1], accumulate_bad_lines=bad)
+if bad:
+    for b in bad:
+        print(f"kitty.conf line {b.number}: {b.exception} | {b.line!r}", file=sys.stderr)
+    sys.exit(1)
+' "$conf"
       mkdir -p $out
     '')
   ];
