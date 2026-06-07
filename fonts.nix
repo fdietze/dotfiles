@@ -24,11 +24,20 @@
     name = "Material Design Icons";
   };
 
+  # Single source of truth for the HiDPI scale across X11 and Wayland.
+  # 192 = 2 × 96 (integer 2× scaling). Consumers:
+  #   - herbstluftwm: Xft.dpi (lightdm session-wrapper merges ~/.Xresources)
+  #   - noctalia-niri: per-output `scale 2.0` (= 192/96) for eDP-1
+  #   - polybar: dpi-x / dpi-y (polybar's own DPI; does NOT read Xft.dpi)
+  # Toolkits that honour Xft.dpi (GTK/Pango, Qt, winit, Chromium on X11) follow
+  # automatically; native-Wayland apps follow the compositor scale.
+  dpi = 192;
+
   sizes = {
-    applications = 12;
-    desktop = 13;
-    popups = 14;
-    statusbar = 11;
-    terminal = 13;
+    applications = 9;
+    desktop = 9;
+    popups = 9;
+    statusbar = 9;
+    terminal = 9;
   };
 }

@@ -148,8 +148,10 @@ in {
     sys = "sudo systemctl";
     sysu = "systemctl --user";
     w = "watch --color --differences "; # trailing space is for alias expansion: https://unix.stackexchange.com/a/25329
-    chromium = "chromium --force-device-scale-factor=1.5"; # fix highdpi for chromium
-    google-chrome-stable = "google-chrome-stable --force-device-scale-factor=1.5"; # fix highdpi for chromium
+    # No --force-device-scale-factor: Chromium derives its device scale from the
+    # session itself — Xft.dpi 192 on X11 (herbstluftwm) and the per-output
+    # scale 2.0 on Wayland (niri). The old flag stacked multiplicatively on the
+    # Wayland compositor scale, over-zooming the UI.
     chromium-no-plugins = "chromium --disable-extensions --disable-plugins";
 
     lsblk = "lsblk -o NAME,RM,SIZE,FSTYPE,LABEL,MOUNTPOINT,RO,UUID";
@@ -614,7 +616,6 @@ in {
           "browser.compactmode.show" = true;
           "browser.uidensity" = 1;
           "browser.display.os-zoom-behavior" = 0;
-          "layout.css.devPixelsPerPx" = 1.6;
           "browser.fullscreen.autohide" = false;
           "browser.newtabpage.enabled" = false;
           "browser.tabs.inTitlebar" = 0;

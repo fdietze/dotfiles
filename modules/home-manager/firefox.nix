@@ -3,6 +3,7 @@
   flake-inputs,
   lib,
   pkgs,
+  uiFonts,
   ...
 }: let
   firefoxAddons = flake-inputs.firefox-addons.packages.${pkgs.stdenv.hostPlatform.system};
@@ -75,8 +76,13 @@ in {
           "browser.theme.content-theme" = 2;
           "browser.urlbar.showSearchSuggestionsFirst" = false;
           "font.default.x-western" = "sans-serif";
-          "layout.css.devPixelsPerPx" = "1.6";
+          # Pin Gecko's content device-pixel-ratio to the same factor the rest of
+          # the desktop uses (uiFonts.dpi / 96 = 2.0). Auto-detect via dpi=0 /
+          # devPixelsPerPx=-1 picks up some mix of Xft.dpi, gsettings text-scaling
+          # and gtk-xft-dpi and lands at ~1.58 on X11, so content fonts ended up
+          # smaller than the chrome (which GTK scales correctly on its own).
           "layout.css.dpi" = 0;
+          "layout.css.devPixelsPerPx" = toString (uiFonts.dpi / 96.0);
           "layout.css.scrollbar-width-thin.disabled" = true;
           "media.videocontrols.picture-in-picture.video-toggle.enabled" = false;
           "network.trr.excluded-domains" = "login.wifionice.de";

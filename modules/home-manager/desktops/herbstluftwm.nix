@@ -46,8 +46,12 @@
     '';
   };
   hlwmTitleFont = "${uiFonts.monospace.name}:size=${toString uiFonts.sizes.statusbar}";
-  hlwmTitleHeight = toString (uiFonts.sizes.statusbar + 6);
-  hlwmTitleDepth = toString (lib.max 4 (uiFonts.sizes.statusbar - 4));
+  # title_height / title_depth are pixel values, but the font size is pt — at
+  # Xft.dpi=192 Pango renders 1pt ≈ dpi/72 px and a full line ≈ font × 1.36, so
+  # the bar must be sized in DPI-aware pixels (= pt × dpi/72 × headroom) or the
+  # text gets clipped / sits in too-narrow a strip.
+  hlwmTitleHeight = toString (builtins.floor (uiFonts.sizes.statusbar * uiFonts.dpi / 72.0 * 1.5));
+  hlwmTitleDepth = toString (lib.max 4 (builtins.floor (uiFonts.sizes.statusbar * uiFonts.dpi / 72.0 * 0.5)));
   sessionColors = {
     background = withHash stylixPalette.base00;
     surface = withHash stylixPalette.base01;
@@ -268,11 +272,19 @@ in
     home.shellAliases = {
       hc = "${pkgs.herbstluftwm}/bin/herbstclient";
     };
-    home.sessionVariables = {
-      # Keep winit-based X11 apps like Alacritty from auto-scaling to the panel's
-      # physical DPI, so they match the Wayland session more closely.
-      WINIT_X11_SCALE_FACTOR = "1";
-    };
+    # HiDPI font scaling for the X11 session, matching the niri Wayland session's
+    # per-output scale 2.0 so fonts render at the same physical size and crispness
+    # across both desktops. Value comes from uiFonts.dpi (fonts.nix) so polybar
+    # picks the same number — polybar has its own DPI knob and does not read
+    # Xft.dpi.
+    #
+    # Written to ~/.Xresources (alongside home.pointerCursor's Xcursor.* props in
+    # shared.nix) and merged by lightdm's session-wrapper via `xrdb -merge`, which
+    # runs before it execs ~/.xsession to launch herbstluftwm. Toolkits read it:
+    # GTK/Pango, Qt, winit (Alacritty), and Chromium/Electron on X11 all derive
+    # their device scale from Xft.dpi. The niri spec uses greetd, which never runs
+    # xrdb, so this line is inert there (and only present in this spec anyway).
+    xresources.properties."Xft.dpi" = uiFonts.dpi;
 
     stylix.targets.dunst.enable = true;
 

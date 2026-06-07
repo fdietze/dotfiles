@@ -204,8 +204,16 @@ in
             scale 2.05
             position x=0 y=0
           }
-          // Built-in panel needs no block — niri auto-places it next to the
-          // external when both are connected, and at 0,0 when standalone.
+          // Built-in panel: forced to integer scale 2.0 to match the X11
+          // (herbstluftwm) session's Xft.dpi 192 = 2×96, so fonts render at the
+          // same physical size and crispness across both desktops. Without a
+          // block niri auto-picks a fractional scale (~1.5 at this panel's
+          // ~210 DPI), which renders larger and downsamples. niri still
+          // auto-places this output next to the external when both are
+          // connected, and at 0,0 when standalone.
+          output "eDP-1" {
+            scale 2.0
+          }
 
           // XREAL One Pro VR glasses (HDMI/DP). When plugged, the niri-vr-solo
           // user service (below) disables all other outputs so the glasses are

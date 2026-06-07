@@ -18,7 +18,13 @@
   statusbarFontSize = toString uiFonts.sizes.statusbar;
   statusbarClockFontSize = toString (uiFonts.sizes.statusbar + 5);
   statusbarIconFontSize = toString (uiFonts.sizes.statusbar + 3);
-  statusbarHeight = toString (uiFonts.sizes.statusbar * 2 + 4);
+  # Bar height in DPI-aware pixels. Polybar renders fonts using its own DPI
+  # (see dpi-x / dpi-y in bar/default below) — at uiFonts.dpi=192 a 10pt line is
+  # ~36px, so the old `size*2+4` formula (= 24px at size=10) leaves the text
+  # squeezed into a strip too narrow to read. Use the same pt→px relation
+  # Pango uses (px = pt × dpi/72) and add ~50 % headroom for line gap +
+  # vertical padding.
+  statusbarHeight = toString (builtins.floor (uiFonts.sizes.statusbar * uiFonts.dpi / 72.0 * 1.5));
   statusbarFont = style: offset: "${uiFonts.monospace.name}:style=${style}:size=${statusbarFontSize};${toString offset}";
   statusbarClockFont = style: offset: "${uiFonts.monospace.name}:style=${style}:size=${statusbarClockFontSize};${toString offset}";
   statusbarIconFont = style: offset: "${uiFonts.icons.name}:style=${style}:size=${statusbarIconFontSize};${toString offset}";
@@ -52,6 +58,12 @@
     # services.polybar.settings as the Nix-native form for Polybar config.
     "bar/default" = {
       "monitor" = "\${env:MONITOR:eDP-1}";
+      # Polybar has its own DPI knob and does NOT inherit Xft.dpi (default 0 =
+      # auto-detect from the X screen's mm dimensions, which Xorg pins to 96
+      # regardless of physical density). Pin it to uiFonts.dpi so font sizes
+      # match the rest of the desktop. https://github.com/polybar/polybar/wiki/Configuration#dpi
+      "dpi-x" = toString uiFonts.dpi;
+      "dpi-y" = toString uiFonts.dpi;
       "width" = "100%";
       "height" = statusbarHeight;
       "fixed-center" = false;
