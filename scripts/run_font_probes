@@ -7,29 +7,91 @@ family="${FONT_PROBE_FAMILY:-NotoSansM Nerd Font Mono}"
 size="${FONT_PROBE_SIZE:-17}"
 text="${FONT_PROBE_TEXT:-Hg}"
 
-run_probe() {
-  local name="$1"
-  shift
+save=0
+label=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --save) save=1; shift ;;
+    --label) label="$2"; shift 2 ;;
+    --label=*) label="${1#--label=}"; shift ;;
+    -h|--help)
+      echo "Usage: $0 [--save] [--label <tag>]"
+      echo "  --save        write a timestamped report under scripts/probe-results/"
+      echo "  --label TAG   tag for the report filename (default: auto-detected session)"
+      exit 0
+      ;;
+    *) echo "unknown arg: $1" >&2; exit 2 ;;
+  esac
+done
 
+run_probe() {
+  local name="$1"; shift
   echo "=== ${name} ==="
   "$@"
   echo
 }
 
-run_probe \
-  "GTK" \
-  "${script_dir}/font_probe.py" \
-  --family "${family}" \
-  --size "${size}" \
-  --text "${text}"
+session_tag() {
+  if [[ -n "${label}" ]]; then echo "$label"; return; fi
+  if [[ -n "${WAYLAND_DISPLAY:-}" ]]; then
+    echo "${XDG_CURRENT_DESKTOP:-wayland}"
+  elif [[ -n "${DISPLAY:-}" ]]; then
+    echo "${XDG_CURRENT_DESKTOP:-x11}"
+  else
+    echo "headless"
+  fi
+}
 
-run_probe \
-  "Qt" \
-  "${script_dir}/qt_font_probe.py" \
-  --family "${family}" \
-  --size "${size}" \
-  --text "${text}"
+environment_report() {
+  echo "=== environment ==="
+  echo "date=$(date -Iseconds)"
+  echo "host=$(hostname)"
+  echo "session_tag=$(session_tag)"
+  echo "XDG_SESSION_TYPE=${XDG_SESSION_TYPE:-}"
+  echo "XDG_CURRENT_DESKTOP=${XDG_CURRENT_DESKTOP:-}"
+  echo "DISPLAY=${DISPLAY:-}"
+  echo "WAYLAND_DISPLAY=${WAYLAND_DISPLAY:-}"
+  for v in GDK_SCALE GDK_DPI_SCALE QT_SCALE_FACTOR QT_AUTO_SCREEN_SCALE_FACTOR \
+           QT_FONT_DPI WINIT_X11_SCALE_FACTOR ELECTRON_OZONE_PLATFORM_HINT; do
+    echo "${v}=${!v:-}"
+  done
+  if command -v xrdb >/dev/null 2>&1 && [[ -n "${DISPLAY:-}" ]]; then
+    echo "Xft.dpi=$(xrdb -query 2>/dev/null | awk '/^Xft.dpi:/{print $2}')"
+  fi
+  if command -v xrandr >/dev/null 2>&1 && [[ -n "${DISPLAY:-}" ]]; then
+    echo "--- xrandr --- "
+    xrandr --query 2>/dev/null | grep -E "(connected|\*)" || true
+  fi
+  if command -v wlr-randr >/dev/null 2>&1 && [[ -n "${WAYLAND_DISPLAY:-}" ]]; then
+    echo "--- wlr-randr ---"
+    wlr-randr 2>/dev/null || true
+  fi
+  if command -v niri >/dev/null 2>&1 && [[ -n "${WAYLAND_DISPLAY:-}" ]]; then
+    echo "--- niri msg outputs ---"
+    niri msg outputs 2>/dev/null || true
+  fi
+  echo
+}
 
-run_probe \
-  "winit" \
-  "${script_dir}/winit_probe"
+run_all() {
+  environment_report
+  run_probe "GTK" \
+    "${script_dir}/font_probe.py" --family "${family}" --size "${size}" --text "${text}"
+  run_probe "Qt" \
+    "${script_dir}/qt_font_probe.py" --family "${family}" --size "${size}" --text "${text}"
+  run_probe "winit" \
+    "${script_dir}/winit_probe"
+  run_probe "Electron/Chromium" \
+    "${script_dir}/electron_probe"
+}
+
+if (( save )); then
+  outdir="${script_dir}/probe-results"
+  mkdir -p "$outdir"
+  ts="$(date +%Y%m%d-%H%M%S)"
+  outfile="${outdir}/${ts}-$(session_tag).txt"
+  run_all 2>&1 | tee "$outfile"
+  echo "saved: $outfile"
+else
+  run_all
+fi

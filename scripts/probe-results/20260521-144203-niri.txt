@@ -1,0 +1,144 @@
+=== environment ===
+date=2026-05-21T14:42:03+04:00
+host=gurke
+session_tag=niri
+XDG_SESSION_TYPE=wayland
+XDG_CURRENT_DESKTOP=niri
+DISPLAY=
+WAYLAND_DISPLAY=wayland-1
+GDK_SCALE=
+GDK_DPI_SCALE=
+QT_SCALE_FACTOR=
+QT_AUTO_SCREEN_SCALE_FACTOR=
+QT_FONT_DPI=
+WINIT_X11_SCALE_FACTOR=
+ELECTRON_OZONE_PLATFORM_HINT=
+--- niri msg outputs ---
+Output "AU Optronics 0x2036 Unknown" (eDP-1)
+  Current mode: 2560x1440 @ 60.012 Hz (preferred)
+  Variable refresh rate: not supported
+  Physical size: 310x170 mm
+  Logical position: 0, 0
+  Logical size: 1706x960
+  Scale: 1.5
+  Transform: normal
+  Available modes:
+    2560x1440@60.012 (current, preferred)
+
+
+=== GTK ===
+backend=GdkWaylandDisplay
+scale_factor=2
+monitor_geometry_px=1707x960+0+0
+font_family=NotoSansM Nerd Font Mono
+font_size_pt=17
+text='Hg'
+ascent_px=24.23
+descent_px=6.64
+line_height_px=30.87
+approx_char_width_px=13.60
+layout_ink_px=25x22+1+8
+layout_logical_px=28x31+0+0
+label_alloc_px=779x31
+window_alloc_px=843x924
+
+=== Qt ===
+platform=wayland
+screen_geometry_px=1707x960+0+0
+device_pixel_ratio=2.000
+logical_dpi=96.00
+physical_dpi=141.65
+font_family=NotoSansM Nerd Font Mono
+font_size_pt=17
+text='Hg'
+ascent_px=24.58
+descent_px=6.73
+height_px=31.31
+line_spacing_px=31.31
+horizontal_advance_px=27.59
+bounding_rect_px=25.00x31.31
+label_size_px=821x448
+window_size_px=843x924
+
+=== winit ===
+backend=wayland
+scale_factor=1.500
+inner_size_px=1265x1386
+outer_size_px=1265x1386
+
+=== Electron/Chromium ===
+## headless (flag plumbing — does NOT reflect real session DPR)
+--- chromium (default flags) ---
+devicePixelRatio=1
+screen_css_px=800x600
+inner_css_px=780x441
+computed_font_size_px=22.6667px
+sample_bbox_px=43.19x47.00
+user_agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.0.0 Safari/537.36
+
+--- chromium --force-device-scale-factor=1.5 ---
+devicePixelRatio=1.5
+screen_css_px=534x400
+inner_css_px=534x261
+computed_font_size_px=22.6667px
+sample_bbox_px=43.21x46.67
+user_agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.0.0 Safari/537.36
+
+--- chromium --force-device-scale-factor=2 ---
+devicePixelRatio=2
+screen_css_px=400x300
+inner_css_px=500x161
+computed_font_size_px=22.6667px
+sample_bbox_px=43.20x46.50
+user_agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.0.0 Safari/537.36
+
+## headed (real window on current session — Wayland (chromium will pick X11 via XWayland by default))
+--- chromium (default flags — what plain Electron apps see) ---
+dpr=1.5
+screen_css_px=1707x960
+inner_css_px=843x834
+body_font_pt=17
+body_font_px=22.6667px
+big_font_pt=32
+big_font_px=42.6667px
+big_bbox_px=747.33x58.00
+platform=Linux x86_64
+ua=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+
+--- chromium --force-device-scale-factor=1.5 ---
+dpr=2.25
+screen_css_px=1707x960
+inner_css_px=552x512
+body_font_pt=17
+body_font_px=22.6667px
+big_font_pt=32
+big_font_px=42.6667px
+big_bbox_px=456.00x58.22
+platform=Linux x86_64
+ua=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+
+--- chromium --force-device-scale-factor=2 ---
+dpr=3
+screen_css_px=1707x960
+inner_css_px=500x351
+body_font_pt=17
+body_font_px=22.6667px
+big_font_pt=32
+big_font_px=42.6667px
+big_bbox_px=404.00x58.33
+platform=Linux x86_64
+ua=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+
+--- chromium --ozone-platform=wayland (native Wayland, no XWayland) ---
+dpr=1.5
+screen_css_px=1707x960
+inner_css_px=843x834
+body_font_pt=17
+body_font_px=22.6667px
+big_font_pt=32
+big_font_px=42.6667px
+big_bbox_px=747.33x58.00
+platform=Linux x86_64
+ua=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+
+rm: cannot remove '/tmp/tmp.gZtejdsX3r/headed-65789-10521/Default': Directory not empty

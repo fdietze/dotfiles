@@ -1,0 +1,211 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+family="${FONT_PROBE_FAMILY:-NotoSansM Nerd Font Mono}"
+size="${FONT_PROBE_SIZE:-17}"
+text="${FONT_PROBE_TEXT:-Hg}"
+
+if ! command -v chromium >/dev/null 2>&1; then
+  echo "chromium not in PATH" >&2
+  exit 1
+fi
+
+tmpdir="$(mktemp -d)"
+trap 'rm -rf "$tmpdir"; pkill -P $$ 2>/dev/null || true' EXIT
+
+# -----------------------------------------------------------------------------
+# Headless probe — flag plumbing only.
+# Headless ignores the compositor; DPR/screen here are synthetic and tell you
+# nothing about what Signal actually sees on screen.
+# -----------------------------------------------------------------------------
+
+headless_html="$tmpdir/headless.html"
+cat > "$headless_html" <<HTML
+<!doctype html><meta charset="utf-8">
+<style>#s{font-family:'${family}',monospace;font-size:${size}pt;background:rgba(255,210,0,.2);padding:8px;display:inline-block}</style>
+<span id="s">${text}</span><pre id="out">pending</pre>
+<script>
+const s=document.getElementById('s'), cs=getComputedStyle(s), r=s.getBoundingClientRect();
+document.getElementById('out').textContent=[
+  'devicePixelRatio='+devicePixelRatio,
+  'screen_css_px='+screen.width+'x'+screen.height,
+  'inner_css_px='+innerWidth+'x'+innerHeight,
+  'computed_font_size_px='+cs.fontSize,
+  'sample_bbox_px='+r.width.toFixed(2)+'x'+r.height.toFixed(2),
+  'user_agent='+navigator.userAgent,
+].join('\n');
+</script>
+HTML
+
+run_headless() {
+  local label="$1"; shift
+  echo "--- ${label} ---"
+  chromium --headless=new --no-sandbox --disable-gpu --hide-scrollbars \
+    --virtual-time-budget=2000 \
+    --user-data-dir="$tmpdir/headless-profile" \
+    --dump-dom "file://${headless_html}" "$@" 2>/dev/null \
+    | python3 -c '
+import re, sys
+m=re.search(r"<pre id=\"out\">(.*?)</pre>", sys.stdin.read(), re.DOTALL)
+print(m.group(1) if m else "(no metrics)")
+'
+  echo
+}
+
+echo "## headless (flag plumbing — does NOT reflect real session DPR)"
+run_headless "chromium (default flags)"
+run_headless "chromium --force-device-scale-factor=1.5" --force-device-scale-factor=1.5
+run_headless "chromium --force-device-scale-factor=2"   --force-device-scale-factor=2
+
+if [[ "${HEADLESS_ONLY:-0}" = "1" ]] || { [[ -z "${DISPLAY:-}" && -z "${WAYLAND_DISPLAY:-}" ]]; }; then
+  if [[ "${HEADLESS_ONLY:-0}" != "1" ]]; then
+    echo "## headed: skipped (no DISPLAY or WAYLAND_DISPLAY)"
+  fi
+  exit 0
+fi
+
+# -----------------------------------------------------------------------------
+# Headed probe — real window on the current session.
+# Approach: spawn a one-shot HTTP server that serves the probe page; the page's
+# JS POSTs metrics back same-origin. Bypasses the file:// title-update issue
+# and works identically on X11 and Wayland.
+# -----------------------------------------------------------------------------
+
+helper="$tmpdir/probe_server.py"
+cat > "$helper" <<'PYEOF'
+import json, sys, threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
+family, size, text = sys.argv[1], sys.argv[2], sys.argv[3]
+
+HTML = f"""<!doctype html><meta charset=utf-8>
+<style>
+  html,body{{margin:0;padding:24px;background:#1e1e2e;color:#cdd6f4;
+            font-family:'{family}',monospace;font-size:{size}pt}}
+  #big{{font-size:32pt}}
+</style>
+<div id=big>{text}</div>
+<div id=info>measuring…</div>
+<script>
+(async () => {{
+  const big = document.getElementById('big');
+  const csBody = getComputedStyle(document.body);
+  const csBig = getComputedStyle(big);
+  const r = big.getBoundingClientRect();
+  const data = {{
+    dpr: window.devicePixelRatio,
+    screen_css_px: screen.width + 'x' + screen.height,
+    inner_css_px: innerWidth + 'x' + innerHeight,
+    body_font_pt: '{size}',
+    body_font_px: csBody.fontSize,
+    big_font_pt: '32',
+    big_font_px: csBig.fontSize,
+    big_bbox_px: r.width.toFixed(2) + 'x' + r.height.toFixed(2),
+    platform: navigator.platform,
+    ua: navigator.userAgent,
+  }};
+  document.getElementById('info').textContent = JSON.stringify(data, null, 2);
+  await fetch('/report', {{method: 'POST', body: JSON.stringify(data)}});
+}})();
+</script>
+"""
+
+captured = []
+done = threading.Event()
+
+class H(BaseHTTPRequestHandler):
+    def do_GET(self):
+        body = HTML.encode()
+        self.send_response(200)
+        self.send_header('content-type', 'text/html; charset=utf-8')
+        self.send_header('content-length', str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def do_POST(self):
+        n = int(self.headers.get('content-length', '0'))
+        captured.append(self.rfile.read(n).decode())
+        self.send_response(204)
+        self.end_headers()
+        done.set()
+
+    def log_message(self, *a, **kw):
+        pass
+
+srv = HTTPServer(('127.0.0.1', 0), H)
+print(srv.server_port, flush=True)  # report bound port on stdout
+
+def serve():
+    while not done.is_set():
+        srv.handle_request()
+
+t = threading.Thread(target=serve, daemon=True)
+t.start()
+
+# Wait up to 15 s for chromium to load + post
+done.wait(timeout=15)
+
+if captured:
+    d = json.loads(captured[0])
+    for k, v in d.items():
+        print(f"{k}={v}", file=sys.stderr)
+else:
+    print("(timeout — no POST received)", file=sys.stderr)
+PYEOF
+
+run_headed() {
+  local label="$1"; shift
+  echo "--- ${label} ---"
+
+  local err_file="$tmpdir/srv-err-$$-$RANDOM"
+  local port_file="$tmpdir/srv-port-$$-$RANDOM"
+  : >"$err_file" >"$port_file"
+
+  python3 "$helper" "$family" "$size" "$text" \
+    >"$port_file" 2>"$err_file" &
+  local hpid=$!
+
+  # Wait briefly for the helper to bind a port and write it.
+  local port=""
+  for _ in $(seq 1 20); do
+    sleep 0.1
+    port=$(command cat "$port_file" 2>/dev/null | tr -d '[:space:]')
+    [[ -n "$port" ]] && break
+  done
+  if [[ -z "$port" ]]; then
+    echo "(helper failed to start)"
+    command cat "$err_file"
+    return
+  fi
+
+  local profile="$tmpdir/headed-$$-$RANDOM"
+  mkdir -p "$profile"
+
+  chromium \
+    --user-data-dir="$profile" \
+    --no-first-run --no-default-browser-check \
+    --window-size=640,360 \
+    "$@" \
+    "http://127.0.0.1:${port}/" >/dev/null 2>&1 &
+  local cpid=$!
+
+  # The helper has its own 15s internal timeout; just wait for it.
+  wait "$hpid" 2>/dev/null || true
+
+  kill "$cpid" 2>/dev/null || true
+  command cat "$err_file"
+  echo
+}
+
+backend_label="X11"
+[[ -n "${WAYLAND_DISPLAY:-}" ]] && backend_label="Wayland (chromium will pick X11 via XWayland by default)"
+echo "## headed (real window on current session — ${backend_label})"
+
+run_headed "chromium (default flags — what plain Electron apps see)"
+run_headed "chromium --force-device-scale-factor=1.5" --force-device-scale-factor=1.5
+run_headed "chromium --force-device-scale-factor=2"   --force-device-scale-factor=2
+
+if [[ -n "${WAYLAND_DISPLAY:-}" ]]; then
+  run_headed "chromium --ozone-platform=wayland (native Wayland, no XWayland)" \
+    --ozone-platform=wayland
+fi

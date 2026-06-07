@@ -1,0 +1,134 @@
+=== environment ===
+date=2026-05-30T22:49:29+04:00
+host=gurke
+session_tag=none+herbstluftwm
+XDG_SESSION_TYPE=x11
+XDG_CURRENT_DESKTOP=none+herbstluftwm
+DISPLAY=:0
+WAYLAND_DISPLAY=
+GDK_SCALE=
+GDK_DPI_SCALE=
+QT_SCALE_FACTOR=
+QT_AUTO_SCREEN_SCALE_FACTOR=
+QT_FONT_DPI=
+WINIT_X11_SCALE_FACTOR=1
+ELECTRON_OZONE_PLATFORM_HINT=
+Xft.dpi=
+--- xrandr --- 
+eDP-1 connected primary 2560x1440+0+0 (normal left inverted right x axis y axis) 309mm x 174mm
+   2560x1440     60.01*+  59.99    59.99    59.96    59.95  
+DP-1 disconnected (normal left inverted right x axis y axis)
+HDMI-1 disconnected (normal left inverted right x axis y axis)
+DP-2 disconnected (normal left inverted right x axis y axis)
+HDMI-2 disconnected (normal left inverted right x axis y axis)
+
+=== GTK ===
+
+(font_probe.py:32952): Gtk-WARNING **: 22:49:33.582: Error setting gtk-interface-color-scheme in /home/felix/.config/gtk-4.0/settings.ini: Key file contains key “gtk-interface-color-scheme” which has a value that cannot be interpreted.
+backend=GdkX11Display
+scale_factor=1
+monitor_geometry_px=2560x1440+0+0
+font_family=NotoSansM Nerd Font Mono
+font_size_pt=17
+text='Hg'
+ascent_px=24.23
+descent_px=6.64
+line_height_px=30.87
+approx_char_width_px=13.60
+layout_ink_px=25x22+1+8
+layout_logical_px=28x31+0+0
+label_alloc_px=784x31
+window_alloc_px=848x701
+
+=== Qt ===
+platform=xcb
+screen_geometry_px=2560x1440+0+0
+device_pixel_ratio=1.000
+logical_dpi=96.00
+physical_dpi=210.32
+font_family=NotoSansM Nerd Font Mono
+font_size_pt=17
+text='Hg'
+ascent_px=24.58
+descent_px=6.73
+height_px=31.31
+line_spacing_px=31.31
+horizontal_advance_px=27.59
+bounding_rect_px=25.00x31.31
+label_size_px=1693x345
+window_size_px=1701x701
+
+=== winit ===
+backend=xlib
+scale_factor=1.000
+inner_size_px=640x240
+outer_size_px=640x240
+monitor_name=eDP-1
+monitor_scale_factor=1.000
+monitor_size_px=2560x1440
+monitor_position_px=0x0
+
+=== Electron/Chromium ===
+## headless (flag plumbing — does NOT reflect real session DPR)
+--- chromium (default flags) ---
+devicePixelRatio=1
+screen_css_px=800x600
+inner_css_px=780x441
+computed_font_size_px=22.6667px
+sample_bbox_px=43.19x47.00
+user_agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.0.0 Safari/537.36
+
+--- chromium --force-device-scale-factor=1.5 ---
+devicePixelRatio=1.5
+screen_css_px=534x400
+inner_css_px=534x261
+computed_font_size_px=22.6667px
+sample_bbox_px=43.21x46.67
+user_agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.0.0 Safari/537.36
+
+--- chromium --force-device-scale-factor=2 ---
+devicePixelRatio=2
+screen_css_px=400x300
+inner_css_px=500x161
+computed_font_size_px=22.6667px
+sample_bbox_px=43.20x46.50
+user_agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.0.0 Safari/537.36
+
+## headed (real window on current session — X11)
+--- chromium (default flags — what plain Electron apps see) ---
+dpr=1
+screen_css_px=2560x1440
+inner_css_px=640x269
+body_font_pt=17
+body_font_px=22.6667px
+big_font_pt=32
+big_font_px=42.6667px
+big_bbox_px=544.00x58.00
+platform=Linux x86_64
+ua=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+
+--- chromium --force-device-scale-factor=1.5 ---
+dpr=1.5
+screen_css_px=1706x960
+inner_css_px=640x269
+body_font_pt=17
+body_font_px=22.6667px
+big_font_pt=32
+big_font_px=42.6667px
+big_bbox_px=544.00x58.00
+platform=Linux x86_64
+ua=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+
+--- chromium --force-device-scale-factor=2 ---
+dpr=2
+screen_css_px=1280x720
+inner_css_px=640x269
+body_font_pt=17
+body_font_px=22.6667px
+big_font_pt=32
+big_font_px=42.6667px
+big_bbox_px=544.00x58.00
+platform=Linux x86_64
+ua=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+
+
