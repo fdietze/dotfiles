@@ -20,6 +20,7 @@ in {
     ./profiles/packages-cli.nix
     ./stylix.nix
     ./theme-switching.nix
+    ./icon-themes.nix
     ./launchers.nix
     ./wallpaper.nix
     # ./home/dictate.nix
@@ -554,13 +555,9 @@ in {
 
   gtk = {
     enable = true;
-    iconTheme = {
-      # Prefer Adwaita's symbolic status icons for tray clients. Polybar's
-      # tray-foreground is only a protocol hint, so the GTK icon theme is the
-      # stronger declarative source for monochrome-capable apps.
-      name = "Adwaita";
-      package = pkgs.adwaita-icon-theme;
-    };
+    # iconTheme is set in ./icon-themes.nix (themed desktops only). On unthemed
+    # desktops (noctalia-niri) the icon theme is owned by noctalia templates
+    # that rewrite gtk-3.0/settings.ini and qt6ct.conf on every darkMode toggle.
     theme = {
       # Force the polarity-matched adw-gtk3 variant; Stylix's gtk target sets
       # `adw-gtk3` (the light/base variant) and would otherwise win/conflict.

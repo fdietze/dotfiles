@@ -18,6 +18,10 @@
     if theme == "light"
     then "prefer-light"
     else "prefer-dark";
+  gnomeIconTheme =
+    if theme == "dark"
+    then "Papirus-Dark"
+    else "Papirus";
   applyGnomeTheme = pkgs.writeShellScript "apply-gnome-theme-${theme}" ''
     #!${pkgs.bash}/bin/bash
     set -euo pipefail
@@ -27,6 +31,7 @@
     fi
 
     ${pkgs.glib}/bin/gsettings set org.gnome.desktop.interface color-scheme ${lib.escapeShellArg gnomeColorScheme}
+    ${pkgs.glib}/bin/gsettings set org.gnome.desktop.interface icon-theme ${lib.escapeShellArg gnomeIconTheme}
   '';
   paperwmExtensionId = "paperwm@paperwm.github.com";
   paperwmLatest = pkgs.gnomeExtensions.paperwm.overrideAttrs (_: {
@@ -219,7 +224,7 @@ in
       "org/gnome/desktop/interface" = {
         clock-show-weekday = true;
         color-scheme = lib.mkForce gnomeColorScheme;
-        # icon-theme = "Qogir-Dark";
+        icon-theme = lib.mkForce gnomeIconTheme;
         show-battery-percentage = true;
       };
 
