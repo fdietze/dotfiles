@@ -25,7 +25,7 @@
         "showIconBackground": false,
         "sortByMostUsed": true,
         "terminalCommand": "terminal-here",
-        "viewMode": "list"
+        "viewMode": "grid"
     },
     "audio": {
         "mprisBlacklist": [
@@ -50,7 +50,7 @@
         "density": "compact",
         "displayMode": "always_visible",
         "enableExclusionZoneInset": true,
-        "fontScale": 1,
+        "fontScale": 0.77,
         "frameRadius": 12,
         "frameThickness": 8,
         "hideOnOverview": false,
@@ -131,7 +131,7 @@
             ],
             "right": [
                 {
-                    "compactMode": true,
+                    "compactMode": false,
                     "diskPath": "/",
                     "iconColor": "none",
                     "id": "SystemMonitor",
@@ -139,18 +139,18 @@
                     "showCpuFreq": true,
                     "showCpuTemp": true,
                     "showCpuUsage": true,
-                    "showDiskAvailable": false,
+                    "showDiskAvailable": true,
                     "showDiskUsage": true,
                     "showDiskUsageAsPercent": false,
                     "showGpuTemp": false,
                     "showLoadAverage": false,
                     "showMemoryAsPercent": true,
-                    "showMemoryUsage": true,
+                    "showMemoryUsage": false,
                     "showNetworkStats": true,
                     "showSwapUsage": true,
                     "textColor": "none",
                     "useMonospaceFont": true,
-                    "usePadding": false
+                    "usePadding": true
                 },
                 {
                     "blacklist": [
@@ -238,7 +238,7 @@
         "manualSunrise": "06:30",
         "manualSunset": "18:30",
         "monitorForColors": "",
-        "predefinedScheme": "Base16",
+        "predefinedScheme": "Catppuccin",
         "schedulingMode": "location",
         "syncGsettings": true,
         "useWallpaperColors": false
@@ -262,7 +262,7 @@
                 "id": "brightness-card"
             },
             {
-                "enabled": true,
+                "enabled": false,
                 "id": "weather-card"
             },
             {
@@ -389,9 +389,9 @@
         ],
         "lockScreenTint": 0,
         "passwordChars": true,
-        "radiusRatio": 1,
+        "radiusRatio": 0.5,
         "reverseScroll": false,
-        "scaleRatio": 1,
+        "scaleRatio": 0.8,
         "screenRadiusRatio": 1,
         "shadowDirection": "bottom_right",
         "shadowOffsetX": 2,
@@ -435,7 +435,7 @@
         "firstDayOfWeek": -1,
         "hideWeatherCityName": false,
         "hideWeatherTimezone": false,
-        "name": "Port Louis",
+        "name": "Ebene CyberCity",
         "showCalendarEvents": true,
         "showCalendarWeather": true,
         "showWeekNumberInCalendar": false,
