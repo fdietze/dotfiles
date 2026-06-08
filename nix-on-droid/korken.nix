@@ -1,4 +1,6 @@
 {
+  config,
+  lib,
   nix-index-database,
   pkgs,
   ...
@@ -14,6 +16,29 @@
   nix.extraOptions = ''
     experimental-features = nix-command flakes
   '';
+
+  # Upstream installPackages currently calls `xargs nix profile remove` even
+  # when no old nix-on-droid-path profile entry exists on fresh app installs.
+  build.activation = lib.mkAfter {
+    installPackages = ''
+      if [[ -e "${config.user.home}/.nix-profile/manifest.json" ]]; then
+        # Keep the modern-profile path, but make the removal a no-op when the
+        # grep has no matches.
+        nix_previous="$(command -v nix)"
+
+        nix profile list \
+          | grep 'nix-on-droid-path$' \
+          | cut -d ' ' -f 4 \
+          | xargs -r -t $DRY_RUN_CMD nix profile remove $VERBOSE_ARG
+
+        $DRY_RUN_CMD $nix_previous profile install ${config.environment.path}
+
+        unset nix_previous
+      else
+        $DRY_RUN_CMD nix-env --install ${config.environment.path}
+      fi
+    '';
+  };
 
   home-manager = {
     backupFileExtension = "hm-bak";
