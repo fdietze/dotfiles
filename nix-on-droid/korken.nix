@@ -2,6 +2,7 @@
   config,
   lib,
   nix-index-database,
+  nixOnDroidNix,
   pkgs,
   ...
 }: {
@@ -12,10 +13,16 @@
     shell = "${pkgs.zsh}/bin/zsh";
   };
 
-  # Nix-on-Droid's option reference uses nix.extraOptions for nix.conf text.
-  nix.extraOptions = ''
-    experimental-features = nix-command flakes
-  '';
+  nix = {
+    # Nix-on-Droid issue #495 tracks newer Nix builders failing to open PTYs on
+    # Android; keep the app's proven Nix 2.18 line while using current modules.
+    package = nixOnDroidNix;
+
+    # Nix-on-Droid's option reference uses nix.extraOptions for nix.conf text.
+    extraOptions = ''
+      experimental-features = nix-command flakes
+    '';
+  };
 
   # Upstream installPackages currently calls `xargs nix profile remove` even
   # when no old nix-on-droid-path profile entry exists on fresh app installs.

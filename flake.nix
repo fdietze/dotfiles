@@ -4,6 +4,9 @@
   inputs = {
     # get hash of currently running system: nixos-version --revision
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    # Only the Nix binary for Nix-on-Droid comes from 24.05; newer unstable Nix
+    # builds currently hit Android PTY activation failures.
+    nixpkgs-nix-on-droid.url = "github:NixOS/nixpkgs/nixos-24.05";
     # nixpkgs.url = "github:NixOS/nixpkgs/6308c3b21396534d8aaeac46179c14c439a89b8a";
     # nixpkgs.url = "path:/home/felix/projects/nixpkgs";
 
@@ -51,6 +54,7 @@
   outputs = {
     self,
     nixpkgs,
+    nixpkgs-nix-on-droid,
     stylix,
     nixos-hardware,
     nvf,
@@ -154,6 +158,12 @@
         modules = [./nix-on-droid/${deviceName}.nix];
         extraSpecialArgs = {
           inherit nix-index-database;
+          nixOnDroidNix =
+            (import nixpkgs-nix-on-droid {
+              system = "aarch64-linux";
+              config.allowUnfree = true;
+            })
+            .nix;
         };
 
         # The upstream flake template recommends the Nix-on-Droid overlay; this
