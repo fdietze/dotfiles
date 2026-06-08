@@ -58,6 +58,14 @@
     '';
   };
 
+  build.activationBefore = lib.mkAfter {
+    # `useUserPackages` is the Nix-on-Droid/Home Manager integration path for
+    # packages, but its legacy priority hook still assumes a nix-env profile.
+    setPriorityHomeManagerPath = ''
+      :
+    '';
+  };
+
   build.activationAfter = lib.mkAfter {
     # Nix-on-Droid writes USER into the next login session, but Home Manager's
     # sanity checks run during the current activation process.
@@ -75,9 +83,9 @@
     # Home Manager module explicitly in this Nix-on-Droid integration path.
     sharedModules = [nix-index-database.homeModules.nix-index];
     useGlobalPkgs = true;
-    # Keep Home Manager packages out of Nix-on-Droid's system package activation
-    # path; that path still mixes nix-env with modern nix profiles on fresh apps.
-    useUserPackages = false;
+    # Let Nix-on-Droid install Home Manager packages through environment.packages
+    # so Home Manager does not fight nix-on-droid-path in the same user profile.
+    useUserPackages = true;
     config = {...}: {
       imports = [
         ../modules/home-manager/profiles/shell-core.nix
