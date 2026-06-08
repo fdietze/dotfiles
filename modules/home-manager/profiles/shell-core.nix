@@ -9,6 +9,7 @@
 # Desktop-Pakete (firefox/zbar/espeak) ins Closure zieht.
 {
   config,
+  lib,
   pkgs,
   ...
 }: let
@@ -23,8 +24,8 @@ in {
   ];
 
   # https://nix-community.github.io/home-manager/index.xhtml
-  home.username = "felix";
-  home.homeDirectory = "/home/felix";
+  home.username = lib.mkDefault "felix";
+  home.homeDirectory = lib.mkDefault "/home/felix";
 
   home.sessionPath = [
     # Keep personal scripts live-editable without requiring a Home Manager switch.
