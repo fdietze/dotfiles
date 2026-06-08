@@ -36,8 +36,8 @@ say "Architektur: $ARCH"
 
 # 3. Modus wählen (Abfrage explizit von /dev/tty, da stdin bei `curl | bash`
 #    belegt sein kann).
-printf '\nWas einrichten?\n  [1] NixOS + Home Manager (ganzes System)\n  [2] Nur Home Manager (Shell-Profil)\n'
-read -r -p "Auswahl [1/2]: " MODE </dev/tty
+printf '\nWas einrichten?\n  [1] NixOS + Home Manager (ganzes System)\n  [2] Nur Home Manager (Shell-Profil)\n  [3] Nix-on-Droid (korken)\n'
+read -r -p "Auswahl [1/2/3]: " MODE </dev/tty
 
 if [ "$MODE" = "2" ]; then
   # 4. Nur Home Manager: Shell-Profil aus dem geklonten Repo aktivieren.
@@ -47,7 +47,21 @@ if [ "$MODE" = "2" ]; then
   exit 0
 fi
 
-# 5. NixOS + Home Manager.
+if [ "$MODE" = "3" ]; then
+  # 5. Nix-on-Droid: Der Laufzeit-Hostname bleibt dort immer "localhost";
+  #    die stabile Geräte-ID ist deshalb der Flake-Output "korken".
+  if ! command -v nix-on-droid >/dev/null 2>&1; then
+    say "nix-on-droid nicht gefunden — Modus 3 muss in der initialisierten Nix-on-Droid-App laufen."
+    exit 1
+  fi
+
+  say "Nix-on-Droid-Konfiguration aktivieren: korken"
+  nix-on-droid switch --flake "$REPO_DIR#korken"
+  say "Fertig. Neue Shell starten (z. B. 'exec zsh')."
+  exit 0
+fi
+
+# 6. NixOS + Home Manager.
 HOST="$(hostname)"
 say "Hostname: $HOST"
 
