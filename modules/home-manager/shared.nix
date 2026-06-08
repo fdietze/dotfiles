@@ -10,21 +10,15 @@
   repoDir = "${config.home.homeDirectory}/projects/dotfiles";
 in {
   imports = [
-    ./shell.nix
-    ./dotfiles.nix
-    ./git.nix
-    ./yazi.nix
+    ./profiles/shell-core.nix
     ./xdg.nix
     ./packages.nix
-    # Temporary scaffolding: a later task folds this into a core profile.
-    ./profiles/packages-cli.nix
     ./stylix.nix
     ./theme-switching.nix
     ./icon-themes.nix
     ./launchers.nix
     ./wallpaper.nix
     # ./home/dictate.nix
-    ./nvf.nix
   ];
 
   # https://nix-community.github.io/home-manager/index.xhtml
