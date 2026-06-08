@@ -23,13 +23,12 @@
     installPackages = ''
       if [[ -e "${config.user.home}/.nix-profile/manifest.json" ]]; then
         # Keep the modern-profile path, but make the removal a no-op when the
-        # grep has no matches.
+        # profile has no matching nix-on-droid-path element.
         nix_previous="$(command -v nix)"
 
-        nix profile list \
-          | grep 'nix-on-droid-path$' \
-          | cut -d ' ' -f 4 \
-          | xargs -r -t $DRY_RUN_CMD nix profile remove $VERBOSE_ARG
+        if nix profile list --json | ${pkgs.jq}/bin/jq -e '.elements | has("nix-on-droid-path")' >/dev/null; then
+          $DRY_RUN_CMD nix profile remove $VERBOSE_ARG nix-on-droid-path
+        fi
 
         $DRY_RUN_CMD $nix_previous profile install ${config.environment.path}
 
