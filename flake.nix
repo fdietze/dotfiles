@@ -55,28 +55,57 @@
     noctalia,
     ...
   } @ inputs: let
-    uiFonts = import ./fonts.nix {
-      pkgs = nixpkgs.legacyPackages.x86_64-linux;
-    };
-    # Machine-local identifiers are isolated here so public exposure is explicit
-    # and easy to revisit without mixing them into reusable modules.
-    gurkeLocal = import ./hosts/gurke/local.nix;
-  in {
-    nixosConfigurations = {
-      "gurke" = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
+    lib = nixpkgs.lib;
+
+    # Default-Theme für headless/standalone Kontexte ohne Desktop-Spezialisierung.
+    # nvf themt sich selbst über dieses Arg (kein stylix); "dark" entspricht dem
+    # Build-Zeit-Verhalten der themed Desktops.
+    defaultTheme = "dark";
+
+    # Arch pro Host aus hosts/<h>/system lesen (fileContents strippt das
+    # abschließende Newline); Default x86_64-linux, falls die Datei fehlt.
+    # Liegt in einer Datei statt im Modul, weil nixosSystem `system` braucht,
+    # bevor die Module ausgewertet werden (und uiFonts pro System hier baut).
+    hostSystem = hostName: let
+      f = ./hosts/${hostName}/system;
+    in
+      if builtins.pathExists f
+      then lib.fileContents f
+      else "x86_64-linux";
+
+    uiFontsFor = system: import ./fonts.nix {pkgs = nixpkgs.legacyPackages.${system};};
+
+    # Alle Verzeichnisse unter hosts/ außer dem kopierbaren Template werden zu
+    # NixOS-Hosts. So genügt es, ein hosts/<name>/ anzulegen — scripts/
+    # setup-new-host.sh muss flake.nix nie editieren.
+    hostNames =
+      builtins.filter (n: n != "template")
+      (builtins.attrNames (
+        lib.filterAttrs (_: type: type == "directory") (builtins.readDir ./hosts)
+      ));
+
+    mkHost = hostName: let
+      system = hostSystem hostName;
+      localFile = ./hosts/${hostName}/local.nix;
+      # Maschinen-lokale Identifier (Disk-UUIDs etc.) nur, wenn der Host eine
+      # local.nix mitbringt; der generische Template-Host hat keine.
+      hostLocal =
+        if builtins.pathExists localFile
+        then import localFile
+        else {};
+    in
+      nixpkgs.lib.nixosSystem {
+        inherit system;
         specialArgs = {
           flake-inputs = inputs;
-          hostLocal = gurkeLocal;
-          inherit uiFonts;
+          inherit hostLocal;
+          uiFonts = uiFontsFor system;
         };
         modules = [
           stylix.nixosModules.stylix
-          ./hosts/gurke/default.nix
-          ./hosts/gurke/hardware-configuration.nix
-          nixos-hardware.nixosModules.lenovo-thinkpad-x1-6th-gen
+          ./hosts/${hostName}/default.nix
+          ./hosts/${hostName}/hardware-configuration.nix
           nix-index-database.nixosModules.nix-index
-          # nvf.homeManagerModules.default
           home-manager.nixosModules.home-manager
           {
             home-manager.useGlobalPkgs = true;
@@ -85,19 +114,35 @@
               nix-index-database.homeModules.nix-index
               noctalia.homeModules.default
             ];
-            home-manager.users.felix = ./hosts/gurke/home.nix;
+            home-manager.users.felix = ./hosts/${hostName}/home.nix;
           }
         ];
       };
+
+    # Standalone Home Manager: schnelle Shell-Variante auf beliebiger Box,
+    # importiert nur den portablen shell-core (kein Desktop, kein stylix).
+    mkHome = system:
+      home-manager.lib.homeManagerConfiguration {
+        pkgs = nixpkgs.legacyPackages.${system};
+        extraSpecialArgs = {
+          flake-inputs = inputs;
+          nvf = nvf;
+          theme = defaultTheme;
+          uiFonts = uiFontsFor system;
+        };
+        modules = [
+          nix-index-database.homeModules.nix-index
+          ./modules/home-manager/profiles/shell-core.nix
+        ];
+      };
+  in {
+    # gurke (und jeder weitere hosts/<name>/) wird auto-entdeckt.
+    nixosConfigurations = lib.genAttrs hostNames mkHost;
+
+    # "nix run home-manager -- switch --flake .#felix@<arch>"
+    homeConfigurations = {
+      "felix@x86_64-linux" = mkHome "x86_64-linux";
+      "felix@aarch64-linux" = mkHome "aarch64-linux";
     };
-    # homeConfigurations.felix = home-manager.lib.homeManagerConfiguration {
-    #   # inherit pkgs;
-    #
-    #   modules = [
-    #     nix-index-database.hmModules.nix-index
-    #     # optional to also wrap and install comma
-    #     # { programs.nix-index-database.comma.enable = true; }
-    #   ];
-    # };
   };
 }

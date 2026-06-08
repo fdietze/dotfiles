@@ -23,6 +23,10 @@
     ++ specialisationHelpers.sudoSwitchCommands;
 in {
   imports = [
+    # Hardware-Quirks dieses ThinkPad X1 (6th gen). Früher in flake.nix; seit der
+    # generischen mkHost-Auto-Discovery zieht jeder Host sein nixos-hardware-Modul
+    # selbst, da mkHost host-agnostisch ist.
+    flake-inputs.nixos-hardware.nixosModules.lenovo-thinkpad-x1-6th-gen
     ../../modules/options.nix
     ./power.nix
     ../../modules/nixos/stylix.nix
