@@ -66,7 +66,7 @@ in {
         languages = {
           enableFormat = true;
           enableTreesitter = true;
-          enableExtraDiagnostics = true;
+          # enableExtraDiagnostics = true;
 
           nix.enable = true;
           typescript.enable = true;
