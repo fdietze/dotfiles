@@ -30,5 +30,9 @@ in {
     # Used by shells, $TERMINAL-aware tools, and scripts. WM keybindings
     # invoke `terminal-here` directly when they want a cwd-aware spawn.
     TERMINAL = terminalBin;
+    # BROWSER lebt hier (statt im headless shell-core), weil es firefox ins
+    # Closure zieht und nur im Desktop-Kontext sinnvoll ist.
+    BROWSER = "${pkgs.firefox}/bin/firefox";
+    MOZ_USE_XINPUT2 = 1; # fix firefox scrolling, enable touchpad gestures
   };
 }

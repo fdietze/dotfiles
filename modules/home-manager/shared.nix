@@ -9,6 +9,7 @@
 }: {
   imports = [
     ./profiles/shell-core.nix
+    ./profiles/desktop-shell.nix
     ./xdg.nix
     ./packages.nix
     ./stylix.nix

@@ -3,10 +3,10 @@
 # Template-Host) importiert. Enthält nur desktop-unabhängige Module und
 # Shell-Essentials. Default-Theme "dark"; kein stylix, keine GUI-Terminals.
 #
-# Hinweis: einige der hier wohnenden Shell-Aliases referenzieren GUI-Pakete per
-# Store-Pfad (BROWSER=${pkgs.firefox}, zed=${pkgs.zed-editor}, feh), die damit
-# auch in ein reines Shell-Closure gezogen werden. Bewusst beibehalten, damit
-# die Aliases überall identisch funktionieren.
+# Strikt headless: desktop-bezogene Aliase/Envs (BROWSER, qrscan, feh,
+# signal-desktop, chromium-no-plugins, tclip, online-wait) leben in
+# profiles/desktop-shell.nix bzw. launchers.nix, damit dieses Profil keine
+# Desktop-Pakete (firefox/zbar/espeak) ins Closure zieht.
 {
   config,
   pkgs,
@@ -40,14 +40,10 @@ in {
   home.sessionVariables = {
     CLICOLOR_FORCE = 1; # ANSI colors should be enabled no matter what. (https://bixense.com/clicolors/)
 
-    BROWSER = "${pkgs.firefox}/bin/firefox";
-    # BROWSER = "${pkgs.librewolf}/bin/librewolf";
     PAGER = "less --RAW-CONTROL-CHARS"; # less with colors
 
     # colorize less
     LESS = "--use-color --RAW-CONTROL-CHARS --incsearch --ignore-case --redraw-on-quit --mouse --wheel-lines=3";
-
-    MOZ_USE_XINPUT2 = 1; # fix firefox scrolling, enable touchpad gestures
 
     # QT_QPA_PLATFORMTHEME = "gtk2"; # let qt apps use gtk 2 themes
     # QT_AUTO_SCREEN_SCALE_FACTOR = 1; # honor screen DPI
@@ -91,22 +87,8 @@ in {
     scp = "sec && scp";
     rg = "rg --hidden  --no-follow --no-heading --glob '!.git/*' --smart-case"; # https://github.com/BurntSushi/ripgrep/issues/623
 
-    qrscan = "LD_PRELOAD=/usr/lib/libv4l/v4l1compat.so ${pkgs.zbar}/bin/zbarcam --raw /dev/video0";
     qr = "${pkgs.qrencode}/bin/qrencode -t ansiutf8";
-    tclip = ''tmate display -p "#{tmate_ssh}" | xclip -selection clipboard''; # tmate session token to clipboard
     tw = "${pkgs.timewarrior}/bin/timew";
-    feh = "feh --auto-zoom --scale-down";
-    im = ''
-      ${pkgs.feh}/bin/feh --fullscreen --auto-zoom --sort mtime \
-              --action '${pkgs.trashy}/bin/trash put %F && ${pkgs.libnotify}/bin/notify-send -a feh -t 1500 "Trashed" "%n"' \
-              --action1 ';mkdir -p 1 && cp %F 1/ && ${pkgs.libnotify}/bin/notify-send -a feh -t 1500 "Copied to 1" "%n"' \
-              --action2 ';mkdir -p 2 && cp %F 2/ && ${pkgs.libnotify}/bin/notify-send -a feh -t 1500 "Copied to 2" "%n"' \
-              --action3 ';mkdir -p 3 && cp %F 3/ && ${pkgs.libnotify}/bin/notify-send -a feh -t 1500 "Copied to 3" "%n"' \
-    '';
-    zed = "sec && ${pkgs.zed-editor}/bin/zeditor";
-    # gemini = "sec && gemini";
-    # gmc = "geminicommit";
-    signal-desktop = ''sec && signal-desktop --password-store="gnome-libsecret"'';
 
     ##################
     # well established
@@ -145,11 +127,6 @@ in {
     sys = "sudo systemctl";
     sysu = "systemctl --user";
     w = "watch --color --differences "; # trailing space is for alias expansion: https://unix.stackexchange.com/a/25329
-    # No --force-device-scale-factor: Chromium derives its device scale from the
-    # session itself — Xft.dpi 192 on X11 (herbstluftwm) and the per-output
-    # scale 2.0 on Wayland (niri). The old flag stacked multiplicatively on the
-    # Wayland compositor scale, over-zooming the UI.
-    chromium-no-plugins = "chromium --disable-extensions --disable-plugins";
 
     lsblk = "lsblk -o NAME,RM,SIZE,FSTYPE,LABEL,MOUNTPOINT,RO,UUID";
 
@@ -161,7 +138,6 @@ in {
     drs = "$HOME/projects/ubunix/ubunix.sh";
 
     online = "ping -c 1 8.8.8.8 -W 5 && ping -c 1 google.com -W 5"; # -c <retries>  -W <timout>
-    online-wait = "until online; do; sleep 3; done; ${pkgs.espeak}/bin/espeak -p 30 'online'; ${pkgs.espeak}/bin/espeak -p 80 'online'; ${pkgs.espeak}/bin/espeak -p 50 'online'";
     # alias on="w --interval=1 '$ONLINECMD'"
   };
 
