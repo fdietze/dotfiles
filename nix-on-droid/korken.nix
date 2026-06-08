@@ -39,6 +39,17 @@
     '';
   };
 
+  build.activationAfter = lib.mkAfter {
+    # Nix-on-Droid writes USER into the next login session, but Home Manager's
+    # sanity checks run during the current activation process.
+    homeManager = ''
+      USER=${lib.escapeShellArg config.user.userName} \
+        HOME=${lib.escapeShellArg config.user.home} \
+        HOME_MANAGER_BACKUP_EXT=${lib.escapeShellArg config.home-manager.backupFileExtension} \
+        ${config.home-manager.config.home.activationPackage}/activate
+    '';
+  };
+
   home-manager = {
     backupFileExtension = "hm-bak";
     # shell-core enables comma through nix-index-database, so load the matching
