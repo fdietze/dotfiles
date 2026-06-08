@@ -123,7 +123,13 @@
     # importiert nur den portablen shell-core (kein Desktop, kein stylix).
     mkHome = system:
       home-manager.lib.homeManagerConfiguration {
-        pkgs = nixpkgs.legacyPackages.${system};
+        # Eigene pkgs-Instanz mit allowUnfree, weil standalone Home Manager —
+        # anders als der NixOS-Host — keine nixpkgs.config erbt; shell-core zieht
+        # über packages-cli/Aliases u.a. unfreie Pakete (unrar, claude-code).
+        pkgs = import nixpkgs {
+          inherit system;
+          config.allowUnfree = true;
+        };
         extraSpecialArgs = {
           flake-inputs = inputs;
           nvf = nvf;
@@ -133,6 +139,7 @@
         modules = [
           nix-index-database.homeModules.nix-index
           ./modules/home-manager/profiles/shell-core.nix
+          ./modules/home-manager/profiles/standalone-extras.nix
         ];
       };
   in {
