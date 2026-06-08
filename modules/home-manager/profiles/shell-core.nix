@@ -20,7 +20,6 @@ in {
     ../git.nix
     ../yazi.nix
     ./packages-cli.nix
-    ../nvf.nix
   ];
 
   # https://nix-community.github.io/home-manager/index.xhtml
