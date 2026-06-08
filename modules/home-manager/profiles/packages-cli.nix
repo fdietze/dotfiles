@@ -70,7 +70,6 @@
       rust-script
       python3
       nodejs
-      opencode
       # language servers / formatters / linters
       nixd
       lua-language-server
@@ -123,6 +122,20 @@
         export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
         exec ${pkgs.util-linux}/bin/ionice -c 3 ${pkgs.coreutils}/bin/nice -n 19 \
           ${pkgs.claude-code}/bin/claude "$@"
+      '')
+
+      # Wrap `opencode` in the nono sandbox using the same profile as claude.
+      # `nice -n 19` + `ionice -c 3` keep it from starving interactive work.
+      (pkgs.writeShellScriptBin "opencode" ''
+        exec ${pkgs.util-linux}/bin/ionice -c 3 ${pkgs.coreutils}/bin/nice -n 19 \
+          ${pkgs.nono}/bin/nono run --profile claude -- \
+          ${pkgs.opencode}/bin/opencode --dangerously-skip-permissions "$@"
+      '')
+
+      # Escape hatch: stock opencode on the host, without the sandbox.
+      (pkgs.writeShellScriptBin "vanilla-opencode" ''
+        exec ${pkgs.util-linux}/bin/ionice -c 3 ${pkgs.coreutils}/bin/nice -n 19 \
+          ${pkgs.opencode}/bin/opencode "$@"
       '')
     ];
 }
