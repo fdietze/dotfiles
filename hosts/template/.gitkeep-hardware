@@ -1,0 +1,6 @@
+hardware-configuration.nix wird bewusst NICHT eingecheckt — sie ist pro Maschine
+verschieden. scripts/setup-new-host.sh erzeugt sie beim Kopieren dieses Templates:
+
+  nixos-generate-config --show-hardware-config > hosts/<hostname>/hardware-configuration.nix
+
+Diese Datei hält das ansonsten leere Verzeichnis in git und dokumentiert das.
