@@ -33,12 +33,24 @@
         # profile has no matching nix-on-droid-path element.
         nix_previous="$(command -v nix)"
 
-        if nix profile list --json | ${pkgs.jq}/bin/jq -e '.elements | has("nix-on-droid-path")' >/dev/null; then
-          $DRY_RUN_CMD nix profile remove $VERBOSE_ARG nix-on-droid-path
+        profile_entry="$(${pkgs.jq}/bin/jq -r '
+          def nix_on_droid_path:
+            (.storePaths // [])[]? | select(endswith("-nix-on-droid-path"));
+
+          if (.elements | type) == "object" then
+            if (.elements | has("nix-on-droid-path")) then "nix-on-droid-path" else empty end
+          else
+            ([.elements[]? | nix_on_droid_path][0] // empty)
+          end
+        ' < <(nix profile list --json))"
+
+        if [[ -n "$profile_entry" ]]; then
+          $DRY_RUN_CMD nix profile remove $VERBOSE_ARG "$profile_entry"
         fi
 
         $DRY_RUN_CMD $nix_previous profile install ${config.environment.path}
 
+        unset profile_entry
         unset nix_previous
       else
         $DRY_RUN_CMD nix-env --install ${config.environment.path}
