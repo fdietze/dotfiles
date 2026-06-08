@@ -27,11 +27,29 @@
 
 **WARNING**: These are the installation instructions for myself, not for you. You should have your own repository and get inspired by this one. If you have any questions, feel free to open issues.
 
+All paths assume a running NixOS system.
+
+### A — Quick shell on any box (standalone Home Manager)
+
+No clone needed; points straight at the GitHub flake. Ephemeral or permanent — brings my zsh, neovim, git and CLI tools.
+
 ```bash
-ssh-keygen -t ed25519
-git clone git@github.com:fdietze/dotfiles.git "$HOME/projects/dotfiles"
-sudo nixos-rebuild switch --flake "$HOME/projects/dotfiles#gurke"
+nix run home-manager -- switch -b backup \
+  --flake github:fdietze/dotfiles#felix@x86_64-linux
+# aarch64 machines: use #felix@aarch64-linux
 ```
+
+### B / C — Full NixOS host (defined host or brand-new machine)
+
+One bootstrap script handles both. It clones the repo, then asks whether to set up the whole system (NixOS + Home Manager) or just the Home Manager shell profile. For a hostname that is already defined (e.g. `gurke`) it builds that host directly; for a new machine it derives a desktop-free host from `hosts/template/`, generates `hardware-configuration.nix`, and offers to rebuild.
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/fdietze/dotfiles/master/scripts/setup-new-host.sh)
+```
+
+If `curl` is missing on a minimal install: `nix-shell -p curl`.
+
+To keep a new host long-term, promote it: add desktops and a `local.nix` the way `hosts/gurke/` does.
 
 # Awesome Links
 
