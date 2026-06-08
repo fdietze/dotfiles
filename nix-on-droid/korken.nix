@@ -1,4 +1,5 @@
 {
+  nix-index-database,
   pkgs,
   ...
 }: {
@@ -16,6 +17,9 @@
 
   home-manager = {
     backupFileExtension = "hm-bak";
+    # shell-core enables comma through nix-index-database, so load the matching
+    # Home Manager module explicitly in this Nix-on-Droid integration path.
+    sharedModules = [nix-index-database.homeModules.nix-index];
     useGlobalPkgs = true;
     config = {...}: {
       imports = [

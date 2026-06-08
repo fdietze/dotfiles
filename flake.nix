@@ -27,6 +27,11 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    nix-on-droid = {
+      url = "github:nix-community/nix-on-droid/master";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
+    };
     nix-index-database.url = "github:nix-community/nix-index-database";
     # nix-index-database.inputs.nixpkgs.follows = "nixpkgs";
     firefox-addons = {
@@ -50,6 +55,7 @@
     nixos-hardware,
     nvf,
     home-manager,
+    nix-on-droid,
     nix-index-database,
     breezy-desktop,
     noctalia,
@@ -142,6 +148,24 @@
           ./modules/home-manager/profiles/standalone-extras.nix
         ];
       };
+
+    mkNixOnDroid = deviceName:
+      nix-on-droid.lib.nixOnDroidConfiguration {
+        modules = [./nix-on-droid/${deviceName}.nix];
+        extraSpecialArgs = {
+          inherit nix-index-database;
+        };
+
+        # The upstream flake template recommends the Nix-on-Droid overlay; this
+        # pkgs instance also permits the same unfree CLI tools as standalone HM.
+        pkgs = import nixpkgs {
+          system = "aarch64-linux";
+          overlays = [nix-on-droid.overlays.default];
+          config.allowUnfree = true;
+        };
+
+        home-manager-path = home-manager.outPath;
+      };
   in {
     # gurke (und jeder weitere hosts/<name>/) wird auto-entdeckt.
     nixosConfigurations = lib.genAttrs hostNames mkHost;
@@ -150,6 +174,11 @@
     homeConfigurations = {
       "felix@x86_64-linux" = mkHome "x86_64-linux";
       "felix@aarch64-linux" = mkHome "aarch64-linux";
+    };
+
+    # "nix-on-droid switch --flake .#korken"
+    nixOnDroidConfigurations = {
+      korken = mkNixOnDroid "korken";
     };
   };
 }
