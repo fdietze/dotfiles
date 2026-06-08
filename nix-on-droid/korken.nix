@@ -21,6 +21,9 @@
     # Home Manager module explicitly in this Nix-on-Droid integration path.
     sharedModules = [nix-index-database.homeModules.nix-index];
     useGlobalPkgs = true;
+    # Keep Home Manager packages out of Nix-on-Droid's system package activation
+    # path; that path still mixes nix-env with modern nix profiles on fresh apps.
+    useUserPackages = false;
     config = {...}: {
       imports = [
         ../modules/home-manager/profiles/shell-core.nix
