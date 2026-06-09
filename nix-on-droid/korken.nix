@@ -23,14 +23,17 @@
     UsePAM no
     Subsystem sftp internal-sftp
   '';
+  appLoginShell = pkgs.writeShellScript "nix-on-droid-app-login-shell" ''
+    # Nix-on-Droid currently starts the app shell through proot without bash
+    # detecting an interactive stdin, so force interactivity for a visible prompt.
+    exec ${pkgs.bashInteractive}/bin/bash -i
+  '';
 in {
   # Nix-on-Droid keeps Android's runtime hostname as "localhost"; the stable
   # repository identifier for this device is the flake output name "korken".
   user = {
     userName = "felix";
-    # Keep the Android app's entry shell boring; the shared zsh config assumes a
-    # fuller workstation terminal and can leave Nix-on-Droid without a prompt.
-    shell = "${pkgs.bashInteractive}/bin/bash";
+    shell = appLoginShell;
   };
 
   nix = {
