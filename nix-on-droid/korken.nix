@@ -147,6 +147,15 @@ in {
       programs.bash.bashrcExtra = lib.mkAfter ''
         PS1='\u@localhost:\w\$ '
       '';
+
+      # Android-specific .inputrc to override workstation vi-mode.
+      # Emacs mode is required here because the proot terminal timing bugs break
+      # readline vi-mode arrow key escape sequence detection.
+      home.file.".inputrc".text = lib.mkForce ''
+        # Managed by Nix-on-Droid/korken.
+        # Emacs mode is used to bypass proot timing bugs that break vi-mode arrow keys.
+        set editing-mode emacs
+      '';
     };
   };
 
