@@ -6,6 +6,7 @@
       zellij
       wget
       curl
+      gnugrep
       htop
       atop
       btop
