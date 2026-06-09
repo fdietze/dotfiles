@@ -23,7 +23,7 @@
     UsePAM no
     Subsystem sftp internal-sftp
   '';
-  appLoginShell = pkgs.writeShellScript "nix-on-droid-app-login-shell" ''
+  appLoginShell = pkgs.writeShellScriptBin "nix-on-droid-app-login-shell" ''
     # Nix-on-Droid currently starts the app shell through proot without bash
     # detecting an interactive stdin, so force interactivity for a visible prompt.
     exec ${pkgs.bashInteractive}/bin/bash -i
@@ -33,7 +33,7 @@ in {
   # repository identifier for this device is the flake output name "korken".
   user = {
     userName = "felix";
-    shell = appLoginShell;
+    shell = "${appLoginShell}/bin/nix-on-droid-app-login-shell";
   };
 
   nix = {
