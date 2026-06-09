@@ -26,6 +26,10 @@
   appLoginShell = pkgs.writeShellScriptBin "nix-on-droid-app-login-shell" ''
     # Nix-on-Droid currently starts the app shell through proot without bash
     # detecting an interactive stdin, so force interactivity for a visible prompt.
+    if [ "$#" -gt 0 ]; then
+      exec ${pkgs.bashInteractive}/bin/bash "$@"
+    fi
+
     exec ${pkgs.bashInteractive}/bin/bash -i
   '';
 in {
