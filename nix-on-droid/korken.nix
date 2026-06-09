@@ -28,7 +28,9 @@ in {
   # repository identifier for this device is the flake output name "korken".
   user = {
     userName = "felix";
-    shell = "${pkgs.zsh}/bin/zsh";
+    # Keep the Android app's entry shell boring; the shared zsh config assumes a
+    # fuller workstation terminal and can leave Nix-on-Droid without a prompt.
+    shell = "${pkgs.bashInteractive}/bin/bash";
   };
 
   nix = {
