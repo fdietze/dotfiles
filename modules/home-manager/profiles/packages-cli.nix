@@ -7,6 +7,9 @@
       wget
       curl
       gnugrep
+      gnused
+      procps
+      iproute2
       htop
       atop
       btop
