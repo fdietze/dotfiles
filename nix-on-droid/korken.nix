@@ -128,11 +128,18 @@ in {
     # Let Nix-on-Droid install Home Manager packages through environment.packages
     # so Home Manager does not fight nix-on-droid-path in the same user profile.
     useUserPackages = true;
-    config = {...}: {
+    config = {lib, ...}: {
       imports = [
         ../modules/home-manager/profiles/shell-core.nix
         ../modules/home-manager/profiles/standalone-extras.nix
       ];
+
+      # The Android app terminal needs a prompt that is visible even when the
+      # richer workstation prompt stack misdetects terminal capabilities.
+      programs.starship.enableBashIntegration = lib.mkForce false;
+      programs.bash.bashrcExtra = lib.mkAfter ''
+        PS1='\u@localhost:\w\$ '
+      '';
     };
   };
 
