@@ -153,17 +153,24 @@
         ];
       };
 
-    mkNixOnDroid = deviceName:
+    mkNixOnDroid = deviceName: let
+      # The app-bundled proot (proot-termux 2024-05-04) only answers the legacy
+      # TCGETS tty ioctl. bash/glibc from current nixpkgs issue TCGETS2 instead,
+      # which proot rejects with EACCES, so the interactive app shell's stdin
+      # looks like a non-tty and readline arrow keys print ^[[A. Build both Nix
+      # and the app login shell from the matching nixos-24.05 toolchain.
+      # See https://github.com/nix-community/nix-on-droid/issues/515
+      pkgsNixOnDroid = import nixpkgs-nix-on-droid {
+        system = "aarch64-linux";
+        config.allowUnfree = true;
+      };
+    in
       nix-on-droid.lib.nixOnDroidConfiguration {
         modules = [./nix-on-droid/${deviceName}.nix];
         extraSpecialArgs = {
           inherit nix-index-database;
-          nixOnDroidNix =
-            (import nixpkgs-nix-on-droid {
-              system = "aarch64-linux";
-              config.allowUnfree = true;
-            })
-            .nix;
+          nixOnDroidNix = pkgsNixOnDroid.nix;
+          nixOnDroidAppBash = pkgsNixOnDroid.bashInteractive;
         };
 
         # The upstream flake template recommends the Nix-on-Droid overlay; this

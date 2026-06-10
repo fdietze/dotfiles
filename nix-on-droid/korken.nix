@@ -3,6 +3,7 @@
   lib,
   nix-index-database,
   nixOnDroidNix,
+  nixOnDroidAppBash,
   pkgs,
   ...
 }: let
@@ -23,14 +24,20 @@
     UsePAM no
     Subsystem sftp internal-sftp
   '';
+  # Run the interactive app shell with bash from nixos-24.05 (nixOnDroidAppBash).
+  # Newer bash/glibc issue the TCGETS2 tty ioctl, which the app-bundled proot
+  # (proot-termux 2024-05-04) rejects with EACCES; stdin then looks like a
+  # non-tty and readline arrow keys print ^[[A. The 24.05 toolchain uses the
+  # legacy TCGETS that proot handles, so readline can enter raw mode.
+  # See https://github.com/nix-community/nix-on-droid/issues/515
   appLoginShell = pkgs.writeShellScriptBin "nix-on-droid-app-login-shell" ''
-    # Nix-on-Droid currently starts the app shell through proot without bash
-    # detecting an interactive stdin, so force interactivity for a visible prompt.
+    # `ssh user@host cmd` passes args through; the app launches with none and
+    # needs a forced-interactive bash for a visible prompt and working readline.
     if [ "$#" -gt 0 ]; then
-      exec ${pkgs.bashInteractive}/bin/bash "$@"
+      exec ${nixOnDroidAppBash}/bin/bash "$@"
     fi
 
-    exec ${pkgs.bashInteractive}/bin/bash -i
+    exec ${nixOnDroidAppBash}/bin/bash -i
   '';
 in {
   # Nix-on-Droid keeps Android's runtime hostname as "localhost"; the stable
