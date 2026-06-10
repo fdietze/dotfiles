@@ -31,13 +31,14 @@
   # legacy TCGETS that proot handles, so readline can enter raw mode.
   # See https://github.com/nix-community/nix-on-droid/issues/515
   appLoginShell = pkgs.writeShellScriptBin "nix-on-droid-app-login-shell" ''
-    # `ssh user@host cmd` passes args through; the app launches with none and
-    # needs a forced-interactive bash for a visible prompt and working readline.
+    # `ssh user@host cmd` passes args through; an argument-less app launch gets
+    # an interactive bash. It auto-detects the tty (see TCGETS note above), so
+    # no forced -i is needed.
     if [ "$#" -gt 0 ]; then
       exec ${nixOnDroidAppBash}/bin/bash "$@"
     fi
 
-    exec ${nixOnDroidAppBash}/bin/bash -i
+    exec ${nixOnDroidAppBash}/bin/bash
   '';
 in {
   # Nix-on-Droid keeps Android's runtime hostname as "localhost"; the stable
@@ -148,8 +149,12 @@ in {
         ../modules/home-manager/profiles/standalone-extras.nix
       ];
 
-      # The Android app terminal needs a prompt that is visible even when the
-      # richer workstation prompt stack misdetects terminal capabilities.
+      # Starship's prompt binary comes from current nixpkgs (newer glibc) and is
+      # tty-blind under the app-bundled proot (TCGETS2 -> EACCES, same root cause
+      # as the arrow keys / nix-on-droid#515), so it renders no usable prompt -
+      # running plain `zsh` shows the same blank-prompt symptom. Use a static
+      # bash PS1, which needs no terminal ioctls. Only the bash login shell is
+      # pinned to the 24.05 toolchain (above); a general fix needs a newer proot.
       programs.starship.enableBashIntegration = lib.mkForce false;
       programs.bash.bashrcExtra = lib.mkAfter ''
         PS1='\u@localhost:\w\$ '
