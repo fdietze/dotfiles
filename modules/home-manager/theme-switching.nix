@@ -57,8 +57,20 @@
     target_desktop="''${NRS_TARGET_DESKTOP:-}"
     current_desktop="''${NRS_CURRENT_DESKTOP:-}"
 
+    # Prompt for the sudo password upfront, in this PTY where the
+    # activation-phase sudo will later run (tty_tickets makes the timestamp
+    # tty-bound, so priming the outer terminal would not carry over). This
+    # moves the prompt to the start instead of mid-rebuild. A background loop
+    # refreshes the timestamp every 50s so it never hits sudo's 5-minute
+    # timeout during a long build; it is killed as soon as the rebuild returns.
+    sudo -v
+    ( while true; do sleep 50; sudo -n -v 2>/dev/null; done ) &
+    keepalive_pid=$!
+
     "$@"
     rc=$?
+
+    kill "$keepalive_pid" 2>/dev/null
 
     if (( rc != 0 )); then
       echo
@@ -96,9 +108,10 @@
     # user@.service (via `systemd-run --user --scope`). This keeps the
     # rebuild alive when the compositor and login session scope are killed
     # during activation (e.g. greetd restarting because default_session
-    # changed). The tmux PTY also gives the activation-phase inner sudo a
-    # real terminal so it prompts for the password normally — per-tty
-    # sudo timestamp caching stays as-is, no askpass, no global timestamps.
+    # changed). The tmux PTY also gives the inner sudo a real terminal: the
+    # inner script primes sudo upfront (sudo -v) and keeps the timestamp warm,
+    # so the password is asked at the start, not mid-rebuild — per-tty sudo
+    # timestamp caching stays as-is, no askpass, no global timestamps.
     #
     # Reattach a running rebuild with `tmux attach -t nrs`.
     # Cancel with Ctrl-C inside tmux, or `tmux kill-session -t nrs`.
