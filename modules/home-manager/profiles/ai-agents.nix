@@ -1,15 +1,13 @@
 # Sandboxed AI coding agents. Each agent gets a nono-wrapped `<name>` plus an
 # un-sandboxed `vanilla-<name>` escape hatch, both at low CPU/IO priority. The
-# shared nono profile `agent` is sourced from the repo via out-of-store symlink
-# so it stays versioned yet live-editable without a Home-Manager switch.
+# shared nono profile `agent` lives at home/config/nono/profiles/agent.json and
+# is linked out-of-store into ~/.config/nono/profiles/ by dotfiles.nix, so it
+# stays versioned yet live-editable without a Home-Manager switch.
 {
-  config,
   lib,
   pkgs,
   ...
 }: let
-  repoDir = "${config.home.homeDirectory}/projects/dotfiles";
-
   # Low CPU/IO priority so agent subprocesses don't starve interactive work.
   prio = "${pkgs.util-linux}/bin/ionice -c 3 ${pkgs.coreutils}/bin/nice -n 19";
 
@@ -60,10 +58,4 @@ in {
       bin = "${pkgs.pi-coding-agent}/bin/pi";
     })
   ];
-
-  # Source the shared nono profile from the repo (versioned) while keeping it
-  # live-editable without a HM switch. nono resolves `--profile agent` by name
-  # from ~/.config/nono/profiles/.
-  home.file.".config/nono/profiles/agent.json".source =
-    config.lib.file.mkOutOfStoreSymlink "${repoDir}/home/config/nono/profiles/agent.json";
 }

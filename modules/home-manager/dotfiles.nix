@@ -44,10 +44,15 @@ in {
       "yazi/keymap.toml"
       "yazi/yazi.toml"
       "opencode/opencode.jsonc"
+      # nono sandbox profile for AI agents; linked out-of-store below so edits
+      # to allow/deny rules take effect without a Home Manager switch.
+      "nono/profiles/agent.json"
     ])
     // {
       "opencode/opencode.jsonc".source =
         config.lib.file.mkOutOfStoreSymlink "${repoDir}/home/config/opencode/opencode.jsonc";
+      "nono/profiles/agent.json".source =
+        config.lib.file.mkOutOfStoreSymlink "${repoDir}/home/config/nono/profiles/agent.json";
     };
   home.file = collectFiles ../../home/files [
     # GTK is generated from the declarative gtk options.
