@@ -25,7 +25,7 @@
   }: [
     (pkgs.writeShellScriptBin name ''
       ${env}exec ${prio} \
-        ${pkgs.nono}/bin/nono run --profile claude -- \
+        ${pkgs.nono}/bin/nono run --profile agent -- \
         ${bin}${lib.optionalString (yolo != "") " ${yolo}"} "$@"
     '')
     (pkgs.writeShellScriptBin "vanilla-${name}" ''
@@ -48,4 +48,10 @@ in {
       bin = "${pkgs.opencode}/bin/opencode";
     })
   ];
+
+  # Source the shared nono profile from the repo (versioned) while keeping it
+  # live-editable without a HM switch. nono resolves `--profile agent` by name
+  # from ~/.config/nono/profiles/.
+  home.file.".config/nono/profiles/agent.json".source =
+    config.lib.file.mkOutOfStoreSymlink "${repoDir}/home/config/nono/profiles/agent.json";
 }

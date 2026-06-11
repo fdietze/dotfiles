@@ -1,0 +1,129 @@
+{
+  "extends": [
+    "default"
+  ],
+  "meta": {
+    "name": "agent",
+    "version": "1.0.0",
+    "description": "general AI agent sandbox",
+    "author": "felix"
+  },
+  "security": {
+    "signal_mode": "isolated",
+    "process_info_mode": null,
+    "ipc_mode": null,
+    "capability_elevation": false,
+    "wsl2_proxy_policy": null
+  },
+  "groups": {
+    "include": [],
+    "exclude": []
+  },
+  "commands": {
+    "allow": [],
+    "deny": []
+  },
+  "filesystem": {
+    "allow": [
+      "$WORKDIR",
+      "$HOME/.claude",
+      "$HOME/.opencode",
+      "$HOME/.config/agents",
+      "$HOME/.config/opencode",
+      "$HOME/.cache/opencode",
+      "$HOME/.cargo",
+      "$HOME/.config/nono/profile-drafts",
+      "/tmp",
+      "$HOME/.dolt",
+      "$HOME/.local/share/devbox",
+      "$HOME/.cache/nix",
+      "$HOME/.cache/causal-transformer-target",
+      "$HOME/.local/state/nix",
+      "$HOME/.local/share/nvf",
+      "$HOME/.local/share/opencode",
+      "$HOME/.local/share/opentui",
+      "$XDG_RUNTIME_DIR/just"
+    ],
+    "read": [
+      "$HOME/.config/nono/packages",
+      "$HOME/.config/nono/profiles",
+      "/nix/store",
+      "/run/nixos",
+      "$HOME/.config/git",
+      "$HOME/.config/gh",
+      "$HOME/.config/direnv"
+    ],
+    "write": [
+      "~/.agents/skills",
+      "~/.claude/skills",
+      "$HOME/.cache/"
+    ],
+    "allow_file": [
+      "$HOME/.claude.json",
+      "$HOME/.claude.json.lock",
+      "$HOME/.claude.lock",
+      "$XDG_RUNTIME_DIR/ssh-agent",
+      "$HOME/.zcompdump",
+      "$HOME/.zsh_history.local",
+      "~/.sprites/sprites.json"
+    ],
+    "read_file": [
+      "$HOME/.ssh/known_hosts",
+      "$HOME/.ssh/config",
+      "~/.gitconfig"
+    ],
+    "write_file": [],
+    "unix_socket": [],
+    "unix_socket_bind": [],
+    "unix_socket_dir": [],
+    "unix_socket_dir_bind": [],
+    "deny": [],
+    "bypass_protection": [
+      "$HOME/.ssh/known_hosts",
+      "$HOME/.ssh/config",
+      "$HOME/.config/gh"
+    ],
+    "suppress_save_prompt": []
+  },
+  "network": {
+    "block": false,
+    "allow_domain": [],
+    "open_port": [],
+    "listen_port": [],
+    "connect_port": [],
+    "custom_credentials": {},
+    "upstream_proxy": null,
+    "upstream_bypass": []
+  },
+  "env_credentials": {},
+  "environment": null,
+  "workdir": {
+    "access": "readwrite"
+  },
+  "hooks": {},
+  "rollback": {
+    "exclude_patterns": [
+      "node_modules",
+      ".next",
+      "__pycache__",
+      "target"
+    ],
+    "exclude_globs": [
+      "*.tmp.[0-9]*.[0-9]*"
+    ]
+  },
+  "open_urls": {
+    "allow_origins": [
+      "https://claude.ai"
+    ],
+    "allow_localhost": true
+  },
+  "allow_launch_services": true,
+  "allow_gpu": null,
+  "allow_parent_of_protected": null,
+  "interactive": true,
+  "skipdirs": [],
+  "packs": [],
+  "command_args": [],
+  "unsafe_macos_seatbelt_rules": []
+}
