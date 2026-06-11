@@ -1,6 +1,5 @@
 {pkgs, ...}: {
-  home.packages =
-    (with pkgs; [
+  home.packages = with pkgs; [
       # shell / TUI essentials
       tmux
       zellij
@@ -105,41 +104,5 @@
       marksman
       markdownlint-cli2
       rtk
-    ])
-    ++ [
-      # context-mode MCP plugin (not in nixpkgs). Bump version+hash:
-      #   nix-prefetch-url https://registry.npmjs.org/context-mode/-/context-mode-<ver>.tgz --type sha512
-      (pkgs.callPackage ../bin/context-mode.nix {})
-
-      # Wrap `claude` in the nono sandbox so it can't touch the rest of the system.
-      # `nice -n 19` + `ionice -c 3` keep claude from starving interactive work of
-      # CPU/IO when it spawns heavy subprocesses (builds, ripgrep over the tree).
-      (pkgs.writeShellScriptBin "claude" ''
-        export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
-        exec ${pkgs.util-linux}/bin/ionice -c 3 ${pkgs.coreutils}/bin/nice -n 19 \
-          ${pkgs.nono}/bin/nono run --profile claude -- \
-          ${pkgs.claude-code}/bin/claude --dangerously-skip-permissions "$@"
-      '')
-
-      # Escape hatch: stock Claude on the host, with its own sandbox + permission prompts intact.
-      (pkgs.writeShellScriptBin "vanilla-claude" ''
-        export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
-        exec ${pkgs.util-linux}/bin/ionice -c 3 ${pkgs.coreutils}/bin/nice -n 19 \
-          ${pkgs.claude-code}/bin/claude "$@"
-      '')
-
-      # Wrap `opencode` in the nono sandbox using the same profile as claude.
-      # `nice -n 19` + `ionice -c 3` keep it from starving interactive work.
-      (pkgs.writeShellScriptBin "opencode" ''
-        exec ${pkgs.util-linux}/bin/ionice -c 3 ${pkgs.coreutils}/bin/nice -n 19 \
-          ${pkgs.nono}/bin/nono run --profile claude -- \
-          ${pkgs.opencode}/bin/opencode --dangerously-skip-permissions "$@"
-      '')
-
-      # Escape hatch: stock opencode on the host, without the sandbox.
-      (pkgs.writeShellScriptBin "vanilla-opencode" ''
-        exec ${pkgs.util-linux}/bin/ionice -c 3 ${pkgs.coreutils}/bin/nice -n 19 \
-          ${pkgs.opencode}/bin/opencode "$@"
-      '')
     ];
 }
