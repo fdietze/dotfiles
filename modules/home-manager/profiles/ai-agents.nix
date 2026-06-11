@@ -47,6 +47,18 @@ in {
       name = "opencode";
       bin = "${pkgs.opencode}/bin/opencode";
     })
+    # `codex`: bypass codex's own approvals + built-in sandbox; nono is the
+    # external sandbox the flag is designed for. `vanilla-codex` keeps approvals.
+    (mkAgent {
+      name = "codex";
+      bin = "${pkgs.codex}/bin/codex";
+      yolo = "--dangerously-bypass-approvals-and-sandbox";
+    })
+    # `pi`: no permission-gating flag exists; its tools run directly under nono.
+    (mkAgent {
+      name = "pi";
+      bin = "${pkgs.pi-coding-agent}/bin/pi";
+    })
   ];
 
   # Source the shared nono profile from the repo (versioned) while keeping it
