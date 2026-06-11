@@ -20,6 +20,7 @@
       lazygit
       tig
       git-fire
+      nvd # diff nix generations/closures (used to verify rebuilds)
       dasel
       jq
       fd
