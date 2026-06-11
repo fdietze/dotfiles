@@ -37,25 +37,25 @@ in {
     # (nono is the real isolation layer). `vanilla-claude` keeps the prompts.
     (mkAgent {
       name = "claude";
-      bin = "${pkgs.claude-code}/bin/claude";
+      bin = "${pkgs.llm-agents.claude-code}/bin/claude";
       env = "export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1\n";
       yolo = "--dangerously-skip-permissions";
     })
     (mkAgent {
       name = "opencode";
-      bin = "${pkgs.opencode}/bin/opencode";
+      bin = "${pkgs.llm-agents.opencode}/bin/opencode";
     })
     # `codex`: bypass codex's own approvals + built-in sandbox; nono is the
     # external sandbox the flag is designed for. `vanilla-codex` keeps approvals.
     (mkAgent {
       name = "codex";
-      bin = "${pkgs.codex}/bin/codex";
+      bin = "${pkgs.llm-agents.codex}/bin/codex";
       yolo = "--dangerously-bypass-approvals-and-sandbox";
     })
     # `pi`: no permission-gating flag exists; its tools run directly under nono.
     (mkAgent {
       name = "pi";
-      bin = "${pkgs.pi-coding-agent}/bin/pi";
+      bin = "${pkgs.llm-agents.pi}/bin/pi";
     })
   ];
 }

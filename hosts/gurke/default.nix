@@ -70,9 +70,15 @@ in {
       "felix"
     ];
     # https://docs.noctalia.dev/v4/getting-started/nixos/
-    settings.substituters = ["https://noctalia.cachix.org"];
+    # cache.numtide.com: vorgebaute AI-Agents aus llm-agents.nix (default-Overlay),
+    # vermeidet lokales Kompilieren z.B. des Rust-Codex.
+    settings.substituters = [
+      "https://noctalia.cachix.org"
+      "https://cache.numtide.com"
+    ];
     settings.trusted-public-keys = [
       "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
+      "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
     ];
 
     # useful for using traditional nix-shell, but with nixpkgs pointing to the system flake

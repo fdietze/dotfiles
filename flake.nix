@@ -49,6 +49,16 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Täglich aktualisierte Pakete für AI-Coding-Agents (claude-code, codex,
+    # opencode, pi), neuer als der nixpkgs-Stand. Das `default`-Overlay baut
+    # gegen die im Flake gepinnte nixpkgs → Treffer im Binary-Cache
+    # cache.numtide.com (siehe Substituter in hosts/gurke/default.nix), kein
+    # lokales Kompilieren des Rust-Codex etc.
+    llm-agents = {
+      url = "github:numtide/llm-agents.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
   };
 
   outputs = {
@@ -63,6 +73,7 @@
     nix-index-database,
     breezy-desktop,
     noctalia,
+    llm-agents,
     ...
   } @ inputs: let
     lib = nixpkgs.lib;
@@ -118,6 +129,9 @@
           nix-index-database.nixosModules.nix-index
           home-manager.nixosModules.home-manager
           {
+            # AI-Agents (claude-code, codex, opencode, pi) aus llm-agents.nix
+            # statt nixpkgs; greift über useGlobalPkgs auch in Home Manager.
+            nixpkgs.overlays = [llm-agents.overlays.default];
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.sharedModules = [
@@ -139,6 +153,8 @@
         pkgs = import nixpkgs {
           inherit system;
           config.allowUnfree = true;
+          # Eigene pkgs-Instanz erbt keine Host-Overlays; AI-Agents hier separat.
+          overlays = [llm-agents.overlays.default];
         };
         extraSpecialArgs = {
           flake-inputs = inputs;
