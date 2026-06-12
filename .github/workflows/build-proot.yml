@@ -1,0 +1,35 @@
+# Native aarch64 build of the bumped proot-termux (see ci/proot-bump.nix).
+# Runs on GitHub's free arm64 hosted runner (public repo), so the source-LLVM
+# cross toolchain compiles natively instead of under QEMU, and there is no
+# Android/proot filesystem limitation like on-device. Uploads the static
+# proot binary as an artifact to download + ship to korken.
+name: build-proot
+
+on:
+  push:
+    branches: [proot-bump-ci]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: DeterminateSystems/nix-installer-action@main
+
+      - name: Build bumped proot (native aarch64)
+        run: |
+          nix build --impure -L -f ci/proot-bump.nix -o result
+          mkdir -p out
+          install -m 0755 -D "$(readlink -f result)/bin/proot-static" out/proot-static
+          ( cd out && sha256sum proot-static | tee proot-static.sha256 )
+          file out/proot-static
+          ls -l out
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: proot-static-aarch64-2026-02-20
+          path: out/
+          if-no-files-found: error
