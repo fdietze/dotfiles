@@ -145,7 +145,7 @@
 
     # Standalone Home Manager: schnelle Shell-Variante auf beliebiger Box,
     # importiert nur den portablen shell-core (kein Desktop, kein stylix).
-    mkHome = system:
+    mkHome = system: username:
       home-manager.lib.homeManagerConfiguration {
         # Eigene pkgs-Instanz mit allowUnfree, weil standalone Home Manager —
         # anders als der NixOS-Host — keine nixpkgs.config erbt; shell-core zieht
@@ -166,6 +166,12 @@
           nix-index-database.homeModules.nix-index
           ./modules/home-manager/profiles/shell-core.nix
           ./modules/home-manager/profiles/standalone-extras.nix
+          # shell-core setzt felix nur per mkDefault; auf fremden Boxen mit
+          # anderem User (z.B. Fly Sprites, User "sprite") hier überschreiben.
+          {
+            home.username = username;
+            home.homeDirectory = "/home/${username}";
+          }
         ];
       };
 
@@ -205,8 +211,10 @@
 
     # "nix run home-manager -- switch --flake .#felix@<arch>"
     homeConfigurations = {
-      "felix@x86_64-linux" = mkHome "x86_64-linux";
-      "felix@aarch64-linux" = mkHome "aarch64-linux";
+      "felix@x86_64-linux" = mkHome "x86_64-linux" "felix";
+      "felix@aarch64-linux" = mkHome "aarch64-linux" "felix";
+      # Fly Sprite (https://docs.sprites.dev/): Ubuntu-VM, fester User "sprite".
+      "sprite@x86_64-linux" = mkHome "x86_64-linux" "sprite";
     };
 
     # "nix-on-droid switch --flake .#korken"
