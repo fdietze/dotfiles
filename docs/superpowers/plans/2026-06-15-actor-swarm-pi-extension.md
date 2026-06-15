@@ -173,8 +173,12 @@ export class Engine {
 	private readonly listeners = new Set<(e: SwarmEvent) => void>();
 	private frozen = false;
 	private turnsUsed = 0;
+	private readonly caps: Caps;
 
-	constructor(private readonly caps: Caps) {}
+	// Keine TS-Parameter-Properties: Node strip-only-Modus (node --test) unterstützt sie nicht.
+	constructor(caps: Caps) {
+		this.caps = caps;
+	}
 
 	private emit(e: SwarmEvent): void {
 		this.events.push(e);
