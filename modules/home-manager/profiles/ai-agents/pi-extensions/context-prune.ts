@@ -56,6 +56,16 @@ interface PruneDetails {
 	total: number;
 }
 
+// Eine zusammengefasste Range: ihre Summary-Message erbt fromId (= erstes
+// Member) als sichtbare id, damit sie selbst wieder in eine Range aufgenommen
+// und per recall aufgeloest werden kann. memberIds sind immer echte Entry-ids
+// (flach), zusammenhaengend und in Branch-Reihenfolge aufsteigend.
+interface Span {
+	fromId: string;
+	memberIds: string[];
+	summary: string;
+}
+
 // Marker, den der Agent liest und an forget/recall zurueckgibt.
 const marker = (id: string) => `[#${id}]`;
 
@@ -104,19 +114,23 @@ function tombstone(message: AgentMessageLike, id: string): void {
 export default function (pi: ExtensionAPI) {
 	// In-memory Quelle der Wahrheit, aus der Session rekonstruiert.
 	const pruned = new Set<string>();
+	const spans: Span[] = [];
 
 	const reconstruct = (ctx: ExtensionContext) => {
 		pruned.clear();
+		spans.length = 0;
 		// Letzter Custom-Entry auf dem Branch gewinnt (kumulativer Snapshot).
 		for (const entry of ctx.sessionManager.getBranch()) {
 			if (entry.type === "custom" && entry.customType === PRUNE_ENTRY) {
-				const ids = (entry.data as { pruned?: string[] } | undefined)?.pruned ?? [];
+				const data = entry.data as { pruned?: string[]; spans?: Span[] } | undefined;
 				pruned.clear();
-				for (const id of ids) pruned.add(id);
+				spans.length = 0;
+				for (const id of data?.pruned ?? []) pruned.add(id);
+				for (const s of data?.spans ?? []) spans.push(s);
 			}
 		}
 	};
-	const persist = () => pi.appendEntry(PRUNE_ENTRY, { pruned: [...pruned] });
+	const persist = () => pi.appendEntry(PRUNE_ENTRY, { pruned: [...pruned], spans });
 
 	pi.on("session_start", async (_event, ctx) => reconstruct(ctx));
 	pi.on("session_tree", async (_event, ctx) => reconstruct(ctx));
