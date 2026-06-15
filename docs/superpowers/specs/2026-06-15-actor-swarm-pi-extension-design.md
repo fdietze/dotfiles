@@ -132,7 +132,7 @@ aktuellen Turn komplett beendet hat. Idle Actors werden sofort geweckt
 
 ## Sicherheit (harte Caps + Not-Aus)
 
-Konfigurierbar über Extension-Settings, mit Defaults:
+Phase 1: Modul-Konstanten in `index.ts` (Settings-Binding ist additive Phase-2-Ergänzung), Defaults:
 
 - `maxActors` (Default 8): `spawn_agent` schlägt bei Überschreitung fehl.
 - `maxSpawnDepth` (Default 3): Spawn-Tiefe aus der Herkunfts-Kette; tiefere
