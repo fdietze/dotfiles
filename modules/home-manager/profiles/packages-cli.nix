@@ -67,6 +67,7 @@
       timewarrior
       speedtest-cli
       nethogs
+      devbox # install dev tools in project; zshrc ruft `devbox global shellenv` (shell.nix)
       # neovim editing stack
       clang # cc for nvim treesitter
       tree-sitter

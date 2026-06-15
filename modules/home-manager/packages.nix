@@ -63,7 +63,6 @@
       mermaid-cli # mermaid diagrams
       # development
       # earthly # better Dockerfiles
-      devbox # install dev tools in project
       visualvm # jvm profiling
       coursier # scala package manager, used to install metals
       # helix # modal editor
