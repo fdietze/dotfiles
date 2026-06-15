@@ -1,2 +1,9 @@
 result
 target/
+
+# noctalia runtime artifacts: pure functions of (template + active scheme),
+# rewritten by noctalia on every dark/light/scheme switch. Not source — seeded
+# empty at activation (see modules/home-manager/desktops/noctalia-niri.nix).
+# settings.json stays tracked (deliberate config, committed when meant).
+home/noctalia/generated/
+home/noctalia/colors.json

@@ -8,6 +8,12 @@
 }: let
   repoDir = "${config.home.homeDirectory}/projects/dotfiles";
   base16NoctaliaScheme = import ../../themes/noctalia-scheme.nix {inherit pkgs;};
+  # Empty placeholder for noctalia's runtime-rendered include files. The real
+  # palette is written by noctalia on its first render (spawn-at-startup); this
+  # only guarantees the include targets exist so dependent apps (alacritty's
+  # import, niri's include) start before noctalia has rendered. Empty content is
+  # valid as TOML/KDL/conf/Lua, so one seed fits every target.
+  noctaliaGeneratedSeed = pkgs.writeText "noctalia-generated-seed" "";
 in
   lib.mkIf (desktop == "noctalia-niri") {
     # https://docs.noctalia.dev/v4/getting-started/nixos/
@@ -44,9 +50,9 @@ in
     # Pull alacritty's color palette from noctalia's live color scheme. Noctalia
     # renders home/noctalia/templates/alacritty.toml into this output path
     # whenever the active scheme changes (see home/noctalia/user-templates.toml).
-    # The output lives under ~/.config/noctalia which is a mkOutOfStoreSymlink
-    # into the repo, so the rendered file is tracked in git and exists on first
-    # boot — without that, alacritty would fail to start on a missing import.
+    # generated/* is gitignored runtime state (rewritten on every theme switch);
+    # an empty placeholder is seeded at activation (noctaliaSeedGenerated below)
+    # so this import never misses on a fresh checkout before noctalia renders.
     programs.alacritty.settings.general.import = [
       "${config.home.homeDirectory}/.config/noctalia/generated/alacritty-colors.toml"
     ];
@@ -54,7 +60,8 @@ in
     # Kitty: live colors from noctalia. The generated file is included into
     # kitty.conf via extraConfig. Path resolves through the noctalia
     # mkOutOfStoreSymlink at ~/.config/noctalia, so the file is always present
-    # (seed is tracked in git) and gets rewritten in place by noctalia's
+    # (seeded empty at activation, see noctaliaSeedGenerated) and gets rewritten
+    # in place by noctalia's
     # template engine on every scheme change. SIGUSR1 reload is handled in
     # home/noctalia/user-templates.toml since kitty's auto_reload_config does
     # not watch include'd files.
@@ -156,6 +163,20 @@ in
       schemeDir="${repoDir}/home/noctalia/colorschemes/Base16"
       run mkdir -p "$schemeDir"
       run install -m 0644 ${base16NoctaliaScheme} "$schemeDir/Base16.json"
+    '';
+
+    # generated/* are pure runtime artifacts (template + active scheme), produced
+    # by noctalia, not nix — so they are gitignored. Seed empty placeholders if
+    # absent (fresh checkout) so include-based consumers start before noctalia's
+    # first render; noctalia then overwrites them in place. Writes go straight to
+    # the repo dir because ~/.config/noctalia is a mkOutOfStoreSymlink onto it
+    # (sibling-file timing issue, same as noctaliaBase16Scheme above).
+    home.activation.noctaliaSeedGenerated = lib.hm.dag.entryAfter ["writeBoundary"] ''
+      genDir="${repoDir}/home/noctalia/generated"
+      run mkdir -p "$genDir"
+      for f in alacritty-colors.toml kitty-colors.conf niri.kdl ghostty-colors wezterm-colors.lua; do
+        [ -e "$genDir/$f" ] || run install -m 0644 ${noctaliaGeneratedSeed} "$genDir/$f"
+      done
     '';
 
     # Raw KDL matches the repo's existing convention of writing tool configs
@@ -498,7 +519,7 @@ in
         # the validator — only affects validation, runtime resolves to the real
         # $HOME and lets noctalia overwrite it on every theme change.
         export HOME="$TMPDIR/home"
-        install -Dm0644 ${../../../home/noctalia/generated/niri.kdl} \
+        install -Dm0644 ${noctaliaGeneratedSeed} \
           "$HOME/.config/noctalia/generated/niri.kdl"
         niri validate -c "$out"
       '';
