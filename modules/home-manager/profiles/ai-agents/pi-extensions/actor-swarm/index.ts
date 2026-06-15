@@ -263,38 +263,49 @@ export default function actorSwarm(pi: ExtensionAPI) {
 		},
 	});
 
-	// SPIKE (Phase-2 Task 1): persistentes Overlay + Ctrl+Q-Fokus isoliert testen.
-	// Wird in Task 4 durch das echte SwarmPanel ersetzt.
-	let panelHandle: { focus(): void; unfocus(): void; requestRender(): void; close(): void } | undefined;
-	let panelFocused = false;
-	const spikeComponent = {
-		focused: false,
-		render(width: number): string[] {
-			const tag = this.focused ? "[FOCUSED]" : "[idle]";
-			return [` swarm spike ${tag} \u2014 Ctrl+Q toggelt Fokus `.slice(0, width)];
-		},
-		handleInput(_data: string) {},
-		invalidate() {},
-	};
-	pi.on("session_start", (_e, ctx) => {
-		if (panelHandle) return;
-		ctx.ui.custom(() => spikeComponent, {
-			overlay: true,
-			overlayOptions: { anchor: "top-center", width: "60%", margin: { top: 1, right: 0, bottom: 0, left: 0 } },
-			onHandle: (h: typeof panelHandle) => {
-				panelHandle = h;
-			},
-		});
-	});
-	pi.registerShortcut("ctrl+q", {
-		description: "Toggle swarm panel focus",
-		handler: async () => {
-			if (!panelHandle) return;
-			panelFocused = !panelFocused;
-			spikeComponent.focused = panelFocused;
-			if (panelFocused) panelHandle.focus();
-			else panelHandle.unfocus();
-			panelHandle.requestRender();
+	// SPIKE (Phase-2 Task 1): /swarm öffnet/schließt ein fokussiertes Overlay.
+	// Kein Auto-Overlay beim session_start (das fror die TUI ein) und kein
+	// globaler Shortcut. Wird in Task 4 durch das echte SwarmPanel ersetzt.
+	let spikeHandle: { focus?(): void; close(): void; requestRender(): void } | undefined;
+	pi.registerCommand("swarm", {
+		description: "Toggle the swarm panel",
+		handler: async (_args, ctx) => {
+			if (spikeHandle) {
+				spikeHandle.close();
+				spikeHandle = undefined;
+				return;
+			}
+			const component = {
+				focused: true,
+				render(width: number): string[] {
+					return [
+						" swarm panel [FOCUSED] \u2014 Esc oder /swarm schlie\u00dft ".slice(0, width),
+						" (hier kommen Roster + Transcript + Chatbox hin) ".slice(0, width),
+					];
+				},
+				handleInput(_data: string) {},
+				invalidate() {},
+			};
+			void ctx.ui
+				.custom(
+					(_tui, _theme, _kb, done) => {
+						component.handleInput = (data: string) => {
+							if (data === "\x1b") done(); // Esc schließt
+						};
+						return component;
+					},
+					{
+						overlay: true,
+						overlayOptions: { anchor: "top-center", width: "60%", margin: { top: 1, right: 0, bottom: 0, left: 0 } },
+						onHandle: (h: typeof spikeHandle) => {
+							spikeHandle = h;
+							h?.focus?.();
+						},
+					},
+				)
+				.then(() => {
+					spikeHandle = undefined;
+				});
 		},
 	});
 }
