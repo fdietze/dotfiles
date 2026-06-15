@@ -34,7 +34,7 @@
     '')
   ];
 in {
-  imports = [./skills.nix];
+  imports = [./skills.nix ./pi-extensions.nix];
 
   home.packages = lib.concatLists [
     # `claude`: experimental agent-teams env + skip its own permission prompts
