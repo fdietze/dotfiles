@@ -111,6 +111,105 @@ function tombstone(message: AgentMessageLike, id: string): void {
 	message.content = note;
 }
 
+/** Geordnete, taggbare Message-Entries des aktuellen Branch (Branch-Reihenfolge). */
+function branchMessages(ctx: ExtensionContext): { id: string; message: AgentMessageLike }[] {
+	const out: { id: string; message: AgentMessageLike }[] = [];
+	for (const entry of ctx.sessionManager.getBranch()) {
+		if (entry.type === "message") {
+			const m = entry.message as AgentMessageLike;
+			if (TAGGABLE_ROLES.has(m.role)) out.push({ id: entry.id, message: m });
+		}
+	}
+	return out;
+}
+
+/**
+ * Pro Position die [start,end]-Grenzen der atomaren toolCall/toolResult-Einheit.
+ * Eine Einheit = Assistant-Message mit toolCall-Bloecken + alle toolResult-
+ * Messages, die deren call-ids beantworten (ein Turn kann mehrere haben).
+ * Messages ausserhalb einer Einheit haben start==end==eigener Index.
+ */
+function unitBounds(msgs: { id: string; message: AgentMessageLike }[]): { start: number[]; end: number[] } {
+	const n = msgs.length;
+	const start = Array.from({ length: n }, (_, i) => i);
+	const end = Array.from({ length: n }, (_, i) => i);
+	const callOwner = new Map<string, number>(); // toolCall-Block-id -> Assistant-Index
+	for (let i = 0; i < n; i++) {
+		const m = msgs[i].message;
+		if (m.role === "assistant" && Array.isArray(m.content)) {
+			for (const b of m.content as Array<{ type?: string; id?: string }>) {
+				if (b?.type === "toolCall" && b.id) callOwner.set(b.id, i);
+			}
+		}
+	}
+	const resultsByOwner = new Map<number, number[]>(); // Assistant-Index -> Result-Indizes
+	for (let i = 0; i < n; i++) {
+		const m = msgs[i].message;
+		if (m.role === "toolResult" && m.toolCallId) {
+			const a = callOwner.get(m.toolCallId);
+			if (a !== undefined) (resultsByOwner.get(a) ?? resultsByOwner.set(a, []).get(a)!).push(i);
+		}
+	}
+	for (const [a, rs] of resultsByOwner) {
+		const e = Math.max(a, ...rs);
+		start[a] = a;
+		end[a] = e;
+		for (const r of rs) {
+			start[r] = a;
+			end[r] = e;
+		}
+	}
+	return { start, end };
+}
+
+/**
+ * lo/hi zuerst auf ganze Tool-Einheiten snappen, dann ueberlappende Spans
+ * flach absorbieren (deren Member ganz einschliessen). Wiederholt bis stabil.
+ */
+function expandRange(
+	msgs: { id: string; message: AgentMessageLike }[],
+	bounds: { start: number[]; end: number[] },
+	spans: Span[],
+	loIn: number,
+	hiIn: number,
+): { lo: number; hi: number } {
+	let lo = loIn;
+	let hi = hiIn;
+	const indexById = new Map(msgs.map((m, i) => [m.id, i] as const));
+	let changed = true;
+	while (changed) {
+		changed = false;
+		for (let i = lo; i <= hi; i++) {
+			if (bounds.start[i] < lo) {
+				lo = bounds.start[i];
+				changed = true;
+			}
+			if (bounds.end[i] > hi) {
+				hi = bounds.end[i];
+				changed = true;
+			}
+		}
+		for (const span of spans) {
+			const idxs = span.memberIds
+				.map((id) => indexById.get(id))
+				.filter((x): x is number => x !== undefined);
+			if (idxs.some((x) => x >= lo && x <= hi)) {
+				const sLo = Math.min(...idxs);
+				const sHi = Math.max(...idxs);
+				if (sLo < lo) {
+					lo = sLo;
+					changed = true;
+				}
+				if (sHi > hi) {
+					hi = sHi;
+					changed = true;
+				}
+			}
+		}
+	}
+	return { lo, hi };
+}
+
 export default function (pi: ExtensionAPI) {
 	// In-memory Quelle der Wahrheit, aus der Session rekonstruiert.
 	const pruned = new Set<string>();
