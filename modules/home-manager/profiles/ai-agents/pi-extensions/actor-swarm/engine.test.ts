@@ -64,3 +64,51 @@ test("canSpawn enforces maxSpawnDepth", () => {
 	assert.equal(r.ok, false);
 	assert.match((r as { reason: string }).reason, /depth/i);
 });
+
+test("route delivers prefixed message to existing actor when idle", async () => {
+	const e = new Engine(caps);
+	let delivered = "";
+	const handle: ActorHandle = {
+		deliver: async (t) => {
+			delivered = t;
+		},
+		abort: async () => {},
+		isStreaming: () => false,
+	};
+	e.addActor({ ...userRecord(), name: "coder", handle, depth: 1 });
+	const r = await e.route("user", "coder", "fix the bug");
+	assert.equal(r.ok, true);
+	assert.equal(delivered, "[message from user]: fix the bug");
+	assert.match((r as { status: string }).status, /woken|delivered/i);
+	assert.equal(e.events.at(-1)?.type, "route");
+});
+
+test("route reports busy status when target is streaming", async () => {
+	const e = new Engine(caps);
+	const handle: ActorHandle = {
+		deliver: async () => {},
+		abort: async () => {},
+		isStreaming: () => true,
+	};
+	e.addActor({ ...userRecord(), name: "busy", handle, depth: 1 });
+	const r = await e.route("user", "busy", "hi");
+	assert.equal(r.ok, true);
+	assert.match((r as { status: string }).status, /queued|busy/i);
+});
+
+test("route fails for unknown actor", async () => {
+	const e = new Engine(caps);
+	const r = await e.route("user", "ghost", "hi");
+	assert.equal(r.ok, false);
+	assert.match((r as { reason: string }).reason, /unknown actor/i);
+});
+
+test("route is blocked while frozen", async () => {
+	const e = new Engine(caps);
+	e.addActor({ ...userRecord(), name: "coder", depth: 1 });
+	e.halt();
+	const r = await e.route("user", "coder", "hi");
+	assert.equal(r.ok, false);
+	assert.match((r as { reason: string }).reason, /halt/i);
+	assert.equal(e.events.at(-1)?.type, "blocked");
+});
