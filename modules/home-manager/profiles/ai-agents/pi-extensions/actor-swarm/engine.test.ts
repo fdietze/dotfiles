@@ -112,3 +112,45 @@ test("route is blocked while frozen", async () => {
 	assert.match((r as { reason: string }).reason, /halt/i);
 	assert.equal(e.events.at(-1)?.type, "blocked");
 });
+
+test("recordTurnStart counts turns and aborts when budget exhausted", () => {
+	const e = new Engine({ maxActors: 5, maxSpawnDepth: 5, turnBudget: 2 });
+	e.addActor({ ...userRecord(), name: "a", depth: 1 });
+	assert.equal(e.recordTurnStart("a").abort, false);
+	assert.equal(e.recordTurnStart("a").abort, false);
+	const third = e.recordTurnStart("a");
+	assert.equal(third.abort, true);
+	assert.match(third.reason ?? "", /budget/i);
+	assert.equal(e.get("a")?.turns, 2);
+	assert.equal(e.budget.used, 2);
+});
+
+test("recordTurnStart aborts while frozen", () => {
+	const e = new Engine(caps);
+	e.addActor({ ...userRecord(), name: "a", depth: 1 });
+	e.halt();
+	const r = e.recordTurnStart("a");
+	assert.equal(r.abort, true);
+	assert.match(r.reason ?? "", /halt/i);
+});
+
+test("resume clears frozen and resets budget", () => {
+	const e = new Engine({ maxActors: 5, maxSpawnDepth: 5, turnBudget: 1 });
+	e.addActor({ ...userRecord(), name: "a", depth: 1 });
+	e.recordTurnStart("a"); // uses budget
+	e.halt();
+	e.resume();
+	assert.equal(e.isFrozen(), false);
+	assert.equal(e.budget.used, 0);
+	assert.equal(e.events.at(-1)?.type, "resume");
+	assert.equal(e.recordTurnStart("a").abort, false);
+});
+
+test("setStreaming updates record flag", () => {
+	const e = new Engine(caps);
+	e.addActor({ ...userRecord(), name: "a", depth: 1 });
+	e.setStreaming("a", true);
+	assert.equal(e.get("a")?.streaming, true);
+	e.setStreaming("a", false);
+	assert.equal(e.get("a")?.streaming, false);
+});
