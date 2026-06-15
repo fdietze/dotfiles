@@ -44,6 +44,26 @@ Wichtig: pi's eingebauter `runtime.switchSession()`/`newSession()` ruft
 Deshalb dürfen Actors **nicht** über die Runtime verwaltet werden, sondern als
 eigenständige, von der Extension gehaltene `AgentSession`-Objekte.
 
+## Spike-Erkenntnisse (Quellcode-Verifikation, pi 0.79.1)
+
+Vor dem Plan wurden die zwei riskantesten Unbekannten gegen den pi-Quellcode
+geprüft:
+
+- **Mehrere lebende Sessions in einem Prozess: tragfähig.** `core/agent-session`
+  und `agent-session-runtime` enthalten keine Prozess-Globals für
+  Terminal/stdin/Signale. Die einzige globale stdout-Übernahme (`takeOverStdout`
+  in `output-guard`) sitzt in der Run-Mode-Schicht (interactive/rpc/print), nicht
+  in `AgentSession`. Headless erzeugte Hintergrund-Sessions fassen das Terminal
+  also nicht an; nur der eine Vordergrund-Run-Mode besitzt es. Deckt sich exakt
+  mit dieser Architektur.
+- **Tastengetriebener globaler Not-Aus: nicht baubar.** In pi ist `ctrl+c`
+  nicht Abort, sondern `app.clear` (Editor leeren); der Interrupt liegt auf
+  `escape` und bricht nur den Vordergrund-Turn ab. Extensions können globale
+  `app.*`-Keybindings nicht überschreiben (`KeybindingsManager` ist nur in
+  eigene `ctx.ui.custom()`-Components injiziert). Folge: Der Not-Aus wird als
+  `/halt`-**Command** umgesetzt (Commands sind voll unterstützt), nicht als
+  Tastenkürzel.
+
 ## Architektur
 
 Ein Prozess. Die Extension hält eine **In-Memory-Registry** `name → AgentSession`.
@@ -120,11 +140,14 @@ Konfigurierbar über Extension-Settings, mit Defaults:
 - `turnBudget` (Default 100): globaler Zähler über **alle** Actors. Bei 0 werden
   neue Turns abgelehnt.
 
-Not-Aus:
+Not-Aus (`/halt` Command — kein Tastenkürzel, siehe Spike-Erkenntnisse):
 
-- `/halt` Command **und** Ctrl-C setzen `frozen = true`: keine neuen
-  Sends/Spawns/Turns; laufende Turns werden via `session.abort()` gestoppt.
+- `/halt` setzt `frozen = true`: keine neuen Sends/Spawns/Turns. Jeder Actor
+  prüft im `turn_start`-Hook das `frozen`-Flag und ruft `session.abort()` auf
+  sich selbst auf, damit `/halt` auch laufende Turns stoppt.
 - `/resume` hebt `frozen` auf und setzt das Turn-Budget zurück.
+- pi's eingebautes `escape` bleibt unangetastet: es bricht weiterhin nur den
+  Vordergrund-Turn (`user`) ab, nicht den Schwarm.
 
 Die Herkunfts-Kette wird mitgetragen (fast gratis), aber nur Caps + Not-Aus
 werden erzwungen. Loop-Erkennung als eigene Policy ist Phase 2.
