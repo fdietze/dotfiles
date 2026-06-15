@@ -258,12 +258,13 @@ export default function actorSwarm(pi: ExtensionAPI) {
 			for (const a of engine.list()) {
 				if (a.name !== "user") void a.handle.abort();
 			}
-			ctx.ui.notify("Swarm halted. Use /resume to continue.", "warning");
+			ctx.ui.notify("Swarm halted. Use /unhalt to continue.", "warning");
 			updateStatus();
 		},
 	});
 
-	pi.registerCommand("resume", {
+	// Hinweis: nicht "resume" — das kollidiert mit pi's eingebautem /resume (Session fortsetzen).
+	pi.registerCommand("unhalt", {
 		description: "Resume a halted swarm and reset the turn budget.",
 		handler: async (_args, ctx) => {
 			engine.resume();
