@@ -348,4 +348,90 @@ export default function (pi: ExtensionAPI) {
 			return new Text(theme.fg("success", `✓ recalled ${d.applied.length}`) + theme.fg("dim", ` (${d.total} forgotten)`), 0, 0);
 		},
 	});
+
+	const FromToParam = Type.Object({
+		from: Type.String({
+			description: "Start id (the 8-char hex in a [#id] marker); a real message or an existing summary's id.",
+		}),
+		to: Type.String({
+			description: "End id (the 8-char hex in a [#id] marker), inclusive. Order relative to `from` does not matter.",
+		}),
+		summary: Type.String({ description: "Short summary text that replaces the whole range." }),
+	});
+
+	pi.registerTool({
+		name: "forget_range",
+		label: "Forget Range",
+		description:
+			"Collapse a contiguous range of messages (from..to, inclusive, by their [#id] markers) into a single " +
+			"summary you write. Reclaims context on finished sub-threads. The range snaps outward to keep tool " +
+			"call/result pairs whole. Reversible via recall_messages.",
+		promptSnippet: "Collapse a finished range of messages into one summary via their [#id] markers",
+		promptGuidelines: [
+			"Use forget_range to replace a finished span of the conversation (from..to by their [#id] markers) with one short summary you write; recall_messages restores all originals at once.",
+		],
+		parameters: FromToParam,
+		async execute(_id, params, _signal, _onUpdate, ctx) {
+			const msgs = branchMessages(ctx);
+			const indexById = new Map(msgs.map((m, i) => [m.id, i] as const));
+			const spanByFrom = new Map(spans.map((s) => [s.fromId, s] as const));
+			const startIdx = (id: string) => {
+				const s = spanByFrom.get(id);
+				return indexById.get(s ? s.memberIds[0] : id);
+			};
+			const endIdx = (id: string) => {
+				const s = spanByFrom.get(id);
+				return indexById.get(s ? s.memberIds[s.memberIds.length - 1] : id);
+			};
+			const a = startIdx(params.from);
+			const b = endIdx(params.to);
+			const unknown = [...(a === undefined ? [params.from] : []), ...(b === undefined ? [params.to] : [])];
+			if (unknown.length) {
+				return {
+					content: [{ type: "text", text: `unknown id(s): ${unknown.join(", ")}` }],
+					details: {
+						action: "forget",
+						applied: [],
+						unknown,
+						noop: [],
+						total: pruned.size + spans.length,
+					} as PruneDetails,
+				};
+			}
+			const reqLo = Math.min(a!, b!);
+			const reqHi = Math.max(a!, b!);
+			const bounds = unitBounds(msgs);
+			const { lo, hi } = expandRange(msgs, bounds, spans, reqLo, reqHi);
+			const memberIds = msgs.slice(lo, hi + 1).map((m) => m.id);
+			const memberSet = new Set(memberIds);
+			// Absorbierte Spans entfernen (flach) und Einzel-Tombstones im Bereich aufloesen.
+			for (let i = spans.length - 1; i >= 0; i--) {
+				if (spans[i].memberIds.some((id) => memberSet.has(id))) spans.splice(i, 1);
+			}
+			for (const id of memberIds) pruned.delete(id);
+			spans.push({ fromId: memberIds[0], memberIds, summary: params.summary });
+			persist();
+			const snapped = lo < reqLo || hi > reqHi;
+			const text =
+				`Collapsed ${memberIds.length} message(s) into a summary [#${memberIds[0]}]` +
+				(snapped ? " (range snapped outward to keep tool pairs whole)" : "") +
+				".";
+			return {
+				content: [{ type: "text", text }],
+				details: {
+					action: "forget",
+					applied: [memberIds[0]],
+					unknown: [],
+					noop: [],
+					total: pruned.size + spans.length,
+				} as PruneDetails,
+			};
+		},
+		renderResult(result, _opts, theme) {
+			const d = result.details as PruneDetails | undefined;
+			if (!d) return new Text("", 0, 0);
+			if (!d.applied.length) return new Text(theme.fg("warning", `unknown id(s)`), 0, 0);
+			return new Text(theme.fg("success", `✓ summarized → ${d.applied[0]}`), 0, 0);
+		},
+	});
 }
