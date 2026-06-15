@@ -340,7 +340,7 @@ export default function (pi: ExtensionAPI) {
 			if (applied.length) persist();
 			return {
 				content: [{ type: "text", text: summarize("forget", applied, unknown, noop) }],
-				details: { action: "forget", applied, unknown, noop, total: pruned.size } as PruneDetails,
+				details: { action: "forget", applied, unknown, noop, total: pruned.size + spans.length } as PruneDetails,
 			};
 		},
 		renderResult(result, _opts, theme) {
@@ -359,13 +359,29 @@ export default function (pi: ExtensionAPI) {
 			const applied: string[] = [];
 			const noop: string[] = [];
 			for (const id of params.ids) {
-				if (pruned.delete(id)) applied.push(id);
-				else noop.push(id);
+				if (pruned.delete(id)) {
+					applied.push(id);
+					continue;
+				}
+				// id koennte die fromId eines Spans sein -> Span aufloesen (flach: alle Originale zurueck).
+				const i = spans.findIndex((s) => s.fromId === id);
+				if (i >= 0) {
+					spans.splice(i, 1);
+					applied.push(id);
+				} else {
+					noop.push(id);
+				}
 			}
 			if (applied.length) persist();
 			return {
 				content: [{ type: "text", text: summarize("recall", applied, [], noop) }],
-				details: { action: "recall", applied, unknown: [], noop, total: pruned.size } as PruneDetails,
+				details: {
+					action: "recall",
+					applied,
+					unknown: [],
+					noop,
+					total: pruned.size + spans.length,
+				} as PruneDetails,
 			};
 		},
 		renderResult(result, _opts, theme) {
