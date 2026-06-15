@@ -262,4 +262,39 @@ export default function actorSwarm(pi: ExtensionAPI) {
 			ctx.ui.notify(lines.length ? lines.join("\n") : "(no activity yet)", "info");
 		},
 	});
+
+	// SPIKE (Phase-2 Task 1): persistentes Overlay + Ctrl+Q-Fokus isoliert testen.
+	// Wird in Task 4 durch das echte SwarmPanel ersetzt.
+	let panelHandle: { focus(): void; unfocus(): void; requestRender(): void; close(): void } | undefined;
+	let panelFocused = false;
+	const spikeComponent = {
+		focused: false,
+		render(width: number): string[] {
+			const tag = this.focused ? "[FOCUSED]" : "[idle]";
+			return [` swarm spike ${tag} \u2014 Ctrl+Q toggelt Fokus `.slice(0, width)];
+		},
+		handleInput(_data: string) {},
+		invalidate() {},
+	};
+	pi.on("session_start", (_e, ctx) => {
+		if (panelHandle) return;
+		ctx.ui.custom(() => spikeComponent, {
+			overlay: true,
+			overlayOptions: { anchor: "top-center", width: "60%", margin: { top: 1, right: 0, bottom: 0, left: 0 } },
+			onHandle: (h: typeof panelHandle) => {
+				panelHandle = h;
+			},
+		});
+	});
+	pi.registerShortcut("ctrl+q", {
+		description: "Toggle swarm panel focus",
+		handler: async () => {
+			if (!panelHandle) return;
+			panelFocused = !panelFocused;
+			spikeComponent.focused = panelFocused;
+			if (panelFocused) panelHandle.focus();
+			else panelHandle.unfocus();
+			panelHandle.requestRender();
+		},
+	});
 }
