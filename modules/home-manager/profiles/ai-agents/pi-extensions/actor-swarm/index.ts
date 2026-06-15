@@ -62,9 +62,18 @@ export default function actorSwarm(pi: ExtensionAPI) {
 	// Engine-Events (außerhalb eines Handler-ctx) aktualisieren zu können.
 	type UI = { setStatus(key: string, text: string | undefined): void };
 	let ui: UI | undefined;
+	type ModelLike = { provider: string; id: string };
 	let cwd = process.cwd();
-	let lastForegroundModel: { provider: string; id: string } | undefined;
+	let foregroundModel: ModelLike | undefined; // aktuelles Vordergrund-Modell (für Vererbung an Actors)
 	let foregroundStreaming = false;
+
+	// Modell aus jedem Vordergrund-Handler-ctx erfassen (zuverlässiger als model_select allein).
+	const captureForegroundModel = (m: ModelLike | undefined) => {
+		if (!m) return;
+		foregroundModel = { provider: m.provider, id: m.id };
+		const u = engine.get("user");
+		if (u) u.model = `${m.provider}/${m.id}`;
+	};
 
 	const updateStatus = () => {
 		const actors = engine.list();
@@ -77,13 +86,17 @@ export default function actorSwarm(pi: ExtensionAPI) {
 	engine.subscribe(() => updateStatus());
 
 	const resolveModel = (ref: string | undefined): ResolvedModel | undefined => {
-		const r = ref ?? (lastForegroundModel ? `${lastForegroundModel.provider}/${lastForegroundModel.id}` : undefined);
-		if (!r) return undefined;
-		const slash = r.indexOf("/");
-		if (slash < 0) return undefined;
-		const model = modelRegistry.find(r.slice(0, slash), r.slice(slash + 1));
-		if (!model) return undefined;
-		return { provider: model.provider, id: model.id, model };
+		if (ref && ref.includes("/")) {
+			const slash = ref.indexOf("/");
+			const model = modelRegistry.find(ref.slice(0, slash), ref.slice(slash + 1));
+			if (model) return { provider: model.provider, id: model.id, model };
+		}
+		// Fallback: aktuelles Vordergrund-Modell (deckt Vererbung + den "(foreground)"-Platzhalter ab).
+		if (foregroundModel) {
+			const model = modelRegistry.find(foregroundModel.provider, foregroundModel.id);
+			if (model) return { provider: foregroundModel.provider, id: foregroundModel.id, model };
+		}
+		return undefined;
 	};
 
 	// Tools für einen bestimmten Actor (Name fest gebunden) — für Vordergrund 'user'
@@ -163,13 +176,12 @@ export default function actorSwarm(pi: ExtensionAPI) {
 
 	// Foreground-Modell erfassen (für Vererbung an gespawnte Actors).
 	pi.on("model_select", (event) => {
-		lastForegroundModel = { provider: event.model.provider, id: event.model.id };
-		const u = engine.get("user");
-		if (u) u.model = `${event.model.provider}/${event.model.id}`;
+		captureForegroundModel(event.model);
 	});
 
-	// Foreground-Streaming-Flag für Statusanzeige.
-	pi.on("agent_start", () => {
+	// Foreground-Streaming-Flag für Statusanzeige + Modell erfassen.
+	pi.on("agent_start", (_event, ctx) => {
+		captureForegroundModel(ctx.model);
 		foregroundStreaming = true;
 		engine.setStreaming("user", true);
 		updateStatus();
@@ -184,6 +196,7 @@ export default function actorSwarm(pi: ExtensionAPI) {
 	pi.on("session_start", (_event, ctx) => {
 		cwd = ctx.cwd;
 		ui = ctx.ui;
+		captureForegroundModel(ctx.model);
 		if (!engine.has("user")) {
 			const userHandle: ActorHandle = {
 				deliver: async (text) => {
@@ -194,7 +207,7 @@ export default function actorSwarm(pi: ExtensionAPI) {
 			};
 			engine.addActor({
 				name: "user",
-				model: lastForegroundModel ? `${lastForegroundModel.provider}/${lastForegroundModel.id}` : "(foreground)",
+				model: foregroundModel ? `${foregroundModel.provider}/${foregroundModel.id}` : "(foreground)",
 				handle: userHandle,
 				spawnedBy: "user",
 				depth: 0,
