@@ -19,6 +19,7 @@ import {
 import { Type } from "typebox";
 import { Engine, type ActorHandle } from "./engine.ts";
 import { formatFeedLines, formatSnapshot, formatStatus } from "./feed.ts";
+import { createSpawner, type ResolvedModel, type SessionLike } from "./swarm.ts";
 
 // Caps — Phase 1: Modul-Konstanten (Settings-Binding ist eine triviale spätere Ergänzung).
 const CAPS = { maxActors: 8, maxSpawnDepth: 3, turnBudget: 100 };
@@ -75,12 +76,14 @@ export default function actorSwarm(pi: ExtensionAPI) {
 	// Status bei jedem Engine-Event aktualisieren.
 	engine.subscribe(() => updateStatus());
 
-	const resolveModel = (ref: string | undefined) => {
+	const resolveModel = (ref: string | undefined): ResolvedModel | undefined => {
 		const r = ref ?? (lastForegroundModel ? `${lastForegroundModel.provider}/${lastForegroundModel.id}` : undefined);
 		if (!r) return undefined;
 		const slash = r.indexOf("/");
 		if (slash < 0) return undefined;
-		return modelRegistry.find(r.slice(0, slash), r.slice(slash + 1));
+		const model = modelRegistry.find(r.slice(0, slash), r.slice(slash + 1));
+		if (!model) return undefined;
+		return { provider: model.provider, id: model.id, model };
 	};
 
 	// Tools für einen bestimmten Actor (Name fest gebunden) — für Vordergrund 'user'
@@ -127,34 +130,13 @@ export default function actorSwarm(pi: ExtensionAPI) {
 		},
 	];
 
-	const subscribeBackground = (
-		name: string,
-		session: { isStreaming: boolean; abort(): Promise<void>; subscribe(l: (e: { type: string }) => void): () => void },
-	) => {
-		session.subscribe((ev) => {
-			if (ev.type === "turn_start") {
-				const r = engine.recordTurnStart(name);
-				if (r.abort) void session.abort();
-			}
-			if (ev.type === "agent_start" || ev.type === "message_start") engine.setStreaming(name, true);
-			if (ev.type === "agent_end") engine.setStreaming(name, false);
-			updateStatus();
-		});
-	};
-
-	async function spawnActor(
-		spec: { name: string; role: string; model?: string; tools?: string[] },
-		spawnerName: string,
-	): Promise<{ ok: boolean; msg: string }> {
-		const spawner = engine.get(spawnerName);
-		const depth = spawner ? spawner.depth : 0;
-		const check = engine.canSpawn(spec.name, depth);
-		if (!check.ok) return { ok: false, msg: `error: ${check.reason}` };
-
-		const inheritRef = spec.model ?? spawner?.model;
-		const model = resolveModel(inheritRef);
-		if (!model) return { ok: false, msg: `error: unknown model '${inheritRef ?? "(none)"}'` };
-
+	// SDK-Adapter: erzeugt eine isolierte Hintergrund-Actor-Session.
+	const createSession = async (spec: {
+		name: string;
+		role: string;
+		model: unknown;
+		tools?: string[];
+	}): Promise<SessionLike> => {
 		const loader = new DefaultResourceLoader({
 			cwd,
 			agentDir: blankAgentDir,
@@ -166,7 +148,7 @@ export default function actorSwarm(pi: ExtensionAPI) {
 
 		const { session } = await createAgentSession({
 			cwd,
-			model,
+			model: spec.model as Parameters<typeof createAgentSession>[0]["model"],
 			authStorage,
 			modelRegistry,
 			customTools: makeActorTools(spec.name),
@@ -174,31 +156,10 @@ export default function actorSwarm(pi: ExtensionAPI) {
 			resourceLoader: loader,
 			sessionManager: SessionManager.inMemory(cwd),
 		});
+		return session;
+	};
 
-		const handle: ActorHandle = {
-			deliver: async (text) => {
-				await session.sendUserMessage(text, { deliverAs: "followUp" });
-			},
-			abort: async () => {
-				await session.abort();
-			},
-			isStreaming: () => session.isStreaming,
-		};
-
-		engine.addActor({
-			name: spec.name,
-			model: `${model.provider}/${model.id}`,
-			handle,
-			spawnedBy: spawnerName,
-			depth: depth + 1,
-			createdAt: Date.now(),
-			turns: 0,
-			lastActivity: Date.now(),
-			streaming: false,
-		});
-		subscribeBackground(spec.name, session);
-		return { ok: true, msg: `spawned '${spec.name}' (model ${model.provider}/${model.id})` };
-	}
+	const { spawnActor } = createSpawner({ engine, resolveModel, createSession, onActivity: updateStatus });
 
 	// Foreground-Modell erfassen (für Vererbung an gespawnte Actors).
 	pi.on("model_select", (event) => {
