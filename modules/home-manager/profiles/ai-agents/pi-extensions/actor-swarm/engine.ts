@@ -12,10 +12,19 @@ export interface ActorHandle {
 	isStreaming(): boolean;
 }
 
+/** Live-Sicht auf einen Actor für das Panel (Phase 2). Optional, rein additiv. */
+export interface ActorView {
+	getMessages(): unknown[];
+	getContextUsage(): { tokens: number | null; contextWindow: number; percent: number | null } | undefined;
+	subscribe(listener: (e: { type: string }) => void): () => void;
+}
+
 export interface ActorRecord {
 	name: string;
 	model: string; // "provider/id" nur zur Anzeige
 	handle: ActorHandle;
+	/** Optional: Live-Sicht auf Transcript/Kontext/Events (für das Panel). */
+	view?: ActorView;
 	spawnedBy: string;
 	depth: number; // user = 0
 	createdAt: number;

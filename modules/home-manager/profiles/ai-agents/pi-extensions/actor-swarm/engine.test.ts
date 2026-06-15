@@ -154,3 +154,16 @@ test("setStreaming updates record flag", () => {
 	e.setStreaming("a", false);
 	assert.equal(e.get("a")?.streaming, false);
 });
+
+test("addActor preserves optional view", () => {
+	const e = new Engine(caps);
+	const msgs: unknown[] = [{ role: "user", content: "hi" }];
+	const view = {
+		getMessages: () => msgs,
+		getContextUsage: () => ({ tokens: 100, contextWindow: 200000, percent: 0.05 }),
+		subscribe: () => () => {},
+	};
+	e.addActor({ ...userRecord(), name: "a", depth: 1, view });
+	assert.equal(e.get("a")?.view?.getMessages().length, 1);
+	assert.equal(e.get("a")?.view?.getContextUsage()?.contextWindow, 200000);
+});
