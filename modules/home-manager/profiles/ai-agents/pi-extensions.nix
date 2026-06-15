@@ -5,10 +5,7 @@
 # bleiben inert). Bearbeitung im Repo + Home-Manager-Switch; danach `/reload` in pi.
 {lib, ...}: let
   dir = ./pi-extensions;
-  # Extensions, die zwar im Repo liegen, aber nicht verlinkt (= nicht von pi
-  # geladen) werden sollen. Name = Top-Level-Dateiname bzw. Unterverzeichnisname.
-  disabled = ["actor-swarm"];
-  entries = lib.filterAttrs (name: _: !(builtins.elem name disabled)) (builtins.readDir dir);
+  entries = builtins.readDir dir;
 
   # Top-Level *.ts -> ~/.pi/agent/extensions/<name>
   files =
