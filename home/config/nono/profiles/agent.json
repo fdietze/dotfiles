@@ -28,10 +28,13 @@
       "$WORKDIR",
       "$HOME/.claude",
       "$HOME/.opencode",
+      "$HOME/.pi",
       "$HOME/.config/agents",
       "$HOME/.config/opencode",
       "$HOME/.cache/opencode",
       "$HOME/.cargo",
+      "~/.agents/skills",
+      "~/.claude/skills",
       "$HOME/.config/nono/profile-drafts",
       "/tmp",
       "$HOME/.dolt",
@@ -54,8 +57,6 @@
       "$HOME/.config/direnv"
     ],
     "write": [
-      "~/.agents/skills",
-      "~/.claude/skills",
       "$HOME/.cache/"
     ],
     "allow_file": [
@@ -65,7 +66,7 @@
       "$XDG_RUNTIME_DIR/ssh-agent",
       "$HOME/.zcompdump",
       "$HOME/.zsh_history.local",
-      "~/.sprites/sprites.json"
+      "$HOME/.sprites/sprites.json"
     ],
     "read_file": [
       "$HOME/.ssh/known_hosts",
