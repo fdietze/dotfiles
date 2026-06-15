@@ -181,6 +181,7 @@ export default function (pi: ExtensionAPI) {
 		promptSnippet: "Free context by forgetting earlier messages via their [#id] markers",
 		promptGuidelines: [
 			"Every message is prefixed with a [#id] marker; pass those ids to forget_messages to remove their content from context, or recall_messages to restore them.",
+			"The [#id] markers are added automatically by the harness. Never write, echo, or fabricate them in your own output; only pass ids that already appear as markers to the forget_messages/recall_messages tools.",
 			"Prefer forget_messages on large, no-longer-needed tool outputs to reclaim context budget.",
 		],
 		parameters: IdsParam,
