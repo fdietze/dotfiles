@@ -59,6 +59,16 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Superpowers: harness-agnostische Agent-Skills (Agent Skills Standard) von
+    # obra/superpowers. Kein Flake, nur Quell-Repo; die Skills werden in
+    # modules/home-manager/profiles/superpowers.nix nach ~/.agents/skills/
+    # verlinkt, sodass alle Agents (pi, claude, codex, opencode) sie sehen.
+    # Update: `nix flake update superpowers`.
+    superpowers = {
+      url = "github:obra/superpowers";
+      flake = false;
+    };
+
   };
 
   outputs = {

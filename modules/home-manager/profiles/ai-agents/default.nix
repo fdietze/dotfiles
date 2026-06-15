@@ -3,6 +3,8 @@
 # shared nono profile `agent` lives at home/config/nono/profiles/agent.json and
 # is linked out-of-store into ~/.config/nono/profiles/ by dotfiles.nix, so it
 # stays versioned yet live-editable without a Home-Manager switch.
+#
+# ./skills.nix provisions the shared ~/.agents/skills/ set (superpowers + own).
 {
   lib,
   pkgs,
@@ -32,6 +34,8 @@
     '')
   ];
 in {
+  imports = [./skills.nix];
+
   home.packages = lib.concatLists [
     # `claude`: experimental agent-teams env + skip its own permission prompts
     # (nono is the real isolation layer). `vanilla-claude` keeps the prompts.
@@ -59,3 +63,4 @@ in {
     })
   ];
 }
+

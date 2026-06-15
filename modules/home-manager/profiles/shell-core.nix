@@ -21,7 +21,7 @@ in {
     ../git.nix
     ../yazi.nix
     ./packages-cli.nix
-    ./ai-agents.nix
+    ./ai-agents
   ];
 
   # https://nix-community.github.io/home-manager/index.xhtml
