@@ -411,6 +411,7 @@ export default function (pi: ExtensionAPI) {
 		promptSnippet: "Collapse a finished range of messages into one summary via their [#id] markers",
 		promptGuidelines: [
 			"Use forget_range to replace a finished span of the conversation (from..to by their [#id] markers) with one short summary you write; recall_messages restores all originals at once.",
+			"Whenever you finish a task or a self-contained sub-thread, routinely collapse its messages into a single summary with forget_range to keep the working context lean. Capture decisions, outcomes and anything still needed later in the summary.",
 		],
 		parameters: FromToParam,
 		async execute(_id, params, _signal, _onUpdate, ctx) {
