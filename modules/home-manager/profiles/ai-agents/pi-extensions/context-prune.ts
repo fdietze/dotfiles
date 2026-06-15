@@ -249,14 +249,40 @@ export default function (pi: ExtensionAPI) {
 			queue.push(entry.id);
 		}
 
+		// Span-Lookups: fromId -> Span (durch Summary ersetzen), uebrige Member weglassen.
+		const spanByFrom = new Map(spans.map((s) => [s.fromId, s] as const));
+		const hiddenMembers = new Set<string>();
+		for (const s of spans) for (const id of s.memberIds.slice(1)) hiddenMembers.add(id);
+
+		const out: AgentMessageLike[] = [];
 		for (const message of event.messages as AgentMessageLike[]) {
-			if (!TAGGABLE_ROLES.has(message.role)) continue;
+			if (!TAGGABLE_ROLES.has(message.role)) {
+				out.push(message);
+				continue;
+			}
 			const id = idQueues.get(`${message.timestamp}|${message.role}`)?.shift();
-			if (!id) continue;
+			if (!id) {
+				out.push(message);
+				continue;
+			}
+			if (hiddenMembers.has(id)) continue; // Teil eines Spans (nicht erstes Member) -> weglassen
+			const span = spanByFrom.get(id);
+			if (span) {
+				// Ganze Range durch EINE synthetische user-Summary ersetzen. Da der Span
+				// immer ganze Tool-Einheiten umfasst, koennen die weggelassenen Member
+				// nie ein toolCall/toolResult-Paar verwaisen lassen.
+				message.role = "user";
+				message.content = `${marker(id)} (summary) ${span.summary}`;
+				message.details = undefined;
+				message.toolCallId = undefined;
+				out.push(message);
+				continue;
+			}
 			if (pruned.has(id)) tombstone(message, id);
 			else tag(message, id);
+			out.push(message);
 		}
-		return { messages: event.messages };
+		return { messages: out };
 	});
 
 	// Gueltige (vergessbare) Message-Entry-ids auf dem aktuellen Branch.
