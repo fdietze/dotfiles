@@ -15,7 +15,7 @@ in
     # read-only symlink at ~/.config/noctalia/settings.json, but the GUI must be
     # able to write to it. Settings are tracked via the mkOutOfStoreSymlink
     # below instead.
-    programs.noctalia-shell.enable = true;
+    programs.noctalia.enable = true;
 
     # Noctalia does not theme GTK/Qt apps itself and points users at nwg-look /
     # qt6ct (https://docs.noctalia.dev/v4/getting-started/faq/). Stylix is gated
