@@ -27,7 +27,14 @@
 
 **WARNING**: These are the installation instructions for myself, not for you. You should have your own repository and get inspired by this one. If you have any questions, feel free to open issues.
 
-All paths assume a running NixOS system.
+All paths assume a running NixOS or nix-enabled system with flakes.
+
+```bash
+curl -sSfL https://artifacts.nixos.org/nix-installer | sh -s -- install --enable-flakes
+# or
+curl --proto '=https' --tlsv1.2 -L https://nixos.org/nix/install | sh -s -- --daemon
+```
+
 
 ### A — Quick shell on any box (standalone Home Manager)
 
