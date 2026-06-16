@@ -116,7 +116,7 @@ export default function actorSwarm(pi: ExtensionAPI) {
 				),
 			);
 			const haltLine = engine.isFrozen()
-				? theme.bg("infoBg", " ⏸ agents HALTED — /unhalt to resume ".padEnd(80))
+				? theme.bg("toolPendingBg", " ⏸ agents HALTED — /unhalt to resume ".padEnd(80))
 				: theme.bg("selectedBg", " ▶ running ");
 			ui.setWidget(
 				"swarm-roster",

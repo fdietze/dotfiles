@@ -225,7 +225,7 @@ export function createSwarmPanel(deps: PanelDeps, tui: TuiLike, theme: ThemeLike
 			// Halt/Unhalt-Zustand klar unter der Liste anzeigen.
 			lines.push(
 				deps.engine.isFrozen()
-					? theme.bg("infoBg", truncateToWidth(" ⏸ agents HALTED — /unhalt to resume ".padEnd(width), width))
+					? theme.bg("toolPendingBg", truncateToWidth(" ⏸ agents HALTED — /unhalt to resume ".padEnd(width), width))
 					: theme.bg("selectedBg", " ▶ running "),
 			);
 			lines.push(theme.fg("dim", truncateToWidth("─".repeat(width), width)));
