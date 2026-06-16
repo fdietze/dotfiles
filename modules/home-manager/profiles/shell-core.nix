@@ -18,6 +18,7 @@ in {
   imports = [
     ../shell.nix
     ../dotfiles.nix
+    ../dev-links.nix
     ../git.nix
     ../yazi.nix
     ./packages-cli.nix
