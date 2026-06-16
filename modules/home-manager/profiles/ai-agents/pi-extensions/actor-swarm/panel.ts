@@ -42,6 +42,10 @@ function renderComponentLines(make: () => { render(w: number): string[] }, width
 export function createSwarmPanel(deps: PanelDeps, tui: TuiLike, theme: ThemeLike, done: () => void) {
 	let selectedIndex = 0;
 	let scrollOffset = 0;
+	let followBottom = true; // standardmäßig neueste Zeilen zeigen
+	let hasAbove = false;
+	let hasBelow = false;
+	const SCROLL_STEP = 5;
 	let unsubView: (() => void) | undefined;
 
 	const editorTheme: EditorTheme = {
@@ -103,7 +107,15 @@ export function createSwarmPanel(deps: PanelDeps, tui: TuiLike, theme: ThemeLike
 			}
 		}
 		if (lines.length === 0) lines.push(theme.fg("muted", "  (noch keine Nachrichten)"));
-		scrollOffset = clampScroll(scrollOffset, lines.length, TRANSCRIPT_VIEWPORT);
+		const max = Math.max(0, lines.length - TRANSCRIPT_VIEWPORT);
+		if (followBottom || scrollOffset >= max) {
+			scrollOffset = max;
+			followBottom = true;
+		} else {
+			scrollOffset = clampScroll(scrollOffset, lines.length, TRANSCRIPT_VIEWPORT);
+		}
+		hasAbove = scrollOffset > 0;
+		hasBelow = scrollOffset < max;
 		return lines.slice(scrollOffset, scrollOffset + TRANSCRIPT_VIEWPORT);
 	};
 
@@ -121,25 +133,28 @@ export function createSwarmPanel(deps: PanelDeps, tui: TuiLike, theme: ThemeLike
 			}
 			if (matchesKey(data, Key.up)) {
 				selectedIndex = moveSelection(selectedIndex, -1, actors().length);
-				scrollOffset = 0;
+				followBottom = true;
 				rebindView();
 				refresh();
 				return;
 			}
 			if (matchesKey(data, Key.down)) {
 				selectedIndex = moveSelection(selectedIndex, 1, actors().length);
-				scrollOffset = 0;
+				followBottom = true;
 				rebindView();
 				refresh();
 				return;
 			}
-			if (matchesKey(data, Key.pageUp)) {
-				scrollOffset -= 5;
+			// Scroll-Up: PgUp / Ctrl+U / Shift+Up (mehrere, da tmux/Terminal PgUp evtl. abfängt)
+			if (matchesKey(data, Key.pageUp) || matchesKey(data, Key.ctrl("u")) || matchesKey(data, Key.shift("up"))) {
+				followBottom = false;
+				scrollOffset = Math.max(0, scrollOffset - SCROLL_STEP);
 				refresh();
 				return;
 			}
-			if (matchesKey(data, Key.pageDown)) {
-				scrollOffset += 5;
+			// Scroll-Down: PgDn / Ctrl+D / Shift+Down
+			if (matchesKey(data, Key.pageDown) || matchesKey(data, Key.ctrl("d")) || matchesKey(data, Key.shift("down"))) {
+				scrollOffset += SCROLL_STEP; // render re-stickt ans Ende, wenn am Boden
 				refresh();
 				return;
 			}
@@ -159,10 +174,14 @@ export function createSwarmPanel(deps: PanelDeps, tui: TuiLike, theme: ThemeLike
 				);
 			});
 			lines.push(theme.fg("dim", truncateToWidth("─".repeat(width), width)));
-			lines.push(...transcriptLines(width));
-			lines.push(theme.fg("dim", truncateToWidth("─".repeat(width), width)));
+			const body = transcriptLines(width);
+			lines.push(...body);
+			const scrollHint = `${hasAbove ? "▲" : " "}${hasBelow ? "▼" : " "}`;
+			lines.push(theme.fg("dim", truncateToWidth(`── ${scrollHint} ──`.padEnd(width, "─"), width)));
 			lines.push(...editor.render(width));
-			lines.push(theme.fg("dim", truncateToWidth(" ↑/↓ Actor · PgUp/PgDn scroll · Enter senden · Esc schließen ", width)));
+			lines.push(
+				theme.fg("dim", truncateToWidth(" ↑/↓ Actor · PgUp|Ctrl+U/D scroll · Enter senden · Esc schließen ", width)),
+			);
 			return lines;
 		},
 		invalidate(): void {
