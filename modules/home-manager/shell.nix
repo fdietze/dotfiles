@@ -20,6 +20,11 @@
         with builtins; fromTOML (readFile "${pkgs.starship}/share/starship/presets/nerd-font-symbols.toml")
       )
       // {
+        # Each prompt scans the CWD's files to decide which language/tool modules
+        # to show. Default budget is 30ms; bump it so big or slow dirs (e.g.
+        # $HOME on nix-on-droid's slow storage) don't trip "scan timed out".
+        # https://starship.rs/config/#prompt
+        scan_timeout = 100;
         git_status.stashed = ""; # disable stash indicator
         python.disabled = true;
         rust.disabled = true;
