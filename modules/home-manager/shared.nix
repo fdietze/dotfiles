@@ -154,21 +154,21 @@
   # rendered yet) are warnings only and do not fail the check.
   home.packages = [
     (pkgs.runCommand "kitty-config-check" {
-      nativeBuildInputs = [ pkgs.kitty ];
-      conf = config.xdg.configFile."kitty/kitty.conf".source;
-    } ''
-      kitty +runpy '
-import sys
-from kitty.config import load_config
-bad = []
-load_config(sys.argv[1], accumulate_bad_lines=bad)
-if bad:
-    for b in bad:
-        print(f"kitty.conf line {b.number}: {b.exception} | {b.line!r}", file=sys.stderr)
-    sys.exit(1)
-' "$conf"
-      mkdir -p $out
-    '')
+        nativeBuildInputs = [pkgs.kitty];
+        conf = config.xdg.configFile."kitty/kitty.conf".source;
+      } ''
+              kitty +runpy '
+        import sys
+        from kitty.config import load_config
+        bad = []
+        load_config(sys.argv[1], accumulate_bad_lines=bad)
+        if bad:
+            for b in bad:
+                print(f"kitty.conf line {b.number}: {b.exception} | {b.line!r}", file=sys.stderr)
+            sys.exit(1)
+        ' "$conf"
+              mkdir -p $out
+      '')
   ];
   programs.wezterm = {
     enable = true;
@@ -381,7 +381,7 @@ if bad:
       Security = {
         ClearClipboardTimeout = 20;
         IconDownloadFallback = true;
-        LockDatabaseIdleSeconds = 3600;
+        LockDatabaseIdleSeconds = 7200;
       };
     };
   };
@@ -639,5 +639,4 @@ if bad:
     # TODO: https://github.com/portothree/dotfiles/blob/ef2274393816b8a2df0c8efbb80f852f9d0d20bd/config/keynav.nix#L7
     enable = false;
   };
-
 }
