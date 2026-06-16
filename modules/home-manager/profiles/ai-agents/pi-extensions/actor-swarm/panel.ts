@@ -230,9 +230,8 @@ export function createSwarmPanel(deps: PanelDeps, tui: TuiLike, theme: ThemeLike
 			);
 			lines.push(theme.fg("dim", truncateToWidth("─".repeat(width), width)));
 			lines.push(...transcriptLines(width));
-			// Ziel-Label + Chatbox (der Editor zeichnet seinen eigenen Rahmen → keine extra Trennlinie).
-			const target = selectedName();
-			lines.push(theme.fg("muted", truncateToWidth(target ? ` → an ${target}:` : " (kein Agent gewählt)", width)));
+			// Chatbox (der Editor zeichnet seinen eigenen Rahmen → keine extra Trennlinie).
+			if (!selectedName()) lines.push(theme.fg("muted", truncateToWidth(" (kein Agent gewählt)", width)));
 			lines.push(...editor.render(width));
 			const scrollHint = `${hasAbove ? "▲" : ""}${hasBelow ? "▼" : ""}`;
 			lines.push(
