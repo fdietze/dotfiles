@@ -263,49 +263,35 @@ export default function actorSwarm(pi: ExtensionAPI) {
 		},
 	});
 
-	// SPIKE (Phase-2 Task 1): /swarm öffnet/schließt ein fokussiertes Overlay.
-	// Kein Auto-Overlay beim session_start (das fror die TUI ein) und kein
-	// globaler Shortcut. Wird in Task 4 durch das echte SwarmPanel ersetzt.
-	let spikeHandle: { focus?(): void; close(): void; requestRender(): void } | undefined;
+	// SPIKE (Phase-2 Task 1): /swarm öffnet ein fokussiertes Overlay; Esc schließt.
+	// Wichtig: ctx.ui.custom MUSS awaited werden (sonst friert die TUI ein).
+	// Kein Auto-Overlay beim session_start, kein globaler Shortcut.
+	// Wird in Task 4 durch das echte SwarmPanel ersetzt.
 	pi.registerCommand("swarm", {
-		description: "Toggle the swarm panel",
+		description: "Open the swarm panel (Esc to close)",
 		handler: async (_args, ctx) => {
-			if (spikeHandle) {
-				spikeHandle.close();
-				spikeHandle = undefined;
-				return;
-			}
-			const component = {
-				focused: true,
-				render(width: number): string[] {
-					return [
-						" swarm panel [FOCUSED] \u2014 Esc oder /swarm schlie\u00dft ".slice(0, width),
-						" (hier kommen Roster + Transcript + Chatbox hin) ".slice(0, width),
-					];
-				},
-				handleInput(_data: string) {},
-				invalidate() {},
-			};
-			void ctx.ui
-				.custom(
-					(_tui, _theme, _kb, done) => {
-						component.handleInput = (data: string) => {
-							if (data === "\x1b") done(); // Esc schließt
-						};
-						return component;
-					},
-					{
-						overlay: true,
-						overlayOptions: { anchor: "top-center", width: "60%", margin: { top: 1, right: 0, bottom: 0, left: 0 } },
-						onHandle: (h: typeof spikeHandle) => {
-							spikeHandle = h;
-							h?.focus?.();
-						},
-					},
-				)
-				.then(() => {
-					spikeHandle = undefined;
-				});
+			await ctx.ui.custom<void>((_tui, _theme, _kb, done) => new SpikePanel(done), {
+				overlay: true,
+				overlayOptions: { anchor: "top-center", width: "60%", margin: { top: 1, right: 0, bottom: 0, left: 0 } },
+			});
 		},
 	});
+}
+
+// Minimaler Spike-Panel-Component (Task 1). Kein TS-Parameter-Property (node --check).
+class SpikePanel {
+	private done: () => void;
+	constructor(done: () => void) {
+		this.done = done;
+	}
+	handleInput(data: string): void {
+		if (data === "\x1b" || data === "\x03") this.done(); // Esc / Ctrl+C schließt
+	}
+	render(width: number): string[] {
+		return [
+			" swarm panel [open] \u2014 Esc schlie\u00dft ".slice(0, width),
+			" (Roster + Transcript + Chatbox kommen hier hin) ".slice(0, width),
+		];
+	}
+	invalidate(): void {}
 }
