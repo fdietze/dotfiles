@@ -163,7 +163,10 @@ export function createSwarmPanel(deps: PanelDeps, tui: TuiLike, theme: ThemeLike
 		},
 		render(width: number): string[] {
 			const lines: string[] = [];
-			lines.push(theme.fg("accent", truncateToWidth("─ swarm ".padEnd(width, "─"), width)));
+			const running = deps.engine.list().filter((a) => a.streaming).length;
+			const { used, total } = deps.engine.budget;
+			const header = `─ swarm · ${actors().length} actors · ${running} running · budget ${used}/${total} `;
+			lines.push(theme.fg("accent", truncateToWidth(header.padEnd(width, "─"), width)));
 			actors().forEach((a, i) => {
 				lines.push(
 					formatRosterRow(

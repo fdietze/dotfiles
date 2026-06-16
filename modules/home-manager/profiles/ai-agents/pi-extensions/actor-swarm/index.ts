@@ -18,7 +18,7 @@ import {
 } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
 import { Engine, type ActorHandle } from "./engine.ts";
-import { formatFeedLines, formatSnapshot, formatStatus } from "./feed.ts";
+import { formatFeedLines, formatSnapshot } from "./feed.ts";
 import { formatContext, formatRosterRow } from "./panel-logic.ts";
 import { createSwarmPanel } from "./panel.ts";
 import { createSpawner, type ResolvedModel, type SessionLike } from "./swarm.ts";
@@ -96,9 +96,7 @@ export default function actorSwarm(pi: ExtensionAPI) {
 		if (!ui) return;
 		try {
 			const actors = engine.list();
-			const running = actors.filter((a) => a.streaming).length;
-			const { used, total } = engine.budget;
-			ui.setStatus("swarm", formatStatus(actors.length, running, used, total));
+			// Footer-Status entfällt — Anzahl/running/budget stehen im /swarm-Panel-Header.
 			// Permanente Roster-Anzeige über dem Editor (plan-mode-Muster, kein Overlay).
 			// Nur zeigen, wenn mindestens ein Hintergrund-Actor existiert (nur 'user' allein
 			// ist redundant) und das /swarm-Panel nicht ohnehin offen ist.
@@ -235,6 +233,7 @@ export default function actorSwarm(pi: ExtensionAPI) {
 	pi.on("session_start", (_event, ctx) => {
 		cwd = ctx.cwd;
 		ui = ctx.ui;
+		ctx.ui.setStatus("swarm", undefined); // Footer-Status wird nicht mehr genutzt (Infos im Panel)
 		captureUserContext(ctx);
 		captureForegroundModel(ctx.model);
 		if (!engine.has("user")) {
