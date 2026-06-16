@@ -1,6 +1,14 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { formatContext, formatRosterRow, moveSelection, clampScroll, chatboxToRoute } from "./panel-logic.ts";
+import {
+	formatContext,
+	formatRosterRow,
+	moveSelection,
+	clampScroll,
+	chatboxToRoute,
+	messageText,
+	toolCallLabels,
+} from "./panel-logic.ts";
 
 test("formatContext renders tokens/window/percent (percent is already 0-100), dash when unknown", () => {
 	// pi's ContextUsage.percent is already a percentage (footer.js uses it directly).
@@ -36,4 +44,29 @@ test("chatboxToRoute maps selected actor + text, rejects empty", () => {
 	assert.deepEqual(chatboxToRoute("echo", "ping"), { to: "echo", content: "ping" });
 	assert.equal(chatboxToRoute("echo", "   "), null);
 	assert.equal(chatboxToRoute(undefined, "ping"), null);
+});
+
+test("messageText extracts string or text parts", () => {
+	assert.equal(messageText("hi"), "hi");
+	assert.equal(
+		messageText([
+			{ type: "text", text: "a" },
+			{ type: "image", data: "x" },
+			{ type: "text", text: "b" },
+		]),
+		"ab",
+	);
+	assert.equal(messageText(undefined), "");
+});
+
+test("toolCallLabels extracts toolCall names from assistant content", () => {
+	const m = {
+		role: "assistant",
+		content: [
+			{ type: "text", text: "ok" },
+			{ type: "toolCall", name: "send_message", arguments: {} },
+		],
+	};
+	assert.deepEqual(toolCallLabels(m), ["⚙ send_message"]);
+	assert.deepEqual(toolCallLabels({ role: "user", content: "hi" }), []);
 });

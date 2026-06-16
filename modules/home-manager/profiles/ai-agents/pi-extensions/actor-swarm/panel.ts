@@ -6,8 +6,9 @@
  * Upgrade auf die Original-Message-Components ist additiv möglich.
  */
 import { Editor, type EditorTheme, Key, matchesKey, truncateToWidth } from "@earendil-works/pi-tui";
+import { AssistantMessageComponent, UserMessageComponent } from "@earendil-works/pi-coding-agent";
 import type { Engine } from "./engine.ts";
-import { clampScroll, formatContext, formatRosterRow, moveSelection } from "./panel-logic.ts";
+import { clampScroll, formatContext, formatRosterRow, messageText, moveSelection, toolCallLabels } from "./panel-logic.ts";
 
 interface PanelDeps {
 	engine: Engine;
@@ -26,16 +27,16 @@ const TRANSCRIPT_VIEWPORT = 14;
 interface RawMessage {
 	role?: string;
 	content?: unknown;
-	text?: string;
 }
 
-function textOf(m: RawMessage): string {
-	if (typeof m.text === "string") return m.text;
-	if (typeof m.content === "string") return m.content;
-	if (Array.isArray(m.content)) {
-		return (m.content as { text?: string }[]).map((p) => p?.text ?? "").join("");
+// Original-Message-Component defensiv rendern; bei Form-Abweichung Fallback auf Text,
+// damit ein Render-Fehler nie die TUI einfriert.
+function renderComponentLines(make: () => { render(w: number): string[] }, width: number, fallback: string): string[] {
+	try {
+		return make().render(width);
+	} catch {
+		return fallback.split("\n").map((l) => truncateToWidth(`  ${l}`, width));
 	}
-	return "";
 }
 
 export function createSwarmPanel(deps: PanelDeps, tui: TuiLike, theme: ThemeLike, done: () => void) {
@@ -85,14 +86,21 @@ export function createSwarmPanel(deps: PanelDeps, tui: TuiLike, theme: ThemeLike
 		const msgs = (rec.view?.getMessages() ?? []) as RawMessage[];
 		const lines: string[] = [];
 		for (const m of msgs) {
-			const who =
-				m.role === "assistant"
-					? theme.fg("accent", rec.name)
-					: m.role === "user"
-						? theme.fg("muted", "→")
-						: theme.fg("dim", m.role ?? "?");
-			lines.push(`${who}:`);
-			for (const part of textOf(m).split("\n")) lines.push(truncateToWidth(`  ${part}`, width));
+			if (m.role === "user") {
+				const text = messageText(m.content);
+				lines.push(...renderComponentLines(() => new UserMessageComponent(text, undefined as never), width, text));
+			} else if (m.role === "assistant") {
+				lines.push(
+					...renderComponentLines(
+						() => new AssistantMessageComponent(m as never, false, undefined as never),
+						width,
+						messageText(m.content),
+					),
+				);
+				for (const label of toolCallLabels(m)) lines.push(theme.fg("dim", truncateToWidth(`  ${label}`, width)));
+			} else if (m.role === "toolResult") {
+				lines.push(theme.fg("dim", truncateToWidth(`  ⚙ → ${messageText(m.content)}`, width)));
+			}
 		}
 		if (lines.length === 0) lines.push(theme.fg("muted", "  (noch keine Nachrichten)"));
 		scrollOffset = clampScroll(scrollOffset, lines.length, TRANSCRIPT_VIEWPORT);

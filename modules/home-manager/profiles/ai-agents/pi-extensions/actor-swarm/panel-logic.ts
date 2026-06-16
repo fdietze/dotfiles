@@ -44,6 +44,28 @@ export function clampScroll(offset: number, total: number, viewport: number): nu
 	return offset;
 }
 
+/** Reinen Text aus message.content ziehen (string oder Part-Array). */
+export function messageText(content: unknown): string {
+	if (typeof content === "string") return content;
+	if (Array.isArray(content)) {
+		return (content as { type?: string; text?: string }[])
+			.filter((p) => p?.type === "text")
+			.map((p) => p.text ?? "")
+			.join("");
+	}
+	return "";
+}
+
+/** Tool-Call-Namen aus einer Assistant-Nachricht als "⚙ name"-Labels. */
+export function toolCallLabels(m: { role?: string; content?: unknown }): string[] {
+	if (m.role === "assistant" && Array.isArray(m.content)) {
+		return (m.content as { type?: string; name?: string }[])
+			.filter((p) => p?.type === "toolCall")
+			.map((p) => `⚙ ${p.name ?? "tool"}`);
+	}
+	return [];
+}
+
 export function chatboxToRoute(selected: string | undefined, text: string): { to: string; content: string } | null {
 	if (!selected) return null;
 	const content = text.trim();
