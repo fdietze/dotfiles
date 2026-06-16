@@ -20,7 +20,12 @@ interface TuiLike {
 }
 interface ThemeLike {
 	fg(color: string, s: string): string;
+	bg(color: string, s: string): string;
 }
+
+// active = gut sichtbarer Hintergrund, idle = dezent.
+const styleStatus = (theme: ThemeLike) => (label: string, active: boolean) =>
+	active ? theme.bg("toolSuccessBg", label) : theme.fg("dim", label);
 
 const TRANSCRIPT_VIEWPORT = 18;
 
@@ -175,15 +180,23 @@ export function createSwarmPanel(deps: PanelDeps, tui: TuiLike, theme: ThemeLike
 			const { used, total } = deps.engine.budget;
 			const header = `─ swarm · ${actors().length} actors · ${running} running · budget ${used}/${total} `;
 			lines.push(theme.fg("accent", truncateToWidth(header.padEnd(width, "─"), width)));
+			const styler = styleStatus(theme);
 			actors().forEach((a, i) => {
 				lines.push(
 					formatRosterRow(
 						{ name: a.name, context: formatContext(a.view?.getContextUsage()), active: a.streaming },
 						i === selectedIndex,
 						width,
+						styler,
 					),
 				);
 			});
+			// Halt/Unhalt-Zustand klar unter der Liste anzeigen.
+			lines.push(
+				deps.engine.isFrozen()
+					? theme.bg("infoBg", truncateToWidth(" ⏸ swarm HALTED — /unhalt to resume ".padEnd(width), width))
+					: theme.bg("selectedBg", " ▶ running "),
+			);
 			lines.push(theme.fg("dim", truncateToWidth("─".repeat(width), width)));
 			lines.push(...transcriptLines(width));
 			// Ziel-Label + Chatbox (der Editor zeichnet seinen eigenen Rahmen → keine extra Trennlinie).

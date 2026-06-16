@@ -64,6 +64,7 @@ export default function actorSwarm(pi: ExtensionAPI) {
 	type UI = {
 		setStatus(key: string, text: string | undefined): void;
 		setWidget(key: string, content: string[] | undefined, opts?: { placement?: "aboveEditor" | "belowEditor" }): void;
+		theme: { fg(color: string, s: string): string; bg(color: string, s: string): string };
 	};
 	let ui: UI | undefined;
 	// user-Kontext als WERT cachen — nie den ctx selbst halten (der wird nach
@@ -102,10 +103,24 @@ export default function actorSwarm(pi: ExtensionAPI) {
 			// ist redundant) und das /swarm-Panel nicht ohnehin offen ist.
 			// Nur Hintergrund-Actors anzeigen ('user' = der Chat selbst, redundant).
 			const background = actors.filter((a) => a.name !== "user");
+			const theme = ui.theme;
+			const styler = (label: string, active: boolean) =>
+				active ? theme.bg("toolSuccessBg", label) : theme.fg("dim", label);
 			const rosterLines = background.map((a) =>
-				formatRosterRow({ name: a.name, context: formatContext(a.view?.getContextUsage()), active: a.streaming }, false, 80),
+				formatRosterRow(
+					{ name: a.name, context: formatContext(a.view?.getContextUsage()), active: a.streaming },
+					false,
+					80,
+					styler,
+				),
 			);
-			ui.setWidget("swarm-roster", panelOpen || background.length === 0 ? undefined : rosterLines);
+			const haltLine = engine.isFrozen()
+				? theme.bg("infoBg", " ⏸ swarm HALTED — /unhalt to resume ".padEnd(80))
+				: theme.bg("selectedBg", " ▶ running ");
+			ui.setWidget(
+				"swarm-roster",
+				panelOpen || background.length === 0 ? undefined : [...rosterLines, haltLine],
+			);
 		} catch {
 			/* ui aus einem stale ctx -> diesen Tick überspringen, frischt beim nächsten Handler auf */
 		}
