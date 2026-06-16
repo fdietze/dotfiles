@@ -1,9 +1,9 @@
 # Sandboxed AI coding agents (the default; import this where nono works). Each
 # agent from ./agents.nix gets a nono-wrapped `<name>` plus an un-sandboxed
 # `vanilla-<name>` escape hatch, both at low CPU/IO priority. The shared nono
-# profile `agent` lives at home/config/nono/profiles/agent.json and is linked
-# out-of-store into ~/.config/nono/profiles/ by dotfiles.nix, so it stays
-# versioned yet live-editable without a Home-Manager switch.
+# profile `agent` is generated into ~/.config/nono/profiles/ by dotfiles.nix
+# from the maintained base at home/config/nono/profiles/agent.json (merged with
+# read perms for my.devLinks), so edits to that file need a switch to take effect.
 #
 # Where nono's Landlock sandbox is unavailable (e.g. korken: proot intercepts
 # the landlock syscalls), import ./vanilla.nix instead.
