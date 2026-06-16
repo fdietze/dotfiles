@@ -12,7 +12,6 @@ export interface SessionLike {
 	readonly isStreaming: boolean;
 	subscribe(listener: (e: { type: string }) => void): () => void;
 	readonly messages: unknown[];
-	readonly systemPrompt: string;
 	getContextUsage(): { tokens: number | null; contextWindow: number; percent: number | null } | undefined;
 }
 
@@ -104,7 +103,9 @@ export function createSpawner(deps: SpawnerDeps): Spawner {
 			handle,
 			view: {
 				getMessages: () => session.messages,
-				getSystemPrompt: () => session.systemPrompt,
+				// Nur der beim Spawn übergebene Prompt — nicht das volle session.systemPrompt
+				// (das zusätzlich Infra-Preamble, AGENTS.md, Skills etc. enthält).
+				getSystemPrompt: () => spec.systemPrompt,
 				getContextUsage: () => session.getContextUsage(),
 				subscribe: (l) => session.subscribe(l),
 			},
