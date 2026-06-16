@@ -20,6 +20,7 @@ import { Type } from "typebox";
 import { Key, matchesKey, truncateToWidth } from "@earendil-works/pi-tui";
 import { Engine, type ActorHandle } from "./engine.ts";
 import { formatFeedLines, formatSnapshot, formatStatus } from "./feed.ts";
+import { formatContext, formatRosterRow } from "./panel-logic.ts";
 import { createSpawner, type ResolvedModel, type SessionLike } from "./swarm.ts";
 
 // Caps — Phase 1: Modul-Konstanten (Settings-Binding ist eine triviale spätere Ergänzung).
@@ -61,7 +62,10 @@ export default function actorSwarm(pi: ExtensionAPI) {
 	// UI ist nur über ctx.ui (ExtensionUIContext) verfügbar, nicht auf `pi`.
 	// Wir cachen die Referenz aus session_start, um den Footer auch aus
 	// Engine-Events (außerhalb eines Handler-ctx) aktualisieren zu können.
-	type UI = { setStatus(key: string, text: string | undefined): void };
+	type UI = {
+		setStatus(key: string, text: string | undefined): void;
+		setWidget(key: string, content: string[] | undefined, opts?: { placement?: "aboveEditor" | "belowEditor" }): void;
+	};
 	let ui: UI | undefined;
 	type ModelLike = { provider: string; id: string };
 	let cwd = process.cwd();
@@ -77,10 +81,16 @@ export default function actorSwarm(pi: ExtensionAPI) {
 	};
 
 	const updateStatus = () => {
+		if (!ui) return;
 		const actors = engine.list();
 		const running = actors.filter((a) => a.streaming).length;
 		const { used, total } = engine.budget;
-		ui?.setStatus("swarm", formatStatus(actors.length, running, used, total));
+		ui.setStatus("swarm", formatStatus(actors.length, running, used, total));
+		// Permanente Roster-Anzeige über dem Editor (plan-mode-Muster, kein Overlay).
+		const rosterLines = actors.map((a) =>
+			formatRosterRow({ name: a.name, context: formatContext(a.view?.getContextUsage()), active: a.streaming }, false, 80),
+		);
+		ui.setWidget("swarm-roster", rosterLines.length ? rosterLines : undefined);
 	};
 
 	// Status bei jedem Engine-Event aktualisieren.
