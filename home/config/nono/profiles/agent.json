@@ -45,7 +45,8 @@
       "$HOME/.local/share/nvf",
       "$HOME/.local/share/opencode",
       "$HOME/.local/share/opentui",
-      "$XDG_RUNTIME_DIR/just"
+      "$XDG_RUNTIME_DIR/just",
+      "$HOME/.sprites"
     ],
     "read": [
       "$HOME/.config/nono/packages",
@@ -65,8 +66,7 @@
       "$HOME/.claude.lock",
       "$XDG_RUNTIME_DIR/ssh-agent",
       "$HOME/.zcompdump",
-      "$HOME/.zsh_history.local",
-      "$HOME/.sprites/sprites.json"
+      "$HOME/.zsh_history.local"
     ],
     "read_file": [
       "$HOME/.ssh/known_hosts",
