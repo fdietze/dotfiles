@@ -17,6 +17,7 @@ import {
 	type ToolDefinition,
 } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
+import { Key, matchesKey, truncateToWidth } from "@earendil-works/pi-tui";
 import { Engine, type ActorHandle } from "./engine.ts";
 import { formatFeedLines, formatSnapshot, formatStatus } from "./feed.ts";
 import { createSpawner, type ResolvedModel, type SessionLike } from "./swarm.ts";
@@ -263,35 +264,26 @@ export default function actorSwarm(pi: ExtensionAPI) {
 		},
 	});
 
-	// SPIKE (Phase-2 Task 1): /swarm öffnet ein fokussiertes Overlay; Esc schließt.
-	// Wichtig: ctx.ui.custom MUSS awaited werden (sonst friert die TUI ein).
-	// Kein Auto-Overlay beim session_start, kein globaler Shortcut.
-	// Wird in Task 4 durch das echte SwarmPanel ersetzt.
+	// SPIKE (Phase-2 Task 1): /swarm öffnet das Panel als Vollbild-Takeover
+	// (kein overlay — der Overlay-Pfad fror die TUI ein). Esc schließt.
+	// Spiegelt das bewährte Muster aus question.ts. Wird in Task 4 ersetzt.
 	pi.registerCommand("swarm", {
 		description: "Open the swarm panel (Esc to close)",
 		handler: async (_args, ctx) => {
-			await ctx.ui.custom<void>((_tui, _theme, _kb, done) => new SpikePanel(done), {
-				overlay: true,
-				overlayOptions: { anchor: "top-center", width: "60%", margin: { top: 1, right: 0, bottom: 0, left: 0 } },
+			await ctx.ui.custom<void>((tui, _theme, _kb, done) => {
+				return {
+					handleInput(data: string) {
+						if (matchesKey(data, Key.escape) || matchesKey(data, Key.ctrl("c"))) done();
+					},
+					render(width: number): string[] {
+						return [
+							truncateToWidth(" swarm panel [open] \u2014 Esc schlie\u00dft ", width),
+							truncateToWidth(" (Roster + Transcript + Chatbox kommen hier hin) ", width),
+						];
+					},
+					invalidate() {},
+				};
 			});
 		},
 	});
-}
-
-// Minimaler Spike-Panel-Component (Task 1). Kein TS-Parameter-Property (node --check).
-class SpikePanel {
-	private done: () => void;
-	constructor(done: () => void) {
-		this.done = done;
-	}
-	handleInput(data: string): void {
-		if (data === "\x1b" || data === "\x03") this.done(); // Esc / Ctrl+C schließt
-	}
-	render(width: number): string[] {
-		return [
-			" swarm panel [open] \u2014 Esc schlie\u00dft ".slice(0, width),
-			" (Roster + Transcript + Chatbox kommen hier hin) ".slice(0, width),
-		];
-	}
-	invalidate(): void {}
 }
