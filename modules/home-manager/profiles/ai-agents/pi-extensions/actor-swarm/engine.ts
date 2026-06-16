@@ -15,6 +15,8 @@ export interface ActorHandle {
 /** Live-Sicht auf einen Actor für das Panel (Phase 2). Optional, rein additiv. */
 export interface ActorView {
 	getMessages(): unknown[];
+	/** Der System-Prompt, mit dem der Actor läuft (oben im Transcript angezeigt). */
+	getSystemPrompt?(): string;
 	getContextUsage(): { tokens: number | null; contextWindow: number; percent: number | null } | undefined;
 	subscribe(listener: (e: { type: string }) => void): () => void;
 }
@@ -35,6 +37,8 @@ export interface ActorRecord {
 	pending?: boolean;
 	/** Während pending gepufferte Nachrichten (bei attach an die Session geflusht). */
 	buffer?: string[];
+	/** Aufräumfunktion (z.B. Event-Subscription lösen) — beim Kill aufgerufen. */
+	dispose?: () => void;
 }
 
 export interface Caps {
@@ -49,6 +53,7 @@ export type SwarmEvent =
 	| { type: "turn"; name: string; ts: number }
 	| { type: "halt"; ts: number }
 	| { type: "resume"; ts: number }
+	| { type: "kill"; name: string; ts: number }
 	| { type: "blocked"; reason: string; ts: number };
 
 export type CheckResult = { ok: true } | { ok: false; reason: string };
@@ -151,12 +156,13 @@ export class Engine {
 	}
 
 	/** Schließt eine Reservierung ab: echte Session-Daten setzen + Puffer flushen. */
-	attach(name: string, opts: { model: string; handle: ActorHandle; view?: ActorView }): void {
+	attach(name: string, opts: { model: string; handle: ActorHandle; view?: ActorView; dispose?: () => void }): void {
 		const rec = this.actors.get(name);
 		if (!rec) return;
 		rec.model = opts.model;
 		rec.handle = opts.handle;
 		rec.view = opts.view;
+		rec.dispose = opts.dispose;
 		rec.pending = false;
 		const buffered = rec.buffer ?? [];
 		rec.buffer = undefined;
@@ -166,6 +172,28 @@ export class Engine {
 	/** Reservierung freigeben (Session-Erstellung fehlgeschlagen). */
 	release(name: string): void {
 		this.actors.delete(name);
+	}
+
+	/** Einen Actor terminieren (poison-pill): Turn abbrechen, aufräumen, entfernen. 'user' ist tabu. */
+	kill(name: string): CheckResult {
+		if (name === "user") return { ok: false, reason: "cannot kill 'user'" };
+		const rec = this.actors.get(name);
+		if (!rec) return { ok: false, reason: `unknown actor '${name}'` };
+		void rec.handle.abort();
+		rec.dispose?.();
+		this.actors.delete(name);
+		this.emit({ type: "kill", name, ts: Date.now() });
+		return { ok: true };
+	}
+
+	/** Alle Actors außer 'user' killen. Gibt die Namen der gekillten zurück. */
+	killAll(): string[] {
+		const killed: string[] = [];
+		for (const name of [...this.actors.keys()]) {
+			if (name === "user") continue;
+			if (this.kill(name).ok) killed.push(name);
+		}
+		return killed;
 	}
 
 	isFrozen(): boolean {

@@ -1,6 +1,13 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { formatStatus, formatSnapshot, formatFeedLines, normalizeTargets, formatMulticastResult } from "./feed.ts";
+import {
+	formatStatus,
+	formatSnapshot,
+	formatFeedLines,
+	normalizeTargets,
+	formatMulticastResult,
+	formatKillResult,
+} from "./feed.ts";
 import type { ActorRecord, SwarmEvent } from "./engine.ts";
 
 const rec = (over: Partial<ActorRecord>): ActorRecord => ({
@@ -65,4 +72,16 @@ test("formatMulticastResult: delivered + failed split", () => {
 		/sent to a · failed: x: unknown actor 'x'/,
 	);
 	assert.equal(formatMulticastResult([]), "error: no targets");
+});
+
+test("formatKillResult: killed + failed split", () => {
+	assert.equal(formatKillResult([{ target: "a", ok: true }]), "killed a");
+	assert.equal(
+		formatKillResult([
+			{ target: "a", ok: true },
+			{ target: "user", ok: false, reason: "cannot kill 'user'" },
+		]),
+		"killed a · failed: user: cannot kill 'user'",
+	);
+	assert.equal(formatKillResult([]), "error: no targets");
 });

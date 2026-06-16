@@ -18,7 +18,7 @@ import {
 } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
 import { Engine, type ActorHandle } from "./engine.ts";
-import { formatFeedLines, formatMulticastResult, formatSnapshot, normalizeTargets } from "./feed.ts";
+import { formatFeedLines, formatKillResult, formatMulticastResult, formatSnapshot, normalizeTargets } from "./feed.ts";
 import { formatContext, formatRosterRow } from "./panel-logic.ts";
 import { createSwarmPanel } from "./panel.ts";
 import { createSpawner, type ResolvedModel, type SessionLike } from "./swarm.ts";
@@ -36,11 +36,12 @@ function getEngine(): Engine {
 
 function actorSystemPrompt(name: string, systemPrompt: string): string {
 	return [
-		`You are actor "${name}" in a multi-agent swarm.`,
-		"You can talk to other actors with these tools:",
-		"- spawn_agent({name, systemPrompt, model?, tools?, message?}): create a new actor (message = optional first task).",
-		"- send_message({to, content}): to is an actor name OR a list of names; fire-and-forget (e.g. 'user').",
+		`You are agent "${name}" in a multi-agent swarm.`,
+		"You can talk to other agents with these tools:",
+		"- spawn_agent({name, systemPrompt, model?, tools?, message?}): create a new agent (message = optional first task).",
+		"- send_message({to, content}): to is an agent name OR a list of names; fire-and-forget (e.g. 'user').",
 		"- list_agents(): see who exists.",
+		"- kill_agent({name}): terminate an agent or a list of agents (you cannot kill 'user').",
 		"Messages you receive are prefixed with [message from <sender>].",
 		"To reply, use send_message back to that sender.",
 		"",
@@ -115,7 +116,7 @@ export default function actorSwarm(pi: ExtensionAPI) {
 				),
 			);
 			const haltLine = engine.isFrozen()
-				? theme.bg("infoBg", " ⏸ swarm HALTED — /unhalt to resume ".padEnd(80))
+				? theme.bg("infoBg", " ⏸ agents HALTED — /unhalt to resume ".padEnd(80))
 				: theme.bg("selectedBg", " ▶ running ");
 			ui.setWidget(
 				"swarm-roster",
@@ -150,9 +151,9 @@ export default function actorSwarm(pi: ExtensionAPI) {
 			name: "spawn_agent",
 			label: "Spawn Agent",
 			description:
-				"Create a new actor with a system prompt; optionally deliver a first message. It can then be messaged by name.",
+				"Create a new agent with a system prompt; optionally deliver a first message. It can then be messaged by name.",
 			parameters: Type.Object({
-				name: Type.String({ description: "Unique actor name ([a-zA-Z0-9_-])" }),
+				name: Type.String({ description: "Unique agent name ([a-zA-Z0-9_-])" }),
 				systemPrompt: Type.String({ description: "System prompt defining the actor's behavior" }),
 				model: Type.Optional(Type.String({ description: "provider/id; default: inherited" })),
 				tools: Type.Optional(Type.Array(Type.String(), { description: "Built-in tool allowlist" })),
@@ -168,10 +169,10 @@ export default function actorSwarm(pi: ExtensionAPI) {
 		{
 			name: "send_message",
 			label: "Send Message",
-			description: "Fire-and-forget message to one actor or a list of actors (e.g. 'user'). Returns immediately.",
+			description: "Fire-and-forget message to one agent or a list of agents (e.g. 'user'). Returns immediately.",
 			parameters: Type.Object({
 				to: Type.Union([Type.String(), Type.Array(Type.String())], {
-					description: "Target actor name, or a list of names for multicast",
+					description: "Target agent name, or a list of names for multicast",
 				}),
 				content: Type.String({ description: "Message content" }),
 			}),
@@ -188,11 +189,29 @@ export default function actorSwarm(pi: ExtensionAPI) {
 		{
 			name: "list_agents",
 			label: "List Agents",
-			description: "List all actors and their status.",
+			description: "List all agents and their status.",
 			parameters: Type.Object({}),
 			execute: async () => {
 				const { used, total } = engine.budget;
 				return { content: [{ type: "text", text: formatSnapshot(engine.list(), used, total) }], details: {} };
+			},
+		},
+		{
+			name: "kill_agent",
+			label: "Kill Agent",
+			description: "Terminate one agent or a list of agents. 'user' cannot be killed.",
+			parameters: Type.Object({
+				name: Type.Union([Type.String(), Type.Array(Type.String())], {
+					description: "Agent name, or a list of names to terminate",
+				}),
+			}),
+			execute: async (_id, args) => {
+				const targets = normalizeTargets(args.name);
+				const results = targets.map((t) => {
+					const r = engine.kill(t);
+					return r.ok ? { target: t, ok: true } : { target: t, ok: false, reason: r.reason };
+				});
+				return { content: [{ type: "text", text: formatKillResult(results) }], details: {} };
 			},
 		},
 	];
@@ -211,7 +230,9 @@ export default function actorSwarm(pi: ExtensionAPI) {
 		});
 		await loader.reload();
 
-		const toolAllowlist = spec.tools ? [...spec.tools, "spawn_agent", "send_message", "list_agents"] : undefined;
+		const toolAllowlist = spec.tools
+			? [...spec.tools, "spawn_agent", "send_message", "list_agents", "kill_agent"]
+			: undefined;
 
 		const { session } = await createAgentSession({
 			cwd,
@@ -291,53 +312,54 @@ export default function actorSwarm(pi: ExtensionAPI) {
 	}
 
 	pi.registerCommand("halt", {
-		description: "Freeze the whole actor swarm (stop new turns, abort running background actors).",
+		description: "Freeze the whole agent swarm (stop new turns, abort running background agents).",
 		handler: async (_args, ctx) => {
 			engine.halt();
 			for (const a of engine.list()) {
 				if (a.name !== "user") void a.handle.abort();
 			}
-			ctx.ui.notify("Swarm halted. Use /unhalt to continue.", "warning");
+			ctx.ui.notify("Agents halted. Use /unhalt to continue.", "warning");
 			updateStatus();
 		},
 	});
 
 	// Hinweis: nicht "resume" — das kollidiert mit pi's eingebautem /resume (Session fortsetzen).
 	pi.registerCommand("unhalt", {
-		description: "Resume a halted swarm and reset the turn budget.",
+		description: "Resume halted agents and reset the turn budget.",
 		handler: async (_args, ctx) => {
 			engine.resume();
-			ctx.ui.notify("Swarm resumed; turn budget reset.", "info");
+			ctx.ui.notify("Agents resumed; turn budget reset.", "info");
 			updateStatus();
 		},
 	});
 
-	pi.registerCommand("actors", {
-		description: "Show the actor roster and status.",
+	pi.registerCommand("killall", {
+		description: "Terminate all agents (except 'user').",
 		handler: async (_args, ctx) => {
-			const { used, total } = engine.budget;
-			ctx.ui.notify(formatSnapshot(engine.list(), used, total), "info");
+			const killed = engine.killAll();
+			ctx.ui.notify(killed.length ? `Killed ${killed.length} agent(s): ${killed.join(", ")}` : "No agents to kill.", "info");
+			updateStatus();
 		},
 	});
 
 	pi.registerCommand("feed", {
-		description: "Show the swarm activity log (last 40 events).",
+		description: "Show the agent activity log (last 40 events).",
 		handler: async (_args, ctx) => {
 			const lines = formatFeedLines(engine.events).slice(-40);
 			ctx.ui.notify(lines.length ? lines.join("\n") : "(no activity yet)", "info");
 		},
 	});
 
-	// /swarm öffnet das Panel als Vollbild-Takeover (kein Overlay — fror ein).
-	pi.registerCommand("swarm", {
-		description: "Open the swarm panel (Esc to close)",
+	// /agents öffnet das Panel als Vollbild-Takeover (kein Overlay — fror ein).
+	pi.registerCommand("agents", {
+		description: "Open the agents panel (Esc to close)",
 		handler: async (_args, ctx) => {
 			ui = ctx.ui;
 			panelOpen = true;
 			updateStatus(); // redundantes persistentes Roster ausblenden
 			try {
 				await ctx.ui.custom<void>((tui, theme, _kb, done) =>
-					createSwarmPanel({ engine, route: (to, content) => void engine.route("user", to, content) }, tui, theme, done),
+					createSwarmPanel({ engine, cwd, route: (to, content) => void engine.route("user", to, content) }, tui, theme, done),
 				);
 			} finally {
 				panelOpen = false;

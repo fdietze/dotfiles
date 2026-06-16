@@ -30,6 +30,8 @@ export function formatFeedLines(events: SwarmEvent[]): string[] {
 				return `HALT`;
 			case "resume":
 				return `RESUME`;
+			case "kill":
+				return `kill    ${e.name}`;
 			case "blocked":
 				return `blocked ${e.reason}`;
 		}
@@ -64,6 +66,17 @@ export function formatMulticastResult(results: MulticastOutcome[]): string {
 	const failed = results.filter((r) => !r.ok).map((r) => `${r.target}: ${r.reason}`);
 	const parts: string[] = [];
 	if (delivered.length) parts.push(`sent to ${delivered.join(", ")}`);
+	if (failed.length) parts.push(`failed: ${failed.join("; ")}`);
+	return parts.join(" · ");
+}
+
+/** Fasst ein Kill-Ergebnis kompakt zusammen (für die Tool-Antwort). */
+export function formatKillResult(results: MulticastOutcome[]): string {
+	if (results.length === 0) return "error: no targets";
+	const killed = results.filter((r) => r.ok).map((r) => r.target);
+	const failed = results.filter((r) => !r.ok).map((r) => `${r.target}: ${r.reason}`);
+	const parts: string[] = [];
+	if (killed.length) parts.push(`killed ${killed.join(", ")}`);
 	if (failed.length) parts.push(`failed: ${failed.join("; ")}`);
 	return parts.join(" · ");
 }

@@ -12,6 +12,7 @@ export interface SessionLike {
 	readonly isStreaming: boolean;
 	subscribe(listener: (e: { type: string }) => void): () => void;
 	readonly messages: unknown[];
+	readonly systemPrompt: string;
 	getContextUsage(): { tokens: number | null; contextWindow: number; percent: number | null } | undefined;
 }
 
@@ -48,8 +49,8 @@ export interface Spawner {
 export function createSpawner(deps: SpawnerDeps): Spawner {
 	const { engine, resolveModel, createSession, onActivity } = deps;
 
-	const subscribeBackground = (name: string, session: SessionLike) => {
-		session.subscribe((ev) => {
+	const subscribeBackground = (name: string, session: SessionLike): (() => void) => {
+		return session.subscribe((ev) => {
 			if (ev.type === "turn_start") {
 				const r = engine.recordTurnStart(name);
 				if (r.abort) void session.abort();
@@ -103,11 +104,13 @@ export function createSpawner(deps: SpawnerDeps): Spawner {
 			handle,
 			view: {
 				getMessages: () => session.messages,
+				getSystemPrompt: () => session.systemPrompt,
 				getContextUsage: () => session.getContextUsage(),
 				subscribe: (l) => session.subscribe(l),
 			},
+			// Beim Kill aufräumen: Background-Event-Subscription lösen.
+			dispose: subscribeBackground(spec.name, session),
 		});
-		subscribeBackground(spec.name, session);
 
 		// 4) Optionale Startnachricht atomar zustellen (kein Race, da Actor bereits registriert).
 		let sent = "";

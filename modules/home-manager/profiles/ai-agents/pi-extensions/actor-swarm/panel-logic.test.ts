@@ -7,7 +7,8 @@ import {
 	clampScroll,
 	chatboxToRoute,
 	messageText,
-	toolCallLabels,
+	toolCalls,
+	findToolResult,
 } from "./panel-logic.ts";
 
 test("formatContext renders tokens/window/percent (percent is already 0-100), dash when unknown", () => {
@@ -59,14 +60,21 @@ test("messageText extracts string or text parts", () => {
 	assert.equal(messageText(undefined), "");
 });
 
-test("toolCallLabels extracts toolCall names from assistant content", () => {
+test("toolCalls extracts id/name/arguments from assistant content; findToolResult matches by id", () => {
 	const m = {
 		role: "assistant",
 		content: [
 			{ type: "text", text: "ok" },
-			{ type: "toolCall", name: "send_message", arguments: {} },
+			{ type: "toolCall", id: "c1", name: "send_message", arguments: { to: "user", content: "hi" } },
 		],
 	};
-	assert.deepEqual(toolCallLabels(m), ["⚙ send_message"]);
-	assert.deepEqual(toolCallLabels({ role: "user", content: "hi" }), []);
+	assert.deepEqual(toolCalls(m), [{ id: "c1", name: "send_message", arguments: { to: "user", content: "hi" } }]);
+	assert.deepEqual(toolCalls({ role: "user", content: "hi" }), []);
+
+	const msgs = [
+		{ role: "assistant", content: [] },
+		{ role: "toolResult", toolCallId: "c1", content: "done" },
+	];
+	assert.equal(findToolResult(msgs, "c1")?.toolCallId, "c1");
+	assert.equal(findToolResult(msgs, "nope"), undefined);
 });

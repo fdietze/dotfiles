@@ -2,17 +2,27 @@
  * SwarmPanel — Vollbild-Takeover (kein Overlay; Overlays froren die TUI ein).
  * Muster gespiegelt von question.ts: Factory liefert { render, handleInput, invalidate },
  * Editor via new Editor(tui, theme), Refresh über tui.requestRender().
- * Transcript wird in Phase-2.1 schlicht als Text gerendert (role + Inhalt);
- * Upgrade auf die Original-Message-Components ist additiv möglich.
+ * Transcript reuses the real chat components (User/Assistant/ToolExecution) for parity
+ * with the main chat; the agent's system prompt is shown at the top. Defensive try/catch
+ * around each component falls back to plain text so a render error never freezes the TUI.
  */
 import { Editor, type EditorTheme, Key, matchesKey, truncateToWidth } from "@earendil-works/pi-tui";
-import { AssistantMessageComponent, UserMessageComponent } from "@earendil-works/pi-coding-agent";
+import { AssistantMessageComponent, ToolExecutionComponent, UserMessageComponent } from "@earendil-works/pi-coding-agent";
 import type { Engine } from "./engine.ts";
-import { clampScroll, formatContext, formatRosterRow, messageText, moveSelection, toolCallLabels } from "./panel-logic.ts";
+import {
+	clampScroll,
+	formatContext,
+	formatRosterRow,
+	findToolResult,
+	messageText,
+	moveSelection,
+	toolCalls,
+} from "./panel-logic.ts";
 
 interface PanelDeps {
 	engine: Engine;
 	route: (to: string, content: string) => void;
+	cwd: string;
 }
 
 interface TuiLike {
@@ -89,11 +99,40 @@ export function createSwarmPanel(deps: PanelDeps, tui: TuiLike, theme: ThemeLike
 		}
 	};
 
+	// Tool-Call wie im Haupt-Chat rendern (echte ToolExecutionComponent, inkl. Ergebnis).
+	const renderToolCall = (call: { id: string; name: string; arguments: unknown }, msgs: RawMessage[], width: number) =>
+		renderComponentLines(
+			() => {
+				const comp = new ToolExecutionComponent(
+					call.name,
+					call.id,
+					call.arguments,
+					{ showImages: false },
+					undefined as never,
+					tui as never,
+					deps.cwd,
+				);
+				comp.setArgsComplete();
+				const res = findToolResult(msgs as { role?: string; toolCallId?: string }[], call.id);
+				if (res) comp.updateResult(res as never);
+				return comp;
+			},
+			width,
+			`⚙ ${call.name}`,
+		);
+
 	const transcriptLines = (width: number): string[] => {
 		const rec = actors()[selectedIndex];
-		if (!rec) return [theme.fg("muted", "  (keine Actors — mit spawn_agent erzeugen)")];
+		if (!rec) return [theme.fg("muted", "  (keine Agents — mit spawn_agent erzeugen)")];
 		const msgs = (rec.view?.getMessages() ?? []) as RawMessage[];
 		const lines: string[] = [];
+		// System-Prompt oben anzeigen (steht nicht in messages[]).
+		const sys = rec.view?.getSystemPrompt?.();
+		if (sys) {
+			lines.push(theme.fg("dim", truncateToWidth("─ system ─", width)));
+			for (const l of sys.split("\n")) lines.push(theme.fg("dim", truncateToWidth(`  ${l}`, width)));
+			lines.push("");
+		}
 		for (const m of msgs) {
 			if (m.role === "user") {
 				const text = messageText(m.content);
@@ -106,18 +145,10 @@ export function createSwarmPanel(deps: PanelDeps, tui: TuiLike, theme: ThemeLike
 						messageText(m.content),
 					),
 				);
-				for (const label of toolCallLabels(m)) lines.push(theme.fg("dim", truncateToWidth(`  ${label}`, width)));
-			} else if (m.role === "toolResult") {
-				// Mehrzeilige Ergebnisse sauber einrücken und auf wenige Zeilen begrenzen.
-				const resultLines = messageText(m.content).trim().split("\n");
-				const MAX = 3;
-				resultLines.slice(0, MAX).forEach((line, i) => {
-					lines.push(theme.fg("dim", truncateToWidth(`  ${i === 0 ? "⚙ →" : "   "} ${line}`, width)));
-				});
-				if (resultLines.length > MAX) {
-					lines.push(theme.fg("dim", truncateToWidth(`      … (+${resultLines.length - MAX} lines)`, width)));
-				}
+				// Tool-Calls separat wie im Haupt-Chat (toolResult wird inline gemerged).
+				for (const call of toolCalls(m)) lines.push(...renderToolCall(call, msgs, width));
 			}
+			// toolResult-Rollen werden inline beim zugehörigen toolCall gerendert (übersprungen).
 		}
 		if (lines.length === 0) lines.push(theme.fg("muted", "  (noch keine Nachrichten)"));
 		const max = Math.max(0, lines.length - TRANSCRIPT_VIEWPORT);
@@ -178,7 +209,7 @@ export function createSwarmPanel(deps: PanelDeps, tui: TuiLike, theme: ThemeLike
 			const lines: string[] = [];
 			const running = deps.engine.list().filter((a) => a.streaming).length;
 			const { used, total } = deps.engine.budget;
-			const header = `─ swarm · ${actors().length} actors · ${running} running · budget ${used}/${total} `;
+			const header = `─ agents · ${actors().length} agents · ${running} running · budget ${used}/${total} `;
 			lines.push(theme.fg("accent", truncateToWidth(header.padEnd(width, "─"), width)));
 			const styler = styleStatus(theme);
 			actors().forEach((a, i) => {
@@ -194,20 +225,20 @@ export function createSwarmPanel(deps: PanelDeps, tui: TuiLike, theme: ThemeLike
 			// Halt/Unhalt-Zustand klar unter der Liste anzeigen.
 			lines.push(
 				deps.engine.isFrozen()
-					? theme.bg("infoBg", truncateToWidth(" ⏸ swarm HALTED — /unhalt to resume ".padEnd(width), width))
+					? theme.bg("infoBg", truncateToWidth(" ⏸ agents HALTED — /unhalt to resume ".padEnd(width), width))
 					: theme.bg("selectedBg", " ▶ running "),
 			);
 			lines.push(theme.fg("dim", truncateToWidth("─".repeat(width), width)));
 			lines.push(...transcriptLines(width));
 			// Ziel-Label + Chatbox (der Editor zeichnet seinen eigenen Rahmen → keine extra Trennlinie).
 			const target = selectedName();
-			lines.push(theme.fg("muted", truncateToWidth(target ? ` → an ${target}:` : " (kein Actor gewählt)", width)));
+			lines.push(theme.fg("muted", truncateToWidth(target ? ` → an ${target}:` : " (kein Agent gewählt)", width)));
 			lines.push(...editor.render(width));
 			const scrollHint = `${hasAbove ? "▲" : ""}${hasBelow ? "▼" : ""}`;
 			lines.push(
 				theme.fg(
 					"dim",
-					truncateToWidth(` ↑/↓ Actor · Ctrl+U/D scroll ${scrollHint} · Enter senden · Esc schließen `, width),
+					truncateToWidth(` ↑/↓ Agent · Ctrl+U/D scroll ${scrollHint} · Enter senden · Esc schließen `, width),
 				),
 			);
 			return lines;

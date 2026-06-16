@@ -195,3 +195,42 @@ test("route to a pending actor buffers; attach flushes to the real handle (R1)",
 	assert.equal(e.get("a")?.pending, false);
 	assert.equal(e.get("a")?.model, "test/m");
 });
+
+test("kill aborts the actor, runs dispose, removes it, and emits a kill event", () => {
+	const e = new Engine(caps);
+	e.addActor(userRecord());
+	let aborted = 0;
+	let disposed = 0;
+	const handle: ActorHandle = { deliver: async () => {}, abort: async () => void aborted++, isStreaming: () => false };
+	e.reserve("a", "user");
+	e.attach("a", { model: "test/m", handle, dispose: () => void disposed++ });
+	const r = e.kill("a");
+	assert.equal(r.ok, true);
+	assert.equal(aborted, 1);
+	assert.equal(disposed, 1);
+	assert.equal(e.has("a"), false);
+	assert.equal(e.events.at(-1)?.type, "kill");
+});
+
+test("kill refuses 'user' and unknown actors", () => {
+	const e = new Engine(caps);
+	e.addActor(userRecord());
+	const u = e.kill("user");
+	assert.equal(u.ok, false);
+	assert.match((u as { reason: string }).reason, /user/);
+	const x = e.kill("ghost");
+	assert.equal(x.ok, false);
+	assert.match((x as { reason: string }).reason, /unknown/);
+	assert.equal(e.has("user"), true);
+});
+
+test("killAll removes every actor except 'user' and returns their names", () => {
+	const e = new Engine({ maxActors: 5, maxSpawnDepth: 2, turnBudget: 5 });
+	e.addActor(userRecord());
+	e.addActor({ ...userRecord(), name: "a", depth: 1 });
+	e.addActor({ ...userRecord(), name: "b", depth: 1 });
+	const killed = e.killAll();
+	assert.deepEqual(killed.sort(), ["a", "b"]);
+	assert.equal(e.has("user"), true);
+	assert.equal(e.list().length, 1);
+});
