@@ -8,6 +8,7 @@
 # Auto-Discovery in flake.nix überspringt "template", daher wird dieses
 # Verzeichnis nie selbst zu einer nixosConfiguration ausgewertet.
 {
+  config,
   pkgs,
   lib,
   flake-inputs,
@@ -40,6 +41,7 @@
     inherit flake-inputs uiFonts;
     nvf = flake-inputs.nvf;
     theme = "dark";
+    hostLabel = config.networking.hostName;
   };
 
   # Mit dem Kopier-Zeitpunkt mitwandernder Default; bei Bedarf am neuen Host

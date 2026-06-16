@@ -467,6 +467,7 @@ in {
   home-manager.extraSpecialArgs = {
     desktop = config.my.desktop;
     theme = config.my.theme;
+    hostLabel = config.networking.hostName;
     inherit flake-inputs;
     nvf = flake-inputs.nvf;
     inherit hostLocal;

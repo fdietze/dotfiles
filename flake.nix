@@ -201,6 +201,8 @@
           flake-inputs = inputs;
           nvf = nvf;
           theme = defaultTheme;
+          # Stable prompt label: proot reports the OS hostname as "localhost".
+          hostLabel = deviceName;
         };
 
         # The upstream flake template recommends the Nix-on-Droid overlay; this

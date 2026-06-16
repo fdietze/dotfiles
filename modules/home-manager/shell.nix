@@ -1,9 +1,26 @@
 {
   config,
+  lib,
   pkgs,
+  hostLabel ? "",
   ...
-}: {
-  programs.bash.enable = true;
+}: let
+  # SSH-only host label for the prompt (starship env_var module below). The OS
+  # hostname is useless on some boxes — korken/nix-on-droid reports "localhost"
+  # under proot — so each deployment passes a stable hostLabel. Standalone HM on
+  # arbitrary boxes leaves it empty and falls back to the shell's runtime
+  # hostname ($HOSTNAME in bash, $HOST in zsh).
+  sshHostInit = ''
+    if [ -n "$SSH_CONNECTION" ]; then
+      export STARSHIP_HOST=${lib.escapeShellArg hostLabel}
+      [ -n "$STARSHIP_HOST" ] || STARSHIP_HOST="''${HOSTNAME:-$HOST}"
+    fi
+  '';
+in {
+  programs.bash = {
+    enable = true;
+    initExtra = sshHostInit;
+  };
   programs.zoxide = {
     enable = true;
     enableZshIntegration = true;
@@ -25,6 +42,12 @@
         # $HOME on nix-on-droid's slow storage) don't trip "scan timed out".
         # https://starship.rs/config/#prompt
         scan_timeout = 100;
+        # Built-in hostname uses gethostname() — "localhost" under proot on
+        # korken — so disable it and show the SSH-only STARSHIP_HOST label
+        # instead ($all already renders $env_var). https://starship.rs/config/#environment-variable
+        hostname.disabled = true;
+        env_var.STARSHIP_HOST.format = "[@$env_value]($style) ";
+        env_var.STARSHIP_HOST.style = "bold green";
         git_status.stashed = ""; # disable stash indicator
         python.disabled = true;
         rust.disabled = true;
@@ -90,6 +113,7 @@
     };
 
     initContent = ''
+      ${sshHostInit}
       # Claude Code spawns `$SHELL -i` at startup and dumps all aliases /
       # functions into ~/.claude/shell-snapshots/<file>.sh, which it sources
       # before every Bash tool call. This makes Claude see e.g. `cat=bat`
