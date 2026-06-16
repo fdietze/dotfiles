@@ -34,6 +34,23 @@ function getEngine(): Engine {
 	return g[ENGINE_KEY] as Engine;
 }
 
+// Zustellung an den 'user'-Actor läuft über diese globalThis-Indirection, NICHT über ein
+// gecapturetes `pi`. Der Engine-Singleton überlebt /reload und Session-Replacement, ein
+// gecapturetes `pi` wird dabei aber dauerhaft stale (pi loader: state.staleMessage ??= ...,
+// wird nie zurückgesetzt). Jede frisch geladene Instanz überschreibt den Sink mit ihrem
+// eigenen lebenden pi.sendUserMessage, sodass der gespeicherte user-Handle nie ein totes
+// pi aufruft.
+const USER_SINK_KEY = "__actorSwarmUserSink_v1";
+type UserSink = (text: string) => void;
+function setUserSink(sink: UserSink): void {
+	(globalThis as Record<string, unknown>)[USER_SINK_KEY] = sink;
+}
+function deliverToUser(text: string): void {
+	const sink = (globalThis as Record<string, unknown>)[USER_SINK_KEY] as UserSink | undefined;
+	if (!sink) throw new Error("no live foreground session to deliver to 'user'");
+	sink(text);
+}
+
 function actorSystemPrompt(name: string, systemPrompt: string): string {
 	return [
 		`You are agent "${name}" in a multi-agent swarm.`,
@@ -51,6 +68,10 @@ function actorSystemPrompt(name: string, systemPrompt: string): string {
 
 export default function actorSwarm(pi: ExtensionAPI) {
 	const engine = getEngine();
+
+	// Diese (frisch geladene) Instanz besitzt ab jetzt die user-Zustellung mit ihrem
+	// lebenden pi — ersetzt einen ggf. veralteten Sink einer vorherigen Instanz.
+	setUserSink((text) => pi.sendUserMessage(text, { deliverAs: "followUp" }));
 
 	// Process-global, einmalig aufgebaute Dienste (gleiche creds wie Vordergrund).
 	const authStorage = AuthStorage.create();
@@ -280,8 +301,9 @@ export default function actorSwarm(pi: ExtensionAPI) {
 		captureForegroundModel(ctx.model);
 		if (!engine.has("user")) {
 			const userHandle: ActorHandle = {
+				// über die globalThis-Indirection, damit der Singleton-Handle nie ein stale pi nutzt.
 				deliver: async (text) => {
-					pi.sendUserMessage(text, { deliverAs: "followUp" });
+					deliverToUser(text);
 				},
 				abort: async () => {}, // den Menschen-Turn nicht abbrechen
 				isStreaming: () => foregroundStreaming,
