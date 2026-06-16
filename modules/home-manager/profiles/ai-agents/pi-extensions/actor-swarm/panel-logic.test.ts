@@ -2,8 +2,10 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { formatContext, formatRosterRow, moveSelection, clampScroll, chatboxToRoute } from "./panel-logic.ts";
 
-test("formatContext renders tokens/window/percent, and dash when unknown", () => {
-	assert.match(formatContext({ tokens: 12000, contextWindow: 200000, percent: 0.06 }), /12k\/200k.*6%/);
+test("formatContext renders tokens/window/percent (percent is already 0-100), dash when unknown", () => {
+	// pi's ContextUsage.percent is already a percentage (footer.js uses it directly).
+	assert.match(formatContext({ tokens: 12000, contextWindow: 200000, percent: 6 }), /12k\/200k.*6%/);
+	assert.match(formatContext({ tokens: 124000, contextWindow: 200000, percent: 62 }), /62%/);
 	assert.equal(formatContext({ tokens: null, contextWindow: 200000, percent: null }), "—");
 	assert.equal(formatContext(undefined), "—");
 });

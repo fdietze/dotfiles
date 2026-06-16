@@ -10,7 +10,8 @@ const k = (n: number) => (n >= 1000 ? `${Math.round(n / 1000)}k` : `${n}`);
 
 export function formatContext(u: ContextUsageLike | undefined): string {
 	if (!u || u.tokens === null) return "—";
-	const pct = u.percent === null ? "" : ` · ${Math.round(u.percent * 100)}%`;
+	// pi's ContextUsage.percent ist bereits ein Prozentwert (0–100), nicht ein Bruch.
+	const pct = u.percent === null ? "" : ` · ${Math.round(u.percent)}%`;
 	return `${k(u.tokens)}/${k(u.contextWindow)}${pct}`;
 }
 
