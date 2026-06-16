@@ -189,7 +189,7 @@ export class Engine {
 		content: string,
 	): Promise<{ ok: true; status: string } | { ok: false; reason: string }> {
 		if (this.frozen) {
-			const reason = "swarm halted (use /resume)";
+			const reason = "swarm halted (use /unhalt)";
 			this.emit({ type: "blocked", reason, ts: Date.now() });
 			return { ok: false, reason };
 		}

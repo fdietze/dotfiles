@@ -110,9 +110,11 @@ export function createSpawner(deps: SpawnerDeps): Spawner {
 		subscribeBackground(spec.name, session);
 
 		// 4) Optionale Startnachricht atomar zustellen (kein Race, da Actor bereits registriert).
-		if (spec.message) await engine.route(spawnerName, spec.name, spec.message);
-
-		const sent = spec.message ? " + sent initial message" : "";
+		let sent = "";
+		if (spec.message) {
+			const r = await engine.route(spawnerName, spec.name, spec.message);
+			sent = r.ok ? " + sent initial message" : ` (initial message NOT delivered: ${r.reason})`;
+		}
 		return { ok: true, msg: `spawned '${spec.name}' (model ${resolved.provider}/${resolved.id})${sent}` };
 	};
 
