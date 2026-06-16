@@ -16,6 +16,7 @@ import {
 	SessionManager,
 	type ToolDefinition,
 } from "@earendil-works/pi-coding-agent";
+import { Text } from "@earendil-works/pi-tui";
 import { Type } from "typebox";
 import { Engine, type ActorHandle } from "./engine.ts";
 import { formatFeedLines, formatKillResult, formatMulticastResult, formatSnapshot, normalizeTargets } from "./feed.ts";
@@ -64,6 +65,24 @@ function actorSystemPrompt(name: string, systemPrompt: string): string {
 		"",
 		systemPrompt,
 	].join("\n");
+}
+
+// Tool-Call-Preview, die den VOLLEN Parameter-Inhalt zeigt. Ohne eigenen renderCall
+// zeigt pi's Fallback bei registrierten Tools nur den Tool-Namen (siehe ToolExecutionComponent
+// createCallFallback) — lange Felder wie systemPrompt würden also komplett fehlen.
+type RenderTheme = { fg(color: string, s: string): string; bold(s: string): string };
+function renderToolArgs(toolName: string, args: Record<string, unknown>, theme: RenderTheme): Text {
+	const lines = [theme.fg("toolTitle", theme.bold(toolName))];
+	for (const [key, value] of Object.entries(args ?? {})) {
+		if (typeof value === "string" && value.includes("\n")) {
+			lines.push(theme.fg("dim", `  ${key}:`));
+			for (const l of value.split("\n")) lines.push(theme.fg("toolOutput", `    ${l}`));
+		} else {
+			const val = typeof value === "string" ? value : JSON.stringify(value);
+			lines.push(`${theme.fg("dim", `  ${key}: `)}${theme.fg("toolOutput", val)}`);
+		}
+	}
+	return new Text(lines.join("\n"), 0, 0);
 }
 
 export default function actorSwarm(pi: ExtensionAPI) {
@@ -171,6 +190,7 @@ export default function actorSwarm(pi: ExtensionAPI) {
 		{
 			name: "spawn_agent",
 			label: "Spawn Agent",
+			renderCall: (args, theme) => renderToolArgs("spawn_agent", args as Record<string, unknown>, theme as RenderTheme),
 			description:
 				"Create a new agent with a system prompt; optionally deliver a first message. It can then be messaged by name.",
 			parameters: Type.Object({
@@ -190,6 +210,7 @@ export default function actorSwarm(pi: ExtensionAPI) {
 		{
 			name: "send_message",
 			label: "Send Message",
+			renderCall: (args, theme) => renderToolArgs("send_message", args as Record<string, unknown>, theme as RenderTheme),
 			description: "Fire-and-forget message to one agent or a list of agents (e.g. 'user'). Returns immediately.",
 			parameters: Type.Object({
 				to: Type.Union([Type.String(), Type.Array(Type.String())], {
@@ -210,6 +231,7 @@ export default function actorSwarm(pi: ExtensionAPI) {
 		{
 			name: "list_agents",
 			label: "List Agents",
+			renderCall: (args, theme) => renderToolArgs("list_agents", args as Record<string, unknown>, theme as RenderTheme),
 			description: "List all agents and their status.",
 			parameters: Type.Object({}),
 			execute: async () => {
@@ -220,6 +242,7 @@ export default function actorSwarm(pi: ExtensionAPI) {
 		{
 			name: "kill_agent",
 			label: "Kill Agent",
+			renderCall: (args, theme) => renderToolArgs("kill_agent", args as Record<string, unknown>, theme as RenderTheme),
 			description: "Terminate one agent or a list of agents. 'user' cannot be killed.",
 			parameters: Type.Object({
 				name: Type.Union([Type.String(), Type.Array(Type.String())], {
