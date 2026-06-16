@@ -17,6 +17,15 @@
   # Low CPU/IO priority so agent subprocesses don't starve interactive work.
   prio = "${pkgs.util-linux}/bin/ionice -c 3 ${pkgs.coreutils}/bin/nice -n 19";
 
+  # Give each sandboxed agent a private, empty /tmp via a bwrap mount namespace
+  # (--dev-bind / / passes the host root through unchanged, --tmpfs /tmp shadows
+  # only /tmp). Host /tmp is then absent inside the agent, which closes the
+  # sandbox escape via host tmux sockets at /tmp/tmux-<uid>/ (connecting there
+  # would run commands in the un-sandboxed host tmux server). /tmp stays usable
+  # for tools. bwrap MUST wrap OUTSIDE nono: nono's seccomp blocks the
+  # unshare/uid-map bwrap needs; nono keeps enforcing Landlock inside.
+  privateTmp = "${pkgs.bubblewrap}/bin/bwrap --dev-bind / / --tmpfs /tmp --";
+
   # Wrap an agent: nono-sandboxed `<name>` + un-sandboxed `vanilla-<name>`.
   mkAgent = {
     name,
@@ -25,7 +34,7 @@
     yolo ? "",
   }: [
     (pkgs.writeShellScriptBin name ''
-      ${env}exec ${prio} \
+      ${env}exec ${prio} ${privateTmp} \
         ${pkgs.llm-agents.nono}/bin/nono run --profile agent -- \
         ${bin}${lib.optionalString (yolo != "") " ${yolo}"} "$@"
     '')

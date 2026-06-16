@@ -61,6 +61,7 @@
       "$HOME/.cache/"
     ],
     "allow_file": [
+      "/dev/ptmx",
       "$HOME/.claude.json",
       "$HOME/.claude.json.lock",
       "$HOME/.claude.lock",
