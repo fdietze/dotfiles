@@ -22,9 +22,12 @@ export interface RosterEntry {
 }
 
 export function formatRosterRow(entry: RosterEntry, selected: boolean, width: number): string {
-	const cursor = selected ? "▸ " : "  ";
-	const status = entry.active ? "●active" : " idle";
-	const line = `${cursor}${entry.name.padEnd(12)} ${entry.context.padEnd(16)} ${status}`;
+	// Layout: <cursor> <status> <name> <context>. Status als feste ASCII-Spalte ganz
+	// vorne (robust ausgerichtet, unabhängig von der variablen Kontextbreite am Ende).
+	const cursor = selected ? "▸" : " ";
+	const status = (entry.active ? "active" : "idle").padEnd(6);
+	const name = entry.name.length > 14 ? `${entry.name.slice(0, 13)}…` : entry.name.padEnd(14);
+	const line = `${cursor} ${status} ${name} ${entry.context}`;
 	return line.length > width ? line.slice(0, width) : line;
 }
 

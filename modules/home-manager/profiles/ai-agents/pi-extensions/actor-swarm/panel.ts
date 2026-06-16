@@ -103,7 +103,15 @@ export function createSwarmPanel(deps: PanelDeps, tui: TuiLike, theme: ThemeLike
 				);
 				for (const label of toolCallLabels(m)) lines.push(theme.fg("dim", truncateToWidth(`  ${label}`, width)));
 			} else if (m.role === "toolResult") {
-				lines.push(theme.fg("dim", truncateToWidth(`  ⚙ → ${messageText(m.content)}`, width)));
+				// Mehrzeilige Ergebnisse sauber einrücken und auf wenige Zeilen begrenzen.
+				const resultLines = messageText(m.content).trim().split("\n");
+				const MAX = 3;
+				resultLines.slice(0, MAX).forEach((line, i) => {
+					lines.push(theme.fg("dim", truncateToWidth(`  ${i === 0 ? "⚙ →" : "   "} ${line}`, width)));
+				});
+				if (resultLines.length > MAX) {
+					lines.push(theme.fg("dim", truncateToWidth(`      … (+${resultLines.length - MAX} lines)`, width)));
+				}
 			}
 		}
 		if (lines.length === 0) lines.push(theme.fg("muted", "  (noch keine Nachrichten)"));
