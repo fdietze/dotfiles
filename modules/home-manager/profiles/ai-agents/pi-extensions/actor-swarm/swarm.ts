@@ -24,9 +24,11 @@ export interface ResolvedModel {
 
 export interface SpawnSpec {
 	name: string;
-	role: string;
+	systemPrompt: string;
 	model?: string;
 	tools?: string[];
+	/** Optionale Startnachricht: nach dem Spawn atomar an den neuen Actor zugestellt. */
+	message?: string;
 }
 
 export interface SpawnerDeps {
@@ -34,7 +36,7 @@ export interface SpawnerDeps {
 	/** "provider/id" oder undefined (=> erben) auflösen; undefined wenn unbekannt. */
 	resolveModel: (ref: string | undefined) => ResolvedModel | undefined;
 	/** Eine isolierte Hintergrund-Actor-Session erzeugen (SDK-Adapter in index.ts). */
-	createSession: (spec: { name: string; role: string; model: unknown; tools?: string[] }) => Promise<SessionLike>;
+	createSession: (spec: { name: string; systemPrompt: string; model: unknown; tools?: string[] }) => Promise<SessionLike>;
 	/** Nach jeder relevanten Aktivität aufrufen (z.B. Status-Footer aktualisieren). */
 	onActivity?: () => void;
 }
@@ -59,21 +61,31 @@ export function createSpawner(deps: SpawnerDeps): Spawner {
 	};
 
 	const spawnActor = async (spec: SpawnSpec, spawnerName: string): Promise<{ ok: boolean; msg: string }> => {
-		const spawner = engine.get(spawnerName);
-		const depth = spawner ? spawner.depth : 0;
-		const check = engine.canSpawn(spec.name, depth);
-		if (!check.ok) return { ok: false, msg: `error: ${check.reason}` };
+		const inheritRef = spec.model ?? engine.get(spawnerName)?.model;
 
-		const inheritRef = spec.model ?? spawner?.model;
+		// 1) Namen synchron reservieren (atomar: Duplikat/Cap/Tiefe) — schließt Races.
+		const reserved = engine.reserve(spec.name, spawnerName);
+		if (!reserved.ok) return { ok: false, msg: `error: ${reserved.reason}` };
+
 		const resolved = resolveModel(inheritRef);
-		if (!resolved) return { ok: false, msg: `error: unknown model '${inheritRef ?? "(none)"}'` };
+		if (!resolved) {
+			engine.release(spec.name);
+			return { ok: false, msg: `error: unknown model '${inheritRef ?? "(none)"}'` };
+		}
 
-		const session = await createSession({
-			name: spec.name,
-			role: spec.role,
-			model: resolved.model,
-			tools: spec.tools,
-		});
+		// 2) Langsame Session-Erstellung (await). Ein paralleles send_message puffert solange.
+		let session: SessionLike;
+		try {
+			session = await createSession({
+				name: spec.name,
+				systemPrompt: spec.systemPrompt,
+				model: resolved.model,
+				tools: spec.tools,
+			});
+		} catch (e) {
+			engine.release(spec.name);
+			return { ok: false, msg: `error: failed to start '${spec.name}': ${e instanceof Error ? e.message : String(e)}` };
+		}
 
 		const handle: ActorHandle = {
 			deliver: async (text) => {
@@ -85,16 +97,10 @@ export function createSpawner(deps: SpawnerDeps): Spawner {
 			isStreaming: () => session.isStreaming,
 		};
 
-		engine.addActor({
-			name: spec.name,
+		// 3) Reservierung abschließen (flusht ggf. gepufferte Nachrichten an die Session).
+		engine.attach(spec.name, {
 			model: `${resolved.provider}/${resolved.id}`,
 			handle,
-			spawnedBy: spawnerName,
-			depth: depth + 1,
-			createdAt: Date.now(),
-			turns: 0,
-			lastActivity: Date.now(),
-			streaming: false,
 			view: {
 				getMessages: () => session.messages,
 				getContextUsage: () => session.getContextUsage(),
@@ -102,7 +108,12 @@ export function createSpawner(deps: SpawnerDeps): Spawner {
 			},
 		});
 		subscribeBackground(spec.name, session);
-		return { ok: true, msg: `spawned '${spec.name}' (model ${resolved.provider}/${resolved.id})` };
+
+		// 4) Optionale Startnachricht atomar zustellen (kein Race, da Actor bereits registriert).
+		if (spec.message) await engine.route(spawnerName, spec.name, spec.message);
+
+		const sent = spec.message ? " + sent initial message" : "";
+		return { ok: true, msg: `spawned '${spec.name}' (model ${resolved.provider}/${resolved.id})${sent}` };
 	};
 
 	return { spawnActor };

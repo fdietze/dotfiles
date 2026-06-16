@@ -7,6 +7,10 @@ class FakeSession implements SessionLike {
 	delivered: string[] = [];
 	aborted = 0;
 	isStreaming = false;
+	messages: unknown[] = [];
+	getContextUsage() {
+		return { tokens: 0, contextWindow: 1000, percent: 0 };
+	}
 	private listeners: ((e: { type: string }) => void)[] = [];
 	async sendUserMessage(text: string) {
 		this.delivered.push(text);
@@ -54,7 +58,7 @@ test("smoke: spawn -> deliver -> reply -> budget abort -> halt", async () => {
 	});
 
 	// spawn echo
-	const r = await spawner.spawnActor({ name: "echo", role: "reply to sender" }, "user");
+	const r = await spawner.spawnActor({ name: "echo", systemPrompt: "reply to sender" }, "user");
 	assert.equal(r.ok, true);
 	assert.equal(engine.has("echo"), true);
 	assert.equal(engine.get("echo")?.depth, 1);
@@ -95,7 +99,7 @@ test("spawn rejects unknown model", async () => {
 		createSession: async () => new FakeSession(),
 	});
 	// spawner 'ghost' not registered -> depth 0, no inherited model, no ref -> unknown model
-	const r = await spawner.spawnActor({ name: "x", role: "r" }, "ghost");
+	const r = await spawner.spawnActor({ name: "x", systemPrompt: "r" }, "ghost");
 	assert.equal(r.ok, false);
 	assert.match(r.msg, /unknown model/i);
 });
@@ -109,8 +113,8 @@ test("spawn rejects duplicate name", async () => {
 		resolveModel: () => ({ provider: "t", id: "m", model: {} }),
 		createSession: async () => new FakeSession(),
 	});
-	assert.equal((await spawner.spawnActor({ name: "dup", role: "r" }, "user")).ok, true);
-	const second = await spawner.spawnActor({ name: "dup", role: "r" }, "user");
+	assert.equal((await spawner.spawnActor({ name: "dup", systemPrompt: "r" }, "user")).ok, true);
+	const second = await spawner.spawnActor({ name: "dup", systemPrompt: "r" }, "user");
 	assert.equal(second.ok, false);
 	assert.match(second.msg, /already exists/i);
 });
@@ -125,9 +129,9 @@ test("spawn enforces max depth via spawner depth", async () => {
 		createSession: async () => new FakeSession(),
 	});
 	// user(0) -> a(1) -> b(2) ok; b spawning would be depth 3 > 2
-	await spawner.spawnActor({ name: "a", role: "r" }, "user");
-	await spawner.spawnActor({ name: "b", role: "r" }, "a");
-	const tooDeep = await spawner.spawnActor({ name: "c", role: "r" }, "b");
+	await spawner.spawnActor({ name: "a", systemPrompt: "r" }, "user");
+	await spawner.spawnActor({ name: "b", systemPrompt: "r" }, "a");
+	const tooDeep = await spawner.spawnActor({ name: "c", systemPrompt: "r" }, "b");
 	assert.equal(tooDeep.ok, false);
 	assert.match(tooDeep.msg, /depth/i);
 });

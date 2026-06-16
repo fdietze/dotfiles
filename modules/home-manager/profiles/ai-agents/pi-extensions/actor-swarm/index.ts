@@ -34,18 +34,17 @@ function getEngine(): Engine {
 	return g[ENGINE_KEY] as Engine;
 }
 
-function actorSystemPrompt(name: string, role: string): string {
+function actorSystemPrompt(name: string, systemPrompt: string): string {
 	return [
 		`You are actor "${name}" in a multi-agent swarm.`,
 		"You can talk to other actors with these tools:",
-		"- spawn_agent({name, role, model?, tools?}): create a new actor.",
+		"- spawn_agent({name, systemPrompt, model?, tools?, message?}): create a new actor (message = optional first task).",
 		"- send_message({to, content}): fire-and-forget message to another actor (e.g. 'user').",
 		"- list_agents(): see who exists.",
 		"Messages you receive are prefixed with [message from <sender>].",
 		"To reply, use send_message back to that sender.",
 		"",
-		"Your role:",
-		role,
+		systemPrompt,
 	].join("\n");
 }
 
@@ -137,12 +136,16 @@ export default function actorSwarm(pi: ExtensionAPI) {
 		{
 			name: "spawn_agent",
 			label: "Spawn Agent",
-			description: "Create a new actor with a role/system prompt. It can then be messaged by name.",
+			description:
+				"Create a new actor with a system prompt; optionally deliver a first message. It can then be messaged by name.",
 			parameters: Type.Object({
 				name: Type.String({ description: "Unique actor name ([a-zA-Z0-9_-])" }),
-				role: Type.String({ description: "System prompt describing the actor's role" }),
+				systemPrompt: Type.String({ description: "System prompt defining the actor's behavior" }),
 				model: Type.Optional(Type.String({ description: "provider/id; default: inherited" })),
 				tools: Type.Optional(Type.Array(Type.String(), { description: "Built-in tool allowlist" })),
+				message: Type.Optional(
+					Type.String({ description: "Optional first message delivered to the new actor right after spawn" }),
+				),
 			}),
 			execute: async (_id, args) => {
 				const res = await spawnActor(args, selfName);
@@ -178,14 +181,14 @@ export default function actorSwarm(pi: ExtensionAPI) {
 	// SDK-Adapter: erzeugt eine isolierte Hintergrund-Actor-Session.
 	const createSession = async (spec: {
 		name: string;
-		role: string;
+		systemPrompt: string;
 		model: unknown;
 		tools?: string[];
 	}): Promise<SessionLike> => {
 		const loader = new DefaultResourceLoader({
 			cwd,
 			agentDir: blankAgentDir,
-			systemPromptOverride: () => actorSystemPrompt(spec.name, spec.role),
+			systemPromptOverride: () => actorSystemPrompt(spec.name, spec.systemPrompt),
 		});
 		await loader.reload();
 
