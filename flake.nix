@@ -175,6 +175,7 @@
         modules = [
           nix-index-database.homeModules.nix-index
           ./modules/home-manager/profiles/shell-core.nix
+          ./modules/home-manager/profiles/ai-agents # sandboxed; mkHome pkgs has the overlay
           ./modules/home-manager/profiles/standalone-extras.nix
           # shell-core setzt felix nur per mkDefault; auf fremden Boxen mit
           # anderem User (z.B. Fly Sprites, User "sprite") hier überschreiben.
@@ -185,31 +186,30 @@
         ];
       };
 
-    mkNixOnDroid = deviceName: let
-      # The app-bundled proot (proot-termux 2024-05-04) only answers the legacy
-      # TCGETS tty ioctl. bash/glibc from current nixpkgs issue TCGETS2 instead,
-      # which proot rejects with EACCES, so the interactive app shell's stdin
-      # looks like a non-tty and readline arrow keys print ^[[A. Build both Nix
-      # and the app login shell from the matching nixos-24.05 toolchain.
-      # See https://github.com/nix-community/nix-on-droid/issues/515
-      pkgsNixOnDroid = import nixpkgs-nix-on-droid {
-        system = "aarch64-linux";
-        config.allowUnfree = true;
-      };
-    in
+    mkNixOnDroid = deviceName:
       nix-on-droid.lib.nixOnDroidConfiguration {
         modules = [./nix-on-droid/${deviceName}.nix];
         extraSpecialArgs = {
           inherit nix-index-database;
-          nixOnDroidNix = pkgsNixOnDroid.nix;
-          nixOnDroidAppBash = pkgsNixOnDroid.bashInteractive;
+          # Bumped proot (PR nix-on-droid#529) that fixes the TCGETS2 tty
+          # blindness (#515). Built by CI on x86 and substituted from cachix;
+          # korken pins it via environment.files.prootStatic. See proot-bumped/.
+          prootBumped = import ./nix-on-droid/proot-bumped {inherit nixpkgs;};
+          # Forwarded to korken's home-manager modules (see korken.nix
+          # home-manager.extraSpecialArgs): shell-core needs nvf, packages-cli/
+          # yazi need theme, ai-agents/skills needs flake-inputs.
+          flake-inputs = inputs;
+          nvf = nvf;
+          theme = defaultTheme;
         };
 
         # The upstream flake template recommends the Nix-on-Droid overlay; this
         # pkgs instance also permits the same unfree CLI tools as standalone HM.
         pkgs = import nixpkgs {
           system = "aarch64-linux";
-          overlays = [nix-on-droid.overlays.default];
+          # llm-agents overlay so korken can install (vanilla) AI agents, the
+          # same pkgs.llm-agents.* the NixOS/standalone configs use.
+          overlays = [nix-on-droid.overlays.default llm-agents.overlays.default];
           config.allowUnfree = true;
         };
 

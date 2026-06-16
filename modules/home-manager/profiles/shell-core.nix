@@ -22,7 +22,9 @@ in {
     ../git.nix
     ../yazi.nix
     ./packages-cli.nix
-    ./ai-agents
+    # ai-agents is intentionally NOT here: it's opt-in per host (needs the
+    # llm-agents overlay, and is unwanted on minimal targets). Consumers that
+    # want agents import ./ai-agents (sandboxed) or ./ai-agents/vanilla.
   ];
 
   # https://nix-community.github.io/home-manager/index.xhtml

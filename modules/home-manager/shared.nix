@@ -9,6 +9,7 @@
 }: {
   imports = [
     ./profiles/shell-core.nix
+    ./profiles/ai-agents # sandboxed (nono) — desktop hosts have the overlay
     ./profiles/desktop-shell.nix
     ./xdg.nix
     ./packages.nix

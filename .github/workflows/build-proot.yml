@@ -1,0 +1,51 @@
+# Builds the bumped proot-termux (see nix-on-droid/proot-bumped/) and pushes it
+# to the fdietze cachix cache, so korken substitutes the exact store path on
+# `switch` (no on-device build, no manual copy). Also uploads it as an artifact.
+#
+# Runs on x86 (ubuntu-latest): the Android NDK cross toolchain ships x86_64 host
+# binaries, so the build cross-compiles the aarch64 proot natively on x86 in a
+# few minutes — no QEMU, no source-LLVM build (which was too heavy for the free
+# runners and kept dying mid-compile).
+name: build-proot
+
+on:
+  push:
+    branches: [proot-bump-ci]
+  workflow_dispatch:
+
+concurrency:
+  group: build-proot
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: DeterminateSystems/nix-installer-action@main
+
+      # Sets up the fdietze cache as a substituter and authenticates the CLI.
+      # skipPush: we push only the proot closure explicitly below.
+      - uses: cachix/cachix-action@v15
+        with:
+          name: fdietze
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+          skipPush: true
+
+      - name: Build bumped proot (NDK cross)
+        run: |
+          nix build --impure -L -f ci/proot-bump.nix -o result
+          install -m 0755 -D "$(readlink -f result)/bin/proot-static" out/proot-static
+          ( cd out && sha256sum proot-static | tee proot-static.sha256 )
+          file out/proot-static
+
+      - name: Push proot to cachix
+        run: cachix push fdietze "$(readlink -f result)"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: proot-static-aarch64-2026-02-20
+          path: out/
+          if-no-files-found: error

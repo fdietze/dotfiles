@@ -2,8 +2,10 @@
   config,
   lib,
   nix-index-database,
-  nixOnDroidNix,
-  nixOnDroidAppBash,
+  prootBumped,
+  flake-inputs,
+  nvf,
+  theme,
   pkgs,
   ...
 }: let
@@ -24,21 +26,18 @@
     UsePAM no
     Subsystem sftp internal-sftp
   '';
-  # Run the interactive app shell with bash from nixos-24.05 (nixOnDroidAppBash).
-  # Newer bash/glibc issue the TCGETS2 tty ioctl, which the app-bundled proot
-  # (proot-termux 2024-05-04) rejects with EACCES; stdin then looks like a
-  # non-tty and readline arrow keys print ^[[A. The 24.05 toolchain uses the
-  # legacy TCGETS that proot handles, so readline can enter raw mode.
-  # See https://github.com/nix-community/nix-on-droid/issues/515
+  # Interactive app shell: route `ssh user@host cmd` straight through; an
+  # argument-less app launch gets an interactive (non-login) bash so it reads
+  # ~/.bashrc with the Home-Manager config (login-inner would otherwise run it as
+  # a login shell). bash auto-detects the tty — the bumped proot
+  # (build.activationAfter.bumpedProot) handles the tty ioctls, so no 24.05-bash
+  # pin and no forced -i are needed.
   appLoginShell = pkgs.writeShellScriptBin "nix-on-droid-app-login-shell" ''
-    # `ssh user@host cmd` passes args through; an argument-less app launch gets
-    # an interactive bash. It auto-detects the tty (see TCGETS note above), so
-    # no forced -i is needed.
     if [ "$#" -gt 0 ]; then
-      exec ${nixOnDroidAppBash}/bin/bash "$@"
+      exec ${pkgs.bashInteractive}/bin/bash "$@"
     fi
 
-    exec ${nixOnDroidAppBash}/bin/bash
+    exec ${pkgs.bashInteractive}/bin/bash
   '';
 in {
   # Nix-on-Droid keeps Android's runtime hostname as "localhost"; the stable
@@ -49,15 +48,26 @@ in {
   };
 
   nix = {
-    # Nix-on-Droid issue #495 tracks newer Nix builders failing to open PTYs on
-    # Android; keep the app's proven Nix 2.18 line while using current modules.
-    package = nixOnDroidNix;
+    # Default Nix: issue #495 ("getting pseudoterminal attributes: Permission
+    # denied" with newer Nix builders) is the same proot tty-ioctl bug, fixed by
+    # the bumped proot below — so the old Nix 2.18 pin is no longer needed.
 
     # Nix-on-Droid's option reference uses nix.extraOptions for nix.conf text.
     extraOptions = ''
       experimental-features = nix-command flakes
+      # fdietze: the bumped proot (environment.files.prootStatic below); the
+      # device cannot build it itself (nix-on-droid's cross machinery fails under
+      # the on-device proot fs). numtide: prebuilt AI agents (llm-agents) so the
+      # phone substitutes the Rust/Node agents instead of compiling them.
+      extra-substituters = https://fdietze.cachix.org https://cache.numtide.com
+      extra-trusted-public-keys = fdietze.cachix.org-1:9XRlZtrv6HM2ZPnx5Vn+DnqZ8GbxsfAQ2/FMbwiCfiY= niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g=
     '';
   };
+
+  # The bumped proot (prootBumped) that fixes the TCGETS2 tty-blindness (#515) is
+  # installed by build.activationAfter.bumpedProot below — nix-on-droid marks
+  # environment.files.prootStatic readOnly, so it can't be overridden via the
+  # option. The truly clean fix is the upstream #529 merge.
 
   # Upstream installPackages currently calls `xargs nix profile remove` even
   # when no old nix-on-droid-path profile entry exists on fresh app installs.
@@ -124,6 +134,16 @@ in {
   };
 
   build.activationAfter = lib.mkAfter {
+    # Stage the bumped proot (#529) as /bin/.proot-static.new, the same way
+    # nix-on-droid's own installProotStatic stages cfg.prootStatic — but pointing
+    # at prootBumped instead of the readOnly app-bundled proot. The outer
+    # /bin/login swaps it in on the next app start (when no proot is running).
+    bumpedProot = ''
+      $DRY_RUN_CMD cp ${prootBumped}/bin/proot-static /bin/.proot-static.tmp
+      $DRY_RUN_CMD chmod u+w /bin/.proot-static.tmp
+      $DRY_RUN_CMD mv /bin/.proot-static.tmp /bin/.proot-static.new
+    '';
+
     # Nix-on-Droid writes USER into the next login session, but Home Manager's
     # sanity checks run during the current activation process.
     homeManager = ''
@@ -143,22 +163,17 @@ in {
     # Let Nix-on-Droid install Home Manager packages through environment.packages
     # so Home Manager does not fight nix-on-droid-path in the same user profile.
     useUserPackages = true;
+    # korken's HM profiles (shell-core, ai-agents, ...) expect the same args the
+    # standalone HM config passes; nix-on-droid doesn't forward them by default.
+    extraSpecialArgs = {inherit flake-inputs nvf theme;};
     config = {lib, ...}: {
       imports = [
         ../modules/home-manager/profiles/shell-core.nix
+        # vanilla (unsandboxed) agents: nono's Landlock sandbox can't init under
+        # proot on this device. A proot-based sandbox is the planned follow-up.
+        ../modules/home-manager/profiles/ai-agents/vanilla.nix
         ../modules/home-manager/profiles/standalone-extras.nix
       ];
-
-      # Starship's prompt binary comes from current nixpkgs (newer glibc) and is
-      # tty-blind under the app-bundled proot (TCGETS2 -> EACCES, same root cause
-      # as the arrow keys / nix-on-droid#515), so it renders no usable prompt -
-      # running plain `zsh` shows the same blank-prompt symptom. Use a static
-      # bash PS1, which needs no terminal ioctls. Only the bash login shell is
-      # pinned to the 24.05 toolchain (above); a general fix needs a newer proot.
-      programs.starship.enableBashIntegration = lib.mkForce false;
-      programs.bash.bashrcExtra = lib.mkAfter ''
-        PS1='\u@localhost:\w\$ '
-      '';
     };
   };
 

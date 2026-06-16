@@ -1,8 +1,12 @@
-# Sandboxed AI coding agents. Each agent gets a nono-wrapped `<name>` plus an
-# un-sandboxed `vanilla-<name>` escape hatch, both at low CPU/IO priority. The
-# shared nono profile `agent` lives at home/config/nono/profiles/agent.json and
-# is linked out-of-store into ~/.config/nono/profiles/ by dotfiles.nix, so it
-# stays versioned yet live-editable without a Home-Manager switch.
+# Sandboxed AI coding agents (the default; import this where nono works). Each
+# agent from ./agents.nix gets a nono-wrapped `<name>` plus an un-sandboxed
+# `vanilla-<name>` escape hatch, both at low CPU/IO priority. The shared nono
+# profile `agent` lives at home/config/nono/profiles/agent.json and is linked
+# out-of-store into ~/.config/nono/profiles/ by dotfiles.nix, so it stays
+# versioned yet live-editable without a Home-Manager switch.
+#
+# Where nono's Landlock sandbox is unavailable (e.g. korken: proot intercepts
+# the landlock syscalls), import ./vanilla.nix instead.
 #
 # ./skills.nix provisions the shared ~/.agents/skills/ set (superpowers + own).
 {
@@ -13,10 +17,7 @@
   # Low CPU/IO priority so agent subprocesses don't starve interactive work.
   prio = "${pkgs.util-linux}/bin/ionice -c 3 ${pkgs.coreutils}/bin/nice -n 19";
 
-  # Wrap an AI coding agent.
-  #   env  -> shell prelude (export lines, must end in "\n"); applied to BOTH variants
-  #   yolo -> flag(s) that disable the agent's own permission prompts; sandboxed
-  #           variant ONLY — without nono (vanilla) we keep the agent's prompts.
+  # Wrap an agent: nono-sandboxed `<name>` + un-sandboxed `vanilla-<name>`.
   mkAgent = {
     name,
     bin,
@@ -36,31 +37,5 @@
 in {
   imports = [./skills.nix ./pi-extensions.nix];
 
-  home.packages = lib.concatLists [
-    # `claude`: experimental agent-teams env + skip its own permission prompts
-    # (nono is the real isolation layer). `vanilla-claude` keeps the prompts.
-    (mkAgent {
-      name = "claude";
-      bin = "${pkgs.llm-agents.claude-code}/bin/claude";
-      env = "export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1\n";
-      yolo = "--dangerously-skip-permissions";
-    })
-    (mkAgent {
-      name = "opencode";
-      bin = "${pkgs.llm-agents.opencode}/bin/opencode";
-    })
-    # `codex`: bypass codex's own approvals + built-in sandbox; nono is the
-    # external sandbox the flag is designed for. `vanilla-codex` keeps approvals.
-    (mkAgent {
-      name = "codex";
-      bin = "${pkgs.llm-agents.codex}/bin/codex";
-      yolo = "--dangerously-bypass-approvals-and-sandbox";
-    })
-    # `pi`: no permission-gating flag exists; its tools run directly under nono.
-    (mkAgent {
-      name = "pi";
-      bin = "${pkgs.llm-agents.pi}/bin/pi";
-    })
-  ];
+  home.packages = lib.concatMap mkAgent (import ./agents.nix {inherit pkgs;});
 }
-
