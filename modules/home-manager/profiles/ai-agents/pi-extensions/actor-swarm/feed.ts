@@ -35,3 +35,35 @@ export function formatFeedLines(events: SwarmEvent[]): string[] {
 		}
 	});
 }
+
+/** Normalisiert das `to`-Feld (Name oder Liste) zu einer deduplizierten Namensliste. */
+export function normalizeTargets(to: string | string[]): string[] {
+	const arr = Array.isArray(to) ? to : [to];
+	const seen = new Set<string>();
+	const out: string[] = [];
+	for (const raw of arr) {
+		const name = raw.trim();
+		if (name && !seen.has(name)) {
+			seen.add(name);
+			out.push(name);
+		}
+	}
+	return out;
+}
+
+export interface MulticastOutcome {
+	target: string;
+	ok: boolean;
+	reason?: string;
+}
+
+/** Fasst ein Multicast-Ergebnis kompakt zusammen (für die Tool-Antwort). */
+export function formatMulticastResult(results: MulticastOutcome[]): string {
+	if (results.length === 0) return "error: no targets";
+	const delivered = results.filter((r) => r.ok).map((r) => r.target);
+	const failed = results.filter((r) => !r.ok).map((r) => `${r.target}: ${r.reason}`);
+	const parts: string[] = [];
+	if (delivered.length) parts.push(`sent to ${delivered.join(", ")}`);
+	if (failed.length) parts.push(`failed: ${failed.join("; ")}`);
+	return parts.join(" · ");
+}

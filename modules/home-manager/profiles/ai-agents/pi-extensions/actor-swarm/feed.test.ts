@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { formatStatus, formatSnapshot, formatFeedLines } from "./feed.ts";
+import { formatStatus, formatSnapshot, formatFeedLines, normalizeTargets, formatMulticastResult } from "./feed.ts";
 import type { ActorRecord, SwarmEvent } from "./engine.ts";
 
 const rec = (over: Partial<ActorRecord>): ActorRecord => ({
@@ -47,4 +47,22 @@ test("formatFeedLines renders one line per event newest-aware", () => {
 	assert.match(lines[0], /spawn.*coder/);
 	assert.match(lines[1], /user.*->.*coder/);
 	assert.match(lines[2], /halt/i);
+});
+
+test("normalizeTargets: single, list, dedupe, trim, drop empty", () => {
+	assert.deepEqual(normalizeTargets("echo"), ["echo"]);
+	assert.deepEqual(normalizeTargets(["echo", "planner"]), ["echo", "planner"]);
+	assert.deepEqual(normalizeTargets(["a", "a", " b ", ""]), ["a", "b"]);
+});
+
+test("formatMulticastResult: delivered + failed split", () => {
+	assert.equal(formatMulticastResult([{ target: "a", ok: true }]), "sent to a");
+	assert.match(
+		formatMulticastResult([
+			{ target: "a", ok: true },
+			{ target: "x", ok: false, reason: "unknown actor 'x'" },
+		]),
+		/sent to a · failed: x: unknown actor 'x'/,
+	);
+	assert.equal(formatMulticastResult([]), "error: no targets");
 });

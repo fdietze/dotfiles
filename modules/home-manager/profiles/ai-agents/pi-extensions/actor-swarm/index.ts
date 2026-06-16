@@ -18,7 +18,7 @@ import {
 } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
 import { Engine, type ActorHandle } from "./engine.ts";
-import { formatFeedLines, formatSnapshot } from "./feed.ts";
+import { formatFeedLines, formatMulticastResult, formatSnapshot, normalizeTargets } from "./feed.ts";
 import { formatContext, formatRosterRow } from "./panel-logic.ts";
 import { createSwarmPanel } from "./panel.ts";
 import { createSpawner, type ResolvedModel, type SessionLike } from "./swarm.ts";
@@ -39,7 +39,7 @@ function actorSystemPrompt(name: string, systemPrompt: string): string {
 		`You are actor "${name}" in a multi-agent swarm.`,
 		"You can talk to other actors with these tools:",
 		"- spawn_agent({name, systemPrompt, model?, tools?, message?}): create a new actor (message = optional first task).",
-		"- send_message({to, content}): fire-and-forget message to another actor (e.g. 'user').",
+		"- send_message({to, content}): to is an actor name OR a list of names; fire-and-forget (e.g. 'user').",
 		"- list_agents(): see who exists.",
 		"Messages you receive are prefixed with [message from <sender>].",
 		"To reply, use send_message back to that sender.",
@@ -153,15 +153,21 @@ export default function actorSwarm(pi: ExtensionAPI) {
 		{
 			name: "send_message",
 			label: "Send Message",
-			description: "Fire-and-forget message to another actor (e.g. 'user'). Returns immediately.",
+			description: "Fire-and-forget message to one actor or a list of actors (e.g. 'user'). Returns immediately.",
 			parameters: Type.Object({
-				to: Type.String({ description: "Target actor name" }),
+				to: Type.Union([Type.String(), Type.Array(Type.String())], {
+					description: "Target actor name, or a list of names for multicast",
+				}),
 				content: Type.String({ description: "Message content" }),
 			}),
 			execute: async (_id, args) => {
-				const r = await engine.route(selfName, args.to, args.content);
-				const text = r.ok ? `queued to '${args.to}' (${r.status})` : `error: ${r.reason}`;
-				return { content: [{ type: "text", text }], details: {} };
+				const targets = normalizeTargets(args.to);
+				const results = [];
+				for (const t of targets) {
+					const r = await engine.route(selfName, t, args.content);
+					results.push(r.ok ? { target: t, ok: true } : { target: t, ok: false, reason: r.reason });
+				}
+				return { content: [{ type: "text", text: formatMulticastResult(results) }], details: {} };
 			},
 		},
 		{
