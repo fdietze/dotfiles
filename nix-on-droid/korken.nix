@@ -32,7 +32,18 @@
   # a login shell). bash auto-detects the tty — the bumped proot
   # (build.activationAfter.bumpedProot) handles the tty ioctls, so no 24.05-bash
   # pin and no forced -i are needed.
+  #
+  # Nix-on-Droid's app launcher (/bin/login) sources nix-on-droid-session-init.sh
+  # to set up PATH (it pulls in nix.sh → ~/.nix-profile/bin), NIX_PATH, locale,
+  # etc. before the user shell. Over SSH sshd never runs it, so the shell starts
+  # with a bare PATH (no grep/git/…) and ~/.bashrc init breaks. Source it here
+  # (idempotent via its own __NOD_SESS_INIT_SOURCED guard) so app and SSH sessions
+  # get the same environment. It needs $USER, which both /bin/login and sshd set.
   appLoginShell = pkgs.writeShellScriptBin "nix-on-droid-app-login-shell" ''
+    if [ -e "$HOME/.nix-profile/etc/profile.d/nix-on-droid-session-init.sh" ]; then
+      . "$HOME/.nix-profile/etc/profile.d/nix-on-droid-session-init.sh"
+    fi
+
     if [ "$#" -gt 0 ]; then
       exec ${pkgs.bashInteractive}/bin/bash "$@"
     fi
