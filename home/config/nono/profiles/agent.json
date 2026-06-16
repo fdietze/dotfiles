@@ -43,6 +43,8 @@
       "$HOME/.cache/causal-transformer-target",
       "$HOME/.local/state/nix",
       "$HOME/.local/share/nvf",
+      "$HOME/.local/state/nvf",
+      "$HOME/.local/state/nvim",
       "$HOME/.local/share/opencode",
       "$HOME/.local/share/opentui",
       "$XDG_RUNTIME_DIR/just",
