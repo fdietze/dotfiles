@@ -22,7 +22,7 @@ interface ThemeLike {
 	fg(color: string, s: string): string;
 }
 
-const TRANSCRIPT_VIEWPORT = 14;
+const TRANSCRIPT_VIEWPORT = 18;
 
 interface RawMessage {
 	role?: string;
@@ -60,7 +60,8 @@ export function createSwarmPanel(deps: PanelDeps, tui: TuiLike, theme: ThemeLike
 	};
 	const editor = new Editor(tui as never, editorTheme);
 
-	const actors = () => deps.engine.list();
+	// 'user' wird im Panel nicht gelistet (= der Haupt-Chat, in dem man ohnehin ist).
+	const actors = () => deps.engine.list().filter((a) => a.name !== "user");
 	const refresh = () => tui.requestRender();
 	const selectedName = () => actors()[selectedIndex]?.name;
 
@@ -85,8 +86,7 @@ export function createSwarmPanel(deps: PanelDeps, tui: TuiLike, theme: ThemeLike
 
 	const transcriptLines = (width: number): string[] => {
 		const rec = actors()[selectedIndex];
-		if (!rec) return [theme.fg("muted", "  (no actor)")];
-		if (rec.name === "user") return [theme.fg("muted", "  = Haupt-Chat (verlasse das Panel mit Esc) =")];
+		if (!rec) return [theme.fg("muted", "  (keine Actors — mit spawn_agent erzeugen)")];
 		const msgs = (rec.view?.getMessages() ?? []) as RawMessage[];
 		const lines: string[] = [];
 		for (const m of msgs) {
@@ -174,13 +174,17 @@ export function createSwarmPanel(deps: PanelDeps, tui: TuiLike, theme: ThemeLike
 				);
 			});
 			lines.push(theme.fg("dim", truncateToWidth("─".repeat(width), width)));
-			const body = transcriptLines(width);
-			lines.push(...body);
-			const scrollHint = `${hasAbove ? "▲" : " "}${hasBelow ? "▼" : " "}`;
-			lines.push(theme.fg("dim", truncateToWidth(`── ${scrollHint} ──`.padEnd(width, "─"), width)));
+			lines.push(...transcriptLines(width));
+			// Ziel-Label + Chatbox (der Editor zeichnet seinen eigenen Rahmen → keine extra Trennlinie).
+			const target = selectedName();
+			lines.push(theme.fg("muted", truncateToWidth(target ? ` → an ${target}:` : " (kein Actor gewählt)", width)));
 			lines.push(...editor.render(width));
+			const scrollHint = `${hasAbove ? "▲" : ""}${hasBelow ? "▼" : ""}`;
 			lines.push(
-				theme.fg("dim", truncateToWidth(" ↑/↓ Actor · PgUp|Ctrl+U/D scroll · Enter senden · Esc schließen ", width)),
+				theme.fg(
+					"dim",
+					truncateToWidth(` ↑/↓ Actor · Ctrl+U/D scroll ${scrollHint} · Enter senden · Esc schließen `, width),
+				),
 			);
 			return lines;
 		},

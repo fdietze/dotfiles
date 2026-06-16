@@ -101,10 +101,14 @@ export default function actorSwarm(pi: ExtensionAPI) {
 			const { used, total } = engine.budget;
 			ui.setStatus("swarm", formatStatus(actors.length, running, used, total));
 			// Permanente Roster-Anzeige über dem Editor (plan-mode-Muster, kein Overlay).
-			const rosterLines = actors.map((a) =>
+			// Nur zeigen, wenn mindestens ein Hintergrund-Actor existiert (nur 'user' allein
+			// ist redundant) und das /swarm-Panel nicht ohnehin offen ist.
+			// Nur Hintergrund-Actors anzeigen ('user' = der Chat selbst, redundant).
+			const background = actors.filter((a) => a.name !== "user");
+			const rosterLines = background.map((a) =>
 				formatRosterRow({ name: a.name, context: formatContext(a.view?.getContextUsage()), active: a.streaming }, false, 80),
 			);
-			ui.setWidget("swarm-roster", panelOpen || rosterLines.length === 0 ? undefined : rosterLines);
+			ui.setWidget("swarm-roster", panelOpen || background.length === 0 ? undefined : rosterLines);
 		} catch {
 			/* ui aus einem stale ctx -> diesen Tick überspringen, frischt beim nächsten Handler auf */
 		}
