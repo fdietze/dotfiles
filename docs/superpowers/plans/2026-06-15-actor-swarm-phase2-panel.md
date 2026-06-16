@@ -1,5 +1,16 @@
 # Actor-Swarm Phase 2 — Swarm-Panel Implementation Plan
 
+## REVISIONEN AUS DER IMPLEMENTIERUNG (maßgeblich)
+
+Der Overlay-Pfad fror die TUI ein. Umgesetzt und live bestätigt wurde stattdessen:
+**persistentes Roster via `ctx.ui.setWidget` + Vollbild-Takeover via `ctx.ui.custom`
+OHNE `overlay`, geöffnet per `/swarm`-Command** (kein `Ctrl+Q`). ctx wird nie
+gecacht (nur Werte; sonst „stale ctx"-Crash). Transcript zunächst als schlichter
+Text (Original-Message-Components-Reuse ist optionaler Folgeschritt). Die Spike-
+und Task-Schritte unten beschreiben den ursprünglichen Overlay-Plan; der reale
+Code folgt diesen Revisionen.
+
+
 > **For agentic workers:** Use superpowers:executing-plans. Pure-logic tasks are TDD with `node:test`. The TUI component cannot be auto-tested from inside the agent sandbox (pi is nono-wrapped; nono-in-nono fails), so component tasks end with a **manual verification** the user runs in their pi session after `nrs` + `/reload`. Steps use checkbox (`- [ ]`) syntax.
 
 **Goal:** Ein permanentes, tmux-artiges Panel oben, das alle Actors listet (Name · Kontext · aktiv/idle). Mit `Ctrl+Q` bekommt es Fokus; `↑/↓` wählt einen Actor und zeigt dessen Transcript live; eine Chatbox schickt Nachrichten an den gewählten Actor. Reine UI-Schicht über der Phase-1-Engine.

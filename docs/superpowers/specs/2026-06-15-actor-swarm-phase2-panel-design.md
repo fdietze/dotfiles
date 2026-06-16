@@ -1,5 +1,36 @@
 # Actor-Swarm Phase 2 — Swarm-Panel UI Design
 
+## REVISIONEN AUS DER IMPLEMENTIERUNG (maßgeblich — überschreibt Abweichendes unten)
+
+Während der Umsetzung in der echten pi-TUI zeigte sich, dass der ursprüngliche
+Overlay-Entwurf nicht tragfähig war. Der tatsächlich umgesetzte und live
+bestätigte Stand:
+
+- **Kein Overlay.** `ctx.ui.custom(..., { overlay: true })` fror die TUI in der
+  Praxis ein (auch awaited, auch mit Focusable-Klasse). Stattdessen:
+  - **Persistentes Roster** über `ctx.ui.setWidget("swarm-roster", lines)` —
+    immer sichtbar über dem Editor, live aktualisiert (plan-mode-Muster).
+  - **Interaktion** über einen **Vollbild-Takeover** `ctx.ui.custom(factory)`
+    **ohne** `overlay` (question.ts-Muster), geöffnet per **`/swarm`-Command**;
+    `Esc` schließt. Der Takeover ersetzt den Editor-Bereich, solange er offen ist.
+- **Kein `Ctrl+Q`-Shortcut.** Aktivierung per `/swarm`-Command (Wunsch des
+  Nutzers; Shortcut entfiel mit dem Overlay).
+- **ctx niemals cachen.** Ein gehaltener `ctx`/`ctx.ui` crasht pi nach
+  Turn/Reload mit „stale ctx". Lösung: nur **Werte** cachen (z.B. die
+  Kontext-Usage der `user`-Zeile), aufgefrischt aus jedem frischen Handler-ctx;
+  UI-Aufrufe defensiv (`try/catch`).
+- **Transcript zunächst als schlichter Text** (role + Inhalt) statt der
+  Original-Message-Components: `ToolExecutionComponent` ist zu stark an die
+  InteractiveMode gekoppelt (braucht `ui`/`cwd`/`toolDefinition`); ein Upgrade
+  auf `User-/AssistantMessageComponent` für die Textanteile bleibt optional/additiv.
+- Tastenbelegung im Takeover wie geplant: `↑/↓` Actor, Tippen→Chatbox,
+  `Enter` sendet via `engine.route("user", gewählt, text)`, `PgUp/PgDn` scrollt,
+  `Esc` schließt.
+
+Die folgenden Abschnitte beschreiben den ursprünglichen Entwurf und sind, wo sie
+Overlay/`Ctrl+Q`/Komponenten-Reuse behaupten, durch die obigen Revisionen ersetzt.
+
+
 ## Ziel
 
 Ein tmux-artiges Panel, mit dem man die Actors des Swarms (Phase 1) überblickt und
