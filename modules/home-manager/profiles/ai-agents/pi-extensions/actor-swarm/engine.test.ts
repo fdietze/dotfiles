@@ -167,3 +167,31 @@ test("addActor preserves optional view", () => {
 	assert.equal(e.get("a")?.view?.getMessages().length, 1);
 	assert.equal(e.get("a")?.view?.getContextUsage()?.contextWindow, 200000);
 });
+
+test("reserve blocks duplicate, counts toward cap; release frees a slot", () => {
+	const e = new Engine({ maxActors: 2, maxSpawnDepth: 3, turnBudget: 5 });
+	assert.equal(e.reserve("a", "user").ok, true);
+	assert.equal(e.reserve("a", "user").ok, false); // duplicate (R2)
+	assert.equal(e.reserve("b", "user").ok, true);
+	const capped = e.reserve("c", "user"); // a+b = max (R3)
+	assert.equal(capped.ok, false);
+	assert.match((capped as { reason: string }).reason, /max actors/);
+	e.release("a");
+	assert.equal(e.has("a"), false);
+	assert.equal(e.reserve("c", "user").ok, true);
+});
+
+test("route to a pending actor buffers; attach flushes to the real handle (R1)", async () => {
+	const e = new Engine({ maxActors: 8, maxSpawnDepth: 3, turnBudget: 5 });
+	e.reserve("a", "user");
+	const r = await e.route("user", "a", "ping");
+	assert.equal(r.ok, true); // kein "unknown actor" mehr
+	const delivered: string[] = [];
+	e.attach("a", {
+		model: "test/m",
+		handle: { deliver: async (t) => void delivered.push(t), abort: async () => {}, isStreaming: () => false },
+	});
+	assert.deepEqual(delivered, ["[message from user]: ping"]); // Puffer geflusht
+	assert.equal(e.get("a")?.pending, false);
+	assert.equal(e.get("a")?.model, "test/m");
+});

@@ -31,6 +31,10 @@ export interface ActorRecord {
 	turns: number;
 	lastActivity: number;
 	streaming: boolean;
+	/** Reservierungs-Zwischenzustand: Name belegt, Session wird noch erstellt. */
+	pending?: boolean;
+	/** Während pending gepufferte Nachrichten (bei attach an die Session geflusht). */
+	buffer?: string[];
 }
 
 export interface Caps {
@@ -109,6 +113,59 @@ export class Engine {
 	addActor(rec: ActorRecord): void {
 		this.actors.set(rec.name, rec);
 		this.emit({ type: "spawn", name: rec.name, by: rec.spawnedBy, ts: Date.now() });
+	}
+
+	// --- Atomare Reservierung (verhindert Spawn/Send-, Duplikat- und Cap-Races) ---
+	// canSpawn (sync) ist von der langsamen Session-Erstellung durch ein await getrennt;
+	// reserve schließt den Namen synchron ein, attach füllt die echte Session nach.
+
+	/** Reserviert einen Actor-Namen synchron. Gepufferte Nachrichten bis attach. */
+	reserve(name: string, spawnerName: string): CheckResult {
+		const spawner = this.actors.get(spawnerName);
+		const depth = spawner ? spawner.depth : 0;
+		const check = this.canSpawn(name, depth);
+		if (!check.ok) return check;
+		const buffer: string[] = [];
+		const record: ActorRecord = {
+			name,
+			model: "(spawning)",
+			handle: {
+				deliver: async (t) => {
+					buffer.push(t);
+				},
+				abort: async () => {},
+				isStreaming: () => false,
+			},
+			spawnedBy: spawnerName,
+			depth: depth + 1,
+			createdAt: Date.now(),
+			turns: 0,
+			lastActivity: Date.now(),
+			streaming: false,
+			pending: true,
+			buffer,
+		};
+		this.actors.set(name, record);
+		this.emit({ type: "spawn", name, by: spawnerName, ts: Date.now() });
+		return { ok: true };
+	}
+
+	/** Schließt eine Reservierung ab: echte Session-Daten setzen + Puffer flushen. */
+	attach(name: string, opts: { model: string; handle: ActorHandle; view?: ActorView }): void {
+		const rec = this.actors.get(name);
+		if (!rec) return;
+		rec.model = opts.model;
+		rec.handle = opts.handle;
+		rec.view = opts.view;
+		rec.pending = false;
+		const buffered = rec.buffer ?? [];
+		rec.buffer = undefined;
+		for (const t of buffered) void opts.handle.deliver(t);
+	}
+
+	/** Reservierung freigeben (Session-Erstellung fehlgeschlagen). */
+	release(name: string): void {
+		this.actors.delete(name);
 	}
 
 	isFrozen(): boolean {
