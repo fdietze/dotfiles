@@ -11,6 +11,8 @@ export interface SessionLike {
 	abort(): Promise<void> | void;
 	readonly isStreaming: boolean;
 	subscribe(listener: (e: { type: string }) => void): () => void;
+	readonly messages: unknown[];
+	getContextUsage(): { tokens: number | null; contextWindow: number; percent: number | null } | undefined;
 }
 
 /** Aufgelöstes Modell: provider/id zur Anzeige + opakes SDK-Modellobjekt für createSession. */
@@ -93,6 +95,11 @@ export function createSpawner(deps: SpawnerDeps): Spawner {
 			turns: 0,
 			lastActivity: Date.now(),
 			streaming: false,
+			view: {
+				getMessages: () => session.messages,
+				getContextUsage: () => session.getContextUsage(),
+				subscribe: (l) => session.subscribe(l),
+			},
 		});
 		subscribeBackground(spec.name, session);
 		return { ok: true, msg: `spawned '${spec.name}' (model ${resolved.provider}/${resolved.id})` };

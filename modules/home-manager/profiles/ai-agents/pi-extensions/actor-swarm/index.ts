@@ -17,10 +17,10 @@ import {
 	type ToolDefinition,
 } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
-import { Key, matchesKey, truncateToWidth } from "@earendil-works/pi-tui";
 import { Engine, type ActorHandle } from "./engine.ts";
 import { formatFeedLines, formatSnapshot, formatStatus } from "./feed.ts";
 import { formatContext, formatRosterRow } from "./panel-logic.ts";
+import { createSwarmPanel } from "./panel.ts";
 import { createSpawner, type ResolvedModel, type SessionLike } from "./swarm.ts";
 
 // Caps — Phase 1: Modul-Konstanten (Settings-Binding ist eine triviale spätere Ergänzung).
@@ -67,6 +67,9 @@ export default function actorSwarm(pi: ExtensionAPI) {
 		setWidget(key: string, content: string[] | undefined, opts?: { placement?: "aboveEditor" | "belowEditor" }): void;
 	};
 	let ui: UI | undefined;
+	// Vordergrund-ctx für getContextUsage der user-Zeile (live gelesen).
+	type CtxRef = { getContextUsage(): { tokens: number | null; contextWindow: number; percent: number | null } | undefined };
+	let foregroundCtx: CtxRef | undefined;
 	type ModelLike = { provider: string; id: string };
 	let cwd = process.cwd();
 	let foregroundModel: ModelLike | undefined; // aktuelles Vordergrund-Modell (für Vererbung an Actors)
@@ -207,6 +210,7 @@ export default function actorSwarm(pi: ExtensionAPI) {
 	pi.on("session_start", (_event, ctx) => {
 		cwd = ctx.cwd;
 		ui = ctx.ui;
+		foregroundCtx = ctx;
 		captureForegroundModel(ctx.model);
 		if (!engine.has("user")) {
 			const userHandle: ActorHandle = {
@@ -226,6 +230,11 @@ export default function actorSwarm(pi: ExtensionAPI) {
 				turns: 0,
 				lastActivity: Date.now(),
 				streaming: false,
+				view: {
+					getMessages: () => [], // user-Transcript = Haupt-Chat (nicht gespiegelt)
+					getContextUsage: () => foregroundCtx?.getContextUsage(),
+					subscribe: () => () => {},
+				},
 			});
 		}
 		updateStatus();
@@ -274,26 +283,13 @@ export default function actorSwarm(pi: ExtensionAPI) {
 		},
 	});
 
-	// SPIKE (Phase-2 Task 1): /swarm öffnet das Panel als Vollbild-Takeover
-	// (kein overlay — der Overlay-Pfad fror die TUI ein). Esc schließt.
-	// Spiegelt das bewährte Muster aus question.ts. Wird in Task 4 ersetzt.
+	// /swarm öffnet das Panel als Vollbild-Takeover (kein Overlay — fror ein).
 	pi.registerCommand("swarm", {
 		description: "Open the swarm panel (Esc to close)",
 		handler: async (_args, ctx) => {
-			await ctx.ui.custom<void>((tui, _theme, _kb, done) => {
-				return {
-					handleInput(data: string) {
-						if (matchesKey(data, Key.escape) || matchesKey(data, Key.ctrl("c"))) done();
-					},
-					render(width: number): string[] {
-						return [
-							truncateToWidth(" swarm panel [open] \u2014 Esc schlie\u00dft ", width),
-							truncateToWidth(" (Roster + Transcript + Chatbox kommen hier hin) ", width),
-						];
-					},
-					invalidate() {},
-				};
-			});
+			await ctx.ui.custom<void>((tui, theme, _kb, done) =>
+				createSwarmPanel({ engine, route: (to, content) => void engine.route("user", to, content) }, tui, theme, done),
+			);
 		},
 	});
 }
