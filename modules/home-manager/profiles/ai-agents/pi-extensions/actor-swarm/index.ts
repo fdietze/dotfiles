@@ -67,9 +67,17 @@ export default function actorSwarm(pi: ExtensionAPI) {
 		setWidget(key: string, content: string[] | undefined, opts?: { placement?: "aboveEditor" | "belowEditor" }): void;
 	};
 	let ui: UI | undefined;
-	// Vordergrund-ctx für getContextUsage der user-Zeile (live gelesen).
-	type CtxRef = { getContextUsage(): { tokens: number | null; contextWindow: number; percent: number | null } | undefined };
-	let foregroundCtx: CtxRef | undefined;
+	// user-Kontext als WERT cachen — nie den ctx selbst halten (der wird nach
+	// Turn/Reload stale; ein gecachter ctx-Aufruf crasht pi mit "stale ctx").
+	type Usage = { tokens: number | null; contextWindow: number; percent: number | null };
+	let userContextUsage: Usage | undefined;
+	const captureUserContext = (c: { getContextUsage(): Usage | undefined }) => {
+		try {
+			userContextUsage = c.getContextUsage();
+		} catch {
+			/* ctx stale -> ignorieren, wird beim nächsten Handler aufgefrischt */
+		}
+	};
 	type ModelLike = { provider: string; id: string };
 	let cwd = process.cwd();
 	let foregroundModel: ModelLike | undefined; // aktuelles Vordergrund-Modell (für Vererbung an Actors)
@@ -85,15 +93,19 @@ export default function actorSwarm(pi: ExtensionAPI) {
 
 	const updateStatus = () => {
 		if (!ui) return;
-		const actors = engine.list();
-		const running = actors.filter((a) => a.streaming).length;
-		const { used, total } = engine.budget;
-		ui.setStatus("swarm", formatStatus(actors.length, running, used, total));
-		// Permanente Roster-Anzeige über dem Editor (plan-mode-Muster, kein Overlay).
-		const rosterLines = actors.map((a) =>
-			formatRosterRow({ name: a.name, context: formatContext(a.view?.getContextUsage()), active: a.streaming }, false, 80),
-		);
-		ui.setWidget("swarm-roster", rosterLines.length ? rosterLines : undefined);
+		try {
+			const actors = engine.list();
+			const running = actors.filter((a) => a.streaming).length;
+			const { used, total } = engine.budget;
+			ui.setStatus("swarm", formatStatus(actors.length, running, used, total));
+			// Permanente Roster-Anzeige über dem Editor (plan-mode-Muster, kein Overlay).
+			const rosterLines = actors.map((a) =>
+				formatRosterRow({ name: a.name, context: formatContext(a.view?.getContextUsage()), active: a.streaming }, false, 80),
+			);
+			ui.setWidget("swarm-roster", rosterLines.length ? rosterLines : undefined);
+		} catch {
+			/* ui aus einem stale ctx -> diesen Tick überspringen, frischt beim nächsten Handler auf */
+		}
 	};
 
 	// Status bei jedem Engine-Event aktualisieren.
@@ -195,12 +207,16 @@ export default function actorSwarm(pi: ExtensionAPI) {
 
 	// Foreground-Streaming-Flag für Statusanzeige + Modell erfassen.
 	pi.on("agent_start", (_event, ctx) => {
+		ui = ctx.ui;
 		captureForegroundModel(ctx.model);
+		captureUserContext(ctx);
 		foregroundStreaming = true;
 		engine.setStreaming("user", true);
 		updateStatus();
 	});
-	pi.on("agent_end", () => {
+	pi.on("agent_end", (_event, ctx) => {
+		ui = ctx.ui;
+		captureUserContext(ctx);
 		foregroundStreaming = false;
 		engine.setStreaming("user", false);
 		updateStatus();
@@ -210,7 +226,7 @@ export default function actorSwarm(pi: ExtensionAPI) {
 	pi.on("session_start", (_event, ctx) => {
 		cwd = ctx.cwd;
 		ui = ctx.ui;
-		foregroundCtx = ctx;
+		captureUserContext(ctx);
 		captureForegroundModel(ctx.model);
 		if (!engine.has("user")) {
 			const userHandle: ActorHandle = {
@@ -232,7 +248,7 @@ export default function actorSwarm(pi: ExtensionAPI) {
 				streaming: false,
 				view: {
 					getMessages: () => [], // user-Transcript = Haupt-Chat (nicht gespiegelt)
-					getContextUsage: () => foregroundCtx?.getContextUsage(),
+					getContextUsage: () => userContextUsage, // gecachter WERT, kein stale ctx
 					subscribe: () => () => {},
 				},
 			});
