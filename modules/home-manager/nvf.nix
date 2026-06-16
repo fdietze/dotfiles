@@ -560,6 +560,11 @@ in {
             settings = {
               ["nil"] = {
                 nix = {
+                  -- Raise the eval heap cap (default 2560 MiB) so cross-input
+                  -- evaluation of home-manager+nixpkgs does not hit the limit
+                  -- and SIGABRT the nix subprocess. Kept finite (not null) to
+                  -- still abort cleanly instead of OOMing the whole machine.
+                  maxMemoryMB = 8192,
                   flake = {
                     autoArchive = true,
                     autoEvalInputs = true,
