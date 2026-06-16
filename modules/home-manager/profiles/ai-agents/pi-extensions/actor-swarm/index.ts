@@ -82,6 +82,8 @@ export default function actorSwarm(pi: ExtensionAPI) {
 	let cwd = process.cwd();
 	let foregroundModel: ModelLike | undefined; // aktuelles Vordergrund-Modell (für Vererbung an Actors)
 	let foregroundStreaming = false;
+	// Solange das /swarm-Panel offen ist, das persistente Roster ausblenden (sonst doppelt).
+	let panelOpen = false;
 
 	// Modell aus jedem Vordergrund-Handler-ctx erfassen (zuverlässiger als model_select allein).
 	const captureForegroundModel = (m: ModelLike | undefined) => {
@@ -102,7 +104,7 @@ export default function actorSwarm(pi: ExtensionAPI) {
 			const rosterLines = actors.map((a) =>
 				formatRosterRow({ name: a.name, context: formatContext(a.view?.getContextUsage()), active: a.streaming }, false, 80),
 			);
-			ui.setWidget("swarm-roster", rosterLines.length ? rosterLines : undefined);
+			ui.setWidget("swarm-roster", panelOpen || rosterLines.length === 0 ? undefined : rosterLines);
 		} catch {
 			/* ui aus einem stale ctx -> diesen Tick überspringen, frischt beim nächsten Handler auf */
 		}
@@ -303,9 +305,17 @@ export default function actorSwarm(pi: ExtensionAPI) {
 	pi.registerCommand("swarm", {
 		description: "Open the swarm panel (Esc to close)",
 		handler: async (_args, ctx) => {
-			await ctx.ui.custom<void>((tui, theme, _kb, done) =>
-				createSwarmPanel({ engine, route: (to, content) => void engine.route("user", to, content) }, tui, theme, done),
-			);
+			ui = ctx.ui;
+			panelOpen = true;
+			updateStatus(); // redundantes persistentes Roster ausblenden
+			try {
+				await ctx.ui.custom<void>((tui, theme, _kb, done) =>
+					createSwarmPanel({ engine, route: (to, content) => void engine.route("user", to, content) }, tui, theme, done),
+				);
+			} finally {
+				panelOpen = false;
+				updateStatus(); // persistentes Roster wieder einblenden
+			}
 		},
 	});
 }
