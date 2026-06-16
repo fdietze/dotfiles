@@ -19,10 +19,13 @@ bestätigte Stand:
   Turn/Reload mit „stale ctx". Lösung: nur **Werte** cachen (z.B. die
   Kontext-Usage der `user`-Zeile), aufgefrischt aus jedem frischen Handler-ctx;
   UI-Aufrufe defensiv (`try/catch`).
-- **Transcript zunächst als schlichter Text** (role + Inhalt) statt der
-  Original-Message-Components: `ToolExecutionComponent` ist zu stark an die
-  InteractiveMode gekoppelt (braucht `ui`/`cwd`/`toolDefinition`); ein Upgrade
-  auf `User-/AssistantMessageComponent` für die Textanteile bleibt optional/additiv.
+- **Transcript nutzt die Original-Renderer** (umgesetzt): `UserMessageComponent`
+  und `AssistantMessageComponent` rendern user/assistant inkl. Markdown-Parität;
+  `toolCall`-Parts als `⚙ name`-Einzeiler, `toolResult` als `⚙ → …`. Jeder
+  Component-Render ist defensiv (`try/catch` → Text-Fallback), damit eine
+  Form-Abweichung die TUI nie einfriert. `ToolExecutionComponent` wird bewusst
+  NICHT wiederverwendet (zu stark an die InteractiveMode gekoppelt:
+  `ui`/`cwd`/`toolDefinition`).
 - Tastenbelegung im Takeover wie geplant: `↑/↓` Actor, Tippen→Chatbox,
   `Enter` sendet via `engine.route("user", gewählt, text)`, `PgUp/PgDn` scrollt,
   `Esc` schließt.

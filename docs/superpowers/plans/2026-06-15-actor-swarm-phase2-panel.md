@@ -5,10 +5,13 @@
 Der Overlay-Pfad fror die TUI ein. Umgesetzt und live bestätigt wurde stattdessen:
 **persistentes Roster via `ctx.ui.setWidget` + Vollbild-Takeover via `ctx.ui.custom`
 OHNE `overlay`, geöffnet per `/swarm`-Command** (kein `Ctrl+Q`). ctx wird nie
-gecacht (nur Werte; sonst „stale ctx"-Crash). Transcript zunächst als schlichter
-Text (Original-Message-Components-Reuse ist optionaler Folgeschritt). Die Spike-
-und Task-Schritte unten beschreiben den ursprünglichen Overlay-Plan; der reale
-Code folgt diesen Revisionen.
+gecacht (nur Werte; sonst „stale ctx"-Crash). Transcript nutzt die Original-Renderer
+(`User-/AssistantMessageComponent`, Markdown-Parität; Tool-Calls als `⚙ name`,
+defensiv mit Text-Fallback). Die Spike- und Task-Schritte unten beschreiben den
+ursprünglichen Overlay-Plan; der reale Code folgt diesen Revisionen.
+
+Kontext-`percent` ist bereits 0–100 (nicht mit 100 multiplizieren — pi's footer.js
+nutzt ihn direkt).
 
 
 > **For agentic workers:** Use superpowers:executing-plans. Pure-logic tasks are TDD with `node:test`. The TUI component cannot be auto-tested from inside the agent sandbox (pi is nono-wrapped; nono-in-nono fails), so component tasks end with a **manual verification** the user runs in their pi session after `nrs` + `/reload`. Steps use checkbox (`- [ ]`) syntax.
