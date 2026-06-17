@@ -1,14 +1,14 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { Engine, type ActorHandle } from "./engine.ts";
+import { Engine, type AgentHandle } from "./engine.ts";
 
-const fakeHandle = (): ActorHandle => ({
+const fakeHandle = (): AgentHandle => ({
 	deliver: async () => {},
 	abort: async () => {},
 	isStreaming: () => false,
 });
 
-const caps = { maxActors: 2, maxSpawnDepth: 2, turnBudget: 5 };
+const caps = { maxAgents: 2, maxSpawnDepth: 2, turnBudget: 5 };
 
 function userRecord() {
 	return {
@@ -24,9 +24,9 @@ function userRecord() {
 	};
 }
 
-test("addActor registers and has/get work, emits spawn event", () => {
+test("addAgent registers and has/get work, emits spawn event", () => {
 	const e = new Engine(caps);
-	e.addActor(userRecord());
+	e.addAgent(userRecord());
 	assert.equal(e.has("user"), true);
 	assert.equal(e.get("user")?.depth, 0);
 	assert.equal(e.list().length, 1);
@@ -35,7 +35,7 @@ test("addActor registers and has/get work, emits spawn event", () => {
 
 test("canSpawn rejects duplicate name", () => {
 	const e = new Engine(caps);
-	e.addActor(userRecord());
+	e.addAgent(userRecord());
 	const r = e.canSpawn("user", 0);
 	assert.equal(r.ok, false);
 	assert.match((r as { reason: string }).reason, /already exists|reserved/);
@@ -48,14 +48,14 @@ test("canSpawn rejects reserved name and invalid name", () => {
 	assert.equal(e.canSpawn("", 0).ok, false);
 });
 
-test("canSpawn enforces maxActors (excluding user)", () => {
-	const e = new Engine(caps); // maxActors = 2
-	e.addActor(userRecord());
-	e.addActor({ ...userRecord(), name: "a", depth: 1 });
-	e.addActor({ ...userRecord(), name: "b", depth: 1 });
+test("canSpawn enforces maxAgents (excluding user)", () => {
+	const e = new Engine(caps); // maxAgents = 2
+	e.addAgent(userRecord());
+	e.addAgent({ ...userRecord(), name: "a", depth: 1 });
+	e.addAgent({ ...userRecord(), name: "b", depth: 1 });
 	const r = e.canSpawn("c", 0);
 	assert.equal(r.ok, false);
-	assert.match((r as { reason: string }).reason, /max actors/i);
+	assert.match((r as { reason: string }).reason, /max agents/i);
 });
 
 test("canSpawn enforces maxSpawnDepth", () => {
@@ -65,17 +65,17 @@ test("canSpawn enforces maxSpawnDepth", () => {
 	assert.match((r as { reason: string }).reason, /depth/i);
 });
 
-test("route delivers prefixed message to existing actor when idle", async () => {
+test("route delivers prefixed message to existing agent when idle", async () => {
 	const e = new Engine(caps);
 	let delivered = "";
-	const handle: ActorHandle = {
+	const handle: AgentHandle = {
 		deliver: async (t) => {
 			delivered = t;
 		},
 		abort: async () => {},
 		isStreaming: () => false,
 	};
-	e.addActor({ ...userRecord(), name: "coder", handle, depth: 1 });
+	e.addAgent({ ...userRecord(), name: "coder", handle, depth: 1 });
 	const r = await e.route("user", "coder", "fix the bug");
 	assert.equal(r.ok, true);
 	assert.equal(delivered, "[message from user]: fix the bug");
@@ -85,27 +85,27 @@ test("route delivers prefixed message to existing actor when idle", async () => 
 
 test("route reports busy status when target is streaming", async () => {
 	const e = new Engine(caps);
-	const handle: ActorHandle = {
+	const handle: AgentHandle = {
 		deliver: async () => {},
 		abort: async () => {},
 		isStreaming: () => true,
 	};
-	e.addActor({ ...userRecord(), name: "busy", handle, depth: 1 });
+	e.addAgent({ ...userRecord(), name: "busy", handle, depth: 1 });
 	const r = await e.route("user", "busy", "hi");
 	assert.equal(r.ok, true);
 	assert.match((r as { status: string }).status, /queued|busy/i);
 });
 
-test("route fails for unknown actor", async () => {
+test("route fails for unknown agent", async () => {
 	const e = new Engine(caps);
 	const r = await e.route("user", "ghost", "hi");
 	assert.equal(r.ok, false);
-	assert.match((r as { reason: string }).reason, /unknown actor/i);
+	assert.match((r as { reason: string }).reason, /unknown agent/i);
 });
 
 test("route is blocked while frozen", async () => {
 	const e = new Engine(caps);
-	e.addActor({ ...userRecord(), name: "coder", depth: 1 });
+	e.addAgent({ ...userRecord(), name: "coder", depth: 1 });
 	e.halt();
 	const r = await e.route("user", "coder", "hi");
 	assert.equal(r.ok, false);
@@ -114,8 +114,8 @@ test("route is blocked while frozen", async () => {
 });
 
 test("recordTurnStart counts turns and aborts when budget exhausted", () => {
-	const e = new Engine({ maxActors: 5, maxSpawnDepth: 5, turnBudget: 2 });
-	e.addActor({ ...userRecord(), name: "a", depth: 1 });
+	const e = new Engine({ maxAgents: 5, maxSpawnDepth: 5, turnBudget: 2 });
+	e.addAgent({ ...userRecord(), name: "a", depth: 1 });
 	assert.equal(e.recordTurnStart("a").abort, false);
 	assert.equal(e.recordTurnStart("a").abort, false);
 	const third = e.recordTurnStart("a");
@@ -127,7 +127,7 @@ test("recordTurnStart counts turns and aborts when budget exhausted", () => {
 
 test("recordTurnStart aborts while frozen", () => {
 	const e = new Engine(caps);
-	e.addActor({ ...userRecord(), name: "a", depth: 1 });
+	e.addAgent({ ...userRecord(), name: "a", depth: 1 });
 	e.halt();
 	const r = e.recordTurnStart("a");
 	assert.equal(r.abort, true);
@@ -135,8 +135,8 @@ test("recordTurnStart aborts while frozen", () => {
 });
 
 test("resume clears frozen and resets budget", () => {
-	const e = new Engine({ maxActors: 5, maxSpawnDepth: 5, turnBudget: 1 });
-	e.addActor({ ...userRecord(), name: "a", depth: 1 });
+	const e = new Engine({ maxAgents: 5, maxSpawnDepth: 5, turnBudget: 1 });
+	e.addAgent({ ...userRecord(), name: "a", depth: 1 });
 	e.recordTurnStart("a"); // uses budget
 	e.halt();
 	e.resume();
@@ -148,14 +148,14 @@ test("resume clears frozen and resets budget", () => {
 
 test("setStreaming updates record flag", () => {
 	const e = new Engine(caps);
-	e.addActor({ ...userRecord(), name: "a", depth: 1 });
+	e.addAgent({ ...userRecord(), name: "a", depth: 1 });
 	e.setStreaming("a", true);
 	assert.equal(e.get("a")?.streaming, true);
 	e.setStreaming("a", false);
 	assert.equal(e.get("a")?.streaming, false);
 });
 
-test("addActor preserves optional view", () => {
+test("addAgent preserves optional view", () => {
 	const e = new Engine(caps);
 	const msgs: unknown[] = [{ role: "user", content: "hi" }];
 	const view = {
@@ -163,29 +163,29 @@ test("addActor preserves optional view", () => {
 		getContextUsage: () => ({ tokens: 100, contextWindow: 200000, percent: 0.05 }),
 		subscribe: () => () => {},
 	};
-	e.addActor({ ...userRecord(), name: "a", depth: 1, view });
+	e.addAgent({ ...userRecord(), name: "a", depth: 1, view });
 	assert.equal(e.get("a")?.view?.getMessages().length, 1);
 	assert.equal(e.get("a")?.view?.getContextUsage()?.contextWindow, 200000);
 });
 
 test("reserve blocks duplicate, counts toward cap; release frees a slot", () => {
-	const e = new Engine({ maxActors: 2, maxSpawnDepth: 3, turnBudget: 5 });
+	const e = new Engine({ maxAgents: 2, maxSpawnDepth: 3, turnBudget: 5 });
 	assert.equal(e.reserve("a", "user").ok, true);
 	assert.equal(e.reserve("a", "user").ok, false); // duplicate (R2)
 	assert.equal(e.reserve("b", "user").ok, true);
 	const capped = e.reserve("c", "user"); // a+b = max (R3)
 	assert.equal(capped.ok, false);
-	assert.match((capped as { reason: string }).reason, /max actors/);
+	assert.match((capped as { reason: string }).reason, /max agents/);
 	e.release("a");
 	assert.equal(e.has("a"), false);
 	assert.equal(e.reserve("c", "user").ok, true);
 });
 
-test("route to a pending actor buffers; attach flushes to the real handle (R1)", async () => {
-	const e = new Engine({ maxActors: 8, maxSpawnDepth: 3, turnBudget: 5 });
+test("route to a pending agent buffers; attach flushes to the real handle (R1)", async () => {
+	const e = new Engine({ maxAgents: 8, maxSpawnDepth: 3, turnBudget: 5 });
 	e.reserve("a", "user");
 	const r = await e.route("user", "a", "ping");
-	assert.equal(r.ok, true); // kein "unknown actor" mehr
+	assert.equal(r.ok, true); // kein "unknown agent" mehr
 	const delivered: string[] = [];
 	e.attach("a", {
 		model: "test/m",
@@ -196,12 +196,12 @@ test("route to a pending actor buffers; attach flushes to the real handle (R1)",
 	assert.equal(e.get("a")?.model, "test/m");
 });
 
-test("kill aborts the actor, runs dispose, removes it, and emits a kill event", () => {
+test("kill aborts the agent, runs dispose, removes it, and emits a kill event", () => {
 	const e = new Engine(caps);
-	e.addActor(userRecord());
+	e.addAgent(userRecord());
 	let aborted = 0;
 	let disposed = 0;
-	const handle: ActorHandle = { deliver: async () => {}, abort: async () => void aborted++, isStreaming: () => false };
+	const handle: AgentHandle = { deliver: async () => {}, abort: async () => void aborted++, isStreaming: () => false };
 	e.reserve("a", "user");
 	e.attach("a", { model: "test/m", handle, dispose: () => void disposed++ });
 	const r = e.kill("a");
@@ -212,9 +212,9 @@ test("kill aborts the actor, runs dispose, removes it, and emits a kill event", 
 	assert.equal(e.events.at(-1)?.type, "kill");
 });
 
-test("kill refuses 'user' and unknown actors", () => {
+test("kill refuses 'user' and unknown agents", () => {
 	const e = new Engine(caps);
-	e.addActor(userRecord());
+	e.addAgent(userRecord());
 	const u = e.kill("user");
 	assert.equal(u.ok, false);
 	assert.match((u as { reason: string }).reason, /user/);
@@ -224,11 +224,11 @@ test("kill refuses 'user' and unknown actors", () => {
 	assert.equal(e.has("user"), true);
 });
 
-test("killAll removes every actor except 'user' and returns their names", () => {
-	const e = new Engine({ maxActors: 5, maxSpawnDepth: 2, turnBudget: 5 });
-	e.addActor(userRecord());
-	e.addActor({ ...userRecord(), name: "a", depth: 1 });
-	e.addActor({ ...userRecord(), name: "b", depth: 1 });
+test("killAll removes every agent except 'user' and returns their names", () => {
+	const e = new Engine({ maxAgents: 5, maxSpawnDepth: 2, turnBudget: 5 });
+	e.addAgent(userRecord());
+	e.addAgent({ ...userRecord(), name: "a", depth: 1 });
+	e.addAgent({ ...userRecord(), name: "b", depth: 1 });
 	const killed = e.killAll();
 	assert.deepEqual(killed.sort(), ["a", "b"]);
 	assert.equal(e.has("user"), true);

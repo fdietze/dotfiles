@@ -41,7 +41,7 @@ test("clampScroll keeps offset within [0, max]", () => {
 	assert.equal(clampScroll(5, 8, 10), 0); // content shorter than viewport
 });
 
-test("chatboxToRoute maps selected actor + text, rejects empty", () => {
+test("chatboxToRoute maps selected agent + text, rejects empty", () => {
 	assert.deepEqual(chatboxToRoute("echo", "ping"), { to: "echo", content: "ping" });
 	assert.equal(chatboxToRoute("echo", "   "), null);
 	assert.equal(chatboxToRoute(undefined, "ping"), null);

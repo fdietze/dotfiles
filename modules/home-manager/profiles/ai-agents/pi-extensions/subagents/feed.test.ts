@@ -8,9 +8,9 @@ import {
 	formatMulticastResult,
 	formatKillResult,
 } from "./feed.ts";
-import type { ActorRecord, SwarmEvent } from "./engine.ts";
+import type { AgentRecord, AgentEvent } from "./engine.ts";
 
-const rec = (over: Partial<ActorRecord>): ActorRecord => ({
+const rec = (over: Partial<AgentRecord>): AgentRecord => ({
 	name: "a",
 	model: "anthropic/x",
 	handle: { deliver: async () => {}, abort: async () => {}, isStreaming: () => false },
@@ -25,17 +25,17 @@ const rec = (over: Partial<ActorRecord>): ActorRecord => ({
 
 test("formatStatus summarises counts and budget", () => {
 	const s = formatStatus(3, 1, 7, 100);
-	assert.match(s, /3 actors/);
+	assert.match(s, /3 agents/);
 	assert.match(s, /1 running/);
 	assert.match(s, /7\/100/);
 });
 
-test("formatSnapshot lists each actor with status and turns", () => {
-	const actors = [
+test("formatSnapshot lists each agent with status and turns", () => {
+	const agents = [
 		rec({ name: "user", depth: 0, model: "anthropic/opus" }),
 		rec({ name: "coder", streaming: true, turns: 4 }),
 	];
-	const out = formatSnapshot(actors, 4, 100);
+	const out = formatSnapshot(agents, 4, 100);
 	assert.match(out, /user/);
 	assert.match(out, /coder/);
 	assert.match(out, /running/);
@@ -44,7 +44,7 @@ test("formatSnapshot lists each actor with status and turns", () => {
 });
 
 test("formatFeedLines renders one line per event newest-aware", () => {
-	const events: SwarmEvent[] = [
+	const events: AgentEvent[] = [
 		{ type: "spawn", name: "coder", by: "user", ts: 0 },
 		{ type: "route", from: "user", to: "coder", preview: "do x", ts: 0 },
 		{ type: "halt", ts: 0 },
@@ -67,9 +67,9 @@ test("formatMulticastResult: delivered + failed split", () => {
 	assert.match(
 		formatMulticastResult([
 			{ target: "a", ok: true },
-			{ target: "x", ok: false, reason: "unknown actor 'x'" },
+			{ target: "x", ok: false, reason: "unknown agent 'x'" },
 		]),
-		/sent to a · failed: x: unknown actor 'x'/,
+		/sent to a · failed: x: unknown agent 'x'/,
 	);
 	assert.equal(formatMulticastResult([]), "error: no targets");
 });

@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { Engine } from "./engine.ts";
-import { createSpawner, type SessionLike } from "./swarm.ts";
+import { createSpawner, type SessionLike } from "./spawner.ts";
 
 class FakeSession implements SessionLike {
 	delivered: string[] = [];
@@ -28,7 +28,7 @@ class FakeSession implements SessionLike {
 }
 
 function withUser(engine: Engine, inbox: string[]) {
-	engine.addActor({
+	engine.addAgent({
 		name: "user",
 		model: "test/m",
 		handle: { deliver: async (t) => void inbox.push(t), abort: async () => {}, isStreaming: () => false },
@@ -42,7 +42,7 @@ function withUser(engine: Engine, inbox: string[]) {
 }
 
 test("smoke: spawn -> deliver -> reply -> budget abort -> halt", async () => {
-	const engine = new Engine({ maxActors: 8, maxSpawnDepth: 3, turnBudget: 2 });
+	const engine = new Engine({ maxAgents: 8, maxSpawnDepth: 3, turnBudget: 2 });
 	const userInbox: string[] = [];
 	withUser(engine, userInbox);
 
@@ -58,7 +58,7 @@ test("smoke: spawn -> deliver -> reply -> budget abort -> halt", async () => {
 	});
 
 	// spawn echo
-	const r = await spawner.spawnActor({ name: "echo", systemPrompt: "reply to sender" }, "user");
+	const r = await spawner.spawnAgent({ name: "echo", systemPrompt: "reply to sender" }, "user");
 	assert.equal(r.ok, true);
 	assert.equal(engine.has("echo"), true);
 	assert.equal(engine.get("echo")?.depth, 1);
@@ -92,20 +92,20 @@ test("smoke: spawn -> deliver -> reply -> budget abort -> halt", async () => {
 });
 
 test("spawn rejects unknown model", async () => {
-	const engine = new Engine({ maxActors: 8, maxSpawnDepth: 3, turnBudget: 5 });
+	const engine = new Engine({ maxAgents: 8, maxSpawnDepth: 3, turnBudget: 5 });
 	const spawner = createSpawner({
 		engine,
 		resolveModel: (ref) => (ref ? { provider: "t", id: "m", model: {} } : undefined),
 		createSession: async () => new FakeSession(),
 	});
 	// spawner 'ghost' not registered -> depth 0, no inherited model, no ref -> unknown model
-	const r = await spawner.spawnActor({ name: "x", systemPrompt: "r" }, "ghost");
+	const r = await spawner.spawnAgent({ name: "x", systemPrompt: "r" }, "ghost");
 	assert.equal(r.ok, false);
 	assert.match(r.msg, /unknown model/i);
 });
 
 test("spawn rejects duplicate name", async () => {
-	const engine = new Engine({ maxActors: 8, maxSpawnDepth: 3, turnBudget: 5 });
+	const engine = new Engine({ maxAgents: 8, maxSpawnDepth: 3, turnBudget: 5 });
 	const userInbox: string[] = [];
 	withUser(engine, userInbox);
 	const spawner = createSpawner({
@@ -113,14 +113,14 @@ test("spawn rejects duplicate name", async () => {
 		resolveModel: () => ({ provider: "t", id: "m", model: {} }),
 		createSession: async () => new FakeSession(),
 	});
-	assert.equal((await spawner.spawnActor({ name: "dup", systemPrompt: "r" }, "user")).ok, true);
-	const second = await spawner.spawnActor({ name: "dup", systemPrompt: "r" }, "user");
+	assert.equal((await spawner.spawnAgent({ name: "dup", systemPrompt: "r" }, "user")).ok, true);
+	const second = await spawner.spawnAgent({ name: "dup", systemPrompt: "r" }, "user");
 	assert.equal(second.ok, false);
 	assert.match(second.msg, /already exists/i);
 });
 
 test("spawn enforces max depth via spawner depth", async () => {
-	const engine = new Engine({ maxActors: 8, maxSpawnDepth: 2, turnBudget: 5 });
+	const engine = new Engine({ maxAgents: 8, maxSpawnDepth: 2, turnBudget: 5 });
 	const userInbox: string[] = [];
 	withUser(engine, userInbox);
 	const spawner = createSpawner({
@@ -129,9 +129,9 @@ test("spawn enforces max depth via spawner depth", async () => {
 		createSession: async () => new FakeSession(),
 	});
 	// user(0) -> a(1) -> b(2) ok; b spawning would be depth 3 > 2
-	await spawner.spawnActor({ name: "a", systemPrompt: "r" }, "user");
-	await spawner.spawnActor({ name: "b", systemPrompt: "r" }, "a");
-	const tooDeep = await spawner.spawnActor({ name: "c", systemPrompt: "r" }, "b");
+	await spawner.spawnAgent({ name: "a", systemPrompt: "r" }, "user");
+	await spawner.spawnAgent({ name: "b", systemPrompt: "r" }, "a");
+	const tooDeep = await spawner.spawnAgent({ name: "c", systemPrompt: "r" }, "b");
 	assert.equal(tooDeep.ok, false);
 	assert.match(tooDeep.msg, /depth/i);
 });

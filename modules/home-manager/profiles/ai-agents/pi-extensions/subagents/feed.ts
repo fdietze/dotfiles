@@ -1,23 +1,23 @@
 /**
- * Reine Formatierung für die read-only Beobachtbarkeit des Swarms.
+ * Reine Formatierung für die read-only Beobachtbarkeit der Agents.
  * Keine pi-/TUI-Abhängigkeit; die Strings werden in index.ts in UI gerendert.
  */
-import type { ActorRecord, SwarmEvent } from "./engine.ts";
+import type { AgentRecord, AgentEvent } from "./engine.ts";
 
-export function formatStatus(actorCount: number, runningCount: number, turnsUsed: number, turnBudget: number): string {
-	return `swarm: ${actorCount} actors · ${runningCount} running · budget ${turnsUsed}/${turnBudget}`;
+export function formatStatus(agentCount: number, runningCount: number, turnsUsed: number, turnBudget: number): string {
+	return `${agentCount} agents · ${runningCount} running · budget ${turnsUsed}/${turnBudget}`;
 }
 
-export function formatSnapshot(actors: ActorRecord[], turnsUsed: number, turnBudget: number): string {
-	if (actors.length === 0) return "no actors";
-	const rows = actors.map((a) => {
+export function formatSnapshot(agents: AgentRecord[], turnsUsed: number, turnBudget: number): string {
+	if (agents.length === 0) return "no agents";
+	const rows = agents.map((a) => {
 		const status = a.streaming ? "running" : "idle";
 		return `  ${a.name.padEnd(14)} ${status.padEnd(8)} turns:${a.turns}  ${a.model}  (by ${a.spawnedBy}, depth ${a.depth})`;
 	});
-	return [`actors (budget ${turnsUsed}/${turnBudget}):`, ...rows].join("\n");
+	return [`agents (budget ${turnsUsed}/${turnBudget}):`, ...rows].join("\n");
 }
 
-export function formatFeedLines(events: SwarmEvent[]): string[] {
+export function formatFeedLines(events: AgentEvent[]): string[] {
 	return events.map((e) => {
 		switch (e.type) {
 			case "spawn":

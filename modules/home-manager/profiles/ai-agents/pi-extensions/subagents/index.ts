@@ -1,7 +1,7 @@
 /**
- * Actor-Swarm pi-Extension — Vordergrund-Entry.
+ * Subagents pi-Extension — Vordergrund-Entry.
  * Hält die Engine als globalThis-Singleton (überlebt /reload), registriert Tools
- * + Commands für den 'user'-Actor und erzeugt Hintergrund-Actors via SDK.
+ * + Commands für den 'user'-Agent und erzeugt Hintergrund-Agents via SDK.
  * Design: docs/superpowers/specs/2026-06-15-actor-swarm-pi-extension-design.md
  */
 import * as fs from "node:fs";
@@ -18,16 +18,16 @@ import {
 } from "@earendil-works/pi-coding-agent";
 import { Text } from "@earendil-works/pi-tui";
 import { Type } from "typebox";
-import { Engine, type ActorHandle } from "./engine.ts";
+import { Engine, type AgentHandle } from "./engine.ts";
 import { formatFeedLines, formatKillResult, formatMulticastResult, formatSnapshot, normalizeTargets } from "./feed.ts";
 import { formatContext, formatRosterRow } from "./panel-logic.ts";
-import { createSwarmPanel } from "./panel.ts";
-import { createSpawner, type ResolvedModel, type SessionLike } from "./swarm.ts";
+import { createSubagentsPanel } from "./panel.ts";
+import { createSpawner, type ResolvedModel, type SessionLike } from "./spawner.ts";
 
 // Caps — Phase 1: Modul-Konstanten (Settings-Binding ist eine triviale spätere Ergänzung).
-const CAPS = { maxActors: 8, maxSpawnDepth: 3, turnBudget: 100 };
+const CAPS = { maxAgents: 8, maxSpawnDepth: 3, turnBudget: 100 };
 
-const ENGINE_KEY = "__actorSwarmEngine_v1";
+const ENGINE_KEY = "__subagentsEngine_v1";
 
 function getEngine(): Engine {
 	const g = globalThis as Record<string, unknown>;
@@ -35,13 +35,13 @@ function getEngine(): Engine {
 	return g[ENGINE_KEY] as Engine;
 }
 
-// Zustellung an den 'user'-Actor läuft über diese globalThis-Indirection, NICHT über ein
+// Zustellung an den 'user'-Agent läuft über diese globalThis-Indirection, NICHT über ein
 // gecapturetes `pi`. Der Engine-Singleton überlebt /reload und Session-Replacement, ein
 // gecapturetes `pi` wird dabei aber dauerhaft stale (pi loader: state.staleMessage ??= ...,
 // wird nie zurückgesetzt). Jede frisch geladene Instanz überschreibt den Sink mit ihrem
 // eigenen lebenden pi.sendUserMessage, sodass der gespeicherte user-Handle nie ein totes
 // pi aufruft.
-const USER_SINK_KEY = "__actorSwarmUserSink_v1";
+const USER_SINK_KEY = "__subagentsUserSink_v1";
 type UserSink = (text: string) => void;
 function setUserSink(sink: UserSink): void {
 	(globalThis as Record<string, unknown>)[USER_SINK_KEY] = sink;
@@ -52,9 +52,9 @@ function deliverToUser(text: string): void {
 	sink(text);
 }
 
-function actorSystemPrompt(name: string, systemPrompt: string): string {
+function agentSystemPrompt(name: string, systemPrompt: string): string {
 	return [
-		`You are agent "${name}" in a multi-agent swarm.`,
+		`You are agent "${name}" in a multi-agent system.`,
 		"You can talk to other agents with these tools:",
 		"- spawn_agent({name, systemPrompt, model?, tools?, message?}): create a new agent (message = optional first task).",
 		"- send_message({to, content}): to is an agent name OR a list of names; fire-and-forget (e.g. 'user').",
@@ -85,7 +85,7 @@ function renderToolArgs(toolName: string, args: Record<string, unknown>, theme: 
 	return new Text(lines.join("\n"), 0, 0);
 }
 
-export default function actorSwarm(pi: ExtensionAPI) {
+export default function subagents(pi: ExtensionAPI) {
 	const engine = getEngine();
 
 	// Diese (frisch geladene) Instanz besitzt ab jetzt die user-Zustellung mit ihrem
@@ -97,7 +97,7 @@ export default function actorSwarm(pi: ExtensionAPI) {
 	const modelRegistry = ModelRegistry.create(authStorage);
 
 	// Leeres agentDir, damit Hintergrund-Sessions NICHT erneut Extensions/Skills laden.
-	const blankAgentDir = fs.mkdtempSync(path.join(os.tmpdir(), "actor-swarm-"));
+	const blankAgentDir = fs.mkdtempSync(path.join(os.tmpdir(), "subagents-"));
 
 	// UI ist nur über ctx.ui (ExtensionUIContext) verfügbar, nicht auf `pi`.
 	// Wir cachen die Referenz aus session_start, um den Footer auch aus
@@ -121,9 +121,9 @@ export default function actorSwarm(pi: ExtensionAPI) {
 	};
 	type ModelLike = { provider: string; id: string };
 	let cwd = process.cwd();
-	let foregroundModel: ModelLike | undefined; // aktuelles Vordergrund-Modell (für Vererbung an Actors)
+	let foregroundModel: ModelLike | undefined; // aktuelles Vordergrund-Modell (für Vererbung an Agents)
 	let foregroundStreaming = false;
-	// Solange das /swarm-Panel offen ist, das persistente Roster ausblenden (sonst doppelt).
+	// Solange das /agents-Panel offen ist, das persistente Roster ausblenden (sonst doppelt).
 	let panelOpen = false;
 
 	// Modell aus jedem Vordergrund-Handler-ctx erfassen (zuverlässiger als model_select allein).
@@ -137,13 +137,13 @@ export default function actorSwarm(pi: ExtensionAPI) {
 	const updateStatus = () => {
 		if (!ui) return;
 		try {
-			const actors = engine.list();
-			// Footer-Status entfällt — Anzahl/running/budget stehen im /swarm-Panel-Header.
+			const agents = engine.list();
+			// Footer-Status entfällt — Anzahl/running/budget stehen im /agents-Panel-Header.
 			// Permanente Roster-Anzeige über dem Editor (plan-mode-Muster, kein Overlay).
-			// Nur zeigen, wenn mindestens ein Hintergrund-Actor existiert (nur 'user' allein
-			// ist redundant) und das /swarm-Panel nicht ohnehin offen ist.
-			// Nur Hintergrund-Actors anzeigen ('user' = der Chat selbst, redundant).
-			const background = actors.filter((a) => a.name !== "user");
+			// Nur zeigen, wenn mindestens ein Hintergrund-Agent existiert (nur 'user' allein
+			// ist redundant) und das /agents-Panel nicht ohnehin offen ist.
+			// Nur Hintergrund-Agents anzeigen ('user' = der Chat selbst, redundant).
+			const background = agents.filter((a) => a.name !== "user");
 			const theme = ui.theme;
 			const styler = (label: string, active: boolean) =>
 				active ? theme.bg("toolSuccessBg", label) : theme.fg("dim", label);
@@ -159,7 +159,7 @@ export default function actorSwarm(pi: ExtensionAPI) {
 				? theme.bg("toolPendingBg", " ⏸ agents HALTED — /unhalt to resume ".padEnd(80))
 				: theme.bg("selectedBg", " ▶ running ");
 			ui.setWidget(
-				"swarm-roster",
+				"agents-roster",
 				panelOpen || background.length === 0 ? undefined : [...rosterLines, haltLine],
 			);
 		} catch {
@@ -184,9 +184,9 @@ export default function actorSwarm(pi: ExtensionAPI) {
 		return undefined;
 	};
 
-	// Tools für einen bestimmten Actor (Name fest gebunden) — für Vordergrund 'user'
-	// via pi.registerTool und für Hintergrund-Actors via customTools verwendet.
-	const makeActorTools = (selfName: string): ToolDefinition[] => [
+	// Tools für einen bestimmten Agent (Name fest gebunden) — für Vordergrund 'user'
+	// via pi.registerTool und für Hintergrund-Agents via customTools verwendet.
+	const makeAgentTools = (selfName: string): ToolDefinition[] => [
 		{
 			name: "spawn_agent",
 			label: "Spawn Agent",
@@ -195,15 +195,15 @@ export default function actorSwarm(pi: ExtensionAPI) {
 				"Create a new agent with a system prompt; optionally deliver a first message. It can then be messaged by name.",
 			parameters: Type.Object({
 				name: Type.String({ description: "Unique agent name ([a-zA-Z0-9_-])" }),
-				systemPrompt: Type.String({ description: "System prompt defining the actor's behavior" }),
+				systemPrompt: Type.String({ description: "System prompt defining the agent's behavior" }),
 				model: Type.Optional(Type.String({ description: "provider/id; default: inherited" })),
 				tools: Type.Optional(Type.Array(Type.String(), { description: "Built-in tool allowlist" })),
 				message: Type.Optional(
-					Type.String({ description: "Optional first message delivered to the new actor right after spawn" }),
+					Type.String({ description: "Optional first message delivered to the new agent right after spawn" }),
 				),
 			}),
 			execute: async (_id, args) => {
-				const res = await spawnActor(args, selfName);
+				const res = await spawnAgent(args, selfName);
 				return { content: [{ type: "text", text: res.msg }], details: {} };
 			},
 		},
@@ -260,7 +260,7 @@ export default function actorSwarm(pi: ExtensionAPI) {
 		},
 	];
 
-	// SDK-Adapter: erzeugt eine isolierte Hintergrund-Actor-Session.
+	// SDK-Adapter: erzeugt eine isolierte Hintergrund-Agent-Session.
 	const createSession = async (spec: {
 		name: string;
 		systemPrompt: string;
@@ -270,7 +270,7 @@ export default function actorSwarm(pi: ExtensionAPI) {
 		const loader = new DefaultResourceLoader({
 			cwd,
 			agentDir: blankAgentDir,
-			systemPromptOverride: () => actorSystemPrompt(spec.name, spec.systemPrompt),
+			systemPromptOverride: () => agentSystemPrompt(spec.name, spec.systemPrompt),
 		});
 		await loader.reload();
 
@@ -283,7 +283,7 @@ export default function actorSwarm(pi: ExtensionAPI) {
 			model: spec.model as Parameters<typeof createAgentSession>[0]["model"],
 			authStorage,
 			modelRegistry,
-			customTools: makeActorTools(spec.name),
+			customTools: makeAgentTools(spec.name),
 			...(toolAllowlist ? { tools: toolAllowlist } : {}),
 			resourceLoader: loader,
 			sessionManager: SessionManager.inMemory(cwd),
@@ -291,9 +291,9 @@ export default function actorSwarm(pi: ExtensionAPI) {
 		return session;
 	};
 
-	const { spawnActor } = createSpawner({ engine, resolveModel, createSession, onActivity: updateStatus });
+	const { spawnAgent } = createSpawner({ engine, resolveModel, createSession, onActivity: updateStatus });
 
-	// Foreground-Modell erfassen (für Vererbung an gespawnte Actors).
+	// Foreground-Modell erfassen (für Vererbung an gespawnte Agents).
 	pi.on("model_select", (event) => {
 		captureForegroundModel(event.model);
 	});
@@ -315,15 +315,15 @@ export default function actorSwarm(pi: ExtensionAPI) {
 		updateStatus();
 	});
 
-	// 'user'-Actor registrieren (Vordergrund). Zustellung an user via pi.sendUserMessage.
+	// 'user'-Agent registrieren (Vordergrund). Zustellung an user via pi.sendUserMessage.
 	pi.on("session_start", (_event, ctx) => {
 		cwd = ctx.cwd;
 		ui = ctx.ui;
-		ctx.ui.setStatus("swarm", undefined); // Footer-Status wird nicht mehr genutzt (Infos im Panel)
+		ctx.ui.setStatus("agents", undefined); // Footer-Status wird nicht mehr genutzt (Infos im Panel)
 		captureUserContext(ctx);
 		captureForegroundModel(ctx.model);
 		if (!engine.has("user")) {
-			const userHandle: ActorHandle = {
+			const userHandle: AgentHandle = {
 				// über die globalThis-Indirection, damit der Singleton-Handle nie ein stale pi nutzt.
 				deliver: async (text) => {
 					deliverToUser(text);
@@ -331,7 +331,7 @@ export default function actorSwarm(pi: ExtensionAPI) {
 				abort: async () => {}, // den Menschen-Turn nicht abbrechen
 				isStreaming: () => foregroundStreaming,
 			};
-			engine.addActor({
+			engine.addAgent({
 				name: "user",
 				model: foregroundModel ? `${foregroundModel.provider}/${foregroundModel.id}` : "(foreground)",
 				handle: userHandle,
@@ -352,12 +352,12 @@ export default function actorSwarm(pi: ExtensionAPI) {
 	});
 
 	// Vordergrund-Tools für 'user' registrieren.
-	for (const tool of makeActorTools("user")) {
+	for (const tool of makeAgentTools("user")) {
 		pi.registerTool(tool);
 	}
 
 	pi.registerCommand("halt", {
-		description: "Freeze the whole agent swarm (stop new turns, abort running background agents).",
+		description: "Freeze all agents (stop new turns, abort running background agents).",
 		handler: async (_args, ctx) => {
 			engine.halt();
 			for (const a of engine.list()) {
@@ -404,7 +404,7 @@ export default function actorSwarm(pi: ExtensionAPI) {
 			updateStatus(); // redundantes persistentes Roster ausblenden
 			try {
 				await ctx.ui.custom<void>((tui, theme, _kb, done) =>
-					createSwarmPanel({ engine, cwd, route: (to, content) => void engine.route("user", to, content) }, tui, theme, done),
+					createSubagentsPanel({ engine, cwd, route: (to, content) => void engine.route("user", to, content) }, tui, theme, done),
 				);
 			} finally {
 				panelOpen = false;

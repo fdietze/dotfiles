@@ -1,6 +1,6 @@
 /**
- * SwarmPanel — Vollbild-Takeover (kein Overlay; Overlays froren die TUI ein).
- * Muster gespiegelt von question.ts: Factory liefert { render, handleInput, invalidate },
+ * SubagentsPanel — Vollbild-Takeover (kein Overlay; Overlays froren die TUI ein).
+ * Muster gespiegelt von question.ts: Fagenty liefert { render, handleInput, invalidate },
  * Editor via new Editor(tui, theme), Refresh über tui.requestRender().
  * Transcript reuses the real chat components (User/Assistant/ToolExecution) for parity
  * with the main chat; the agent's system prompt is shown at the top. Defensive try/catch
@@ -54,7 +54,7 @@ function renderComponentLines(make: () => { render(w: number): string[] }, width
 	}
 }
 
-export function createSwarmPanel(deps: PanelDeps, tui: TuiLike, theme: ThemeLike, done: () => void) {
+export function createSubagentsPanel(deps: PanelDeps, tui: TuiLike, theme: ThemeLike, done: () => void) {
 	let selectedIndex = 0;
 	let scrollOffset = 0;
 	let followBottom = true; // standardmäßig neueste Zeilen zeigen
@@ -76,15 +76,15 @@ export function createSwarmPanel(deps: PanelDeps, tui: TuiLike, theme: ThemeLike
 	const editor = new Editor(tui as never, editorTheme);
 
 	// 'user' wird im Panel nicht gelistet (= der Haupt-Chat, in dem man ohnehin ist).
-	const actors = () => deps.engine.list().filter((a) => a.name !== "user");
+	const agents = () => deps.engine.list().filter((a) => a.name !== "user");
 	const refresh = () => tui.requestRender();
-	const selectedName = () => actors()[selectedIndex]?.name;
+	const selectedName = () => agents()[selectedIndex]?.name;
 
-	// Auf die View des gewählten Actors abonnieren, damit Streaming live nachzieht.
+	// Auf die View des gewählten Agents abonnieren, damit Streaming live nachzieht.
 	const rebindView = () => {
 		unsubView?.();
 		unsubView = undefined;
-		const rec = actors()[selectedIndex];
+		const rec = agents()[selectedIndex];
 		if (rec?.view) unsubView = rec.view.subscribe(() => refresh());
 	};
 	rebindView();
@@ -122,7 +122,7 @@ export function createSwarmPanel(deps: PanelDeps, tui: TuiLike, theme: ThemeLike
 		);
 
 	const transcriptLines = (width: number): string[] => {
-		const rec = actors()[selectedIndex];
+		const rec = agents()[selectedIndex];
 		if (!rec) return [theme.fg("muted", "  (keine Agents — mit spawn_agent erzeugen)")];
 		const msgs = (rec.view?.getMessages() ?? []) as RawMessage[];
 		const lines: string[] = [];
@@ -176,14 +176,14 @@ export function createSwarmPanel(deps: PanelDeps, tui: TuiLike, theme: ThemeLike
 				return;
 			}
 			if (matchesKey(data, Key.up)) {
-				selectedIndex = moveSelection(selectedIndex, -1, actors().length);
+				selectedIndex = moveSelection(selectedIndex, -1, agents().length);
 				followBottom = true;
 				rebindView();
 				refresh();
 				return;
 			}
 			if (matchesKey(data, Key.down)) {
-				selectedIndex = moveSelection(selectedIndex, 1, actors().length);
+				selectedIndex = moveSelection(selectedIndex, 1, agents().length);
 				followBottom = true;
 				rebindView();
 				refresh();
@@ -209,10 +209,10 @@ export function createSwarmPanel(deps: PanelDeps, tui: TuiLike, theme: ThemeLike
 			const lines: string[] = [];
 			const running = deps.engine.list().filter((a) => a.streaming).length;
 			const { used, total } = deps.engine.budget;
-			const header = `─ agents · ${actors().length} agents · ${running} running · budget ${used}/${total} `;
+			const header = `─ agents · ${agents().length} agents · ${running} running · budget ${used}/${total} `;
 			lines.push(theme.fg("accent", truncateToWidth(header.padEnd(width, "─"), width)));
 			const styler = styleStatus(theme);
-			actors().forEach((a, i) => {
+			agents().forEach((a, i) => {
 				lines.push(
 					formatRosterRow(
 						{ name: a.name, context: formatContext(a.view?.getContextUsage()), active: a.streaming },

@@ -1,11 +1,11 @@
 /**
- * Orchestrierung des Actor-Swarms — SDK-frei, damit headless testbar.
+ * Orchestrierung der Subagents — SDK-frei, damit headless testbar.
  * index.ts injiziert die echten pi/SDK-Adapter (createSession, resolveModel, ...).
  * Design: docs/superpowers/specs/2026-06-15-actor-swarm-pi-extension-design.md
  */
-import type { ActorHandle, Engine } from "./engine.ts";
+import type { AgentHandle, Engine } from "./engine.ts";
 
-/** Minimaler Ausschnitt einer AgentSession, den der Swarm braucht. */
+/** Minimaler Ausschnitt einer AgentSession, den die Orchestrierung braucht. */
 export interface SessionLike {
 	sendUserMessage(text: string, options?: { deliverAs?: "steer" | "followUp" }): Promise<void> | void;
 	abort(): Promise<void> | void;
@@ -27,7 +27,7 @@ export interface SpawnSpec {
 	systemPrompt: string;
 	model?: string;
 	tools?: string[];
-	/** Optionale Startnachricht: nach dem Spawn atomar an den neuen Actor zugestellt. */
+	/** Optionale Startnachricht: nach dem Spawn atomar an den neuen Agent zugestellt. */
 	message?: string;
 }
 
@@ -35,14 +35,14 @@ export interface SpawnerDeps {
 	engine: Engine;
 	/** "provider/id" oder undefined (=> erben) auflösen; undefined wenn unbekannt. */
 	resolveModel: (ref: string | undefined) => ResolvedModel | undefined;
-	/** Eine isolierte Hintergrund-Actor-Session erzeugen (SDK-Adapter in index.ts). */
+	/** Eine isolierte Hintergrund-Agent-Session erzeugen (SDK-Adapter in index.ts). */
 	createSession: (spec: { name: string; systemPrompt: string; model: unknown; tools?: string[] }) => Promise<SessionLike>;
 	/** Nach jeder relevanten Aktivität aufrufen (z.B. Status-Footer aktualisieren). */
 	onActivity?: () => void;
 }
 
 export interface Spawner {
-	spawnActor: (spec: SpawnSpec, spawnerName: string) => Promise<{ ok: boolean; msg: string }>;
+	spawnAgent: (spec: SpawnSpec, spawnerName: string) => Promise<{ ok: boolean; msg: string }>;
 }
 
 export function createSpawner(deps: SpawnerDeps): Spawner {
@@ -60,7 +60,7 @@ export function createSpawner(deps: SpawnerDeps): Spawner {
 		});
 	};
 
-	const spawnActor = async (spec: SpawnSpec, spawnerName: string): Promise<{ ok: boolean; msg: string }> => {
+	const spawnAgent = async (spec: SpawnSpec, spawnerName: string): Promise<{ ok: boolean; msg: string }> => {
 		const inheritRef = spec.model ?? engine.get(spawnerName)?.model;
 
 		// 1) Namen synchron reservieren (atomar: Duplikat/Cap/Tiefe) — schließt Races.
@@ -87,7 +87,7 @@ export function createSpawner(deps: SpawnerDeps): Spawner {
 			return { ok: false, msg: `error: failed to start '${spec.name}': ${e instanceof Error ? e.message : String(e)}` };
 		}
 
-		const handle: ActorHandle = {
+		const handle: AgentHandle = {
 			deliver: async (text) => {
 				await session.sendUserMessage(text, { deliverAs: "followUp" });
 			},
@@ -113,7 +113,7 @@ export function createSpawner(deps: SpawnerDeps): Spawner {
 			dispose: subscribeBackground(spec.name, session),
 		});
 
-		// 4) Optionale Startnachricht atomar zustellen (kein Race, da Actor bereits registriert).
+		// 4) Optionale Startnachricht atomar zustellen (kein Race, da Agent bereits registriert).
 		let sent = "";
 		if (spec.message) {
 			const r = await engine.route(spawnerName, spec.name, spec.message);
@@ -122,5 +122,5 @@ export function createSpawner(deps: SpawnerDeps): Spawner {
 		return { ok: true, msg: `spawned '${spec.name}' (model ${resolved.provider}/${resolved.id})${sent}` };
 	};
 
-	return { spawnActor };
+	return { spawnAgent };
 }

@@ -1,4 +1,4 @@
-/** Pure Helfer fürs Swarm-Panel — keine pi/TUI-Abhängigkeit, voll testbar. */
+/** Pure Helfer fürs Subagents-Panel — keine pi/TUI-Abhängigkeit, voll testbar. */
 
 export interface ContextUsageLike {
 	tokens: number | null;
