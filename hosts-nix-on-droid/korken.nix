@@ -45,6 +45,14 @@
       . "$HOME/.nix-profile/etc/profile.d/nix-on-droid-session-init.sh"
     fi
 
+    # Auto-start sshd on app open so the SSH channel is up without typing
+    # sshd-start. Skip inside an ssh session (SSH_CONNECTION set) to avoid
+    # recursion, and skip if a listener is already running (it persists in the
+    # background once battery optimization is disabled). Daemonized (no -D).
+    if [ -z "''${SSH_CONNECTION:-}" ] && ! ${pkgs.procps}/bin/pgrep -x sshd >/dev/null 2>&1; then
+      ${pkgs.openssh}/bin/sshd -f ${lib.escapeShellArg "${sshdDirectory}/sshd_config"} || true
+    fi
+
     if [ "$#" -gt 0 ]; then
       exec ${pkgs.bashInteractive}/bin/bash "$@"
     fi
