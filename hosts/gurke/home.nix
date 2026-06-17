@@ -8,4 +8,12 @@
     # NVF Neovim configuration explicitly enabled for this host.
     ../../modules/home-manager/nvf.nix
   ];
+
+  # TEMPORÄR: subagents live ans Working Tree linken für schnelles Feedback.
+  # Nach Stabilisierung wieder entfernen — nicht committen.
+  my.devLinks = [
+    "modules/home-manager/profiles/ai-agents/pi-extensions/subagents"
+    "modules/home-manager/profiles/ai-agents/pi-extensions/context-prune.ts"
+    "modules/home-manager/profiles/ai-agents/pi-extensions/question.ts"
+  ];
 }

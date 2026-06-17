@@ -64,3 +64,14 @@ input_path  = "/home/felix/projects/dotfiles/home/noctalia/templates/ghostty-col
 output_path = "/home/felix/.config/noctalia/generated/ghostty-colors"
 post_hook   = "pkill -SIGUSR2 ghostty 2>/dev/null || true"
 
+# Drives the GTK theme + icon theme from noctalia's dark/light mode on niri.
+# noctalia owns gtk-{3,4}.0/settings.ini here (home-manager's gtk3/gtk4 modules
+# are disabled for this desktop in noctalia-niri.nix); the post_hook script
+# rewrites them with mode-matched adw-gtk3 + Papirus variants. The template
+# itself renders nothing useful — {{mode}} (dark|light) is passed to the hook as
+# the authoritative signal, since settings.json darkMode lags post_hooks.
+[templates.gtk-theme-trigger]
+input_path  = "/home/felix/projects/dotfiles/home/noctalia/templates/gtk-theme-trigger.txt"
+output_path = "/home/felix/.config/noctalia/generated/gtk-theme-trigger.txt"
+post_hook   = "/home/felix/bin/noctalia-gtk-theme {{mode}}"
+

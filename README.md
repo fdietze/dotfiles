@@ -41,9 +41,10 @@ curl --proto '=https' --tlsv1.2 -L https://nixos.org/nix/install | sh -s -- --da
 No clone needed; points straight at the GitHub flake. Ephemeral or permanent — brings my zsh, neovim, git and CLI tools.
 
 ```bash
-nix run home-manager -- switch -b backup \
-  --flake github:fdietze/dotfiles#felix@x86_64-linux
-# aarch64 machines: use #felix@aarch64-linux
+# x86_64
+nix run home-manager -- switch -b backup --flake github:fdietze/dotfiles#felix@x86_64-linux
+# aarch64
+nix run home-manager -- switch -b backup --flake github:fdietze/dotfiles#felix@aarch64-linux
 ```
 
 ### B / C — Full NixOS host (defined host or brand-new machine)
@@ -52,6 +53,11 @@ One bootstrap script handles both. It clones the repo, then asks whether to set 
 
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/fdietze/dotfiles/master/scripts/setup-new-host.sh)
+```
+
+### Nix-on-droid
+```
+nix-on-droid switch --flake ~/projects/dotfiles#korken
 ```
 
 If `curl` is missing on a minimal install: `nix-shell -p curl`.

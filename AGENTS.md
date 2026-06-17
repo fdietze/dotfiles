@@ -45,6 +45,7 @@ block.
 - nono sandboxing should only allow what is necessary and disallow everything (except network access) by default. if some software needs access to a path that contains secrets/keys or critical information, suggest a safer way, so the agent gains the capability, but never sees the secrets. look at the nono docs for possibilities.
 - the sandbox should limit ai agent compromitation and reduce attack surface for supply chain attacks.
 - ssh keys should never rest in the file system. always per secret service in keepassxc.
+- when organizing nix architecture: prefer separate modules over options -> less coupling
 
 configuration entrypoints:
 - flake.nix # top-level NixOS flake

@@ -13,10 +13,11 @@ Tidy the subagents extension and add in-memory tracking of agent relationships
 
 - **Dead code:** remove `formatStatus` from `feed.ts` and its test from `feed.test.ts`.
   It is unused since the footer status was dropped.
-- **English-only UI:** translate the German user-facing strings in `panel.ts`
-  (`senden`, `schließen`, `kein Agent gewählt`, `keine Agents — mit spawn_agent erzeugen`,
-  `noch keine Nachrichten`). Code comments stay German, consistent with the rest of the
-  extension.
+- **English-only:** translate everything to English — the German user-facing strings in
+  `panel.ts` (`senden`, `schließen`, `kein Agent gewählt`,
+  `keine Agents — mit spawn_agent erzeugen`, `noch keine Nachrichten`) **and** all German
+  code comments across the subagents files (`index.ts`, `engine.ts`, `spawner.ts`, `feed.ts`,
+  `panel.ts`, `panel-logic.ts`, and the `*.test.ts` files).
 - **Rename the foreground agent `user` → `main`** everywhere: the `RESERVED` set, the
   user-sink indirection (bump the globalThis key versions so a stale pre-rename singleton
   from an earlier `/reload` cannot collide), `agentSystemPrompt`, the depth-0 record and its
