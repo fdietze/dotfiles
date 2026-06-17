@@ -147,6 +147,7 @@
       umu-launcher # for lutris
       joplin-desktop # note taking
       scrcpy # android remote control
+      android-tools # adb / fastboot (wireless: adb tcpip 5555 over USB once, then adb connect <ip>:5555)
       # vdhcoapp # for video download helper browser extension
       # anytype # p2p note taking
       # gitbutler # Git client for simultaneous branches on top of your existing workflow
