@@ -5,8 +5,8 @@
 # NO sandbox. A proot-based sandbox profile (inner proot with restricted binds)
 # is the planned follow-up; until then mobile agents run unconfined.
 #
-# Same agent list (./agents.nix) and shared extras (skills, pi-extensions) as the
-# sandboxed ./default.nix — only the wrapping differs.
+# Same agent list (./agents.nix) and shared extras (skills, pi-extensions,
+# instructions) as the sandboxed ./default.nix — only the wrapping differs.
 {
   lib,
   pkgs,
@@ -26,7 +26,7 @@
         ${bin} "$@"
     '';
 in {
-  imports = [./skills.nix ./pi-extensions.nix];
+  imports = [./skills.nix ./pi-extensions.nix ./instructions.nix];
 
   home.packages = map mkAgent (import ./agents.nix {inherit pkgs;});
 }

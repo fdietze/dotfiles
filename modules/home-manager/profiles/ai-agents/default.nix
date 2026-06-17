@@ -8,7 +8,8 @@
 # Where nono's Landlock sandbox is unavailable (e.g. korken: proot intercepts
 # the landlock syscalls), import ./vanilla.nix instead.
 #
-# ./skills.nix provisions the shared ~/.agents/skills/ set (superpowers + own).
+# ./skills.nix provisions the shared ~/.agents/skills/ set (superpowers + own);
+# ./instructions.nix links the global AGENTS.md into each harness's context path.
 {
   lib,
   pkgs,
@@ -44,7 +45,7 @@
     '')
   ];
 in {
-  imports = [./skills.nix ./pi-extensions.nix];
+  imports = [./skills.nix ./pi-extensions.nix ./instructions.nix];
 
   home.packages = lib.concatMap mkAgent (import ./agents.nix {inherit pkgs;});
 }

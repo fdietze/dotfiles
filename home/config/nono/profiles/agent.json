@@ -29,7 +29,7 @@
       "$HOME/.claude",
       "$HOME/.opencode",
       "$HOME/.pi",
-      "$HOME/.config/agents",
+      "$HOME/.codex",
       "$HOME/.config/opencode",
       "$HOME/.cache/opencode",
       "$HOME/.cargo",
