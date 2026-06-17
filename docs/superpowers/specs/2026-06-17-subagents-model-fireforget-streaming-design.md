@@ -92,8 +92,14 @@ background `deliver` uses `deliverAs: "steer"` — delivered at the next turn
 boundary (after the current tool calls, before the next LLM call). Each background
 session is created with `setSteeringMode("all")` so several queued messages all
 arrive at that boundary instead of the default `"one-at-a-time"` drip. Idle
-targets start a turn immediately regardless of mode. Delivery to `main` (the human
-chat) stays `followUp` — not steered into the human's active turn.
+targets start a turn immediately regardless of mode.
+
+Delivery to `main` (the human chat) also uses `steer`. With `followUp`, the common
+"poll `list_agents` until done" loop deadlocks: agent replies queue while main is
+streaming and main never observes them mid-loop, polling forever even though the
+subagents already finished and replied. `steer` injects the reply at main's next
+turn boundary (before the next LLM call) so the polling loop sees it. Idle main
+starts a turn immediately either way (non-destructive).
 
 ## Testing
 

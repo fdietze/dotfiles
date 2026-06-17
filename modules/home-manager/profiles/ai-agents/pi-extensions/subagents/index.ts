@@ -92,7 +92,12 @@ export default function subagents(pi: ExtensionAPI) {
 
 	// This (freshly loaded) instance now owns the main delivery with its live pi —
 	// replacing a possibly stale sink from a previous instance.
-	setMainSink((text) => pi.sendUserMessage(text, { deliverAs: "followUp" }));
+	// deliverAs "steer": deliver agent->main messages at main's next turn boundary instead
+	// of only when main fully stops. Critical for the common "poll list_agents until done"
+	// loop: with "followUp" the replies queue while main streams and main never observes
+	// them mid-loop (polls forever). "steer" injects them before main's next LLM call so it
+	// sees the replies. Idle main starts a turn immediately either way (non-destructive).
+	setMainSink((text) => pi.sendUserMessage(text, { deliverAs: "steer" }));
 
 	// Process-global services built once (same creds as the foreground).
 	const authStorage = AuthStorage.create();
