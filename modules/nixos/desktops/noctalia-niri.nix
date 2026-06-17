@@ -5,13 +5,13 @@
   ...
 }:
 lib.mkIf (config.my.desktop == "noctalia-niri") {
-  # https://docs.noctalia.dev/v4/getting-started/compositor-settings/niri/
+  # https://docs.noctalia.dev/v5/getting-started/compositor-settings/niri/
   programs.niri.enable = true;
   # programs.niri sets services.gnome.gnome-keyring.enable = mkDefault true; we use
   # keepassxc as the Secret Service provider instead, so suppress the keyring daemon.
   services.gnome.gnome-keyring.enable = false;
 
-  # Noctalia v4 authenticates the lockscreen against /etc/pam.d/login;
+  # Noctalia authenticates the lockscreen via PAM (/etc/pam.d/login by default);
   # NixOS provides it by default, so no extra PAM wiring is required here.
 
   xdg.portal = {

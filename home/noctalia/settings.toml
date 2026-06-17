@@ -1,0 +1,16 @@
+# Noctalia v5 GUI state — source of truth for user-facing settings.
+# noctalia writes this file at runtime through the out-of-store symlink
+# ~/.local/state/noctalia/settings.toml -> here (see
+# modules/home-manager/desktops/noctalia-niri.nix). Edit in the GUI, then run
+# `noctalia-settings-save` is NOT needed — writes land here directly; just
+# review the diff and commit. This seed boots the shell with the shared Base16
+# palette (from modules/themes/noctalia-scheme.nix) in light mode; everything
+# else expands to defaults on first GUI interaction.
+
+[theme]
+mode = "light"
+source = "custom"
+custom_palette = "Base16"
+
+[shell]
+polkit_agent = true

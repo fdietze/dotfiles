@@ -69,7 +69,7 @@ in {
       "root"
       "felix"
     ];
-    # https://docs.noctalia.dev/v4/getting-started/nixos/
+    # https://docs.noctalia.dev/v5/getting-started/nixos/
     # cache.numtide.com: vorgebaute AI-Agents aus llm-agents.nix (default-Overlay),
     # vermeidet lokales Kompilieren z.B. des Rust-Codex.
     settings.substituters = [

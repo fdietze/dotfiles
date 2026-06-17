@@ -62,4 +62,4 @@
     light = variant base16.light base16.light.base00;
   };
 in
-  pkgs.writeText "Stylix.json" (builtins.toJSON scheme)
+  pkgs.writeText "Base16.json" (builtins.toJSON scheme)
