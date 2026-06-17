@@ -188,13 +188,13 @@
 
     mkNixOnDroid = deviceName:
       nix-on-droid.lib.nixOnDroidConfiguration {
-        modules = [./nix-on-droid/${deviceName}.nix];
+        modules = [./hosts-nix-on-droid/${deviceName}.nix];
         extraSpecialArgs = {
           inherit nix-index-database;
           # Bumped proot (PR nix-on-droid#529) that fixes the TCGETS2 tty
           # blindness (#515). Built by CI on x86 and substituted from cachix;
           # korken pins it via environment.files.prootStatic. See proot-bumped/.
-          prootBumped = import ./nix-on-droid/proot-bumped {inherit nixpkgs;};
+          prootBumped = import ./hosts-nix-on-droid/proot-bumped {inherit nixpkgs;};
           # Forwarded to korken's home-manager modules (see korken.nix
           # home-manager.extraSpecialArgs): shell-core needs nvf, packages-cli/
           # yazi need theme, ai-agents/skills needs flake-inputs.
