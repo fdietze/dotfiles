@@ -65,6 +65,11 @@ function agentSystemPrompt(name: string, systemPrompt: string, spawnedBy: string
 		"Messages you receive are prefixed with [message from <sender>].",
 		"To reply, use send_message back to that sender.",
 		"",
+		"Reporting rule:",
+		`- Report to your parent ("${spawnedBy}") ONLY final results or blockers you cannot resolve yourself.`,
+		"- Keep intermediate states, status updates and work steps lateral (peers) or downward (your own subagents) — never escalate them upward.",
+		"- One message to your parent = one finished deliverable or a decision only the parent can make.",
+		"",
 		systemPrompt,
 	].join("\n");
 }
