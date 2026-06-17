@@ -249,7 +249,7 @@ export default function subagents(pi: ExtensionAPI) {
 			parameters: Type.Object({}),
 			execute: async () => {
 				const { used, total } = engine.budget;
-				return { content: [{ type: "text", text: formatSnapshot(engine.list(), used, total) }], details: {} };
+				return { content: [{ type: "text", text: formatSnapshot(engine.list(), used, total, selfName) }], details: {} };
 			},
 		},
 		{

@@ -27,12 +27,50 @@ test("formatSnapshot lists each agent with status and turns", () => {
 		rec({ name: "main", depth: 0, model: "anthropic/opus" }),
 		rec({ name: "coder", streaming: true, turns: 4 }),
 	];
-	const out = formatSnapshot(agents, 4, 100);
+	const out = formatSnapshot(agents, 4, 100, "main");
 	assert.match(out, /main/);
 	assert.match(out, /coder/);
 	assert.match(out, /running/);
 	assert.match(out, /idle/);
 	assert.match(out, /4/);
+});
+
+test("formatSnapshot shows pending agents as spawning (not idle) with queue count", () => {
+	const agents = [rec({ name: "coder", pending: true, buffer: ["a", "b"] })];
+	const out = formatSnapshot(agents, 0, 100, "main");
+	assert.match(out, /spawning/);
+	assert.doesNotMatch(out, /idle/);
+	assert.match(out, /2 queued/);
+});
+
+test("formatSnapshot marks relation to the viewer", () => {
+	// tree: main -> lead -> worker ; viewer = lead
+	const agents = [
+		rec({ name: "main", depth: 0, spawnedBy: "main" }),
+		rec({ name: "lead", spawnedBy: "main" }),
+		rec({ name: "sibling", spawnedBy: "main" }),
+		rec({ name: "worker", spawnedBy: "lead" }),
+	];
+	const out = formatSnapshot(agents, 0, 100, "lead");
+	assert.match(out, /lead .*self/);
+	assert.match(out, /main .*parent/);
+	assert.match(out, /sibling .*peer/);
+	assert.match(out, /worker .*child/);
+});
+
+test("formatSnapshot shows context percent and relative age", () => {
+	const withCtx = rec({
+		name: "coder",
+		lastActivity: 5_000,
+		view: {
+			getMessages: () => [],
+			getContextUsage: () => ({ tokens: 100, contextWindow: 1000, percent: 42 }),
+			subscribe: () => () => {},
+		},
+	});
+	const out = formatSnapshot([withCtx], 0, 100, "main", 10_000);
+	assert.match(out, /ctx:42%/);
+	assert.match(out, /last 5s/);
 });
 
 test("formatFeedLines renders one line per event newest-aware", () => {

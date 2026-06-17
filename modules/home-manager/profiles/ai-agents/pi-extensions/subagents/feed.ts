@@ -4,11 +4,51 @@
  */
 import type { AgentRecord, AgentEvent } from "./engine.ts";
 
-export function formatSnapshot(agents: AgentRecord[], turnsUsed: number, turnBudget: number): string {
+/** Compact relative age: 3s / 4m / 2h. */
+function formatAge(ms: number): string {
+	const s = Math.floor(Math.max(0, ms) / 1000);
+	if (s < 60) return `${s}s`;
+	const m = Math.floor(s / 60);
+	if (m < 60) return `${m}m`;
+	return `${Math.floor(m / 60)}h`;
+}
+
+/** Relation of an agent to the viewer, for orientation in deep hierarchies. */
+function relTo(a: AgentRecord, viewer: string, viewerParent: string | undefined): string {
+	if (a.name === viewer) return "self";
+	if (a.spawnedBy === viewer) return "child";
+	if (a.name === viewerParent) return "parent";
+	if (viewerParent !== undefined && a.spawnedBy === viewerParent) return "peer";
+	return "other";
+}
+
+/**
+ * Roster as seen by `viewer` (the calling agent). Surfaces live health/progress
+ * signals (spawning vs idle, context pressure, staleness) and the relation to the
+ * viewer so an agent can decide: message, wait, or wind down. `now` is injected
+ * for testability.
+ */
+export function formatSnapshot(
+	agents: AgentRecord[],
+	turnsUsed: number,
+	turnBudget: number,
+	viewer: string,
+	now: number = Date.now(),
+): string {
 	if (agents.length === 0) return "no agents";
+	const viewerParent = agents.find((a) => a.name === viewer)?.spawnedBy;
 	const rows = agents.map((a) => {
-		const status = a.streaming ? "running" : "idle";
-		return `  ${a.name.padEnd(14)} ${status.padEnd(8)} turns:${a.turns}  ${a.model}  (by ${a.spawnedBy}, depth ${a.depth})`;
+		// pending = name reserved but session not attached yet -> NOT idle/ready.
+		const status = a.pending ? "spawning" : a.streaming ? "running" : "idle";
+		const u = a.view?.getContextUsage();
+		const ctx = u && u.percent != null ? `${Math.round(u.percent)}%` : "--";
+		const rel = relTo(a, viewer, viewerParent);
+		const queued = a.pending && a.buffer && a.buffer.length > 0 ? `, ${a.buffer.length} queued` : "";
+		return (
+			`  ${a.name.padEnd(14)} ${rel.padEnd(6)} ${status.padEnd(8)} ` +
+			`turns:${String(a.turns).padEnd(3)} ctx:${ctx.padEnd(4)} last ${formatAge(now - a.lastActivity).padEnd(4)} ` +
+			`${a.model}  (by ${a.spawnedBy}${queued})`
+		);
 	});
 	return [`agents (budget ${turnsUsed}/${turnBudget}):`, ...rows].join("\n");
 }
