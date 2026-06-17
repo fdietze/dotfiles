@@ -52,7 +52,7 @@
     # Täglich aktualisierte Pakete für AI-Coding-Agents (claude-code, codex,
     # opencode, pi), neuer als der nixpkgs-Stand. Das `default`-Overlay baut
     # gegen die im Flake gepinnte nixpkgs → Treffer im Binary-Cache
-    # cache.numtide.com (siehe Substituter in hosts/gurke/default.nix), kein
+    # cache.numtide.com (siehe Substituter in hosts-nixos/gurke/default.nix), kein
     # lokales Kompilieren des Rust-Codex etc.
     llm-agents = {
       url = "github:numtide/llm-agents.nix";
@@ -93,12 +93,12 @@
     # Build-Zeit-Verhalten der themed Desktops.
     defaultTheme = "dark";
 
-    # Arch pro Host aus hosts/<h>/system lesen (fileContents strippt das
+    # Arch pro Host aus hosts-nixos/<h>/system lesen (fileContents strippt das
     # abschließende Newline); Default x86_64-linux, falls die Datei fehlt.
     # Liegt in einer Datei statt im Modul, weil nixosSystem `system` braucht,
     # bevor die Module ausgewertet werden (und uiFonts pro System hier baut).
     hostSystem = hostName: let
-      f = ./hosts/${hostName}/system;
+      f = ./hosts-nixos/${hostName}/system;
     in
       if builtins.pathExists f
       then lib.fileContents f
@@ -106,18 +106,18 @@
 
     uiFontsFor = system: import ./fonts.nix {pkgs = nixpkgs.legacyPackages.${system};};
 
-    # Alle Verzeichnisse unter hosts/ außer dem kopierbaren Template werden zu
-    # NixOS-Hosts. So genügt es, ein hosts/<name>/ anzulegen — scripts/
+    # Alle Verzeichnisse unter hosts-nixos/ außer dem kopierbaren Template werden zu
+    # NixOS-Hosts. So genügt es, ein hosts-nixos/<name>/ anzulegen — scripts/
     # setup-new-host.sh muss flake.nix nie editieren.
     hostNames =
       builtins.filter (n: n != "template")
       (builtins.attrNames (
-        lib.filterAttrs (_: type: type == "directory") (builtins.readDir ./hosts)
+        lib.filterAttrs (_: type: type == "directory") (builtins.readDir ./hosts-nixos)
       ));
 
     mkHost = hostName: let
       system = hostSystem hostName;
-      localFile = ./hosts/${hostName}/local.nix;
+      localFile = ./hosts-nixos/${hostName}/local.nix;
       # Maschinen-lokale Identifier (Disk-UUIDs etc.) nur, wenn der Host eine
       # local.nix mitbringt; der generische Template-Host hat keine.
       hostLocal =
@@ -134,8 +134,8 @@
         };
         modules = [
           stylix.nixosModules.stylix
-          ./hosts/${hostName}/default.nix
-          ./hosts/${hostName}/hardware-configuration.nix
+          ./hosts-nixos/${hostName}/default.nix
+          ./hosts-nixos/${hostName}/hardware-configuration.nix
           nix-index-database.nixosModules.nix-index
           home-manager.nixosModules.home-manager
           {
@@ -148,7 +148,7 @@
               nix-index-database.homeModules.nix-index
               noctalia.homeModules.default
             ];
-            home-manager.users.felix = ./hosts/${hostName}/home.nix;
+            home-manager.users.felix = ./hosts-nixos/${hostName}/home.nix;
           }
         ];
       };
@@ -218,7 +218,7 @@
         home-manager-path = home-manager.outPath;
       };
   in {
-    # gurke (und jeder weitere hosts/<name>/) wird auto-entdeckt.
+    # gurke (und jeder weitere hosts-nixos/<name>/) wird auto-entdeckt.
     nixosConfigurations = lib.genAttrs hostNames mkHost;
 
     # "nix run home-manager -- switch --flake .#felix@<arch>"

@@ -65,20 +65,20 @@ fi
 HOST="$(hostname)"
 say "Hostname: $HOST"
 
-if [ -d "$REPO_DIR/hosts/$HOST" ]; then
+if [ -d "$REPO_DIR/hosts-nixos/$HOST" ]; then
   say "Host '$HOST' ist bereits definiert — kein Template nötig."
 else
   say "Neuer Host '$HOST' — erzeuge aus Template."
-  cp -r "$REPO_DIR/hosts/template" "$REPO_DIR/hosts/$HOST"
-  rm -f "$REPO_DIR/hosts/$HOST/.gitkeep-hardware"
-  printf '%s\n' "$ARCH" >"$REPO_DIR/hosts/$HOST/system"
+  cp -r "$REPO_DIR/hosts-nixos/template" "$REPO_DIR/hosts-nixos/$HOST"
+  rm -f "$REPO_DIR/hosts-nixos/$HOST/.gitkeep-hardware"
+  printf '%s\n' "$ARCH" >"$REPO_DIR/hosts-nixos/$HOST/system"
   # --show-hardware-config druckt die erkannte Hardware (Filesystems, Swap,
   # Boot-Device, Kernel-Module) nach stdout, ohne /etc/nixos zu berühren.
   nixos-generate-config --show-hardware-config \
-    >"$REPO_DIR/hosts/$HOST/hardware-configuration.nix"
+    >"$REPO_DIR/hosts-nixos/$HOST/hardware-configuration.nix"
   # Flakes sehen nur von git getrackte Dateien — neue Host-Dateien stagen,
   # sonst ignoriert `nixos-rebuild --flake` den frischen Host.
-  git -C "$REPO_DIR" add "hosts/$HOST"
+  git -C "$REPO_DIR" add "hosts-nixos/$HOST"
 fi
 
 REBUILD_CMD="sudo nixos-rebuild switch --flake $REPO_DIR#$HOST"
