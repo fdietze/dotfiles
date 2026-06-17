@@ -10,6 +10,17 @@ always `localhost`; the stable identifier is the flake output name.
   sources `nix-on-droid-session-init.sh`). Use it for git/switch/run — far more
   reliable than typing into the terminal via adb.
 - If a broken global `ssh_config` aborts the connection, pass `-F /dev/null`.
+- sshd from `sshd-start` runs in the *foreground of the app's terminal*; Android
+  freezes/kills it when the app loses foreground (e.g. when you bring another app
+  forward for a screenshot), so it dies mid-session. Keep the NoD app foregrounded
+  while doing ssh work, or give it a wakelock / battery-optimization exemption.
+  Also: that terminal is then busy running sshd, so adb-typed commands there go to
+  sshd's stdin, not a shell.
+- `scp`/`rsync` fail over this sshd (the app login-shell wrapper breaks scp's
+  protocol). To push a file without git, pipe it through the shell:
+  `ssh … 'cat > path/file' < localfile` (verify with `sha256sum` both sides).
+  Iterate edits locally, cat-pipe to the device clone, switch, verify, then
+  commit once — a dirty git tree is fine for `switch` (no per-iteration commit).
 
 ## Screen + input channel: adb (visual verification, app launching)
 - Classic wireless adb listens on device port **5555** once enabled; connect with
@@ -42,12 +53,17 @@ always `localhost`; the stable identifier is the flake output name.
 - Ad-hoc test without a switch: `DISPLAY=127.0.0.1:1 nix run nixpkgs#xorg.xeyes`
   (first nixpkgs fetch on-device is slow).
 - Gotchas:
-  - No fontconfig in a minimal NoD → Xft apps fail (`Cannot load default config
-    file`); `xterm -fa …` dies, plain `xterm` exits silently (no core fonts
-    served). Need `fonts.fontconfig.enable` + a font before text apps work.
-    xeyes works because it draws no text.
-  - nixGL is only needed for GL/accelerated apps (compositor); a plain WM + xterm
-    do not need it.
+  - **Terminal: use st (or alacritty/kitty), NOT xterm/urxvt.** xterm's `spawn()`
+    unconditionally calls `setuid(getuid())`, which returns `ENOSYS` under proot
+    (`spawn: setuid() failed`) — no flag avoids it, so xterm can never launch a
+    shell here. st/alacritty/kitty don't setuid and work.
+  - **fontconfig:** a non-NixOS NoD has no `/etc/fonts/fonts.conf`, and HM's
+    `fonts.fontconfig` only drops `conf.d` snippets — so Xft clients die with
+    `Cannot load default config file`. Use `pkgs.makeFontsConf { fontDirectories
+    = [ <font> ]; }` and point `FONTCONFIG_FILE` (sessionVariables) at it. (xeyes
+    needs no fonts, which is why it renders before fontconfig is fixed.)
+  - nixGL is only needed for GL/accelerated apps (compositor); a plain WM + a
+    software-rendered terminal do not need it.
 
 ## Switch / verify workflow
 - The device switches with `nix-on-droid switch --flake .#<name>` from a local
