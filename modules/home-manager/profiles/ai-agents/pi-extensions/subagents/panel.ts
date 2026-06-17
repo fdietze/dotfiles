@@ -14,6 +14,7 @@ import {
 	formatContext,
 	formatRosterRow,
 	findToolResult,
+	mergeStreaming,
 	messageText,
 	moveSelection,
 	toolCalls,
@@ -62,6 +63,10 @@ export function createSubagentsPanel(deps: PanelDeps, tui: TuiLike, theme: Theme
 	let hasBelow = false;
 	const SCROLL_STEP = 5;
 	let unsubView: (() => void) | undefined;
+	// Live in-progress assistant message of the selected agent, captured from streaming
+	// events (message_start/update). interactive-mode.js feeds event.message into a
+	// streamingComponent the same way; session.messages is not relied on mid-turn.
+	let streamingMessage: RawMessage | undefined;
 
 	const editorTheme: EditorTheme = {
 		borderColor: (s) => theme.fg("accent", s),
@@ -84,8 +89,16 @@ export function createSubagentsPanel(deps: PanelDeps, tui: TuiLike, theme: Theme
 	const rebindView = () => {
 		unsubView?.();
 		unsubView = undefined;
+		streamingMessage = undefined;
 		const rec = agents()[selectedIndex];
-		if (rec?.view) unsubView = rec.view.subscribe(() => refresh());
+		if (rec?.view)
+			unsubView = rec.view.subscribe((e) => {
+				const msg = e.message as RawMessage | undefined;
+				if (msg?.role === "assistant") {
+					streamingMessage = e.type === "message_end" ? undefined : msg;
+				}
+				refresh();
+			});
 	};
 	rebindView();
 
@@ -124,7 +137,9 @@ export function createSubagentsPanel(deps: PanelDeps, tui: TuiLike, theme: Theme
 	const transcriptLines = (width: number): string[] => {
 		const rec = agents()[selectedIndex];
 		if (!rec) return [theme.fg("muted", "  (no agents — create one with spawn_agent)")];
-		const msgs = (rec.view?.getMessages() ?? []) as RawMessage[];
+		// Merge the live streaming message so tokens appear as they arrive (deduped if the
+		// session already holds it).
+		const msgs = mergeStreaming((rec.view?.getMessages() ?? []) as RawMessage[], streamingMessage);
 		const lines: string[] = [];
 		// Show the system prompt at the top (it is not part of messages[]).
 		const sys = rec.view?.getSystemPrompt?.();
@@ -215,7 +230,7 @@ export function createSubagentsPanel(deps: PanelDeps, tui: TuiLike, theme: Theme
 			agents().forEach((a, i) => {
 				lines.push(
 					formatRosterRow(
-						{ name: a.name, context: formatContext(a.view?.getContextUsage()), active: a.streaming },
+						{ name: a.name, model: a.model, context: formatContext(a.view?.getContextUsage()), active: a.streaming },
 						i === selectedIndex,
 						width,
 						styler,

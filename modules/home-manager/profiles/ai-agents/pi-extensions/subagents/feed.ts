@@ -30,6 +30,8 @@ export function formatFeedLines(events: AgentEvent[]): string[] {
 				return `kill    ${e.name}`;
 			case "blocked":
 				return `blocked ${e.reason}`;
+			case "error":
+				return `error   ${e.name}: ${e.reason}`;
 		}
 	});
 }

@@ -21,8 +21,17 @@ export function formatContext(u: ContextUsageLike | undefined): string {
 
 export interface RosterEntry {
 	name: string;
+	model: string;
 	context: string;
 	active: boolean;
+}
+
+/** Short model id for the roster: drop the "provider/" prefix, truncate to fit. */
+const MODEL_COL = 16;
+export function shortModel(model: string | undefined): string {
+	if (!model) return "";
+	const id = model.includes("/") ? model.slice(model.lastIndexOf("/") + 1) : model;
+	return id.length > MODEL_COL ? `${id.slice(0, MODEL_COL - 1)}…` : id;
 }
 
 export function formatRosterRow(
@@ -37,10 +46,11 @@ export function formatRosterRow(
 	const cursor = selected ? "▸" : " ";
 	const label = (entry.active ? "active" : "idle").padEnd(6);
 	const name = entry.name.length > 14 ? `${entry.name.slice(0, 13)}…` : entry.name.padEnd(14);
-	const plain = `${cursor} ${label} ${name} ${entry.context}`;
+	const model = shortModel(entry.model).padEnd(MODEL_COL);
+	const plain = `${cursor} ${label} ${name} ${model} ${entry.context}`;
 	// Width logic on the uncolored string (ANSI would corrupt .length).
 	if (plain.length > width) return plain.slice(0, width);
-	return `${cursor} ${styleStatus(label, entry.active)} ${name} ${entry.context}`;
+	return `${cursor} ${styleStatus(label, entry.active)} ${name} ${model} ${entry.context}`;
 }
 
 export function moveSelection(current: number, delta: number, count: number): number {
@@ -94,6 +104,16 @@ export function findToolResult(
 	id: string,
 ): { role?: string; toolCallId?: string } | undefined {
 	return msgs.find((m) => m.role === "toolResult" && m.toolCallId === id);
+}
+
+/**
+ * Append the in-progress streaming assistant message for live rendering, unless the
+ * session already holds it (identity match on the last entry) — avoids double-render.
+ */
+export function mergeStreaming<T>(msgs: T[], streamingMessage: T | undefined): T[] {
+	if (!streamingMessage) return msgs;
+	if (msgs.length > 0 && msgs[msgs.length - 1] === streamingMessage) return msgs;
+	return [...msgs, streamingMessage];
 }
 
 export function chatboxToRoute(selected: string | undefined, text: string): { to: string; content: string } | null {

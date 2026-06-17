@@ -18,7 +18,9 @@ export interface AgentView {
 	/** The system prompt the agent runs with (shown at the top of the transcript). */
 	getSystemPrompt?(): string;
 	getContextUsage(): { tokens: number | null; contextWindow: number; percent: number | null } | undefined;
-	subscribe(listener: (e: { type: string }) => void): () => void;
+	// Listener receives the full session event; `message` carries streaming deltas
+	// (used by the panel for live streaming). Loosely typed to stay SDK-free.
+	subscribe(listener: (e: { type: string; message?: unknown; assistantMessageEvent?: unknown }) => void): () => void;
 }
 
 export interface AgentRecord {
@@ -54,7 +56,8 @@ export type AgentEvent =
 	| { type: "halt"; ts: number }
 	| { type: "resume"; ts: number }
 	| { type: "kill"; name: string; ts: number }
-	| { type: "blocked"; reason: string; ts: number };
+	| { type: "blocked"; reason: string; ts: number }
+	| { type: "error"; name: string; reason: string; ts: number };
 
 export type CheckResult = { ok: true } | { ok: false; reason: string };
 
@@ -274,6 +277,11 @@ export class Engine {
 		}
 		this.emit({ type: "turn", name, ts: Date.now() });
 		return { abort: false };
+	}
+
+	/** Report an async failure (e.g. a fire-and-forget delivery turn that later threw). */
+	reportError(name: string, reason: string): void {
+		this.emit({ type: "error", name, reason, ts: Date.now() });
 	}
 
 	setStreaming(name: string, streaming: boolean): void {

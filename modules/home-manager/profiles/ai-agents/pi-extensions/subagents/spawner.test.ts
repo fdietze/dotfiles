@@ -91,6 +91,47 @@ test("smoke: spawn -> deliver -> reply -> budget abort -> halt", async () => {
 	assert.equal(blocked.ok, false);
 });
 
+test("deliver is fire-and-forget: does not await the target's turn", async () => {
+	const engine = new Engine({ maxAgents: 8, maxSpawnDepth: 3, turnBudget: 5 });
+	withMain(engine, []);
+	// sendUserMessage never resolves (simulates a long-running turn). spawnAgent with an
+	// initial message must still resolve — otherwise the spawn_agent tool would hang.
+	class BlockingSession extends FakeSession {
+		async sendUserMessage() {
+			return new Promise<void>(() => {});
+		}
+	}
+	const spawner = createSpawner({
+		engine,
+		resolveModel: () => ({ provider: "t", id: "m", model: {} }),
+		createSession: async () => new BlockingSession(),
+	});
+	const r = await spawner.spawnAgent({ name: "slow", systemPrompt: "r", message: "go" }, "main");
+	assert.equal(r.ok, true);
+	assert.match(r.msg, /sent initial message/);
+});
+
+test("deliver failure surfaces as an engine error event", async () => {
+	const engine = new Engine({ maxAgents: 8, maxSpawnDepth: 3, turnBudget: 5 });
+	withMain(engine, []);
+	class FailingSession extends FakeSession {
+		async sendUserMessage(): Promise<void> {
+			throw new Error("boom");
+		}
+	}
+	const spawner = createSpawner({
+		engine,
+		resolveModel: () => ({ provider: "t", id: "m", model: {} }),
+		createSession: async () => new FailingSession(),
+	});
+	await spawner.spawnAgent({ name: "bad", systemPrompt: "r", message: "go" }, "main");
+	await new Promise((res) => setTimeout(res, 0)); // let the .catch microtask run
+	const err = engine.events.find((e) => e.type === "error");
+	assert.ok(err, "expected an error event");
+	assert.equal((err as { name: string }).name, "bad");
+	assert.match((err as { reason: string }).reason, /boom/);
+});
+
 test("spawn rejects unknown model", async () => {
 	const engine = new Engine({ maxAgents: 8, maxSpawnDepth: 3, turnBudget: 5 });
 	const spawner = createSpawner({

@@ -153,7 +153,7 @@ export default function subagents(pi: ExtensionAPI) {
 				active ? theme.bg("toolSuccessBg", label) : theme.fg("dim", label);
 			const rosterLines = background.map((a) =>
 				formatRosterRow(
-					{ name: a.name, context: formatContext(a.view?.getContextUsage()), active: a.streaming },
+					{ name: a.name, model: a.model, context: formatContext(a.view?.getContextUsage()), active: a.streaming },
 					false,
 					80,
 					styler,

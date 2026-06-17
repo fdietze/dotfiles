@@ -10,7 +10,7 @@ export interface SessionLike {
 	sendUserMessage(text: string, options?: { deliverAs?: "steer" | "followUp" }): Promise<void> | void;
 	abort(): Promise<void> | void;
 	readonly isStreaming: boolean;
-	subscribe(listener: (e: { type: string }) => void): () => void;
+	subscribe(listener: (e: { type: string; message?: unknown; assistantMessageEvent?: unknown }) => void): () => void;
 	readonly messages: unknown[];
 	getContextUsage(): { tokens: number | null; contextWindow: number; percent: number | null } | undefined;
 }
@@ -94,8 +94,14 @@ export function createSpawner(deps: SpawnerDeps): Spawner {
 		}
 
 		const handle: AgentHandle = {
+			// Fire-and-forget: sendUserMessage internally awaits prompt(), which only resolves
+			// when the whole turn completes. Awaiting it would block the caller (e.g. the
+			// spawn_agent tool) until the target agent finishes. Kick the turn and return; a
+			// late failure surfaces as an engine error event (visible in /feed + panel).
 			deliver: async (text) => {
-				await session.sendUserMessage(text, { deliverAs: "followUp" });
+				void Promise.resolve(session.sendUserMessage(text, { deliverAs: "followUp" })).catch((e) =>
+					engine.reportError(spec.name, e instanceof Error ? e.message : String(e)),
+				);
 			},
 			abort: async () => {
 				await session.abort();

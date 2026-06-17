@@ -9,6 +9,8 @@ import {
 	messageText,
 	toolCalls,
 	findToolResult,
+	shortModel,
+	mergeStreaming,
 } from "./panel-logic.ts";
 
 test("formatContext renders tokens/window/percent (percent is already 0-100), dash when unknown", () => {
@@ -19,12 +21,32 @@ test("formatContext renders tokens/window/percent (percent is already 0-100), da
 	assert.equal(formatContext(undefined), "—");
 });
 
-test("formatRosterRow shows cursor, name, context, status", () => {
-	const row = formatRosterRow({ name: "echo", context: "3k/200k · 2%", active: true }, true, 40);
+test("formatRosterRow shows cursor, name, model, context, status", () => {
+	const row = formatRosterRow(
+		{ name: "echo", model: "anthropic/claude-sonnet-4-5", context: "3k/200k · 2%", active: true },
+		true,
+		60,
+	);
 	assert.match(row, /▸/);
 	assert.match(row, /echo/);
 	assert.match(row, /active/);
-	assert.ok(row.length <= 40);
+	assert.match(row, /claude-sonnet-4/); // short id, provider prefix dropped
+	assert.ok(row.length <= 60);
+});
+
+test("shortModel drops provider prefix and truncates", () => {
+	assert.equal(shortModel("anthropic/opus"), "opus");
+	assert.equal(shortModel("local-model"), "local-model");
+	assert.equal(shortModel(undefined), "");
+	assert.equal(shortModel("x/" + "a".repeat(40)).length, 16); // truncated to column width
+});
+
+test("mergeStreaming appends streaming msg, dedupes by identity", () => {
+	const a = { role: "user" };
+	const s = { role: "assistant" };
+	assert.deepEqual(mergeStreaming([a], undefined), [a]);
+	assert.deepEqual(mergeStreaming([a], s), [a, s]);
+	assert.deepEqual(mergeStreaming([a, s], s), [a, s]); // already last -> no double
 });
 
 test("moveSelection clamps at both ends", () => {

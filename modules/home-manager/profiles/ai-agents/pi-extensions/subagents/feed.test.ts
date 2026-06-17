@@ -40,12 +40,14 @@ test("formatFeedLines renders one line per event newest-aware", () => {
 		{ type: "spawn", name: "coder", by: "main", ts: 0 },
 		{ type: "route", from: "main", to: "coder", preview: "do x", ts: 0 },
 		{ type: "halt", ts: 0 },
+		{ type: "error", name: "coder", reason: "boom", ts: 0 },
 	];
 	const lines = formatFeedLines(events);
-	assert.equal(lines.length, 3);
+	assert.equal(lines.length, 4);
 	assert.match(lines[0], /spawn.*coder/);
 	assert.match(lines[1], /main.*->.*coder/);
 	assert.match(lines[2], /halt/i);
+	assert.match(lines[3], /error.*coder.*boom/);
 });
 
 test("normalizeTargets: single, list, dedupe, trim, drop empty", () => {
