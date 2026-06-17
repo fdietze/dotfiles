@@ -185,6 +185,8 @@ in {
         # proot on this device. A proot-based sandbox is the planned follow-up.
         ../modules/home-manager/profiles/ai-agents/vanilla.nix
         ../modules/home-manager/profiles/standalone-extras.nix
+        # Minimal X11 client (xterm) displaying on Termux:X11 over loopback TCP.
+        ./x11.nix
       ];
     };
   };
