@@ -5,20 +5,25 @@
 # we connect over loopback TCP. See nix-community/nix-on-droid#305 (Resonious'
 # `-listen tcp` approach).
 #
-#   Termux (X server):    termux-x11 :1 -listen tcp
+#   Termux (X server):     termux-x11 :1 -listen tcp
 #   nix-on-droid (client): DISPLAY=127.0.0.1:1, then run any nixpkgs X client
 #
-# Smoke-test stage: a single client (xterm) to prove the pipe before adding a
-# window manager.
+# Smoke-test stage: a single terminal to prove the pipe before adding a window
+# manager.
+#
+# Terminal choice: st, NOT xterm. xterm's spawn() unconditionally calls
+# setuid(getuid()) to drop privileges, which returns ENOSYS under nix-on-droid's
+# proot ("spawn: setuid() failed") — no flag avoids it, so xterm can never spawn
+# a shell here. st (and alacritty/kitty) don't setuid, so they work.
 {pkgs, ...}: let
   # nix-on-droid is not NixOS: there is no /etc/fonts/fonts.conf, and HM's
   # fonts.fontconfig only drops conf.d snippets without a usable base config, so
-  # Xft clients (xterm -fa, GTK/Qt) die with "Cannot load default config file".
+  # Xft clients (st, GTK/Qt) die with "Cannot load default config file".
   # makeFontsConf gives a self-contained fonts.conf that includes our fonts;
   # FONTCONFIG_FILE points every Xft client at it.
   fontsConf = pkgs.makeFontsConf {fontDirectories = [pkgs.dejavu_fonts];};
 in {
-  home.packages = [pkgs.xterm];
+  home.packages = [pkgs.st];
 
   home.sessionVariables = {
     # The Termux:X11 server started with `-listen tcp` exposes display :1 on
@@ -26,13 +31,4 @@ in {
     DISPLAY = "127.0.0.1:1";
     FONTCONFIG_FILE = fontsConf;
   };
-
-  # The Termux:X11 server serves no core X fonts, so a bare `xterm` (which wants
-  # the core "fixed" font) exits immediately. Default it to a fontconfig/Xft
-  # face. termux-x11 sets no RESOURCE_MANAGER, so xterm reads ~/.Xdefaults
-  # directly — no xrdb/session manager needed.
-  home.file.".Xdefaults".text = ''
-    XTerm.vt100.faceName: DejaVu Sans Mono
-    XTerm.vt100.faceSize: 12
-  '';
 }
