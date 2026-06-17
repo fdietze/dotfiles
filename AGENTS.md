@@ -50,11 +50,11 @@ block.
 
 configuration entrypoints:
 - flake.nix # top-level NixOS flake
-- hosts/<hostname>/default.nix # host NixOS configuration
-- hosts/<hostname>/home.nix # host Home Manager configuration
+- hosts-nixos/<hostname>/default.nix # host NixOS configuration
+- hosts-nixos/<hostname>/home.nix # host Home Manager configuration
 
 # Desktop specialisations and per-desktop gating
 - Each desktop is a NixOS specialisation built by `modules/nixos/specialisation-helpers.nix`, which sets `my.desktop` (and `my.theme` for themed desktops) via `lib.mkForce`. Boot picks one; `nrs [<spec>]` switches.
-- ALL desktop modules are imported unconditionally (e.g. both `desktops/herbstluftwm.nix` and `desktops/noctalia-niri.nix` in `hosts/<host>/home.nix`), then each guards its whole body with `lib.mkIf (desktop == "<name>")`. Only the matching desktop's block is active per specialisation, so home-manager config IS effectively spec-scoped even though the imports are shared.
+- ALL desktop modules are imported unconditionally (e.g. both `desktops/herbstluftwm.nix` and `desktops/noctalia-niri.nix` in `hosts-nixos/<host>/home.nix`), then each guards its whole body with `lib.mkIf (desktop == "<name>")`. Only the matching desktop's block is active per specialisation, so home-manager config IS effectively spec-scoped even though the imports are shared.
 - Practical consequence: settings placed inside a `lib.mkIf (desktop == "X")` block (e.g. `xresources.properties` for the X11 desktop) only land in that specialisation's generation — they do not leak into other desktops.
 - Display managers differ per desktop: herbstluftwm uses lightdm (its `session-wrapper` sources `~/.xprofile`, runs `xrdb -merge ~/.Xresources`, then `eval exec ~/.xsession` to launch the WM — so `~/.Xresources` / home-manager `xresources.properties` are merged); noctalia-niri uses greetd running `niri-session` directly, which never runs `xrdb`, so X resources are inert there.

@@ -9,7 +9,7 @@ portable dotfiles setup.
 - Keep `/etc/nixos` only as compatibility glue when useful.
 - Treat `$HOME` as runtime state, not as the Git worktree.
 - Use NixOS and Home Manager for durable configuration.
-- Keep host entrypoints under `hosts/<hostname>/`.
+- Keep host entrypoints under `hosts-nixos/<hostname>/`.
 - Keep reusable NixOS and Home Manager logic under `modules/`.
 
 ## Home Files

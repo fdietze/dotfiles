@@ -49,7 +49,7 @@ nix run home-manager -- switch -b backup --flake github:fdietze/dotfiles#felix@a
 
 ### B / C — Full NixOS host (defined host or brand-new machine)
 
-One bootstrap script handles both. It clones the repo, then asks whether to set up the whole system (NixOS + Home Manager) or just the Home Manager shell profile. For a hostname that is already defined (e.g. `gurke`) it builds that host directly; for a new machine it derives a desktop-free host from `hosts/template/`, generates `hardware-configuration.nix`, and offers to rebuild.
+One bootstrap script handles both. It clones the repo, then asks whether to set up the whole system (NixOS + Home Manager) or just the Home Manager shell profile. For a hostname that is already defined (e.g. `gurke`) it builds that host directly; for a new machine it derives a desktop-free host from `hosts-nixos/template/`, generates `hardware-configuration.nix`, and offers to rebuild.
 
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/fdietze/dotfiles/master/scripts/setup-new-host.sh)
@@ -62,7 +62,7 @@ nix-on-droid switch --flake ~/projects/dotfiles#korken
 
 If `curl` is missing on a minimal install: `nix-shell -p curl`.
 
-To keep a new host long-term, promote it: add desktops and a `local.nix` the way `hosts/gurke/` does.
+To keep a new host long-term, promote it: add desktops and a `local.nix` the way `hosts-nixos/gurke/` does.
 
 # Awesome Links
 

@@ -1,4 +1,4 @@
-# Builds the bumped proot-termux (see nix-on-droid/proot-bumped/) and pushes it
+# Builds the bumped proot-termux (see hosts-nix-on-droid/proot-bumped/) and pushes it
 # to the fdietze cachix cache, so korken substitutes the exact store path on
 # `switch` (no on-device build, no manual copy). Also uploads it as an artifact.
 #

@@ -1,9 +1,9 @@
 # Generischer, desktop-freier Fallback-Host für noch nicht konfigurierte
-# Maschinen. scripts/setup-new-host.sh kopiert hosts/template/ nach
-# hosts/<hostname>/, erzeugt dort hardware-configuration.nix via
+# Maschinen. scripts/setup-new-host.sh kopiert hosts-nixos/template/ nach
+# hosts-nixos/<hostname>/, erzeugt dort hardware-configuration.nix via
 # `nixos-generate-config --show-hardware-config` und legt eine system-Datei mit
 # der erkannten Architektur an. Wer den Host behalten will, ergänzt Desktops und
-# eine local.nix analog zu hosts/gurke/.
+# eine local.nix analog zu hosts-nixos/gurke/.
 #
 # Auto-Discovery in flake.nix überspringt "template", daher wird dieses
 # Verzeichnis nie selbst zu einer nixosConfiguration ausgewertet.

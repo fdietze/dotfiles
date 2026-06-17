@@ -117,8 +117,8 @@ in {
     t3 = "${pkgs.eza}/bin/eza --tree --color=always -L 3";
     tg = "tree-git";
     vv = ''$EDITOR "$HOME"/projects/dotfiles/modules/home-manager/nvf.nix'';
-    vn = ''$EDITOR "$HOME"/projects/dotfiles/hosts/gurke/default.nix'';
-    vh = ''$EDITOR "$HOME"/projects/dotfiles/hosts/gurke/home.nix'';
+    vn = ''$EDITOR "$HOME"/projects/dotfiles/hosts-nixos/gurke/default.nix'';
+    vh = ''$EDITOR "$HOME"/projects/dotfiles/hosts-nixos/gurke/home.nix'';
     vp = ''$EDITOR "$HOME"/projects/dotfiles/modules/home-manager/packages.nix'';
     vb = ''$EDITOR "$HOME"/.config/polybar/config.ini'';
     nrs = "nrs";
