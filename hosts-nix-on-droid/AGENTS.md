@@ -56,6 +56,14 @@ always `localhost`; the stable identifier is the flake output name.
   host. Smoke-test: `xdpyinfo` should report the server; xeyes should render.
 - Ad-hoc test without a switch: `DISPLAY=127.0.0.1:1 nix run nixpkgs#xorg.xeyes`
   (first nixpkgs fetch on-device is slow).
+- **Capture the X display without adb** (broker-independent): grab the root
+  window over ssh and convert locally —
+  `ssh … 'DISPLAY=127.0.0.1:1 xwd -root -silent' > root.xwd` then
+  `magick root.xwd shot.png`. Handy when the adb screencap path is unavailable.
+- **Launch X clients/WM through a login shell** (`bash -lc "…"`), not a bare
+  `ssh host cmd`: sessionVariables like `DISPLAY`/`FONTCONFIG_FILE` live in
+  hm-session-vars, which only a login shell sources. A non-login command misses
+  them, so e.g. autostart-spawned terminals die on fontconfig.
 - Gotchas:
   - **Terminal: use st (or alacritty/kitty), NOT xterm/urxvt.** xterm's `spawn()`
     unconditionally calls `setuid(getuid())`, which returns `ENOSYS` under proot
