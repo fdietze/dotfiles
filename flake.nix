@@ -186,6 +186,31 @@
         ];
       };
 
+    # Benannter, permanenter Standalone-Home-Manager-Host (hosts-home/<name>.nix),
+    # aktiviert mit `home-manager switch --flake .#<name>`. Spiegelt mkNixOnDroid:
+    # name -> Datei + hostLabel + Output. Die Host-Datei listet ihre Profile
+    # selbst (inkl. Agenten-Variante), daher hier nur Builder-Boilerplate.
+    mkHomeHost = system: name:
+      home-manager.lib.homeManagerConfiguration {
+        pkgs = import nixpkgs {
+          inherit system;
+          config.allowUnfree = true;
+          overlays = [llm-agents.overlays.default];
+        };
+        extraSpecialArgs = {
+          flake-inputs = inputs;
+          nvf = nvf;
+          theme = defaultTheme;
+          uiFonts = uiFontsFor system;
+          # Stabiles Starship-STARSHIP_HOST; VM-Hostname (remote-ai) ist nichtssagend.
+          hostLabel = name;
+        };
+        modules = [
+          nix-index-database.homeModules.nix-index
+          ./hosts-home/${name}.nix
+        ];
+      };
+
     mkNixOnDroid = deviceName:
       nix-on-droid.lib.nixOnDroidConfiguration {
         modules = [./hosts-nix-on-droid/${deviceName}.nix];
@@ -225,8 +250,9 @@
     homeConfigurations = {
       "felix@x86_64-linux" = mkHome "x86_64-linux" "felix";
       "felix@aarch64-linux" = mkHome "aarch64-linux" "felix";
-      # Fly Sprite (https://docs.sprites.dev/): Ubuntu-VM, fester User "sprite".
-      "sprite@x86_64-linux" = mkHome "x86_64-linux" "sprite";
+      # Benannte permanente Home-Manager-Hosts (hosts-home/<name>.nix):
+      # "home-manager switch --flake .#<name>".
+      sprite = mkHomeHost "x86_64-linux" "sprite";
     };
 
     # "nix-on-droid switch --flake .#korken"
