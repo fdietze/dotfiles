@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { Engine, type AgentHandle } from "./engine.ts";
+import { Engine, statusLabel, type AgentHandle } from "./engine.ts";
 
 const fakeHandle = (): AgentHandle => ({
 	deliver: async () => {},
@@ -23,6 +23,19 @@ function mainRecord() {
 		streaming: false,
 	};
 }
+
+test("reportError clears streaming/activity so status does not stick mid-turn", () => {
+	const e = new Engine(caps);
+	e.addAgent({ ...mainRecord(), name: "w", depth: 1, streaming: true });
+	e.setActivity("w", "thinking");
+	assert.equal(statusLabel(e.get("w")!), "thinking");
+	e.reportError("w", "boom");
+	const rec = e.get("w")!;
+	assert.equal(rec.streaming, false);
+	assert.equal(rec.activity, undefined);
+	assert.equal(statusLabel(rec), "idle");
+	assert.equal(e.events.at(-1)?.type, "error");
+});
 
 test("addAgent registers and has/get work, emits spawn event", () => {
 	const e = new Engine(caps);

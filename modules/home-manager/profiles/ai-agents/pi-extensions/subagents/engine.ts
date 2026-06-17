@@ -288,6 +288,9 @@ export class Engine {
 
 	/** Report an async failure (e.g. a fire-and-forget delivery turn that later threw). */
 	reportError(name: string, reason: string): void {
+		// A failed turn may never fire agent_end, so clear streaming here to avoid the
+		// status sticking at thinking/writing/tool (setStreaming(false) also resets activity).
+		this.setStreaming(name, false);
 		this.emit({ type: "error", name, reason, ts: Date.now() });
 	}
 
