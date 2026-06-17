@@ -27,6 +27,17 @@ export interface RosterEntry {
 	status: string;
 }
 
+/**
+ * Swarm-wide scheduler state line, shown below the roster (panel) and footer. Expresses
+ * the mode that /halt and /unhalt toggle (halted vs live) plus the real activity count,
+ * so it never claims "running" while every agent is idle. The fine-grained per-agent phase
+ * (thinking/tool:.../idle) lives in the rows; this line is only the global mode.
+ */
+export function swarmStateLine(frozen: boolean, runningCount: number): string {
+	if (frozen) return " ⏸ halted — /unhalt to resume ";
+	return ` ▶ live · ${runningCount > 0 ? `${runningCount} working` : "idle"} `;
+}
+
 /** Status column width; fits "thinking"/"spawning" and short "tool:bash" labels. */
 const STATUS_COL = 10;
 /** A status counts as "busy" (highlighted) unless the agent is idle or still spawning. */

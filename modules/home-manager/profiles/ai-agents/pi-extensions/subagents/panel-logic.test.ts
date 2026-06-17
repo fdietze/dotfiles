@@ -12,6 +12,7 @@ import {
 	shortModel,
 	mergeStreaming,
 	isBusy,
+	swarmStateLine,
 } from "./panel-logic.ts";
 
 test("formatContext renders tokens/window/percent (percent is already 0-100), dash when unknown", () => {
@@ -42,6 +43,14 @@ test("formatRosterRow truncates a long tool status to the column", () => {
 		80,
 	);
 	assert.match(row, /tool:some…/);
+});
+
+test("swarmStateLine: halted vs live with activity count", () => {
+	assert.match(swarmStateLine(true, 3), /halted/);
+	assert.match(swarmStateLine(true, 3), /unhalt/);
+	assert.match(swarmStateLine(false, 2), /live · 2 working/);
+	assert.match(swarmStateLine(false, 0), /live · idle/);
+	assert.doesNotMatch(swarmStateLine(false, 0), /running/);
 });
 
 test("isBusy: only idle/spawning are not busy", () => {

@@ -62,9 +62,9 @@ export function formatFeedLines(events: AgentEvent[]): string[] {
 			case "turn":
 				return `turn    ${e.name}`;
 			case "halt":
-				return `HALT`;
+				return `halt    (swarm halted)`;
 			case "resume":
-				return `RESUME`;
+				return `resume  (swarm live)`;
 			case "kill":
 				return `kill    ${e.name}`;
 			case "blocked":

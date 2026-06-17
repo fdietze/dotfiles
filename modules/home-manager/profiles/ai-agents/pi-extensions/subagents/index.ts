@@ -20,7 +20,7 @@ import { Text } from "@earendil-works/pi-tui";
 import { Type } from "typebox";
 import { Engine, statusLabel, type AgentHandle } from "./engine.ts";
 import { formatFeedLines, formatKillResult, formatMulticastResult, formatSnapshot, normalizeTargets } from "./feed.ts";
-import { formatContext, formatRosterRow } from "./panel-logic.ts";
+import { formatContext, formatRosterRow, swarmStateLine } from "./panel-logic.ts";
 import { createSubagentsPanel } from "./panel.ts";
 import { createSpawner, type ResolvedModel, type SessionLike } from "./spawner.ts";
 
@@ -185,9 +185,11 @@ export default function subagents(pi: ExtensionAPI) {
 					styler,
 				),
 			);
+			const running = background.filter((a) => a.streaming).length;
+			const stateLine = swarmStateLine(engine.isFrozen(), running);
 			const haltLine = engine.isFrozen()
-				? theme.bg("toolPendingBg", " ⏸ agents HALTED — /unhalt to resume ".padEnd(80))
-				: theme.bg("selectedBg", " ▶ running ");
+				? theme.bg("toolPendingBg", stateLine.padEnd(80))
+				: theme.bg("selectedBg", stateLine);
 			ui.setWidget(
 				"agents-roster",
 				panelOpen || background.length === 0 ? undefined : [...rosterLines, haltLine],

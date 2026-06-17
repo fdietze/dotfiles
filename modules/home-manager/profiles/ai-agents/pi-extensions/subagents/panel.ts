@@ -17,6 +17,7 @@ import {
 	mergeStreaming,
 	messageText,
 	moveSelection,
+	swarmStateLine,
 	toolCalls,
 } from "./panel-logic.ts";
 
@@ -237,11 +238,12 @@ export function createSubagentsPanel(deps: PanelDeps, tui: TuiLike, theme: Theme
 					),
 				);
 			});
-			// Show the halt/unhalt state clearly below the list.
+			// Global swarm mode (halted/live) below the list — one source of truth in panel-logic.
+			const stateLine = swarmStateLine(deps.engine.isFrozen(), running);
 			lines.push(
 				deps.engine.isFrozen()
-					? theme.bg("toolPendingBg", truncateToWidth(" ⏸ agents HALTED — /unhalt to resume ".padEnd(width), width))
-					: theme.bg("selectedBg", " ▶ running "),
+					? theme.bg("toolPendingBg", truncateToWidth(stateLine.padEnd(width), width))
+					: theme.bg("selectedBg", stateLine),
 			);
 			lines.push(theme.fg("dim", truncateToWidth("─".repeat(width), width)));
 			lines.push(...transcriptLines(width));
