@@ -10,12 +10,16 @@ always `localhost`; the stable identifier is the flake output name.
   sources `nix-on-droid-session-init.sh`). Use it for git/switch/run — far more
   reliable than typing into the terminal via adb.
 - If a broken global `ssh_config` aborts the connection, pass `-F /dev/null`.
-- sshd from `sshd-start` runs in the *foreground of the app's terminal*; Android
-  freezes/kills it when the app loses foreground (e.g. when you bring another app
-  forward for a screenshot), so it dies mid-session. Keep the NoD app foregrounded
-  while doing ssh work, or give it a wakelock / battery-optimization exemption.
-  Also: that terminal is then busy running sshd, so adb-typed commands there go to
-  sshd's stdin, not a shell.
+- sshd from `sshd-start` runs in the *foreground of the app's terminal*. By
+  default Android freezes the app when it loses foreground (it is not Doze-
+  whitelisted), so sshd dies mid-session when you bring another app forward (e.g.
+  Termux:X11 for a screenshot). **Fix (verified): disable battery optimization
+  for the app** (Settings → Apps → nix-on-droid → Battery → Unrestricted). The
+  ongoing session notification (a foreground service) then keeps it from being
+  killed, and the exemption stops Doze freezing it — sshd survives backgrounding
+  with the screen on. Only screen-off/Doze additionally needs a wakelock.
+  Note: while that terminal runs sshd it is busy, so adb-typed commands there go
+  to sshd's stdin, not a shell.
 - `scp`/`rsync` fail over this sshd (the app login-shell wrapper breaks scp's
   protocol). To push a file without git, pipe it through the shell:
   `ssh … 'cat > path/file' < localfile` (verify with `sha256sum` both sides).
