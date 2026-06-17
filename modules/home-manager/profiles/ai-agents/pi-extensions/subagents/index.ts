@@ -288,6 +288,10 @@ export default function subagents(pi: ExtensionAPI) {
 			resourceLoader: loader,
 			sessionManager: SessionManager.inMemory(cwd),
 		});
+		// Inter-agent messages are delivered with deliverAs "steer"; "all" steering mode makes
+		// every queued message arrive at the next turn boundary (default "one-at-a-time" would
+		// drip-feed one per completed turn).
+		session.setSteeringMode("all");
 		return session;
 	};
 

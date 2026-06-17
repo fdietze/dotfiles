@@ -8,12 +8,14 @@ class FakeSession implements SessionLike {
 	aborted = 0;
 	isStreaming = false;
 	messages: unknown[] = [];
+	lastDeliverAs: string | undefined;
 	getContextUsage() {
 		return { tokens: 0, contextWindow: 1000, percent: 0 };
 	}
 	private listeners: ((e: { type: string }) => void)[] = [];
-	async sendUserMessage(text: string) {
+	async sendUserMessage(text: string, options?: { deliverAs?: string }) {
 		this.delivered.push(text);
+		this.lastDeliverAs = options?.deliverAs;
 	}
 	async abort() {
 		this.aborted++;
@@ -67,6 +69,8 @@ test("smoke: spawn -> deliver -> reply -> budget abort -> halt", async () => {
 	const rt = await engine.route("main", "echo", "ping");
 	assert.equal(rt.ok, true);
 	assert.deepEqual(sessions.get("echo")?.delivered, ["[message from main]: ping"]);
+	// Inter-agent delivery uses steer (next-boundary), not followUp.
+	assert.equal(sessions.get("echo")?.lastDeliverAs, "steer");
 
 	// echo -> main (the reply path)
 	await engine.route("echo", "main", "pong");

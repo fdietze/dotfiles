@@ -98,8 +98,13 @@ export function createSpawner(deps: SpawnerDeps): Spawner {
 			// when the whole turn completes. Awaiting it would block the caller (e.g. the
 			// spawn_agent tool) until the target agent finishes. Kick the turn and return; a
 			// late failure surfaces as an engine error event (visible in /feed + panel).
+			// deliverAs "steer": if the target is mid-turn, deliver at the next turn boundary
+			// (after the current tool calls, before the next LLM call) instead of waiting for it
+			// to fully stop — as direct as possible without aborting in-progress work. Combined
+			// with setSteeringMode("all") (set at spawn) so several queued messages all arrive at
+			// that boundary. Idle targets start a turn immediately regardless of deliverAs.
 			deliver: async (text) => {
-				void Promise.resolve(session.sendUserMessage(text, { deliverAs: "followUp" })).catch((e) =>
+				void Promise.resolve(session.sendUserMessage(text, { deliverAs: "steer" })).catch((e) =>
 					engine.reportError(spec.name, e instanceof Error ? e.message : String(e)),
 				);
 			},

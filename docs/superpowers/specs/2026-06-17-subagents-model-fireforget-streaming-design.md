@@ -84,6 +84,17 @@ using it:
 - Building/extracting a reusable transcript widget (does not exist; we reuse leaf
   components + the ported event glue).
 
+## Follow-up: direct inter-agent delivery (steer)
+
+`followUp` (used by #2) delivers only when a busy target fully stops. To make
+inter-agent messages as direct as possible without discarding in-progress work,
+background `deliver` uses `deliverAs: "steer"` — delivered at the next turn
+boundary (after the current tool calls, before the next LLM call). Each background
+session is created with `setSteeringMode("all")` so several queued messages all
+arrive at that boundary instead of the default `"one-at-a-time"` drip. Idle
+targets start a turn immediately regardless of mode. Delivery to `main` (the human
+chat) stays `followUp` — not steered into the human's active turn.
+
 ## Testing
 
 - `engine.test.ts`: `error` event emission; covered by `formatFeedLines` case.
