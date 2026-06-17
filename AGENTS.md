@@ -45,6 +45,7 @@ block.
 - nono sandboxing should only allow what is necessary and disallow everything (except network access) by default. if some software needs access to a path that contains secrets/keys or critical information, suggest a safer way, so the agent gains the capability, but never sees the secrets. look at the nono docs for possibilities.
 - the sandbox should limit ai agent compromitation and reduce attack surface for supply chain attacks.
 - ssh keys should never rest in the file system. always per secret service in keepassxc.
+- the agent must never read sensitive keys directly; broker the capability instead, the way ssh-agent does. e.g. for wireless adb to korken, run the key-holding `adb -a nodaemon server` outside the sandbox bound to the LAN ip (nono isolates loopback but shares the LAN interface) and have the sandboxed client reach it via `ADB_SERVER_SOCKET=tcp:<host-lan-ip>:5037` — the agent speaks only the wire protocol and never sees `~/.android/adbkey`.
 - when organizing nix architecture: prefer separate modules over options -> less coupling
 
 configuration entrypoints:
