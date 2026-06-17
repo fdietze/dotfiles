@@ -18,7 +18,7 @@ import {
 } from "@earendil-works/pi-coding-agent";
 import { Text } from "@earendil-works/pi-tui";
 import { Type } from "typebox";
-import { Engine, type AgentHandle } from "./engine.ts";
+import { Engine, statusLabel, type AgentHandle } from "./engine.ts";
 import { formatFeedLines, formatKillResult, formatMulticastResult, formatSnapshot, normalizeTargets } from "./feed.ts";
 import { formatContext, formatRosterRow } from "./panel-logic.ts";
 import { createSubagentsPanel } from "./panel.ts";
@@ -27,9 +27,12 @@ import { createSpawner, type ResolvedModel, type SessionLike } from "./spawner.t
 // Caps — Phase 1: module constants (binding them to settings is a trivial later addition).
 const CAPS = { maxAgents: 8, maxSpawnDepth: 3, turnBudget: 100 };
 
-// v2: bumped on the 'user' -> 'main' rename so a stale pre-rename singleton from an
-// earlier /reload cannot collide with the new one.
-const ENGINE_KEY = "__subagentsEngine_v2";
+// The Engine is a globalThis singleton so it survives /reload. Consequence: a persisted
+// instance keeps the SHAPE (methods) of the code that built it — adding/changing Engine
+// methods requires bumping this key, else the old instance lacks them ("x is not a
+// function") and throws inside event callbacks.
+// v2: 'user' -> 'main' rename. v3: added setActivity (fine-grained status phases).
+const ENGINE_KEY = "__subagentsEngine_v3";
 
 function getEngine(): Engine {
 	const g = globalThis as Record<string, unknown>;
@@ -51,6 +54,22 @@ function deliverToMain(text: string): void {
 	const sink = (globalThis as Record<string, unknown>)[MAIN_SINK_KEY] as MainSink | undefined;
 	if (!sink) throw new Error("no live foreground session to deliver to 'main'");
 	sink(text);
+}
+
+// Live foreground state read by the singleton 'main' record. Same reason as MAIN_SINK_KEY:
+// the engine (and thus main's view/handle closures) survive /reload, but each reloaded
+// instance has fresh locals. Storing the state on globalThis lets the new instance update
+// the SAME object the stored closures read, so main's ctx%/streaming never go stale.
+const MAIN_STATE_KEY = "__subagentsMainState_v1";
+type MainLiveState = { usage: { tokens: number | null; contextWindow: number; percent: number | null } | undefined; streaming: boolean };
+function mainState(): MainLiveState {
+	const g = globalThis as Record<string, unknown>;
+	let s = g[MAIN_STATE_KEY] as MainLiveState | undefined;
+	if (!s) {
+		s = { usage: undefined, streaming: false };
+		g[MAIN_STATE_KEY] = s;
+	}
+	return s;
 }
 
 function agentSystemPrompt(name: string, systemPrompt: string, spawnedBy: string): string {
@@ -124,11 +143,9 @@ export default function subagents(pi: ExtensionAPI) {
 	let ui: UI | undefined;
 	// Cache the main context as a VALUE — never hold the ctx itself (it goes stale after a
 	// turn/reload; calling a cached ctx crashes pi with "stale ctx").
-	type Usage = { tokens: number | null; contextWindow: number; percent: number | null };
-	let mainContextUsage: Usage | undefined;
-	const captureMainContext = (c: { getContextUsage(): Usage | undefined }) => {
+	const captureMainContext = (c: { getContextUsage(): MainLiveState["usage"] }) => {
 		try {
-			mainContextUsage = c.getContextUsage();
+			mainState().usage = c.getContextUsage();
 		} catch {
 			/* ctx stale -> ignore, refreshed on the next handler */
 		}
@@ -136,7 +153,6 @@ export default function subagents(pi: ExtensionAPI) {
 	type ModelLike = { provider: string; id: string };
 	let cwd = process.cwd();
 	let foregroundModel: ModelLike | undefined; // current foreground model (for inheritance to agents)
-	let foregroundStreaming = false;
 	// While the /agents panel is open, hide the persistent roster (otherwise doubled).
 	let panelOpen = false;
 
@@ -159,11 +175,11 @@ export default function subagents(pi: ExtensionAPI) {
 			// Only show background agents ('main' = the chat itself, redundant).
 			const background = agents.filter((a) => a.name !== "main");
 			const theme = ui.theme;
-			const styler = (label: string, active: boolean) =>
-				active ? theme.bg("toolSuccessBg", label) : theme.fg("dim", label);
+			const styler = (label: string, busy: boolean) =>
+				busy ? theme.bg("toolSuccessBg", label) : theme.fg("dim", label);
 			const rosterLines = background.map((a) =>
 				formatRosterRow(
-					{ name: a.name, model: a.model, context: formatContext(a.view?.getContextUsage()), active: a.streaming },
+					{ name: a.name, model: a.model, context: formatContext(a.view?.getContextUsage()), status: statusLabel(a) },
 					false,
 					80,
 					styler,
@@ -317,14 +333,27 @@ export default function subagents(pi: ExtensionAPI) {
 		ui = ctx.ui;
 		captureForegroundModel(ctx.model);
 		captureMainContext(ctx);
-		foregroundStreaming = true;
+		mainState().streaming = true;
 		engine.setStreaming("main", true);
+		engine.setActivity("main", "thinking");
+		updateStatus();
+	});
+	// Mirror the background phase tracking for 'main' so its status reads consistently.
+	pi.on("message_update", (event) => {
+		const sub = (event as { assistantMessageEvent?: { type?: string } }).assistantMessageEvent?.type;
+		if (sub === "thinking_start") engine.setActivity("main", "thinking");
+		else if (sub === "text_start" || sub === "toolcall_start") engine.setActivity("main", "writing");
+		else return;
+		updateStatus();
+	});
+	pi.on("tool_execution_start", (event) => {
+		engine.setActivity("main", "tool", (event as { toolName?: string }).toolName);
 		updateStatus();
 	});
 	pi.on("agent_end", (_event, ctx) => {
 		ui = ctx.ui;
 		captureMainContext(ctx);
-		foregroundStreaming = false;
+		mainState().streaming = false;
 		engine.setStreaming("main", false);
 		updateStatus();
 	});
@@ -343,7 +372,7 @@ export default function subagents(pi: ExtensionAPI) {
 					deliverToMain(text);
 				},
 				abort: async () => {}, // do not abort the human's turn
-				isStreaming: () => foregroundStreaming,
+				isStreaming: () => mainState().streaming,
 			};
 			engine.addAgent({
 				name: "main",
@@ -357,7 +386,7 @@ export default function subagents(pi: ExtensionAPI) {
 				streaming: false,
 				view: {
 					getMessages: () => [], // main transcript = the main chat (not mirrored)
-					getContextUsage: () => mainContextUsage, // cached VALUE, not a stale ctx
+					getContextUsage: () => mainState().usage, // globalThis-backed, survives /reload
 					subscribe: () => () => {},
 				},
 			});

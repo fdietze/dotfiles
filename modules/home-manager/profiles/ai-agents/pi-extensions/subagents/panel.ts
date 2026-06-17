@@ -8,7 +8,7 @@
  */
 import { Editor, type EditorTheme, Key, matchesKey, truncateToWidth } from "@earendil-works/pi-tui";
 import { AssistantMessageComponent, ToolExecutionComponent, UserMessageComponent } from "@earendil-works/pi-coding-agent";
-import type { Engine } from "./engine.ts";
+import { statusLabel, type Engine } from "./engine.ts";
 import {
 	clampScroll,
 	formatContext,
@@ -34,9 +34,9 @@ interface ThemeLike {
 	bg(color: string, s: string): string;
 }
 
-// active = clearly visible background, idle = subtle.
-const styleStatus = (theme: ThemeLike) => (label: string, active: boolean) =>
-	active ? theme.bg("toolSuccessBg", label) : theme.fg("dim", label);
+// busy = clearly visible background, idle/spawning = subtle.
+const styleStatus = (theme: ThemeLike) => (label: string, busy: boolean) =>
+	busy ? theme.bg("toolSuccessBg", label) : theme.fg("dim", label);
 
 const TRANSCRIPT_VIEWPORT = 18;
 
@@ -230,7 +230,7 @@ export function createSubagentsPanel(deps: PanelDeps, tui: TuiLike, theme: Theme
 			agents().forEach((a, i) => {
 				lines.push(
 					formatRosterRow(
-						{ name: a.name, model: a.model, context: formatContext(a.view?.getContextUsage()), active: a.streaming },
+						{ name: a.name, model: a.model, context: formatContext(a.view?.getContextUsage()), status: statusLabel(a) },
 						i === selectedIndex,
 						width,
 						styler,

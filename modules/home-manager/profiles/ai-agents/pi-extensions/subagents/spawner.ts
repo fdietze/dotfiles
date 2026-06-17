@@ -60,7 +60,18 @@ export function createSpawner(deps: SpawnerDeps): Spawner {
 				const r = engine.recordTurnStart(name);
 				if (r.abort) void session.abort();
 			}
-			if (ev.type === "agent_start" || ev.type === "message_start") engine.setStreaming(name, true);
+			if (ev.type === "agent_start" || ev.type === "message_start") {
+				engine.setStreaming(name, true);
+				engine.setActivity(name, "thinking");
+			}
+			// Refine the phase from streaming sub-events: reasoning vs answer text.
+			if (ev.type === "message_update") {
+				const sub = (ev.assistantMessageEvent as { type?: string } | undefined)?.type;
+				if (sub === "thinking_start") engine.setActivity(name, "thinking");
+				else if (sub === "text_start" || sub === "toolcall_start") engine.setActivity(name, "writing");
+			}
+			if (ev.type === "tool_execution_start")
+				engine.setActivity(name, "tool", (ev as { toolName?: string }).toolName);
 			if (ev.type === "agent_end") engine.setStreaming(name, false);
 			onActivity?.();
 		});

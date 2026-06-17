@@ -11,6 +11,7 @@ import {
 	findToolResult,
 	shortModel,
 	mergeStreaming,
+	isBusy,
 } from "./panel-logic.ts";
 
 test("formatContext renders tokens/window/percent (percent is already 0-100), dash when unknown", () => {
@@ -23,15 +24,32 @@ test("formatContext renders tokens/window/percent (percent is already 0-100), da
 
 test("formatRosterRow shows cursor, name, model, context, status", () => {
 	const row = formatRosterRow(
-		{ name: "echo", model: "anthropic/claude-sonnet-4-5", context: "3k/200k · 2%", active: true },
+		{ name: "echo", model: "anthropic/claude-sonnet-4-5", context: "3k/200k · 2%", status: "thinking" },
 		true,
 		60,
 	);
 	assert.match(row, /▸/);
 	assert.match(row, /echo/);
-	assert.match(row, /active/);
+	assert.match(row, /thinking/);
 	assert.match(row, /claude-sonnet-4/); // short id, provider prefix dropped
 	assert.ok(row.length <= 60);
+});
+
+test("formatRosterRow truncates a long tool status to the column", () => {
+	const row = formatRosterRow(
+		{ name: "echo", model: "x/y", context: "", status: "tool:some_very_long_tool" },
+		false,
+		80,
+	);
+	assert.match(row, /tool:some…/);
+});
+
+test("isBusy: only idle/spawning are not busy", () => {
+	assert.equal(isBusy("idle"), false);
+	assert.equal(isBusy("spawning"), false);
+	assert.equal(isBusy("thinking"), true);
+	assert.equal(isBusy("writing"), true);
+	assert.equal(isBusy("tool:bash"), true);
 });
 
 test("shortModel drops provider prefix and truncates", () => {

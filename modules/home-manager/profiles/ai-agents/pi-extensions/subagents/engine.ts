@@ -23,6 +23,9 @@ export interface AgentView {
 	subscribe(listener: (e: { type: string; message?: unknown; assistantMessageEvent?: unknown }) => void): () => void;
 }
 
+/** What an agent is doing right now (only meaningful while `streaming`). */
+export type AgentActivity = "thinking" | "writing" | "tool";
+
 export interface AgentRecord {
 	name: string;
 	model: string; // "provider/id", display only
@@ -35,6 +38,10 @@ export interface AgentRecord {
 	turns: number;
 	lastActivity: number;
 	streaming: boolean;
+	/** Fine-grained phase within a turn (reasoning vs answer text vs tool run). */
+	activity?: AgentActivity;
+	/** Tool name while `activity === "tool"`. */
+	currentTool?: string;
 	/** Reservation intermediate state: name taken, session still being created. */
 	pending?: boolean;
 	/** Messages buffered while pending (flushed to the session on attach). */
@@ -286,6 +293,37 @@ export class Engine {
 
 	setStreaming(name: string, streaming: boolean): void {
 		const rec = this.agents.get(name);
-		if (rec) rec.streaming = streaming;
+		if (!rec) return;
+		rec.streaming = streaming;
+		if (!streaming) {
+			// Turn over -> no activity/tool to report.
+			rec.activity = undefined;
+			rec.currentTool = undefined;
+		}
 	}
+
+	/** Set the fine-grained phase within a turn (thinking/writing/tool). */
+	setActivity(name: string, activity: AgentActivity, tool?: string): void {
+		const rec = this.agents.get(name);
+		if (!rec) return;
+		rec.activity = activity;
+		rec.currentTool = activity === "tool" ? tool : undefined;
+		rec.lastActivity = Date.now();
+	}
+}
+
+/**
+ * Single source of truth for an agent's display status, shared by the agent-facing
+ * roster (list_agents) and the TUI panel so the vocabulary stays consistent.
+ * spawning = session starting · thinking = model reasoning · writing = generating
+ * answer text · tool:<name> = running a tool · idle = waiting for input.
+ */
+export function statusLabel(
+	rec: Pick<AgentRecord, "pending" | "streaming" | "activity" | "currentTool">,
+): string {
+	if (rec.pending) return "spawning";
+	if (!rec.streaming) return "idle";
+	if (rec.activity === "tool") return rec.currentTool ? `tool:${rec.currentTool}` : "tool";
+	if (rec.activity === "writing") return "writing";
+	return "thinking";
 }

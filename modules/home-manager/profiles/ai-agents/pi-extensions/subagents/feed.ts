@@ -2,7 +2,7 @@
  * Pure formatting for the read-only observability of the agents.
  * No pi/TUI dependency; the strings are rendered into the UI in index.ts.
  */
-import type { AgentRecord, AgentEvent } from "./engine.ts";
+import { statusLabel, type AgentRecord, type AgentEvent } from "./engine.ts";
 
 /** Compact relative age: 3s / 4m / 2h. */
 function formatAge(ms: number): string {
@@ -38,14 +38,13 @@ export function formatSnapshot(
 	if (agents.length === 0) return "no agents";
 	const viewerParent = agents.find((a) => a.name === viewer)?.spawnedBy;
 	const rows = agents.map((a) => {
-		// pending = name reserved but session not attached yet -> NOT idle/ready.
-		const status = a.pending ? "spawning" : a.streaming ? "running" : "idle";
+		const status = statusLabel(a);
 		const u = a.view?.getContextUsage();
 		const ctx = u && u.percent != null ? `${Math.round(u.percent)}%` : "--";
 		const rel = relTo(a, viewer, viewerParent);
 		const queued = a.pending && a.buffer && a.buffer.length > 0 ? `, ${a.buffer.length} queued` : "";
 		return (
-			`  ${a.name.padEnd(14)} ${rel.padEnd(6)} ${status.padEnd(8)} ` +
+			`  ${a.name.padEnd(14)} ${rel.padEnd(6)} ${status.padEnd(12)} ` +
 			`turns:${String(a.turns).padEnd(3)} ctx:${ctx.padEnd(4)} last ${formatAge(now - a.lastActivity).padEnd(4)} ` +
 			`${a.model}  (by ${a.spawnedBy}${queued})`
 		);

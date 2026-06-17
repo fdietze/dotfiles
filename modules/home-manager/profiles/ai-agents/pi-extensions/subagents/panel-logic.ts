@@ -23,7 +23,15 @@ export interface RosterEntry {
 	name: string;
 	model: string;
 	context: string;
-	active: boolean;
+	/** Display status from engine.statusLabel (spawning/thinking/writing/tool:.../idle). */
+	status: string;
+}
+
+/** Status column width; fits "thinking"/"spawning" and short "tool:bash" labels. */
+const STATUS_COL = 10;
+/** A status counts as "busy" (highlighted) unless the agent is idle or still spawning. */
+export function isBusy(status: string): boolean {
+	return status !== "idle" && status !== "spawning";
 }
 
 /** Short model id for the roster: drop the "provider/" prefix, truncate to fit. */
@@ -38,19 +46,21 @@ export function formatRosterRow(
 	entry: RosterEntry,
 	selected: boolean,
 	width: number,
-	// Optional styler for the status label (background color for active). Default: identity.
-	styleStatus: (label: string, active: boolean) => string = (l) => l,
+	// Optional styler for the status label (background color when busy). Default: identity.
+	styleStatus: (label: string, busy: boolean) => string = (l) => l,
 ): string {
 	// Layout: <cursor> <status> <name> <context>. Status as a fixed ASCII column at the
 	// front (robustly aligned, independent of the variable context width at the end).
 	const cursor = selected ? "▸" : " ";
-	const label = (entry.active ? "active" : "idle").padEnd(6);
+	const busy = isBusy(entry.status);
+	const label =
+		entry.status.length > STATUS_COL ? `${entry.status.slice(0, STATUS_COL - 1)}…` : entry.status.padEnd(STATUS_COL);
 	const name = entry.name.length > 14 ? `${entry.name.slice(0, 13)}…` : entry.name.padEnd(14);
 	const model = shortModel(entry.model).padEnd(MODEL_COL);
 	const plain = `${cursor} ${label} ${name} ${model} ${entry.context}`;
 	// Width logic on the uncolored string (ANSI would corrupt .length).
 	if (plain.length > width) return plain.slice(0, width);
-	return `${cursor} ${styleStatus(label, entry.active)} ${name} ${model} ${entry.context}`;
+	return `${cursor} ${styleStatus(label, busy)} ${name} ${model} ${entry.context}`;
 }
 
 export function moveSelection(current: number, delta: number, count: number): number {

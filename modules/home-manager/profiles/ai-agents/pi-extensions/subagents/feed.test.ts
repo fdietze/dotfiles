@@ -30,9 +30,19 @@ test("formatSnapshot lists each agent with status and turns", () => {
 	const out = formatSnapshot(agents, 4, 100, "main");
 	assert.match(out, /main/);
 	assert.match(out, /coder/);
-	assert.match(out, /running/);
+	assert.match(out, /thinking/); // streaming, no fine-grained activity yet
 	assert.match(out, /idle/);
 	assert.match(out, /4/);
+});
+
+test("formatSnapshot renders fine-grained activity (writing / tool:name)", () => {
+	const agents = [
+		rec({ name: "w", streaming: true, activity: "writing" }),
+		rec({ name: "t", streaming: true, activity: "tool", currentTool: "bash" }),
+	];
+	const out = formatSnapshot(agents, 0, 100, "main");
+	assert.match(out, /writing/);
+	assert.match(out, /tool:bash/);
 });
 
 test("formatSnapshot shows pending agents as spawning (not idle) with queue count", () => {
