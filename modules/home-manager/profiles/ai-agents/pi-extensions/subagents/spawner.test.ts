@@ -27,12 +27,12 @@ class FakeSession implements SessionLike {
 	}
 }
 
-function withUser(engine: Engine, inbox: string[]) {
+function withMain(engine: Engine, inbox: string[]) {
 	engine.addAgent({
-		name: "user",
+		name: "main",
 		model: "test/m",
 		handle: { deliver: async (t) => void inbox.push(t), abort: async () => {}, isStreaming: () => false },
-		spawnedBy: "user",
+		spawnedBy: "main",
 		depth: 0,
 		createdAt: 0,
 		turns: 0,
@@ -44,7 +44,7 @@ function withUser(engine: Engine, inbox: string[]) {
 test("smoke: spawn -> deliver -> reply -> budget abort -> halt", async () => {
 	const engine = new Engine({ maxAgents: 8, maxSpawnDepth: 3, turnBudget: 2 });
 	const userInbox: string[] = [];
-	withUser(engine, userInbox);
+	withMain(engine, userInbox);
 
 	const sessions = new Map<string, FakeSession>();
 	const spawner = createSpawner({
@@ -58,18 +58,18 @@ test("smoke: spawn -> deliver -> reply -> budget abort -> halt", async () => {
 	});
 
 	// spawn echo
-	const r = await spawner.spawnAgent({ name: "echo", systemPrompt: "reply to sender" }, "user");
+	const r = await spawner.spawnAgent({ name: "echo", systemPrompt: "reply to sender" }, "main");
 	assert.equal(r.ok, true);
 	assert.equal(engine.has("echo"), true);
 	assert.equal(engine.get("echo")?.depth, 1);
 
-	// user -> echo
-	const rt = await engine.route("user", "echo", "ping");
+	// main -> echo
+	const rt = await engine.route("main", "echo", "ping");
 	assert.equal(rt.ok, true);
-	assert.deepEqual(sessions.get("echo")?.delivered, ["[message from user]: ping"]);
+	assert.deepEqual(sessions.get("echo")?.delivered, ["[message from main]: ping"]);
 
-	// echo -> user (the reply path)
-	await engine.route("echo", "user", "pong");
+	// echo -> main (the reply path)
+	await engine.route("echo", "main", "pong");
 	assert.deepEqual(userInbox, ["[message from echo]: pong"]);
 
 	// streaming state from session events
@@ -87,7 +87,7 @@ test("smoke: spawn -> deliver -> reply -> budget abort -> halt", async () => {
 
 	// halt blocks routing
 	engine.halt();
-	const blocked = await engine.route("user", "echo", "again");
+	const blocked = await engine.route("main", "echo", "again");
 	assert.equal(blocked.ok, false);
 });
 
@@ -107,14 +107,14 @@ test("spawn rejects unknown model", async () => {
 test("spawn rejects duplicate name", async () => {
 	const engine = new Engine({ maxAgents: 8, maxSpawnDepth: 3, turnBudget: 5 });
 	const userInbox: string[] = [];
-	withUser(engine, userInbox);
+	withMain(engine, userInbox);
 	const spawner = createSpawner({
 		engine,
 		resolveModel: () => ({ provider: "t", id: "m", model: {} }),
 		createSession: async () => new FakeSession(),
 	});
-	assert.equal((await spawner.spawnAgent({ name: "dup", systemPrompt: "r" }, "user")).ok, true);
-	const second = await spawner.spawnAgent({ name: "dup", systemPrompt: "r" }, "user");
+	assert.equal((await spawner.spawnAgent({ name: "dup", systemPrompt: "r" }, "main")).ok, true);
+	const second = await spawner.spawnAgent({ name: "dup", systemPrompt: "r" }, "main");
 	assert.equal(second.ok, false);
 	assert.match(second.msg, /already exists/i);
 });
@@ -122,14 +122,14 @@ test("spawn rejects duplicate name", async () => {
 test("spawn enforces max depth via spawner depth", async () => {
 	const engine = new Engine({ maxAgents: 8, maxSpawnDepth: 2, turnBudget: 5 });
 	const userInbox: string[] = [];
-	withUser(engine, userInbox);
+	withMain(engine, userInbox);
 	const spawner = createSpawner({
 		engine,
 		resolveModel: () => ({ provider: "t", id: "m", model: {} }),
 		createSession: async () => new FakeSession(),
 	});
-	// user(0) -> a(1) -> b(2) ok; b spawning would be depth 3 > 2
-	await spawner.spawnAgent({ name: "a", systemPrompt: "r" }, "user");
+	// main(0) -> a(1) -> b(2) ok; b spawning would be depth 3 > 2
+	await spawner.spawnAgent({ name: "a", systemPrompt: "r" }, "main");
 	await spawner.spawnAgent({ name: "b", systemPrompt: "r" }, "a");
 	const tooDeep = await spawner.spawnAgent({ name: "c", systemPrompt: "r" }, "b");
 	assert.equal(tooDeep.ok, false);

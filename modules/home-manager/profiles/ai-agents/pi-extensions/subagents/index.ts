@@ -1,7 +1,7 @@
 /**
- * Subagents pi-Extension — Vordergrund-Entry.
- * Hält die Engine als globalThis-Singleton (überlebt /reload), registriert Tools
- * + Commands für den 'user'-Agent und erzeugt Hintergrund-Agents via SDK.
+ * Subagents pi extension — foreground entry.
+ * Holds the engine as a globalThis singleton (survives /reload), registers tools
+ * + commands for the 'main' agent and creates background agents via the SDK.
  * Design: docs/superpowers/specs/2026-06-15-actor-swarm-pi-extension-design.md
  */
 import * as fs from "node:fs";
@@ -24,10 +24,12 @@ import { formatContext, formatRosterRow } from "./panel-logic.ts";
 import { createSubagentsPanel } from "./panel.ts";
 import { createSpawner, type ResolvedModel, type SessionLike } from "./spawner.ts";
 
-// Caps — Phase 1: Modul-Konstanten (Settings-Binding ist eine triviale spätere Ergänzung).
+// Caps — Phase 1: module constants (binding them to settings is a trivial later addition).
 const CAPS = { maxAgents: 8, maxSpawnDepth: 3, turnBudget: 100 };
 
-const ENGINE_KEY = "__subagentsEngine_v1";
+// v2: bumped on the 'user' -> 'main' rename so a stale pre-rename singleton from an
+// earlier /reload cannot collide with the new one.
+const ENGINE_KEY = "__subagentsEngine_v2";
 
 function getEngine(): Engine {
 	const g = globalThis as Record<string, unknown>;
@@ -35,31 +37,31 @@ function getEngine(): Engine {
 	return g[ENGINE_KEY] as Engine;
 }
 
-// Zustellung an den 'user'-Agent läuft über diese globalThis-Indirection, NICHT über ein
-// gecapturetes `pi`. Der Engine-Singleton überlebt /reload und Session-Replacement, ein
-// gecapturetes `pi` wird dabei aber dauerhaft stale (pi loader: state.staleMessage ??= ...,
-// wird nie zurückgesetzt). Jede frisch geladene Instanz überschreibt den Sink mit ihrem
-// eigenen lebenden pi.sendUserMessage, sodass der gespeicherte user-Handle nie ein totes
-// pi aufruft.
-const USER_SINK_KEY = "__subagentsUserSink_v1";
-type UserSink = (text: string) => void;
-function setUserSink(sink: UserSink): void {
-	(globalThis as Record<string, unknown>)[USER_SINK_KEY] = sink;
+// Delivery to the 'main' agent runs through this globalThis indirection, NOT through a
+// captured `pi`. The engine singleton survives /reload and session replacement, but a
+// captured `pi` becomes permanently stale (pi loader: state.staleMessage ??= ..., never
+// reset). Each freshly loaded instance overwrites the sink with its own live
+// pi.sendUserMessage, so the stored main handle never calls a dead pi.
+const MAIN_SINK_KEY = "__subagentsMainSink_v2";
+type MainSink = (text: string) => void;
+function setMainSink(sink: MainSink): void {
+	(globalThis as Record<string, unknown>)[MAIN_SINK_KEY] = sink;
 }
-function deliverToUser(text: string): void {
-	const sink = (globalThis as Record<string, unknown>)[USER_SINK_KEY] as UserSink | undefined;
-	if (!sink) throw new Error("no live foreground session to deliver to 'user'");
+function deliverToMain(text: string): void {
+	const sink = (globalThis as Record<string, unknown>)[MAIN_SINK_KEY] as MainSink | undefined;
+	if (!sink) throw new Error("no live foreground session to deliver to 'main'");
 	sink(text);
 }
 
-function agentSystemPrompt(name: string, systemPrompt: string): string {
+function agentSystemPrompt(name: string, systemPrompt: string, spawnedBy: string): string {
 	return [
 		`You are agent "${name}" in a multi-agent system.`,
+		`You were spawned by "${spawnedBy}".`,
 		"You can talk to other agents with these tools:",
-		"- spawn_agent({name, systemPrompt, model?, tools?, message?}): create a new agent (message = optional first task).",
-		"- send_message({to, content}): to is an agent name OR a list of names; fire-and-forget (e.g. 'user').",
+		"- spawn_agent({name, systemPrompt, model?, message?}): create a new agent (message = optional first task).",
+		"- send_message({to, content}): to is an agent name OR a list of names; fire-and-forget (e.g. 'main').",
 		"- list_agents(): see who exists.",
-		"- kill_agent({name}): terminate an agent or a list of agents (you cannot kill 'user').",
+		"- kill_agent({name}): terminate an agent or a list of agents (you cannot kill 'main').",
 		"Messages you receive are prefixed with [message from <sender>].",
 		"To reply, use send_message back to that sender.",
 		"",
@@ -67,9 +69,9 @@ function agentSystemPrompt(name: string, systemPrompt: string): string {
 	].join("\n");
 }
 
-// Tool-Call-Preview, die den VOLLEN Parameter-Inhalt zeigt. Ohne eigenen renderCall
-// zeigt pi's Fallback bei registrierten Tools nur den Tool-Namen (siehe ToolExecutionComponent
-// createCallFallback) — lange Felder wie systemPrompt würden also komplett fehlen.
+// Tool-call preview that shows the FULL parameter content. Without a custom renderCall,
+// pi's fallback for registered tools shows only the tool name (see ToolExecutionComponent
+// createCallFallback) — long fields like systemPrompt would be missing entirely.
 type RenderTheme = { fg(color: string, s: string): string; bold(s: string): string };
 function renderToolArgs(toolName: string, args: Record<string, unknown>, theme: RenderTheme): Text {
 	const lines = [theme.fg("toolTitle", theme.bold(toolName))];
@@ -88,49 +90,51 @@ function renderToolArgs(toolName: string, args: Record<string, unknown>, theme: 
 export default function subagents(pi: ExtensionAPI) {
 	const engine = getEngine();
 
-	// Diese (frisch geladene) Instanz besitzt ab jetzt die user-Zustellung mit ihrem
-	// lebenden pi — ersetzt einen ggf. veralteten Sink einer vorherigen Instanz.
-	setUserSink((text) => pi.sendUserMessage(text, { deliverAs: "followUp" }));
+	// This (freshly loaded) instance now owns the main delivery with its live pi —
+	// replacing a possibly stale sink from a previous instance.
+	setMainSink((text) => pi.sendUserMessage(text, { deliverAs: "followUp" }));
 
-	// Process-global, einmalig aufgebaute Dienste (gleiche creds wie Vordergrund).
+	// Process-global services built once (same creds as the foreground).
 	const authStorage = AuthStorage.create();
 	const modelRegistry = ModelRegistry.create(authStorage);
 
-	// Leeres agentDir, damit Hintergrund-Sessions NICHT erneut Extensions/Skills laden.
-	const blankAgentDir = fs.mkdtempSync(path.join(os.tmpdir(), "subagents-"));
+	// A single stable empty agentDir so background sessions do NOT re-load extensions/skills.
+	// It only needs to exist and stay empty; created idempotently so nothing leaks per /reload.
+	const blankAgentDir = path.join(os.tmpdir(), "pi-subagents-agentdir");
+	fs.mkdirSync(blankAgentDir, { recursive: true });
 
-	// UI ist nur über ctx.ui (ExtensionUIContext) verfügbar, nicht auf `pi`.
-	// Wir cachen die Referenz aus session_start, um den Footer auch aus
-	// Engine-Events (außerhalb eines Handler-ctx) aktualisieren zu können.
+	// The UI is only available via ctx.ui (ExtensionUIContext), not on `pi`.
+	// We cache the reference from session_start so we can update the footer from
+	// engine events too (outside a handler ctx).
 	type UI = {
 		setStatus(key: string, text: string | undefined): void;
 		setWidget(key: string, content: string[] | undefined, opts?: { placement?: "aboveEditor" | "belowEditor" }): void;
 		theme: { fg(color: string, s: string): string; bg(color: string, s: string): string };
 	};
 	let ui: UI | undefined;
-	// user-Kontext als WERT cachen — nie den ctx selbst halten (der wird nach
-	// Turn/Reload stale; ein gecachter ctx-Aufruf crasht pi mit "stale ctx").
+	// Cache the main context as a VALUE — never hold the ctx itself (it goes stale after a
+	// turn/reload; calling a cached ctx crashes pi with "stale ctx").
 	type Usage = { tokens: number | null; contextWindow: number; percent: number | null };
-	let userContextUsage: Usage | undefined;
-	const captureUserContext = (c: { getContextUsage(): Usage | undefined }) => {
+	let mainContextUsage: Usage | undefined;
+	const captureMainContext = (c: { getContextUsage(): Usage | undefined }) => {
 		try {
-			userContextUsage = c.getContextUsage();
+			mainContextUsage = c.getContextUsage();
 		} catch {
-			/* ctx stale -> ignorieren, wird beim nächsten Handler aufgefrischt */
+			/* ctx stale -> ignore, refreshed on the next handler */
 		}
 	};
 	type ModelLike = { provider: string; id: string };
 	let cwd = process.cwd();
-	let foregroundModel: ModelLike | undefined; // aktuelles Vordergrund-Modell (für Vererbung an Agents)
+	let foregroundModel: ModelLike | undefined; // current foreground model (for inheritance to agents)
 	let foregroundStreaming = false;
-	// Solange das /agents-Panel offen ist, das persistente Roster ausblenden (sonst doppelt).
+	// While the /agents panel is open, hide the persistent roster (otherwise doubled).
 	let panelOpen = false;
 
-	// Modell aus jedem Vordergrund-Handler-ctx erfassen (zuverlässiger als model_select allein).
+	// Capture the model from every foreground handler ctx (more reliable than model_select alone).
 	const captureForegroundModel = (m: ModelLike | undefined) => {
 		if (!m) return;
 		foregroundModel = { provider: m.provider, id: m.id };
-		const u = engine.get("user");
+		const u = engine.get("main");
 		if (u) u.model = `${m.provider}/${m.id}`;
 	};
 
@@ -138,12 +142,12 @@ export default function subagents(pi: ExtensionAPI) {
 		if (!ui) return;
 		try {
 			const agents = engine.list();
-			// Footer-Status entfällt — Anzahl/running/budget stehen im /agents-Panel-Header.
-			// Permanente Roster-Anzeige über dem Editor (plan-mode-Muster, kein Overlay).
-			// Nur zeigen, wenn mindestens ein Hintergrund-Agent existiert (nur 'user' allein
-			// ist redundant) und das /agents-Panel nicht ohnehin offen ist.
-			// Nur Hintergrund-Agents anzeigen ('user' = der Chat selbst, redundant).
-			const background = agents.filter((a) => a.name !== "user");
+			// No footer status — count/running/budget live in the /agents panel header.
+			// Permanent roster display above the editor (plan-mode pattern, no overlay).
+			// Only show when at least one background agent exists (just 'main' alone is
+			// redundant) and the /agents panel is not already open.
+			// Only show background agents ('main' = the chat itself, redundant).
+			const background = agents.filter((a) => a.name !== "main");
 			const theme = ui.theme;
 			const styler = (label: string, active: boolean) =>
 				active ? theme.bg("toolSuccessBg", label) : theme.fg("dim", label);
@@ -163,11 +167,11 @@ export default function subagents(pi: ExtensionAPI) {
 				panelOpen || background.length === 0 ? undefined : [...rosterLines, haltLine],
 			);
 		} catch {
-			/* ui aus einem stale ctx -> diesen Tick überspringen, frischt beim nächsten Handler auf */
+			/* ui from a stale ctx -> skip this tick, refreshes on the next handler */
 		}
 	};
 
-	// Status bei jedem Engine-Event aktualisieren.
+	// Update the status on every engine event.
 	engine.subscribe(() => updateStatus());
 
 	const resolveModel = (ref: string | undefined): ResolvedModel | undefined => {
@@ -176,7 +180,7 @@ export default function subagents(pi: ExtensionAPI) {
 			const model = modelRegistry.find(ref.slice(0, slash), ref.slice(slash + 1));
 			if (model) return { provider: model.provider, id: model.id, model };
 		}
-		// Fallback: aktuelles Vordergrund-Modell (deckt Vererbung + den "(foreground)"-Platzhalter ab).
+		// Fallback: current foreground model (covers inheritance + the "(foreground)" placeholder).
 		if (foregroundModel) {
 			const model = modelRegistry.find(foregroundModel.provider, foregroundModel.id);
 			if (model) return { provider: foregroundModel.provider, id: foregroundModel.id, model };
@@ -184,8 +188,8 @@ export default function subagents(pi: ExtensionAPI) {
 		return undefined;
 	};
 
-	// Tools für einen bestimmten Agent (Name fest gebunden) — für Vordergrund 'user'
-	// via pi.registerTool und für Hintergrund-Agents via customTools verwendet.
+	// Tools for a specific agent (name bound fixed) — used for the foreground 'main'
+	// via pi.registerTool and for background agents via customTools.
 	const makeAgentTools = (selfName: string): ToolDefinition[] => [
 		{
 			name: "spawn_agent",
@@ -197,7 +201,6 @@ export default function subagents(pi: ExtensionAPI) {
 				name: Type.String({ description: "Unique agent name ([a-zA-Z0-9_-])" }),
 				systemPrompt: Type.String({ description: "System prompt defining the agent's behavior" }),
 				model: Type.Optional(Type.String({ description: "provider/id; default: inherited" })),
-				tools: Type.Optional(Type.Array(Type.String(), { description: "Built-in tool allowlist" })),
 				message: Type.Optional(
 					Type.String({ description: "Optional first message delivered to the new agent right after spawn" }),
 				),
@@ -211,7 +214,7 @@ export default function subagents(pi: ExtensionAPI) {
 			name: "send_message",
 			label: "Send Message",
 			renderCall: (args, theme) => renderToolArgs("send_message", args as Record<string, unknown>, theme as RenderTheme),
-			description: "Fire-and-forget message to one agent or a list of agents (e.g. 'user'). Returns immediately.",
+			description: "Fire-and-forget message to one agent or a list of agents (e.g. 'main'). Returns immediately.",
 			parameters: Type.Object({
 				to: Type.Union([Type.String(), Type.Array(Type.String())], {
 					description: "Target agent name, or a list of names for multicast",
@@ -243,7 +246,7 @@ export default function subagents(pi: ExtensionAPI) {
 			name: "kill_agent",
 			label: "Kill Agent",
 			renderCall: (args, theme) => renderToolArgs("kill_agent", args as Record<string, unknown>, theme as RenderTheme),
-			description: "Terminate one agent or a list of agents. 'user' cannot be killed.",
+			description: "Terminate one agent or a list of agents. 'main' cannot be killed.",
 			parameters: Type.Object({
 				name: Type.Union([Type.String(), Type.Array(Type.String())], {
 					description: "Agent name, or a list of names to terminate",
@@ -260,31 +263,28 @@ export default function subagents(pi: ExtensionAPI) {
 		},
 	];
 
-	// SDK-Adapter: erzeugt eine isolierte Hintergrund-Agent-Session.
+	// SDK adapter: creates an isolated background agent session.
 	const createSession = async (spec: {
 		name: string;
 		systemPrompt: string;
+		spawnedBy: string;
 		model: unknown;
-		tools?: string[];
 	}): Promise<SessionLike> => {
 		const loader = new DefaultResourceLoader({
 			cwd,
 			agentDir: blankAgentDir,
-			systemPromptOverride: () => agentSystemPrompt(spec.name, spec.systemPrompt),
+			systemPromptOverride: () => agentSystemPrompt(spec.name, spec.systemPrompt, spec.spawnedBy),
 		});
 		await loader.reload();
 
-		const toolAllowlist = spec.tools
-			? [...spec.tools, "spawn_agent", "send_message", "list_agents", "kill_agent"]
-			: undefined;
-
+		// Leave the built-in tool allowlist unset so the agent inherits the full default
+		// foreground toolset, plus the four custom agent tools via customTools.
 		const { session } = await createAgentSession({
 			cwd,
 			model: spec.model as Parameters<typeof createAgentSession>[0]["model"],
 			authStorage,
 			modelRegistry,
 			customTools: makeAgentTools(spec.name),
-			...(toolAllowlist ? { tools: toolAllowlist } : {}),
 			resourceLoader: loader,
 			sessionManager: SessionManager.inMemory(cwd),
 		});
@@ -293,57 +293,57 @@ export default function subagents(pi: ExtensionAPI) {
 
 	const { spawnAgent } = createSpawner({ engine, resolveModel, createSession, onActivity: updateStatus });
 
-	// Foreground-Modell erfassen (für Vererbung an gespawnte Agents).
+	// Capture the foreground model (for inheritance to spawned agents).
 	pi.on("model_select", (event) => {
 		captureForegroundModel(event.model);
 	});
 
-	// Foreground-Streaming-Flag für Statusanzeige + Modell erfassen.
+	// Capture the foreground streaming flag for the status display + the model.
 	pi.on("agent_start", (_event, ctx) => {
 		ui = ctx.ui;
 		captureForegroundModel(ctx.model);
-		captureUserContext(ctx);
+		captureMainContext(ctx);
 		foregroundStreaming = true;
-		engine.setStreaming("user", true);
+		engine.setStreaming("main", true);
 		updateStatus();
 	});
 	pi.on("agent_end", (_event, ctx) => {
 		ui = ctx.ui;
-		captureUserContext(ctx);
+		captureMainContext(ctx);
 		foregroundStreaming = false;
-		engine.setStreaming("user", false);
+		engine.setStreaming("main", false);
 		updateStatus();
 	});
 
-	// 'user'-Agent registrieren (Vordergrund). Zustellung an user via pi.sendUserMessage.
+	// Register the 'main' agent (foreground). Delivery to main via pi.sendUserMessage.
 	pi.on("session_start", (_event, ctx) => {
 		cwd = ctx.cwd;
 		ui = ctx.ui;
-		ctx.ui.setStatus("agents", undefined); // Footer-Status wird nicht mehr genutzt (Infos im Panel)
-		captureUserContext(ctx);
+		ctx.ui.setStatus("agents", undefined); // footer status no longer used (info lives in the panel)
+		captureMainContext(ctx);
 		captureForegroundModel(ctx.model);
-		if (!engine.has("user")) {
-			const userHandle: AgentHandle = {
-				// über die globalThis-Indirection, damit der Singleton-Handle nie ein stale pi nutzt.
+		if (!engine.has("main")) {
+			const mainHandle: AgentHandle = {
+				// via the globalThis indirection so the singleton handle never uses a stale pi.
 				deliver: async (text) => {
-					deliverToUser(text);
+					deliverToMain(text);
 				},
-				abort: async () => {}, // den Menschen-Turn nicht abbrechen
+				abort: async () => {}, // do not abort the human's turn
 				isStreaming: () => foregroundStreaming,
 			};
 			engine.addAgent({
-				name: "user",
+				name: "main",
 				model: foregroundModel ? `${foregroundModel.provider}/${foregroundModel.id}` : "(foreground)",
-				handle: userHandle,
-				spawnedBy: "user",
+				handle: mainHandle,
+				spawnedBy: "main",
 				depth: 0,
 				createdAt: Date.now(),
 				turns: 0,
 				lastActivity: Date.now(),
 				streaming: false,
 				view: {
-					getMessages: () => [], // user-Transcript = Haupt-Chat (nicht gespiegelt)
-					getContextUsage: () => userContextUsage, // gecachter WERT, kein stale ctx
+					getMessages: () => [], // main transcript = the main chat (not mirrored)
+					getContextUsage: () => mainContextUsage, // cached VALUE, not a stale ctx
 					subscribe: () => () => {},
 				},
 			});
@@ -351,8 +351,8 @@ export default function subagents(pi: ExtensionAPI) {
 		updateStatus();
 	});
 
-	// Vordergrund-Tools für 'user' registrieren.
-	for (const tool of makeAgentTools("user")) {
+	// Register the foreground tools for 'main'.
+	for (const tool of makeAgentTools("main")) {
 		pi.registerTool(tool);
 	}
 
@@ -361,14 +361,14 @@ export default function subagents(pi: ExtensionAPI) {
 		handler: async (_args, ctx) => {
 			engine.halt();
 			for (const a of engine.list()) {
-				if (a.name !== "user") void a.handle.abort();
+				if (a.name !== "main") void a.handle.abort();
 			}
 			ctx.ui.notify("Agents halted. Use /unhalt to continue.", "warning");
 			updateStatus();
 		},
 	});
 
-	// Hinweis: nicht "resume" — das kollidiert mit pi's eingebautem /resume (Session fortsetzen).
+	// Note: not "resume" — that collides with pi's built-in /resume (continue session).
 	pi.registerCommand("unhalt", {
 		description: "Resume halted agents and reset the turn budget.",
 		handler: async (_args, ctx) => {
@@ -379,7 +379,7 @@ export default function subagents(pi: ExtensionAPI) {
 	});
 
 	pi.registerCommand("killall", {
-		description: "Terminate all agents (except 'user').",
+		description: "Terminate all agents (except 'main').",
 		handler: async (_args, ctx) => {
 			const killed = engine.killAll();
 			ctx.ui.notify(killed.length ? `Killed ${killed.length} agent(s): ${killed.join(", ")}` : "No agents to kill.", "info");
@@ -395,20 +395,20 @@ export default function subagents(pi: ExtensionAPI) {
 		},
 	});
 
-	// /agents öffnet das Panel als Vollbild-Takeover (kein Overlay — fror ein).
+	// /agents opens the panel as a fullscreen takeover (no overlay — that froze).
 	pi.registerCommand("agents", {
 		description: "Open the agents panel (Esc to close)",
 		handler: async (_args, ctx) => {
 			ui = ctx.ui;
 			panelOpen = true;
-			updateStatus(); // redundantes persistentes Roster ausblenden
+			updateStatus(); // hide the redundant persistent roster
 			try {
 				await ctx.ui.custom<void>((tui, theme, _kb, done) =>
-					createSubagentsPanel({ engine, cwd, route: (to, content) => void engine.route("user", to, content) }, tui, theme, done),
+					createSubagentsPanel({ engine, cwd, route: (to, content) => void engine.route("main", to, content) }, tui, theme, done),
 				);
 			} finally {
 				panelOpen = false;
-				updateStatus(); // persistentes Roster wieder einblenden
+				updateStatus(); // show the persistent roster again
 			}
 		},
 	});

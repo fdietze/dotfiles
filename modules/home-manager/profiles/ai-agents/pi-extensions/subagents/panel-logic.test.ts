@@ -65,10 +65,10 @@ test("toolCalls extracts id/name/arguments from assistant content; findToolResul
 		role: "assistant",
 		content: [
 			{ type: "text", text: "ok" },
-			{ type: "toolCall", id: "c1", name: "send_message", arguments: { to: "user", content: "hi" } },
+			{ type: "toolCall", id: "c1", name: "send_message", arguments: { to: "main", content: "hi" } },
 		],
 	};
-	assert.deepEqual(toolCalls(m), [{ id: "c1", name: "send_message", arguments: { to: "user", content: "hi" } }]);
+	assert.deepEqual(toolCalls(m), [{ id: "c1", name: "send_message", arguments: { to: "main", content: "hi" } }]);
 	assert.deepEqual(toolCalls({ role: "user", content: "hi" }), []);
 
 	const msgs = [

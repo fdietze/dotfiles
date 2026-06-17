@@ -1,12 +1,8 @@
 /**
- * Reine Formatierung für die read-only Beobachtbarkeit der Agents.
- * Keine pi-/TUI-Abhängigkeit; die Strings werden in index.ts in UI gerendert.
+ * Pure formatting for the read-only observability of the agents.
+ * No pi/TUI dependency; the strings are rendered into the UI in index.ts.
  */
 import type { AgentRecord, AgentEvent } from "./engine.ts";
-
-export function formatStatus(agentCount: number, runningCount: number, turnsUsed: number, turnBudget: number): string {
-	return `${agentCount} agents · ${runningCount} running · budget ${turnsUsed}/${turnBudget}`;
-}
 
 export function formatSnapshot(agents: AgentRecord[], turnsUsed: number, turnBudget: number): string {
 	if (agents.length === 0) return "no agents";
@@ -38,7 +34,7 @@ export function formatFeedLines(events: AgentEvent[]): string[] {
 	});
 }
 
-/** Normalisiert das `to`-Feld (Name oder Liste) zu einer deduplizierten Namensliste. */
+/** Normalizes the `to` field (name or list) into a deduplicated list of names. */
 export function normalizeTargets(to: string | string[]): string[] {
 	const arr = Array.isArray(to) ? to : [to];
 	const seen = new Set<string>();
@@ -59,7 +55,7 @@ export interface MulticastOutcome {
 	reason?: string;
 }
 
-/** Fasst ein Multicast-Ergebnis kompakt zusammen (für die Tool-Antwort). */
+/** Summarizes a multicast result compactly (for the tool response). */
 export function formatMulticastResult(results: MulticastOutcome[]): string {
 	if (results.length === 0) return "error: no targets";
 	const delivered = results.filter((r) => r.ok).map((r) => r.target);
@@ -70,7 +66,7 @@ export function formatMulticastResult(results: MulticastOutcome[]): string {
 	return parts.join(" · ");
 }
 
-/** Fasst ein Kill-Ergebnis kompakt zusammen (für die Tool-Antwort). */
+/** Summarizes a kill result compactly (for the tool response). */
 export function formatKillResult(results: MulticastOutcome[]): string {
 	if (results.length === 0) return "error: no targets";
 	const killed = results.filter((r) => r.ok).map((r) => r.target);

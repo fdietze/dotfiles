@@ -1,11 +1,11 @@
 /**
- * Orchestrierung der Subagents — SDK-frei, damit headless testbar.
- * index.ts injiziert die echten pi/SDK-Adapter (createSession, resolveModel, ...).
+ * Subagents orchestration — SDK-free, so it stays headless-testable.
+ * index.ts injects the real pi/SDK adapters (createSession, resolveModel, ...).
  * Design: docs/superpowers/specs/2026-06-15-actor-swarm-pi-extension-design.md
  */
 import type { AgentHandle, Engine } from "./engine.ts";
 
-/** Minimaler Ausschnitt einer AgentSession, den die Orchestrierung braucht. */
+/** Minimal slice of an AgentSession that the orchestration needs. */
 export interface SessionLike {
 	sendUserMessage(text: string, options?: { deliverAs?: "steer" | "followUp" }): Promise<void> | void;
 	abort(): Promise<void> | void;
@@ -15,7 +15,7 @@ export interface SessionLike {
 	getContextUsage(): { tokens: number | null; contextWindow: number; percent: number | null } | undefined;
 }
 
-/** Aufgelöstes Modell: provider/id zur Anzeige + opakes SDK-Modellobjekt für createSession. */
+/** Resolved model: provider/id for display + opaque SDK model object for createSession. */
 export interface ResolvedModel {
 	provider: string;
 	id: string;
@@ -26,18 +26,22 @@ export interface SpawnSpec {
 	name: string;
 	systemPrompt: string;
 	model?: string;
-	tools?: string[];
-	/** Optionale Startnachricht: nach dem Spawn atomar an den neuen Agent zugestellt. */
+	/** Optional first message: delivered atomically to the new agent right after spawn. */
 	message?: string;
 }
 
 export interface SpawnerDeps {
 	engine: Engine;
-	/** "provider/id" oder undefined (=> erben) auflösen; undefined wenn unbekannt. */
+	/** Resolve "provider/id" or undefined (=> inherit); undefined if unknown. */
 	resolveModel: (ref: string | undefined) => ResolvedModel | undefined;
-	/** Eine isolierte Hintergrund-Agent-Session erzeugen (SDK-Adapter in index.ts). */
-	createSession: (spec: { name: string; systemPrompt: string; model: unknown; tools?: string[] }) => Promise<SessionLike>;
-	/** Nach jeder relevanten Aktivität aufrufen (z.B. Status-Footer aktualisieren). */
+	/** Create an isolated background agent session (SDK adapter in index.ts). */
+	createSession: (spec: {
+		name: string;
+		systemPrompt: string;
+		spawnedBy: string;
+		model: unknown;
+	}) => Promise<SessionLike>;
+	/** Called after every relevant activity (e.g. refresh the status footer). */
 	onActivity?: () => void;
 }
 
@@ -48,6 +52,8 @@ export interface Spawner {
 export function createSpawner(deps: SpawnerDeps): Spawner {
 	const { engine, resolveModel, createSession, onActivity } = deps;
 
+	// Subscribe to a background session's lifecycle to enforce the turn budget and
+	// track streaming state.
 	const subscribeBackground = (name: string, session: SessionLike): (() => void) => {
 		return session.subscribe((ev) => {
 			if (ev.type === "turn_start") {
@@ -63,7 +69,7 @@ export function createSpawner(deps: SpawnerDeps): Spawner {
 	const spawnAgent = async (spec: SpawnSpec, spawnerName: string): Promise<{ ok: boolean; msg: string }> => {
 		const inheritRef = spec.model ?? engine.get(spawnerName)?.model;
 
-		// 1) Namen synchron reservieren (atomar: Duplikat/Cap/Tiefe) — schließt Races.
+		// 1) Reserve the name synchronously (atomic: duplicate/cap/depth) — closes races.
 		const reserved = engine.reserve(spec.name, spawnerName);
 		if (!reserved.ok) return { ok: false, msg: `error: ${reserved.reason}` };
 
@@ -73,14 +79,14 @@ export function createSpawner(deps: SpawnerDeps): Spawner {
 			return { ok: false, msg: `error: unknown model '${inheritRef ?? "(none)"}'` };
 		}
 
-		// 2) Langsame Session-Erstellung (await). Ein paralleles send_message puffert solange.
+		// 2) Slow session creation (await). A concurrent send_message buffers meanwhile.
 		let session: SessionLike;
 		try {
 			session = await createSession({
 				name: spec.name,
 				systemPrompt: spec.systemPrompt,
+				spawnedBy: spawnerName,
 				model: resolved.model,
-				tools: spec.tools,
 			});
 		} catch (e) {
 			engine.release(spec.name);
@@ -97,23 +103,23 @@ export function createSpawner(deps: SpawnerDeps): Spawner {
 			isStreaming: () => session.isStreaming,
 		};
 
-		// 3) Reservierung abschließen (flusht ggf. gepufferte Nachrichten an die Session).
+		// 3) Complete the reservation (flushes any buffered messages to the session).
 		engine.attach(spec.name, {
 			model: `${resolved.provider}/${resolved.id}`,
 			handle,
 			view: {
 				getMessages: () => session.messages,
-				// Nur der beim Spawn übergebene Prompt — nicht das volle session.systemPrompt
-				// (das zusätzlich Infra-Preamble, AGENTS.md, Skills etc. enthält).
+				// Only the prompt passed at spawn time — not the full session.systemPrompt
+				// (which also contains the infra preamble, AGENTS.md, skills, etc.).
 				getSystemPrompt: () => spec.systemPrompt,
 				getContextUsage: () => session.getContextUsage(),
 				subscribe: (l) => session.subscribe(l),
 			},
-			// Beim Kill aufräumen: Background-Event-Subscription lösen.
+			// Clean up on kill: detach the background event subscription.
 			dispose: subscribeBackground(spec.name, session),
 		});
 
-		// 4) Optionale Startnachricht atomar zustellen (kein Race, da Agent bereits registriert).
+		// 4) Deliver the optional first message atomically (no race; the agent is registered).
 		let sent = "";
 		if (spec.message) {
 			const r = await engine.route(spawnerName, spec.name, spec.message);

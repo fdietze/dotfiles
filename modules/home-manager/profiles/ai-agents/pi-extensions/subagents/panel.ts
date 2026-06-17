@@ -1,7 +1,7 @@
 /**
- * SubagentsPanel — Vollbild-Takeover (kein Overlay; Overlays froren die TUI ein).
- * Muster gespiegelt von question.ts: Fagenty liefert { render, handleInput, invalidate },
- * Editor via new Editor(tui, theme), Refresh über tui.requestRender().
+ * SubagentsPanel — fullscreen takeover (no overlay; overlays froze the TUI).
+ * Pattern mirrored from question.ts: the factory returns { render, handleInput, invalidate },
+ * editor via new Editor(tui, theme), refresh via tui.requestRender().
  * Transcript reuses the real chat components (User/Assistant/ToolExecution) for parity
  * with the main chat; the agent's system prompt is shown at the top. Defensive try/catch
  * around each component falls back to plain text so a render error never freezes the TUI.
@@ -33,7 +33,7 @@ interface ThemeLike {
 	bg(color: string, s: string): string;
 }
 
-// active = gut sichtbarer Hintergrund, idle = dezent.
+// active = clearly visible background, idle = subtle.
 const styleStatus = (theme: ThemeLike) => (label: string, active: boolean) =>
 	active ? theme.bg("toolSuccessBg", label) : theme.fg("dim", label);
 
@@ -44,8 +44,8 @@ interface RawMessage {
 	content?: unknown;
 }
 
-// Original-Message-Component defensiv rendern; bei Form-Abweichung Fallback auf Text,
-// damit ein Render-Fehler nie die TUI einfriert.
+// Render the original message component defensively; fall back to text on shape mismatch,
+// so a render error never freezes the TUI.
 function renderComponentLines(make: () => { render(w: number): string[] }, width: number, fallback: string): string[] {
 	try {
 		return make().render(width);
@@ -57,7 +57,7 @@ function renderComponentLines(make: () => { render(w: number): string[] }, width
 export function createSubagentsPanel(deps: PanelDeps, tui: TuiLike, theme: ThemeLike, done: () => void) {
 	let selectedIndex = 0;
 	let scrollOffset = 0;
-	let followBottom = true; // standardmäßig neueste Zeilen zeigen
+	let followBottom = true; // show the newest lines by default
 	let hasAbove = false;
 	let hasBelow = false;
 	const SCROLL_STEP = 5;
@@ -75,12 +75,12 @@ export function createSubagentsPanel(deps: PanelDeps, tui: TuiLike, theme: Theme
 	};
 	const editor = new Editor(tui as never, editorTheme);
 
-	// 'user' wird im Panel nicht gelistet (= der Haupt-Chat, in dem man ohnehin ist).
-	const agents = () => deps.engine.list().filter((a) => a.name !== "user");
+	// 'main' is not listed in the panel (= the main chat you are already in).
+	const agents = () => deps.engine.list().filter((a) => a.name !== "main");
 	const refresh = () => tui.requestRender();
 	const selectedName = () => agents()[selectedIndex]?.name;
 
-	// Auf die View des gewählten Agents abonnieren, damit Streaming live nachzieht.
+	// Subscribe to the selected agent's view so streaming updates live.
 	const rebindView = () => {
 		unsubView?.();
 		unsubView = undefined;
@@ -99,7 +99,7 @@ export function createSubagentsPanel(deps: PanelDeps, tui: TuiLike, theme: Theme
 		}
 	};
 
-	// Tool-Call wie im Haupt-Chat rendern (echte ToolExecutionComponent, inkl. Ergebnis).
+	// Render the tool call like the main chat (real ToolExecutionComponent, incl. result).
 	const renderToolCall = (call: { id: string; name: string; arguments: unknown }, msgs: RawMessage[], width: number) =>
 		renderComponentLines(
 			() => {
@@ -123,10 +123,10 @@ export function createSubagentsPanel(deps: PanelDeps, tui: TuiLike, theme: Theme
 
 	const transcriptLines = (width: number): string[] => {
 		const rec = agents()[selectedIndex];
-		if (!rec) return [theme.fg("muted", "  (keine Agents — mit spawn_agent erzeugen)")];
+		if (!rec) return [theme.fg("muted", "  (no agents — create one with spawn_agent)")];
 		const msgs = (rec.view?.getMessages() ?? []) as RawMessage[];
 		const lines: string[] = [];
-		// System-Prompt oben anzeigen (steht nicht in messages[]).
+		// Show the system prompt at the top (it is not part of messages[]).
 		const sys = rec.view?.getSystemPrompt?.();
 		if (sys) {
 			lines.push(theme.fg("dim", truncateToWidth("─ system ─", width)));
@@ -145,12 +145,12 @@ export function createSubagentsPanel(deps: PanelDeps, tui: TuiLike, theme: Theme
 						messageText(m.content),
 					),
 				);
-				// Tool-Calls separat wie im Haupt-Chat (toolResult wird inline gemerged).
+				// Tool calls rendered separately like the main chat (toolResult merged inline).
 				for (const call of toolCalls(m)) lines.push(...renderToolCall(call, msgs, width));
 			}
-			// toolResult-Rollen werden inline beim zugehörigen toolCall gerendert (übersprungen).
+			// toolResult roles are rendered inline with their toolCall (skipped here).
 		}
-		if (lines.length === 0) lines.push(theme.fg("muted", "  (noch keine Nachrichten)"));
+		if (lines.length === 0) lines.push(theme.fg("muted", "  (no messages yet)"));
 		const max = Math.max(0, lines.length - TRANSCRIPT_VIEWPORT);
 		if (followBottom || scrollOffset >= max) {
 			scrollOffset = max;
@@ -189,7 +189,7 @@ export function createSubagentsPanel(deps: PanelDeps, tui: TuiLike, theme: Theme
 				refresh();
 				return;
 			}
-			// Scroll-Up: PgUp / Ctrl+U / Shift+Up (mehrere, da tmux/Terminal PgUp evtl. abfängt)
+			// Scroll up: PgUp / Ctrl+U / Shift+Up (several, since tmux/terminal may swallow PgUp)
 			if (matchesKey(data, Key.pageUp) || matchesKey(data, Key.ctrl("u")) || matchesKey(data, Key.shift("up"))) {
 				followBottom = false;
 				scrollOffset = Math.max(0, scrollOffset - SCROLL_STEP);
@@ -198,7 +198,7 @@ export function createSubagentsPanel(deps: PanelDeps, tui: TuiLike, theme: Theme
 			}
 			// Scroll-Down: PgDn / Ctrl+D / Shift+Down
 			if (matchesKey(data, Key.pageDown) || matchesKey(data, Key.ctrl("d")) || matchesKey(data, Key.shift("down"))) {
-				scrollOffset += SCROLL_STEP; // render re-stickt ans Ende, wenn am Boden
+				scrollOffset += SCROLL_STEP; // render re-sticks to the bottom when at the end
 				refresh();
 				return;
 			}
@@ -222,7 +222,7 @@ export function createSubagentsPanel(deps: PanelDeps, tui: TuiLike, theme: Theme
 					),
 				);
 			});
-			// Halt/Unhalt-Zustand klar unter der Liste anzeigen.
+			// Show the halt/unhalt state clearly below the list.
 			lines.push(
 				deps.engine.isFrozen()
 					? theme.bg("toolPendingBg", truncateToWidth(" ⏸ agents HALTED — /unhalt to resume ".padEnd(width), width))
@@ -230,14 +230,14 @@ export function createSubagentsPanel(deps: PanelDeps, tui: TuiLike, theme: Theme
 			);
 			lines.push(theme.fg("dim", truncateToWidth("─".repeat(width), width)));
 			lines.push(...transcriptLines(width));
-			// Chatbox (der Editor zeichnet seinen eigenen Rahmen → keine extra Trennlinie).
-			if (!selectedName()) lines.push(theme.fg("muted", truncateToWidth(" (kein Agent gewählt)", width)));
+			// Chatbox (the editor draws its own frame → no extra separator line).
+			if (!selectedName()) lines.push(theme.fg("muted", truncateToWidth(" (no agent selected)", width)));
 			lines.push(...editor.render(width));
 			const scrollHint = `${hasAbove ? "▲" : ""}${hasBelow ? "▼" : ""}`;
 			lines.push(
 				theme.fg(
 					"dim",
-					truncateToWidth(` ↑/↓ Agent · Ctrl+U/D scroll ${scrollHint} · Enter senden · Esc schließen `, width),
+					truncateToWidth(` ↑/↓ agent · Ctrl+U/D scroll ${scrollHint} · Enter send · Esc close `, width),
 				),
 			);
 			return lines;

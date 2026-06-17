@@ -1,21 +1,21 @@
 /**
- * Subagents Engine — reine Policy + Registry, ohne pi-SDK-Abhängigkeit.
+ * Subagents Engine — pure policy + registry, no pi-SDK dependency.
  * Design: docs/superpowers/specs/2026-06-15-actor-swarm-pi-extension-design.md
  */
 
 export interface AgentHandle {
-	/** Stellt eine bereits formatierte Nachricht zu (Mailbox-Semantik im Adapter). */
+	/** Delivers an already-formatted message (mailbox semantics live in the adapter). */
 	deliver(text: string): Promise<void>;
-	/** Bricht den laufenden Turn dieses Agents ab. */
+	/** Aborts this agent's running turn. */
 	abort(): Promise<void>;
-	/** Ob der Agent gerade streamt (nur für Statusanzeige). */
+	/** Whether the agent is currently streaming (status display only). */
 	isStreaming(): boolean;
 }
 
-/** Live-Sicht auf einen Agent für das Panel (Phase 2). Optional, rein additiv. */
+/** Live view of an agent for the panel. Optional, purely additive. */
 export interface AgentView {
 	getMessages(): unknown[];
-	/** Der System-Prompt, mit dem der Agent läuft (oben im Transcript angezeigt). */
+	/** The system prompt the agent runs with (shown at the top of the transcript). */
 	getSystemPrompt?(): string;
 	getContextUsage(): { tokens: number | null; contextWindow: number; percent: number | null } | undefined;
 	subscribe(listener: (e: { type: string }) => void): () => void;
@@ -23,28 +23,28 @@ export interface AgentView {
 
 export interface AgentRecord {
 	name: string;
-	model: string; // "provider/id" nur zur Anzeige
+	model: string; // "provider/id", display only
 	handle: AgentHandle;
-	/** Optional: Live-Sicht auf Transcript/Kontext/Events (für das Panel). */
+	/** Optional live view of transcript/context/events (for the panel). */
 	view?: AgentView;
 	spawnedBy: string;
-	depth: number; // user = 0
+	depth: number; // main = 0
 	createdAt: number;
 	turns: number;
 	lastActivity: number;
 	streaming: boolean;
-	/** Reservierungs-Zwischenzustand: Name belegt, Session wird noch erstellt. */
+	/** Reservation intermediate state: name taken, session still being created. */
 	pending?: boolean;
-	/** Während pending gepufferte Nachrichten (bei attach an die Session geflusht). */
+	/** Messages buffered while pending (flushed to the session on attach). */
 	buffer?: string[];
-	/** Aufräumfunktion (z.B. Event-Subscription lösen) — beim Kill aufgerufen. */
+	/** Cleanup function (e.g. detach event subscription) — called on kill. */
 	dispose?: () => void;
 }
 
 export interface Caps {
-	maxAgents: number; // ohne 'user'
+	maxAgents: number; // excluding 'main'
 	maxSpawnDepth: number;
-	turnBudget: number; // global über alle Hintergrund-Agents
+	turnBudget: number; // global across all background agents
 }
 
 export type AgentEvent =
@@ -58,19 +58,22 @@ export type AgentEvent =
 
 export type CheckResult = { ok: true } | { ok: false; reason: string };
 
-const RESERVED = new Set(["user"]);
+const RESERVED = new Set(["main"]);
 const NAME_RE = /^[a-zA-Z0-9_-]+$/;
 
 export class Engine {
 	readonly events: AgentEvent[] = [];
 	private readonly agents = new Map<string, AgentRecord>();
 	private readonly listeners = new Set<(e: AgentEvent) => void>();
+	// Graph tracking (in-memory, survives /reload via the singleton, resets on pi restart).
+	private readonly messageEdges = new Map<string, Map<string, number>>(); // from -> (to -> count)
+	private readonly spawnParent = new Map<string, string>(); // child -> parent (main = root, no entry)
 	private frozen = false;
 	private turnsUsed = 0;
 	private readonly caps: Caps;
 
-	// Hinweis: keine TS-Parameter-Properties verwenden — Node's strip-only-Modus
-	// (node --test auf .ts) unterstützt sie nicht.
+	// Note: no TS parameter properties — Node's strip-only mode (node --test on .ts)
+	// does not support them.
 	constructor(caps: Caps) {
 		this.caps = caps;
 	}
@@ -105,7 +108,7 @@ export class Engine {
 		if (RESERVED.has(name)) return { ok: false, reason: `name '${name}' is reserved` };
 		if (!NAME_RE.test(name)) return { ok: false, reason: `invalid name '${name}' (use [a-zA-Z0-9_-])` };
 		if (this.agents.has(name)) return { ok: false, reason: `agent '${name}' already exists` };
-		const backgroundCount = [...this.agents.values()].filter((a) => a.name !== "user").length;
+		const backgroundCount = [...this.agents.values()].filter((a) => a.name !== "main").length;
 		if (backgroundCount >= this.caps.maxAgents) {
 			return { ok: false, reason: `max agents reached (${this.caps.maxAgents})` };
 		}
@@ -120,16 +123,20 @@ export class Engine {
 		this.emit({ type: "spawn", name: rec.name, by: rec.spawnedBy, ts: Date.now() });
 	}
 
-	// --- Atomare Reservierung (verhindert Spawn/Send-, Duplikat- und Cap-Races) ---
-	// canSpawn (sync) ist von der langsamen Session-Erstellung durch ein await getrennt;
-	// reserve schließt den Namen synchron ein, attach füllt die echte Session nach.
+	// --- Atomic reservation (prevents spawn/send, duplicate and cap races) ---
+	// canSpawn (sync) is separated from the slow session creation by an await;
+	// reserve locks the name synchronously, attach fills in the real session afterwards.
 
-	/** Reserviert einen Agent-Namen synchron. Gepufferte Nachrichten bis attach. */
+	/** Reserves an agent name synchronously. Buffers messages until attach. */
 	reserve(name: string, spawnerName: string): CheckResult {
 		const spawner = this.agents.get(spawnerName);
 		const depth = spawner ? spawner.depth : 0;
 		const check = this.canSpawn(name, depth);
 		if (!check.ok) return check;
+		// Full clean slate for a re-spawned name: drop its old incoming + outgoing edges.
+		this.messageEdges.delete(name);
+		for (const targets of this.messageEdges.values()) targets.delete(name);
+		this.spawnParent.set(name, spawnerName);
 		const buffer: string[] = [];
 		const record: AgentRecord = {
 			name,
@@ -155,7 +162,7 @@ export class Engine {
 		return { ok: true };
 	}
 
-	/** Schließt eine Reservierung ab: echte Session-Daten setzen + Puffer flushen. */
+	/** Completes a reservation: set the real session data + flush the buffer. */
 	attach(name: string, opts: { model: string; handle: AgentHandle; view?: AgentView; dispose?: () => void }): void {
 		const rec = this.agents.get(name);
 		if (!rec) return;
@@ -169,14 +176,14 @@ export class Engine {
 		for (const t of buffered) void opts.handle.deliver(t);
 	}
 
-	/** Reservierung freigeben (Session-Erstellung fehlgeschlagen). */
+	/** Release a reservation (session creation failed). */
 	release(name: string): void {
 		this.agents.delete(name);
 	}
 
-	/** Einen Agent terminieren (poison-pill): Turn abbrechen, aufräumen, entfernen. 'user' ist tabu. */
+	/** Terminate an agent (poison pill): abort its turn, clean up, remove. 'main' is off-limits. */
 	kill(name: string): CheckResult {
-		if (name === "user") return { ok: false, reason: "cannot kill 'user'" };
+		if (name === "main") return { ok: false, reason: "cannot kill 'main'" };
 		const rec = this.agents.get(name);
 		if (!rec) return { ok: false, reason: `unknown agent '${name}'` };
 		void rec.handle.abort();
@@ -186,11 +193,11 @@ export class Engine {
 		return { ok: true };
 	}
 
-	/** Alle Agents außer 'user' killen. Gibt die Namen der gekillten zurück. */
+	/** Kill all agents except 'main'. Returns the names of those killed. */
 	killAll(): string[] {
 		const killed: string[] = [];
 		for (const name of [...this.agents.keys()]) {
-			if (name === "user") continue;
+			if (name === "main") continue;
 			if (this.kill(name).ok) killed.push(name);
 		}
 		return killed;
@@ -227,12 +234,33 @@ export class Engine {
 		const wasStreaming = target.handle.isStreaming();
 		await target.handle.deliver(text);
 		target.lastActivity = Date.now();
+		// Count the message edge for the relationship graph.
+		let targets = this.messageEdges.get(from);
+		if (!targets) {
+			targets = new Map<string, number>();
+			this.messageEdges.set(from, targets);
+		}
+		targets.set(to, (targets.get(to) ?? 0) + 1);
 		const preview = content.length > 60 ? `${content.slice(0, 60)}...` : content;
 		this.emit({ type: "route", from, to, preview, ts: Date.now() });
 		return { ok: true, status: wasStreaming ? "queued (busy)" : "delivered (woken)" };
 	}
 
-	/** Vor jedem Hintergrund-Turn aufrufen. abort=true => Caller muss session.abort() aufrufen. */
+	/** Adjacency matrix of message counts: from -> (to -> count). Plain snapshot copy. */
+	getMessageMatrix(): Record<string, Record<string, number>> {
+		const out: Record<string, Record<string, number>> = {};
+		for (const [from, targets] of this.messageEdges) {
+			out[from] = Object.fromEntries(targets);
+		}
+		return out;
+	}
+
+	/** Spawn tree as child -> parent. Plain snapshot copy ('main' has no parent). */
+	getSpawnTree(): Record<string, string> {
+		return Object.fromEntries(this.spawnParent);
+	}
+
+	/** Call before every background turn. abort=true => caller must call session.abort(). */
 	recordTurnStart(name: string): { abort: boolean; reason?: string } {
 		if (this.frozen) return { abort: true, reason: "agents halted" };
 		if (this.turnsUsed >= this.caps.turnBudget) {
