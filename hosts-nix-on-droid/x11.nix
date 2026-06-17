@@ -11,7 +11,23 @@
 # Smoke-test stage: a single client (xterm) to prove the pipe before adding a
 # window manager.
 {pkgs, ...}: {
-  home.packages = [pkgs.xterm];
+  home.packages = [
+    pkgs.xterm
+    pkgs.dejavu_fonts # scalable mono/sans for fontconfig (Xft) clients
+  ];
+
+  # A minimal nix-on-droid has no fontconfig, so Xft clients fail with
+  # "Cannot load default config file". Enable it and provide a font.
+  fonts.fontconfig.enable = true;
+
+  # The Termux:X11 server serves no core X fonts, so a bare `xterm` (which wants
+  # the core "fixed" font) exits immediately. Default it to a fontconfig/Xft
+  # face. termux-x11 sets no RESOURCE_MANAGER, so xterm reads ~/.Xdefaults
+  # directly — no xrdb/session manager needed.
+  home.file.".Xdefaults".text = ''
+    XTerm.vt100.faceName: DejaVu Sans Mono
+    XTerm.vt100.faceSize: 12
+  '';
 
   # The Termux:X11 server started with `-listen tcp` exposes display :1 on
   # loopback; nixpkgs X clients connect there.
