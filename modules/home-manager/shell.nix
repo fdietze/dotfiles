@@ -10,8 +10,11 @@
   # under proot — so each deployment passes a stable hostLabel. Standalone HM on
   # arbitrary boxes leaves it empty and falls back to the shell's runtime
   # hostname ($HOSTNAME in bash, $HOST in zsh).
+  #
+  # Shown only when "remote": an SSH session, or a Fly Sprite (always-remote
+  # microVM accessed via the sprite proxy, not SSH — marked by the /.sprite dir).
   sshHostInit = ''
-    if [ -n "$SSH_CONNECTION" ]; then
+    if [ -n "$SSH_CONNECTION" ] || [ -d /.sprite ]; then
       export STARSHIP_HOST=${lib.escapeShellArg hostLabel}
       [ -n "$STARSHIP_HOST" ] || STARSHIP_HOST="''${HOSTNAME:-$HOST}"
     fi
