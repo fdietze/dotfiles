@@ -19,7 +19,6 @@
       dragon-drop # file drag and drop initiated from command line
       pandoc # convert document formats
       texliveSmall # required by pandoc
-      diff-so-fancy # diff viewer. TODO: replace with delta
       # curl-impersonate # curl mocking a real browser
       espeak # text to speech
       whisper-cpp # audio transcription

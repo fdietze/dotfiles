@@ -20,6 +20,7 @@
       lazygit
       tig
       git-fire
+      diff-so-fancy # git pager configured in home/files/.gitconfig. TODO: replace with delta
       nvd # diff nix generations/closures (used to verify rebuilds)
       dasel
       jq
