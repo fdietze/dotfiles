@@ -252,7 +252,7 @@
       "felix@aarch64-linux" = mkHome "aarch64-linux" "felix";
       # Benannte permanente Home-Manager-Hosts (hosts-home/<name>.nix):
       # "home-manager switch --flake .#<name>".
-      sprite = mkHomeHost "x86_64-linux" "sprite";
+      cubie = mkHomeHost "aarch64-linux" "cubie";
     };
 
     # "nix-on-droid switch --flake .#korken"
