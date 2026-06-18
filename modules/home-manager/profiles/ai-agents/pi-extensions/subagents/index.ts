@@ -4,7 +4,6 @@
  * + commands for the 'main' agent and creates background agents via the SDK.
  * Design: docs/superpowers/specs/2026-06-15-actor-swarm-pi-extension-design.md
  */
-import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import {
@@ -127,10 +126,12 @@ export default function subagents(pi: ExtensionAPI) {
 	const authStorage = AuthStorage.create();
 	const modelRegistry = ModelRegistry.create(authStorage);
 
-	// A single stable empty agentDir so background sessions do NOT re-load extensions/skills.
-	// It only needs to exist and stay empty; created idempotently so nothing leaks per /reload.
-	const blankAgentDir = path.join(os.tmpdir(), "pi-subagents-agentdir");
-	fs.mkdirSync(blankAgentDir, { recursive: true });
+	// Background agents share main's real agentDir so they inherit the SAME global AGENTS.md
+	// and global skills. Extensions are suppressed separately (noExtensions in createSession),
+	// which is the only thing we must keep out: loading them headless would re-run THIS
+	// extension (re-registering spawn_agent etc. + building another engine) and the
+	// interactive question.ts extension, neither of which works in a background SDK session.
+	const realAgentDir = path.join(os.homedir(), ".pi/agent");
 
 	// The UI is only available via ctx.ui (ExtensionUIContext), not on `pi`.
 	// We cache the reference from session_start so we can update the footer from
@@ -300,7 +301,9 @@ export default function subagents(pi: ExtensionAPI) {
 	}): Promise<SessionLike> => {
 		const loader = new DefaultResourceLoader({
 			cwd,
-			agentDir: blankAgentDir,
+			agentDir: realAgentDir,
+			// Inherit global + project AGENTS.md and skills, but NOT extensions (see realAgentDir).
+			noExtensions: true,
 			systemPromptOverride: () => agentSystemPrompt(spec.name, spec.systemPrompt, spec.spawnedBy),
 		});
 		await loader.reload();
