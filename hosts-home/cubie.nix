@@ -14,7 +14,7 @@
     ../modules/home-manager/profiles/standalone-extras.nix
   ];
 
-  # Only pi on this 1 GB SBC: skip codex's slow aarch64 Rust source build
-  # (no binary cache) and the other agents we don't use here.
-  aiAgents.names = ["pi"];
+  # pi + claude on this 1 GB SBC. Skip codex (slow aarch64 Rust source build,
+  # no binary cache) and opencode. claude-code is a light npm fetch.
+  aiAgents.names = ["pi" "claude"];
 }
