@@ -38,6 +38,10 @@ export interface AgentRecord {
 	turns: number;
 	lastActivity: number;
 	streaming: boolean;
+	/** System prompt the agent runs with (the spawn prompt, not the infra preamble). Persisted to roster.json so a restart can rebuild the session. */
+	systemPrompt?: string;
+	/** Absolute path of this agent's session JSONL on disk (undefined for 'main' + in-memory). */
+	sessionFile?: string;
 	/** Fine-grained phase within a turn (reasoning vs answer text vs tool run). */
 	activity?: AgentActivity;
 	/** Tool name while `activity === "tool"`. */
@@ -181,13 +185,25 @@ export class Engine {
 	}
 
 	/** Completes a reservation: set the real session data + flush the buffer. */
-	attach(name: string, opts: { model: string; handle: AgentHandle; view?: AgentView; dispose?: () => void }): void {
+	attach(
+		name: string,
+		opts: {
+			model: string;
+			handle: AgentHandle;
+			view?: AgentView;
+			dispose?: () => void;
+			systemPrompt?: string;
+			sessionFile?: string;
+		},
+	): void {
 		const rec = this.agents.get(name);
 		if (!rec) return;
 		rec.model = opts.model;
 		rec.handle = opts.handle;
 		rec.view = opts.view;
 		rec.dispose = opts.dispose;
+		rec.systemPrompt = opts.systemPrompt;
+		rec.sessionFile = opts.sessionFile;
 		rec.pending = false;
 		const buffered = rec.buffer ?? [];
 		rec.buffer = undefined;

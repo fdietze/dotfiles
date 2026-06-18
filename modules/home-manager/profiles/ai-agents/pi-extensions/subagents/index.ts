@@ -4,6 +4,7 @@
  * + commands for the 'main' agent and creates background agents via the SDK.
  * Design: docs/superpowers/specs/2026-06-15-actor-swarm-pi-extension-design.md
  */
+import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import {
@@ -21,6 +22,8 @@ import { Engine, statusLabel, type AgentHandle } from "./engine.ts";
 import { formatFeedLines, formatKillResult, formatMulticastResult, formatSnapshot, normalizeTargets } from "./feed.ts";
 import { formatContext, formatRosterRow, swarmStateLine } from "./panel-logic.ts";
 import { createSubagentsPanel } from "./panel.ts";
+import { danglingToolResultIds, deriveStatus, type RawMessage } from "./persistence-logic.ts";
+import { readRoster, subagentsDir, writeRoster } from "./persistence.ts";
 import { createSpawner, type ResolvedModel, type SessionLike } from "./spawner.ts";
 
 // Caps — Phase 1: module constants (binding them to settings is a trivial later addition).
@@ -40,7 +43,8 @@ const BUDGET_ESCALATION = (total: number) =>
 // function") and throws inside event callbacks.
 // v2: 'user' -> 'main' rename. v3: added setActivity (fine-grained status phases).
 // v4: halt(reason)+frozenReason, freeze-by-blocking recordTurnStart, halted flag, 200 cap.
-const ENGINE_KEY = "__subagentsEngine_v4";
+// v5: AgentRecord gains systemPrompt+sessionFile (persistence roster), attach() sets them.
+const ENGINE_KEY = "__subagentsEngine_v5";
 
 function getEngine(): Engine {
 	const g = globalThis as Record<string, unknown>;
@@ -141,6 +145,11 @@ export default function subagents(pi: ExtensionAPI) {
 	// extension (re-registering spawn_agent etc. + building another engine) and the
 	// interactive question.ts extension, neither of which works in a background SDK session.
 	const realAgentDir = path.join(os.homedir(), ".pi/agent");
+
+	// Where this main session's background agent files + roster live. Set at session_start
+	// from the main session; undefined until then (and for an in-memory main session) -> new
+	// agents fall back to in-memory (no persistence).
+	let subDir: string | undefined;
 
 	// The UI is only available via ctx.ui (ExtensionUIContext), not on `pi`.
 	// We cache the reference from session_start so we can update the footer from
@@ -260,6 +269,7 @@ export default function subagents(pi: ExtensionAPI) {
 			}),
 			execute: async (_id, args) => {
 				const res = await spawnAgent(args, selfName);
+				persistRoster();
 				return { content: [{ type: "text", text: res.msg }], details: {} };
 			},
 		},
@@ -311,18 +321,37 @@ export default function subagents(pi: ExtensionAPI) {
 					const r = engine.kill(t);
 					return r.ok ? { target: t, ok: true } : { target: t, ok: false, reason: r.reason };
 				});
+				persistRoster();
 				return { content: [{ type: "text", text: formatKillResult(results) }], details: {} };
 			},
 		},
 	];
 
-	// SDK adapter: creates an isolated background agent session.
-	const createSession = async (spec: {
-		name: string;
-		systemPrompt: string;
-		spawnedBy: string;
-		model: unknown;
-	}): Promise<SessionLike> => {
+	// Repair a crash-truncated transcript before the LLM sees it: a kill between persisting an
+	// assistant tool_use and its tool_result leaves a dangling tool_use, which providers reject.
+	// pi does NOT reconcile on load (verified: convertToLlm + buildSessionContext pass messages
+	// verbatim), so synthesize the missing tool_result here. appendMessage also rewrites the file.
+	const reconcileDangling = (sm: SessionManager): void => {
+		const msgs = sm.buildSessionContext().messages as RawMessage[];
+		for (const { id, name } of danglingToolResultIds(msgs)) {
+			sm.appendMessage({
+				role: "toolResult",
+				toolCallId: id,
+				toolName: name,
+				content: [{ type: "text", text: "Interrupted — not completed" }],
+				isError: true,
+				timestamp: Date.now(),
+			} as never);
+		}
+	};
+
+	// SDK adapter: creates an isolated background agent session. With existingFile it reopens a
+	// persisted session (restart resume); otherwise it starts a fresh persisted session under
+	// subDir (or in-memory when no main-session dir is available).
+	const createSession = async (
+		spec: { name: string; systemPrompt: string; spawnedBy: string; model: unknown },
+		existingFile?: string,
+	): Promise<{ session: SessionLike; sessionFile?: string }> => {
 		const loader = new DefaultResourceLoader({
 			cwd,
 			agentDir: realAgentDir,
@@ -331,6 +360,22 @@ export default function subagents(pi: ExtensionAPI) {
 			systemPromptOverride: () => agentSystemPrompt(spec.name, spec.systemPrompt, spec.spawnedBy),
 		});
 		await loader.reload();
+
+		let sm: SessionManager;
+		if (existingFile) {
+			sm = SessionManager.open(existingFile);
+			reconcileDangling(sm);
+		} else if (subDir) {
+			fs.mkdirSync(subDir, { recursive: true });
+			sm = SessionManager.create(cwd, subDir);
+			try {
+				(sm as { setSessionName?: (n: string) => void }).setSessionName?.(spec.name);
+			} catch {
+				/* display name is cosmetic; ignore if unsupported */
+			}
+		} else {
+			sm = SessionManager.inMemory(cwd);
+		}
 
 		// Leave the built-in tool allowlist unset so the agent inherits the full default
 		// foreground toolset, plus the four custom agent tools via customTools.
@@ -341,16 +386,80 @@ export default function subagents(pi: ExtensionAPI) {
 			modelRegistry,
 			customTools: makeAgentTools(spec.name),
 			resourceLoader: loader,
-			sessionManager: SessionManager.inMemory(cwd),
+			sessionManager: sm,
 		});
 		// Inter-agent messages are delivered with deliverAs "steer"; "all" steering mode makes
 		// every queued message arrive at the next turn boundary (default "one-at-a-time" would
 		// drip-feed one per completed turn).
 		session.setSteeringMode("all");
-		return session;
+		return { session, sessionFile: sm.getSessionFile() };
 	};
 
-	const { spawnAgent } = createSpawner({ engine, resolveModel, createSession, onActivity: updateStatus });
+	const { spawnAgent, restoreAgent } = createSpawner({ engine, resolveModel, createSession, onActivity: updateStatus });
+
+	// Overwrite roster.json with current background membership (called after spawn/kill).
+	// Best-effort: persistence must never break the swarm.
+	const persistRoster = (): void => {
+		if (!subDir) return;
+		try {
+			writeRoster(subDir, engine.list());
+		} catch {
+			/* best-effort */
+		}
+	};
+
+	// Restore-once guard keyed by subDir; on globalThis so it survives /reload (which must NOT
+	// re-restore — the singleton still holds the live agents).
+	const restoredSet = (): Set<string> => {
+		const g = globalThis as Record<string, unknown>;
+		let s = g.__subagentsRestored_v1 as Set<string> | undefined;
+		if (!s) {
+			s = new Set();
+			g.__subagentsRestored_v1 = s;
+		}
+		return s;
+	};
+
+	// Cold-start rebuild of a persisted swarm AS HALTED: reopen each agent file, reconcile any
+	// crash damage, derive idle-vs-halted from the transcript tail, register frozen. The
+	// existing resume_agents()/`/unhalt` then re-triggers exactly the halted agents.
+	const restoreSwarm = async (): Promise<void> => {
+		if (!subDir) return;
+		// Skip if the swarm is already populated (/reload) or already restored this session.
+		if (engine.list().some((a) => a.name !== "main")) return;
+		const done = restoredSet();
+		if (done.has(subDir)) return;
+		done.add(subDir);
+		const roster = readRoster(subDir);
+		if (!roster.length) return;
+		let restored = 0;
+		for (const entry of roster) {
+			if (!fs.existsSync(entry.sessionFile)) continue; // file gone -> skip
+			const resolved = resolveModel(entry.model);
+			if (!resolved) continue; // model no longer available -> skip
+			try {
+				const { session, sessionFile } = await createSession(
+					{ name: entry.name, systemPrompt: entry.systemPrompt, spawnedBy: entry.spawnedBy, model: resolved.model },
+					entry.sessionFile,
+				);
+				restoreAgent({
+					name: entry.name,
+					spawnedBy: entry.spawnedBy,
+					depth: entry.depth,
+					model: `${resolved.provider}/${resolved.id}`,
+					systemPrompt: entry.systemPrompt,
+					sessionFile: sessionFile ?? entry.sessionFile,
+					session,
+					halted: deriveStatus(session.messages as RawMessage[]) === "halted",
+				});
+				restored++;
+			} catch {
+				/* skip an unrestorable agent */
+			}
+		}
+		// Present the restored swarm as halted: one resume_agents()/`/unhalt` reactivates it.
+		if (restored > 0) engine.halt("manual");
+	};
 
 	// Shared by /unhalt and the resume_agents tool: re-arm the budget, unfreeze, and
 	// re-trigger only the halted agents (idle agents finished naturally — nothing to do).
@@ -402,12 +511,20 @@ export default function subagents(pi: ExtensionAPI) {
 	});
 
 	// Register the 'main' agent (foreground). Delivery to main via pi.sendUserMessage.
-	pi.on("session_start", (_event, ctx) => {
+	pi.on("session_start", async (_event, ctx) => {
 		cwd = ctx.cwd;
 		ui = ctx.ui;
 		ctx.ui.setStatus("agents", undefined); // footer status no longer used (info lives in the panel)
 		captureMainContext(ctx);
 		captureForegroundModel(ctx.model);
+		// Locate this main session's subagents dir (persistence + restore are keyed by it).
+		try {
+			const id = ctx.sessionManager.getSessionId();
+			const dir = ctx.sessionManager.getSessionDir();
+			subDir = id && dir ? subagentsDir(dir, id) : undefined;
+		} catch {
+			subDir = undefined;
+		}
 		if (!engine.has("main")) {
 			const mainHandle: AgentHandle = {
 				// via the globalThis indirection so the singleton handle never uses a stale pi.
@@ -434,6 +551,7 @@ export default function subagents(pi: ExtensionAPI) {
 				},
 			});
 		}
+		await restoreSwarm();
 		updateStatus();
 	});
 
@@ -488,6 +606,7 @@ export default function subagents(pi: ExtensionAPI) {
 		description: "Terminate all agents (except 'main').",
 		handler: async (_args, ctx) => {
 			const killed = engine.killAll();
+			persistRoster();
 			ctx.ui.notify(killed.length ? `Killed ${killed.length} agent(s): ${killed.join(", ")}` : "No agents to kill.", "info");
 			updateStatus();
 		},

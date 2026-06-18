@@ -55,7 +55,7 @@ test("smoke: spawn -> deliver -> reply -> budget abort -> halt", async () => {
 		createSession: async (spec) => {
 			const s = new FakeSession();
 			sessions.set(spec.name, s);
-			return s;
+			return { session: s, sessionFile: `/tmp/${spec.name}.jsonl` };
 		},
 	});
 
@@ -108,7 +108,7 @@ test("deliver is fire-and-forget: does not await the target's turn", async () =>
 	const spawner = createSpawner({
 		engine,
 		resolveModel: () => ({ provider: "t", id: "m", model: {} }),
-		createSession: async () => new BlockingSession(),
+		createSession: async () => ({ session: new BlockingSession() }),
 	});
 	const r = await spawner.spawnAgent({ name: "slow", systemPrompt: "r", message: "go" }, "main");
 	assert.equal(r.ok, true);
@@ -126,7 +126,7 @@ test("deliver failure surfaces as an engine error event", async () => {
 	const spawner = createSpawner({
 		engine,
 		resolveModel: () => ({ provider: "t", id: "m", model: {} }),
-		createSession: async () => new FailingSession(),
+		createSession: async () => ({ session: new FailingSession() }),
 	});
 	await spawner.spawnAgent({ name: "bad", systemPrompt: "r", message: "go" }, "main");
 	await new Promise((res) => setTimeout(res, 0)); // let the .catch microtask run
@@ -141,7 +141,7 @@ test("spawn rejects unknown model", async () => {
 	const spawner = createSpawner({
 		engine,
 		resolveModel: (ref) => (ref ? { provider: "t", id: "m", model: {} } : undefined),
-		createSession: async () => new FakeSession(),
+		createSession: async () => ({ session: new FakeSession() }),
 	});
 	// spawner 'ghost' not registered -> depth 0, no inherited model, no ref -> unknown model
 	const r = await spawner.spawnAgent({ name: "x", systemPrompt: "r" }, "ghost");
@@ -156,7 +156,7 @@ test("spawn rejects duplicate name", async () => {
 	const spawner = createSpawner({
 		engine,
 		resolveModel: () => ({ provider: "t", id: "m", model: {} }),
-		createSession: async () => new FakeSession(),
+		createSession: async () => ({ session: new FakeSession() }),
 	});
 	assert.equal((await spawner.spawnAgent({ name: "dup", systemPrompt: "r" }, "main")).ok, true);
 	const second = await spawner.spawnAgent({ name: "dup", systemPrompt: "r" }, "main");
@@ -171,7 +171,7 @@ test("spawn enforces max depth via spawner depth", async () => {
 	const spawner = createSpawner({
 		engine,
 		resolveModel: () => ({ provider: "t", id: "m", model: {} }),
-		createSession: async () => new FakeSession(),
+		createSession: async () => ({ session: new FakeSession() }),
 	});
 	// main(0) -> a(1) -> b(2) ok; b spawning would be depth 3 > 2
 	await spawner.spawnAgent({ name: "a", systemPrompt: "r" }, "main");

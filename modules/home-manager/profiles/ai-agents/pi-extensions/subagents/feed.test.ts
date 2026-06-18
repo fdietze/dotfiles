@@ -87,7 +87,7 @@ test("formatFeedLines renders one line per event newest-aware", () => {
 	const events: AgentEvent[] = [
 		{ type: "spawn", name: "coder", by: "main", ts: 0 },
 		{ type: "route", from: "main", to: "coder", preview: "do x", ts: 0 },
-		{ type: "halt", ts: 0 },
+		{ type: "halt", reason: "manual", ts: 0 },
 		{ type: "error", name: "coder", reason: "boom", ts: 0 },
 	];
 	const lines = formatFeedLines(events);

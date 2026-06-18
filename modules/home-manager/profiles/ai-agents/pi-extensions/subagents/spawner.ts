@@ -3,7 +3,7 @@
  * index.ts injects the real pi/SDK adapters (createSession, resolveModel, ...).
  * Design: docs/superpowers/specs/2026-06-15-actor-swarm-pi-extension-design.md
  */
-import type { AgentHandle, Engine } from "./engine.ts";
+import type { AgentHandle, AgentView, Engine } from "./engine.ts";
 
 /** Minimal slice of an AgentSession that the orchestration needs. */
 export interface SessionLike {
@@ -34,19 +34,38 @@ export interface SpawnerDeps {
 	engine: Engine;
 	/** Resolve "provider/id" or undefined (=> inherit); undefined if unknown. */
 	resolveModel: (ref: string | undefined) => ResolvedModel | undefined;
-	/** Create an isolated background agent session (SDK adapter in index.ts). */
+	/**
+	 * Create an isolated background agent session (SDK adapter in index.ts).
+	 * Returns the live session plus its on-disk JSONL path (for the persistence roster;
+	 * undefined for in-memory sessions).
+	 */
 	createSession: (spec: {
 		name: string;
 		systemPrompt: string;
 		spawnedBy: string;
 		model: unknown;
-	}) => Promise<SessionLike>;
+	}) => Promise<{ session: SessionLike; sessionFile?: string }>;
 	/** Called after every relevant activity (e.g. refresh the status footer). */
 	onActivity?: () => void;
 }
 
+/** Metadata to re-register an agent from a rehydrated (disk-loaded) session on restart. */
+export interface RestoreSpec {
+	name: string;
+	spawnedBy: string;
+	depth: number;
+	model: string; // "provider/id" display string
+	systemPrompt: string;
+	sessionFile: string;
+	session: SessionLike;
+	/** Derived from the transcript tail: true => resume re-triggers it; false => idle. */
+	halted: boolean;
+}
+
 export interface Spawner {
 	spawnAgent: (spec: SpawnSpec, spawnerName: string) => Promise<{ ok: boolean; msg: string }>;
+	/** Re-register an agent from a restored session (used by restart resume). */
+	restoreAgent: (spec: RestoreSpec) => void;
 }
 
 export function createSpawner(deps: SpawnerDeps): Spawner {
@@ -77,6 +96,60 @@ export function createSpawner(deps: SpawnerDeps): Spawner {
 		});
 	};
 
+	// Wire a live session into engine plumbing: the message handle, the panel view, and the
+	// lifecycle subscription (turn budget + streaming). Shared by fresh spawn and restore so
+	// both paths behave identically.
+	const wire = (name: string, session: SessionLike, systemPrompt: string): { handle: AgentHandle; view: AgentView; dispose: () => void } => {
+		const handle: AgentHandle = {
+			// Fire-and-forget: sendUserMessage internally awaits prompt(), which only resolves
+			// when the whole turn completes. Awaiting it would block the caller (e.g. the
+			// spawn_agent tool) until the target agent finishes. Kick the turn and return; a
+			// late failure surfaces as an engine error event (visible in /feed + panel).
+			// deliverAs "steer": if the target is mid-turn, deliver at the next turn boundary
+			// (after the current tool calls, before the next LLM call) instead of waiting for it
+			// to fully stop. Combined with setSteeringMode("all") (set at spawn) so several queued
+			// messages all arrive at that boundary. Idle targets start a turn immediately.
+			deliver: async (text) => {
+				void Promise.resolve(session.sendUserMessage(text, { deliverAs: "steer" })).catch((e) =>
+					engine.reportError(name, e instanceof Error ? e.message : String(e)),
+				);
+			},
+			abort: async () => {
+				await session.abort();
+			},
+			isStreaming: () => session.isStreaming,
+		};
+		const view: AgentView = {
+			getMessages: () => session.messages,
+			// Only the spawn prompt — not the full session.systemPrompt (infra preamble, AGENTS.md,
+			// skills, etc.).
+			getSystemPrompt: () => systemPrompt,
+			getContextUsage: () => session.getContextUsage(),
+			subscribe: (l) => session.subscribe(l),
+		};
+		return { handle, view, dispose: subscribeBackground(name, session) };
+	};
+
+	const restoreAgent = (spec: RestoreSpec): void => {
+		const { handle, view, dispose } = wire(spec.name, spec.session, spec.systemPrompt);
+		engine.addAgent({
+			name: spec.name,
+			model: spec.model,
+			handle,
+			view,
+			dispose,
+			systemPrompt: spec.systemPrompt,
+			sessionFile: spec.sessionFile,
+			spawnedBy: spec.spawnedBy,
+			depth: spec.depth,
+			createdAt: Date.now(),
+			turns: 0,
+			lastActivity: Date.now(),
+			streaming: false,
+			halted: spec.halted,
+		});
+	};
+
 	const spawnAgent = async (spec: SpawnSpec, spawnerName: string): Promise<{ ok: boolean; msg: string }> => {
 		const inheritRef = spec.model ?? engine.get(spawnerName)?.model;
 
@@ -92,53 +165,30 @@ export function createSpawner(deps: SpawnerDeps): Spawner {
 
 		// 2) Slow session creation (await). A concurrent send_message buffers meanwhile.
 		let session: SessionLike;
+		let sessionFile: string | undefined;
 		try {
-			session = await createSession({
+			({ session, sessionFile } = await createSession({
 				name: spec.name,
 				systemPrompt: spec.systemPrompt,
 				spawnedBy: spawnerName,
 				model: resolved.model,
-			});
+			}));
 		} catch (e) {
 			engine.release(spec.name);
 			return { ok: false, msg: `error: failed to start '${spec.name}': ${e instanceof Error ? e.message : String(e)}` };
 		}
 
-		const handle: AgentHandle = {
-			// Fire-and-forget: sendUserMessage internally awaits prompt(), which only resolves
-			// when the whole turn completes. Awaiting it would block the caller (e.g. the
-			// spawn_agent tool) until the target agent finishes. Kick the turn and return; a
-			// late failure surfaces as an engine error event (visible in /feed + panel).
-			// deliverAs "steer": if the target is mid-turn, deliver at the next turn boundary
-			// (after the current tool calls, before the next LLM call) instead of waiting for it
-			// to fully stop — as direct as possible without aborting in-progress work. Combined
-			// with setSteeringMode("all") (set at spawn) so several queued messages all arrive at
-			// that boundary. Idle targets start a turn immediately regardless of deliverAs.
-			deliver: async (text) => {
-				void Promise.resolve(session.sendUserMessage(text, { deliverAs: "steer" })).catch((e) =>
-					engine.reportError(spec.name, e instanceof Error ? e.message : String(e)),
-				);
-			},
-			abort: async () => {
-				await session.abort();
-			},
-			isStreaming: () => session.isStreaming,
-		};
-
 		// 3) Complete the reservation (flushes any buffered messages to the session).
+		const { handle, view, dispose } = wire(spec.name, session, spec.systemPrompt);
 		engine.attach(spec.name, {
 			model: `${resolved.provider}/${resolved.id}`,
 			handle,
-			view: {
-				getMessages: () => session.messages,
-				// Only the prompt passed at spawn time — not the full session.systemPrompt
-				// (which also contains the infra preamble, AGENTS.md, skills, etc.).
-				getSystemPrompt: () => spec.systemPrompt,
-				getContextUsage: () => session.getContextUsage(),
-				subscribe: (l) => session.subscribe(l),
-			},
+			view,
 			// Clean up on kill: detach the background event subscription.
-			dispose: subscribeBackground(spec.name, session),
+			dispose,
+			// Persisted to roster.json so a restart can rebuild this agent.
+			systemPrompt: spec.systemPrompt,
+			sessionFile,
 		});
 
 		// 4) Deliver the optional first message atomically (no race; the agent is registered).
@@ -150,5 +200,5 @@ export function createSpawner(deps: SpawnerDeps): Spawner {
 		return { ok: true, msg: `spawned '${spec.name}' (model ${resolved.provider}/${resolved.id})${sent}` };
 	};
 
-	return { spawnAgent };
+	return { spawnAgent, restoreAgent };
 }
