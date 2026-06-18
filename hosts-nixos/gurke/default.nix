@@ -362,6 +362,11 @@ in {
       package = pkgs.qemu_kvm;
       swtpm.enable = true; # vTPM (needed by Win11 etc.); OVMF is on by default
     };
+    # Disable the global ssh_config.d ProxyCommand include (for `ssh qemu:system/vm`).
+    # The store-owned include (nobody:nogroup) is rejected by OpenSSH as
+    # "Bad owner or permissions", breaking every ssh invocation. Unused: VMs run
+    # via virt-manager, not ssh-by-name.
+    sshProxy = false;
   };
   # SPICE USB redirect + virt-viewer integration
   virtualisation.spiceUSBRedirection.enable = true;
