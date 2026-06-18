@@ -108,6 +108,13 @@ function agentSystemPrompt(name: string, systemPrompt: string, spawnedBy: string
 		"- Keep intermediate states, status updates and work steps lateral (peers) or downward (your own subagents) — never escalate them upward.",
 		"- One message to your parent = one finished deliverable or a decision only the parent can make.",
 		"",
+		"Event-driven — do NOT poll or busy-wait: you run only when a message arrives. After you",
+		"act, END YOUR TURN and go idle; you are automatically re-woken the moment another agent",
+		"messages you. Never poll list_agents in a loop or try to 'wait' for a subagent to finish",
+		"— it wastes turns. If you spawned several agents, you are woken once per reply: track what",
+		"is still outstanding and finish only when all expected replies are in. Inspect",
+		"(list_agents/agent_history) only when you suspect a problem, not as a waiting mechanism.",
+		"",
 		systemPrompt,
 	].join("\n");
 }
@@ -286,7 +293,10 @@ export default function subagents(pi: ExtensionAPI) {
 			label: "Spawn Agent",
 			renderCall: (args, theme) => renderToolArgs("spawn_agent", args as Record<string, unknown>, theme as RenderTheme),
 			description:
-				"Create a new agent with a system prompt; optionally deliver a first message. It can then be messaged by name.",
+				"Create a new agent with a system prompt; optionally deliver a first message. It can then be messaged by name. " +
+				"Event-driven & fire-and-forget: after spawning, END YOUR TURN — you are automatically re-woken when an agent " +
+				"messages you back. Do NOT poll list_agents or wait in a loop for completion; it wastes turns. Inspect " +
+				"(list_agents/agent_history) only if you suspect something went wrong.",
 			parameters: Type.Object({
 				name: Type.String({ description: "Unique agent name ([a-zA-Z0-9_-])" }),
 				systemPrompt: Type.String({ description: "System prompt defining the agent's behavior" }),
@@ -305,7 +315,10 @@ export default function subagents(pi: ExtensionAPI) {
 			name: "send_message",
 			label: "Send Message",
 			renderCall: (args, theme) => renderToolArgs("send_message", args as Record<string, unknown>, theme as RenderTheme),
-			description: "Fire-and-forget message to one agent or a list of agents (e.g. 'main'). Returns immediately.",
+			description:
+				"Fire-and-forget message to one agent or a list of agents (e.g. 'main'). Returns immediately. After sending, " +
+				"END YOUR TURN — you are automatically re-woken if a reply arrives. Do NOT poll or wait in a loop; inspect only " +
+				"if you suspect a problem.",
 			parameters: Type.Object({
 				to: Type.Union([Type.String(), Type.Array(Type.String())], {
 					description: "Target agent name, or a list of names for multicast",
