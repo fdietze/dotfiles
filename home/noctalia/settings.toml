@@ -1,16 +1,113 @@
-# Noctalia v5 GUI state — source of truth for user-facing settings.
-# noctalia writes this file at runtime through the out-of-store symlink
-# ~/.local/state/noctalia/settings.toml -> here (see
-# modules/home-manager/desktops/noctalia-niri.nix). Edit in the GUI, then run
-# `noctalia-settings-save` is NOT needed — writes land here directly; just
-# review the diff and commit. This seed boots the shell with the shared Base16
-# palette (from modules/themes/noctalia-scheme.nix) in light mode; everything
-# else expands to defaults on first GUI interaction.
+[bar.default]
+center = []
+end = [
+    "tray",
+    "clipboard",
+    "network",
+    "bluetooth",
+    "volume",
+    "battery",
+    "control-center",
+    "notifications",
+    "session",
+    "clock"
+]
+margin_edge = 0
+margin_ends = 0
+radius = 0
+shadow = false
+start = [ "workspaces" ]
+thickness = 30
 
-[theme]
-mode = "light"
-source = "custom"
-custom_palette = "Base16"
+[calendar]
+enabled = true
+
+[desktop_widgets]
+enabled = false
+
+[idle]
+pre_action_fade_seconds = 10
+
+    [idle.behavior.lock]
+    enabled = true
+    timeout = 660
+
+    [idle.behavior.lock-and-suspend]
+    enabled = true
+    timeout = 86400
+
+    [idle.behavior.screen-off]
+    enabled = true
+    timeout = 600
+
+[location]
+address = "Beau Bassin-Rose Hill"
+auto_locate = true
+
+[lockscreen_widgets]
+enabled = false
+schema_version = 2
+widget_order = [ "lockscreen-login-box@eDP-1" ]
+
+    [lockscreen_widgets.grid]
+    cell_size = 16
+    major_interval = 4
+    visible = true
+
+    [lockscreen_widgets.widget."lockscreen-login-box@eDP-1"]
+    box_height = 0.0
+    box_width = 0.0
+    cx = 640.0
+    cy = 597.0
+    output = "eDP-1"
+    rotation = 0.0
+    type = "login_box"
+
+        [lockscreen_widgets.widget."lockscreen-login-box@eDP-1".settings]
+        background_color = "surface_variant"
+        background_opacity = 0.88
+        background_radius = 12.0
+        input_opacity = 1.0
+        input_radius = 6.0
+        show_login_button = true
+
+[nightlight]
+enabled = true
 
 [shell]
+avatar_path = "/home/felix/.face"
 polkit_agent = true
+
+[theme]
+builtin = "Tokyo-Night"
+custom_palette = "Base16"
+mode = "light"
+source = "custom"
+wallpaper_scheme = "m3-content"
+
+[wallpaper]
+directory = "/home/felix/downloads"
+
+    [wallpaper.default]
+    path = "/home/felix/downloads/felixdietze_trippy_Bear_with_big_eyes_hypnotizing_you_--ar_199__68a7a350-c34f-4523-9d89-53a4188f955d.png"
+
+    [wallpaper.last]
+    path = "/home/felix/downloads/felixdietze_trippy_Bear_with_big_eyes_hypnotizing_you_--ar_199__68a7a350-c34f-4523-9d89-53a4188f955d.png"
+
+    [wallpaper.monitors.eDP-1]
+    path = "/home/felix/downloads/felixdietze_trippy_Bear_with_big_eyes_hypnotizing_you_--ar_199__68a7a350-c34f-4523-9d89-53a4188f955d.png"
+
+    [[wallpaper.favorite]]
+    custom_palette = "Base16"
+    palette_source = "custom"
+    path = "/home/felix/downloads/felixdietze_trippy_Bear_with_big_eyes_hypnotizing_you_--ar_199__68a7a350-c34f-4523-9d89-53a4188f955d.png"
+    theme_mode = "auto"
+
+[widget.battery]
+display_mode = "graphic"
+hide_when_full = true
+
+[widget.workspaces]
+display = "name"
+empty_color = "on_primary"
+occupied_color = "tertiary"
