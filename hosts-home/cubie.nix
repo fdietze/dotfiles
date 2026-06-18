@@ -13,4 +13,8 @@
     ../modules/home-manager/profiles/ai-agents/vanilla.nix
     ../modules/home-manager/profiles/standalone-extras.nix
   ];
+
+  # Only pi on this 1 GB SBC: skip codex's slow aarch64 Rust source build
+  # (no binary cache) and the other agents we don't use here.
+  aiAgents.names = ["pi"];
 }

@@ -8,6 +8,7 @@
 # Same agent list (./agents.nix) and shared extras (skills, pi-extensions,
 # instructions) as the sandboxed ./default.nix — only the wrapping differs.
 {
+  config,
   lib,
   pkgs,
   ...
@@ -25,8 +26,19 @@
       ${env}exec ${prio} \
         ${bin} "$@"
     '';
+  allAgents = import ./agents.nix {inherit pkgs;};
 in {
   imports = [./skills.nix ./pi-extensions.nix ./instructions.nix];
 
-  home.packages = map mkAgent (import ./agents.nix {inherit pkgs;});
+  # Which agents (by name from agents.nix) to install. Default: all. A host can
+  # narrow this to avoid pulling heavy builds it doesn't need (e.g. the cubie
+  # SBC sets ["pi"] to skip codex's slow aarch64 Rust source build).
+  options.aiAgents.names = lib.mkOption {
+    type = lib.types.listOf lib.types.str;
+    default = map (a: a.name) allAgents;
+    description = "Agent names from agents.nix to install (unsandboxed).";
+  };
+
+  config.home.packages =
+    map mkAgent (lib.filter (a: lib.elem a.name config.aiAgents.names) allAgents);
 }

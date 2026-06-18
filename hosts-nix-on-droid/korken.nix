@@ -198,6 +198,8 @@ in {
         # herbstluftwm window manager on top of that X11 base.
         ./herbstluftwm.nix
       ];
+      # Only pi on this phone: skip the other agents' builds/substitutions.
+      aiAgents.names = ["pi"];
     };
   };
 
