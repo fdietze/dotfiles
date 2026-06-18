@@ -39,7 +39,8 @@ const BUDGET_ESCALATION = (total: number) =>
 // methods requires bumping this key, else the old instance lacks them ("x is not a
 // function") and throws inside event callbacks.
 // v2: 'user' -> 'main' rename. v3: added setActivity (fine-grained status phases).
-const ENGINE_KEY = "__subagentsEngine_v3";
+// v4: halt(reason)+frozenReason, freeze-by-blocking recordTurnStart, halted flag, 200 cap.
+const ENGINE_KEY = "__subagentsEngine_v4";
 
 function getEngine(): Engine {
 	const g = globalThis as Record<string, unknown>;
