@@ -331,6 +331,12 @@ in
           // GTK/libadwaita and most Qt apps honour this; Electron typically does not.
           prefer-no-csd
 
+          // Suppress niri's "Important Hotkeys" overlay shown at every session
+          // start (https://yalter.github.io/niri/Configuration:-Miscellaneous.html).
+          hotkey-overlay {
+              skip-at-startup
+          }
+
           // XWayland is auto-spawned by niri ≥25.08 when xwayland-satellite is in
           // PATH — no config keyword exists. xwayland-satellite is pulled in via
           // home.packages alongside this module.
