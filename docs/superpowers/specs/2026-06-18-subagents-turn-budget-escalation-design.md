@@ -170,11 +170,16 @@ Shell-side (manual / empirical, documented in the plan):
 
 ## Risks
 
-- **Dangling `tool_use`:** blocking the next turn uses `abort()`, which can persist a
-  partial aborted assistant message. Same risk as pi's interactive Esc-abort, which
-  pi handles (stopReason tracking; compaction catches aborted responses). Mitigated
-  by reuse of the proven path; confirmed by the empirical verification step. Cannot
-  be removed without the unexposed `shouldStopAfterTurn` hook.
+- **Dangling `tool_use`: VERIFIED RESOLVED (2026-06-18).** A standalone SDK harness
+  reproduced the harshest case — abort 1.5s into a running `bash` tool (tool_use
+  committed, no result yet) on a `createAgentSession` built like `createSession`,
+  then re-prompt with the resume nudge. Result: PASS, no provider error, the session
+  resumed and executed tools cleanly. pi's agent-loop synthesizes an aborted
+  `tool_result` for the interrupted tool call (`prepareToolCall` returns
+  `createErrorToolResult("Operation aborted")` when `signal.aborted`), so the history
+  never has a `tool_use` without a matching `tool_result`. The gentler
+  freeze-by-blocking path (abort at the next `turn_start`) is strictly safer than this
+  tested case.
 - **Budget overshoot** by ≤ (#active agents) turns — intentional, bounded.
 - **Main reflexively resuming** every 200 turns defeats the circuit breaker, but the
   forced, logged checkpoint each 200 turns still kills silent infinite drift
