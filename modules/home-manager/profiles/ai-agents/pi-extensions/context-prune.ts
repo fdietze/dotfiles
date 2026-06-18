@@ -72,11 +72,45 @@ interface Span {
 // Marker, den der Agent liest und an forget/recall zurueckgibt.
 const marker = (id: string) => `[#${id}]`;
 
+// Fuehrende [#8hex]-Marker, die das Modell in der eigenen Ausgabe imitiert.
+// Prompt-Anweisungen verhindern das nicht: empirisch ~85% Imitation ueber
+// haiku-4-5 und sonnet-4-5 (3 Prompt-Varianten getestet, inkl. Few-Shot),
+// weil First-Token-Pattern-Continuation Instruktionen schlaegt; zudem
+// akkumuliert es (bis ~30 Marker/Message). Daher am Ausgabe-Rand (message_end)
+// herausfiltern -> Fakes werden nie persistiert und koennen nicht akkumulieren.
+// Nur fuehrend/positional: eine id, die mitten im Prosatext referenziert wird
+// (z.B. "forgetting [#abc12345]"), bleibt erhalten.
+const LEADING_FAKE_MARKERS = /^(?:\s*\[#[0-9a-f]{8}\]\s*)+/;
+function stripLeadingMarkers(message: AgentMessageLike): AgentMessageLike {
+  if (typeof message.content === "string") {
+    const stripped = message.content.replace(LEADING_FAKE_MARKERS, "");
+    return stripped === message.content
+      ? message
+      : { ...message, content: stripped };
+  }
+  if (Array.isArray(message.content)) {
+    const idx = message.content.findIndex((b) => b?.type === "text");
+    if (idx < 0) return message;
+    const block = message.content[idx];
+    const stripped = (block.text ?? "").replace(LEADING_FAKE_MARKERS, "");
+    if (stripped === block.text) return message;
+    const content = message.content.slice();
+    content[idx] = { ...block, text: stripped };
+    return { ...message, content };
+  }
+  return message;
+}
+
 /** Sichtbaren `[#id]`-Marker an den ersten Text-Block voranstellen. */
 function tag(message: AgentMessageLike, id: string): void {
   const prefix = `${marker(id)} `;
+  // Bereits persistierte Fakes aus Alt-Sessions beim Taggen mit-entfernen
+  // (message_end greift nur fuer neue Messages). Nur fuer assistant, da nur das
+  // Modell Marker imitiert; user/toolResult-Text bleibt unangetastet.
+  const clean = (t: string) =>
+    message.role === "assistant" ? t.replace(LEADING_FAKE_MARKERS, "") : t;
   if (typeof message.content === "string") {
-    message.content = prefix + message.content;
+    message.content = prefix + clean(message.content);
     return;
   }
   const blocks = message.content;
@@ -84,7 +118,7 @@ function tag(message: AgentMessageLike, id: string): void {
   if (textIdx >= 0) {
     blocks[textIdx] = {
       ...blocks[textIdx],
-      text: prefix + (blocks[textIdx].text ?? ""),
+      text: prefix + clean(blocks[textIdx].text ?? ""),
     };
     return;
   }
@@ -250,6 +284,18 @@ export default function (pi: ExtensionAPI) {
   pi.on("session_start", async (_event, ctx) => reconstruct(ctx));
   pi.on("session_tree", async (_event, ctx) => reconstruct(ctx));
 
+  // Imitierte fuehrende Marker aus der finalisierten Assistant-Message
+  // entfernen, bevor sie gespeichert/angezeigt wird (siehe stripLeadingMarkers).
+  // Das ist die eigentliche Loesung gegen Imitation+Akkumulation; der Prompt
+  // allein wirkt nicht (s.o.).
+  pi.on("message_end", async (event) => {
+    if (event.message.role !== "assistant") return;
+    const original = event.message as AgentMessageLike;
+    const m = stripLeadingMarkers(original);
+    if (m === original) return;
+    return { message: m };
+  });
+
   // Marker injizieren bzw. vergessene Messages tombstonen - jedes Mal
   // deterministisch, damit das Prompt-Caching stabil bleibt.
   pi.on("context", async (event, ctx) => {
@@ -353,7 +399,7 @@ export default function (pi: ExtensionAPI) {
     promptSnippet:
       "Free context by forgetting earlier messages via their [#id] markers",
     promptGuidelines: [
-      "Every message is prefixed with a [#id] marker before sending it to the llm API; Don't generate message ids yourself, as there will be one prefixed automatically. pass those ids to forget_messages to create an overlay for that range which is sent to llm API instead of the original content. Or recall_messages to restore them (removes the overlay).",
+      "`[#id]` markers are labels the system prepends to each message so you can reference it — they are NOT part of the message text. Never write a `[#id]` marker in your own replies. Use these ids only as arguments to `forget_messages` / `recall_messages` / `forget_range` (forget = overlay hiding original content from the model; recall = remove overlay).",
     ],
     parameters: IdsParam,
     async execute(_id, params, _signal, _onUpdate, ctx) {
