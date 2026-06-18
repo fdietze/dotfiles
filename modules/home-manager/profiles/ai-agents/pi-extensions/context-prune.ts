@@ -3,8 +3,8 @@
  *
  * Idee: Jede Conversation-Message bekommt im `context`-Event (nur fuer den
  * jeweiligen LLM-Call, non-destruktiv) einen sichtbaren `[#id]`-Marker
- * vorangestellt. Der Agent referenziert damit Messages und ruft
- * `forget_messages({ ids })` bzw. `recall_messages({ ids })`.
+ * vorangestellt. Der Agent referenziert damit Messages und ruft `forget`
+ * (Range vergessen, optional mit Summary) bzw. `remember` (wiederherstellen).
  *
  * Warum Marker im Text statt im JSON: Der Provider serialisiert nur `role` +
  * `content`; Zusatzfelder am Message-Objekt erreichen das Modell nie. Die
@@ -13,15 +13,19 @@
  * Entry<->Message ueber `timestamp`+`role` korreliert (gemeinsamer, 1:1
  * kopierter Schluessel), dann der Marker in den ersten Text-Block gepatcht.
  *
- * Warum "vergessen" = Tombstone statt echtes Entfernen: toolCall/toolResult
- * sind gepaart; ein hartes Entfernen wuerde Paare verwaisen lassen (Provider-
- * Fehler) oder die Rollen-Alternation brechen. Der Tombstone ersetzt nur den
- * (grossen) Content, behaelt die Struktur und ist voll reversibel.
+ * EIN Mechanismus: Jedes Vergessen ist eine `Span` (eine auf ganze Tool-
+ * Einheiten gesnappte Range) mit optionaler Summary. Eine Span mit einem
+ * Member und leerer Summary ist das fruehere "Tombstone" (Content weg, Stub
+ * bleibt). Da Spans immer ganze toolCall/toolResult-Einheiten umfassen
+ * (expandRange), kann das Ersetzen durch EINE synthetische user-Message nie ein
+ * Paar verwaisen lassen - es braucht keine Sonderbehandlung pro Rolle. Alles
+ * ist voll reversibel (remember).
  *
- * Persistenz: Der kumulative Pruned-Set wird via pi.appendEntry als Custom-
+ * Persistenz: Die kumulative Span-Liste wird via pi.appendEntry als Custom-
  * Entry in die Session geschrieben und in session_start/session_tree wieder
  * rekonstruiert (analog examples/extensions/todo.ts) -> ueberlebt /reload und
- * folgt korrekt der Branch-History.
+ * folgt korrekt der Branch-History. Alt-Sessions mit `pruned`-Liste werden
+ * beim Lesen in Single-Member-Spans migriert.
  *
  * Doku: docs/extensions.md ("context" event, registerTool, appendEntry),
  *       docs/session-format.md (Entry/Message-Typen, getBranch, ids).
@@ -34,7 +38,7 @@ import type {
 import { Text } from "@earendil-works/pi-tui";
 import { Type } from "typebox";
 
-// Custom-Entry-Typ fuer die persistierte Pruned-Liste.
+// Custom-Entry-Typ fuer die persistierte Span-Liste.
 const PRUNE_ENTRY = "context-prune";
 
 // Rollen, die einen sichtbaren Marker bekommen und vergessen werden koennen.
@@ -52,24 +56,27 @@ interface AgentMessageLike {
 }
 
 interface PruneDetails {
-  action: "forget" | "recall";
-  applied: string[];
+  action: "forget" | "remember";
+  applied: string[]; // forget: fromIds der neuen Spans; remember: aufgeloeste ids
   unknown: string[];
   noop: string[];
-  total: number;
+  collapsed: number; // forget: Anzahl zusammengefasster Messages
+  summaries: string[]; // forget: Summary pro applied-Span ("" = reines Droppen)
+  total: number; // spans.length
 }
 
-// Eine zusammengefasste Range: ihre Summary-Message erbt fromId (= erstes
-// Member) als sichtbare id, damit sie selbst wieder in eine Range aufgenommen
-// und per recall aufgeloest werden kann. memberIds sind immer echte Entry-ids
-// (flach), zusammenhaengend und in Branch-Reihenfolge aufsteigend.
+// Eine vergessene Range: ihre Stub-Message erbt fromId (= erstes Member) als
+// sichtbare id, damit sie selbst wieder in eine Range aufgenommen und per
+// remember aufgeloest werden kann. memberIds sind immer echte Entry-ids (flach),
+// zusammenhaengend und in Branch-Reihenfolge aufsteigend. summary == "" -> die
+// Range wird nur gedroppt (Stub "(forgotten N)"), sonst durch die Summary ersetzt.
 interface Span {
   fromId: string;
   memberIds: string[];
   summary: string;
 }
 
-// Marker, den der Agent liest und an forget/recall zurueckgibt.
+// Marker, den der Agent liest und an forget/remember zurueckgibt.
 const marker = (id: string) => `[#${id}]`;
 
 // Fuehrende [#8hex]-Marker, die das Modell in der eigenen Ausgabe imitiert.
@@ -128,28 +135,6 @@ function tag(message: AgentMessageLike, id: string): void {
   while (insertAt < blocks.length && blocks[insertAt]?.type === "thinking")
     insertAt++;
   blocks.splice(insertAt, 0, { type: "text", text: marker(id) });
-}
-
-/**
- * Content durch einen Tombstone ersetzen. Erhaelt Pairing/Struktur:
- * - toolResult: Output blanken, toolCallId/Rolle bleiben -> Paar intakt.
- * - assistant: toolCall-Bloecke behalten (klein, fuer Pairing noetig),
- *   Text/Thinking durch Marker ersetzen.
- * - user/sonst: kompletter Content -> Marker.
- */
-function tombstone(message: AgentMessageLike, id: string): void {
-  const note = `${marker(id)} (forgotten)`;
-  if (message.role === "toolResult") {
-    message.content = [{ type: "text", text: note }];
-    message.details = undefined;
-    return;
-  }
-  if (message.role === "assistant" && Array.isArray(message.content)) {
-    const toolCalls = message.content.filter((b) => b?.type === "toolCall");
-    message.content = [{ type: "text", text: note }, ...toolCalls];
-    return;
-  }
-  message.content = note;
 }
 
 /** Geordnete, taggbare Message-Entries des aktuellen Branch (Branch-Reihenfolge). */
@@ -259,11 +244,9 @@ function expandRange(
 
 export default function (pi: ExtensionAPI) {
   // In-memory Quelle der Wahrheit, aus der Session rekonstruiert.
-  const pruned = new Set<string>();
   const spans: Span[] = [];
 
   const reconstruct = (ctx: ExtensionContext) => {
-    pruned.clear();
     spans.length = 0;
     // Letzter Custom-Entry auf dem Branch gewinnt (kumulativer Snapshot).
     for (const entry of ctx.sessionManager.getBranch()) {
@@ -271,15 +254,15 @@ export default function (pi: ExtensionAPI) {
         const data = entry.data as
           | { pruned?: string[]; spans?: Span[] }
           | undefined;
-        pruned.clear();
         spans.length = 0;
-        for (const id of data?.pruned ?? []) pruned.add(id);
         for (const s of data?.spans ?? []) spans.push(s);
+        // Alt-Sessions: jedes `pruned`-Tombstone -> Single-Member-Span ohne Summary.
+        for (const id of data?.pruned ?? [])
+          spans.push({ fromId: id, memberIds: [id], summary: "" });
       }
     }
   };
-  const persist = () =>
-    pi.appendEntry(PRUNE_ENTRY, { pruned: [...pruned], spans });
+  const persist = () => pi.appendEntry(PRUNE_ENTRY, { spans });
 
   pi.on("session_start", async (_event, ctx) => reconstruct(ctx));
   pi.on("session_tree", async (_event, ctx) => reconstruct(ctx));
@@ -296,8 +279,8 @@ export default function (pi: ExtensionAPI) {
     return { message: m };
   });
 
-  // Marker injizieren bzw. vergessene Messages tombstonen - jedes Mal
-  // deterministisch, damit das Prompt-Caching stabil bleibt.
+  // Marker injizieren bzw. vergessene Ranges durch einen Stub ersetzen - jedes
+  // Mal deterministisch, damit das Prompt-Caching stabil bleibt.
   pi.on("context", async (event, ctx) => {
     // Entry-ids in Branch-Reihenfolge pro (timestamp,role) als Queue, um
     // gleiche Schluessel positionsstabil zu konsumieren.
@@ -311,7 +294,7 @@ export default function (pi: ExtensionAPI) {
       queue.push(entry.id);
     }
 
-    // Span-Lookups: fromId -> Span (durch Summary ersetzen), uebrige Member weglassen.
+    // Span-Lookups: fromId -> Span (durch Stub ersetzen), uebrige Member weglassen.
     const spanByFrom = new Map(spans.map((s) => [s.fromId, s] as const));
     const hiddenMembers = new Set<string>();
     for (const s of spans)
@@ -331,131 +314,174 @@ export default function (pi: ExtensionAPI) {
       if (hiddenMembers.has(id)) continue; // Teil eines Spans (nicht erstes Member) -> weglassen
       const span = spanByFrom.get(id);
       if (span) {
-        // Ganze Range durch EINE synthetische user-Summary ersetzen. Da der Span
+        // Ganze Range durch EINE synthetische user-Message ersetzen. Da der Span
         // immer ganze Tool-Einheiten umfasst, koennen die weggelassenen Member
         // nie ein toolCall/toolResult-Paar verwaisen lassen.
+        const n = span.memberIds.length;
         message.role = "user";
-        message.content = `${marker(id)} (summary) ${span.summary}`;
+        message.content = span.summary
+          ? `${marker(id)} (summary) ${span.summary}`
+          : `${marker(id)} (forgotten ${n} message${n > 1 ? "s" : ""})`;
         message.details = undefined;
         message.toolCallId = undefined;
         out.push(message);
         continue;
       }
-      if (pruned.has(id)) tombstone(message, id);
-      else tag(message, id);
+      tag(message, id);
       out.push(message);
     }
     return { messages: out };
   });
 
-  // Gueltige (vergessbare) Message-Entry-ids auf dem aktuellen Branch.
-  const validIds = (ctx: ExtensionContext): Set<string> => {
-    const ids = new Set<string>();
-    for (const entry of ctx.sessionManager.getBranch()) {
-      if (
-        entry.type === "message" &&
-        TAGGABLE_ROLES.has((entry.message as AgentMessageLike).role)
-      ) {
-        ids.add(entry.id);
-      }
-    }
-    return ids;
-  };
+  // --- forget --------------------------------------------------------------
 
-  const summarize = (
-    action: "forget" | "recall",
-    applied: string[],
-    unknown: string[],
-    noop: string[],
-  ): string => {
-    const parts: string[] = [];
-    const verb = action === "forget" ? "Forgot" : "Recalled";
-    parts.push(
-      applied.length
-        ? `${verb} ${applied.length} message(s): ${applied.join(", ")}`
-        : `${verb} nothing`,
-    );
-    if (noop.length)
-      parts.push(
-        `already ${action === "forget" ? "forgotten" : "active"}: ${noop.join(", ")}`,
-      );
-    if (unknown.length) parts.push(`unknown id(s): ${unknown.join(", ")}`);
-    return parts.join(". ");
-  };
-
-  const IdsParam = Type.Object({
-    ids: Type.Array(Type.String(), {
-      description:
-        "Message ids from their [#id] markers (the 8-char hex inside the brackets).",
-    }),
+  const ForgetParam = Type.Object({
+    items: Type.Array(
+      Type.Object({
+        from: Type.String({
+          description:
+            "Start id (the 8-char hex in a [#id] marker). For a single message, omit `to`.",
+        }),
+        to: Type.Optional(
+          Type.String({
+            description:
+              "End id (inclusive). Defaults to `from`. Order relative to `from` doesn't matter.",
+          }),
+        ),
+        summary: Type.Optional(
+          Type.String({
+            description:
+              "Optional one-line digest that replaces the range. Omit to just drop the content (noise).",
+          }),
+        ),
+      }),
+      {
+        description:
+          "Ranges to forget, each { from, to?, summary? }. Multiple items = batch in one call.",
+      },
+    ),
   });
 
   pi.registerTool({
-    name: "forget_messages",
-    label: "Forget Messages",
+    name: "forget",
+    label: "Forget",
     description:
-      "Drop the content of earlier messages from the model context by their [#id] markers. Do this regularly to keep the context clean." +
-      "Good candidates: Tool calls, superseded exchanges, detours, resolving ambiguities, debugging sessions, the discussion messages leading to a final result. Reversible via recall_messages to look up details.",
+      "Forget earlier messages to keep the model context lean — reversible. Pass a list of ranges by their " +
+      "[#id] markers; each is { from, to?, summary? }. With `summary`, the range collapses into your one-line " +
+      "digest (use for finished sub-threads worth condensing). Without `summary`, the range's content is just " +
+      "dropped (use for noise: tool outputs, detours, resolved debugging). `to` defaults to `from` for a single " +
+      "message. Ranges snap outward to keep tool call/result pairs whole. Restore later with remember.",
     promptSnippet:
-      "Free context by forgetting earlier messages via their [#id] markers",
+      "Forget/compact earlier messages via their [#id] markers to free context",
     promptGuidelines: [
-      "`[#id]` markers are labels the system prepends to each message so you can reference it — they are NOT part of the message text. Never write a `[#id]` marker in your own replies. Use these ids only as arguments to `forget_messages` / `recall_messages` / `forget_range` (forget = overlay hiding original content from the model; recall = remove overlay).",
+      "`[#id]` markers are labels the system prepends to each message so you can reference it — they are NOT part of the message text. Never write a `[#id]` marker in your own replies. Use these ids only as arguments to `forget` / `remember`.",
+      "Routinely forget finished sub-threads: pass a range with a short `summary` to condense it, or without `summary` to drop pure noise (tool outputs, detours, resolved debugging). Keeps the working context lean; reversible via `remember`.",
     ],
-    parameters: IdsParam,
+    parameters: ForgetParam,
     async execute(_id, params, _signal, _onUpdate, ctx) {
-      const valid = validIds(ctx);
+      const msgs = branchMessages(ctx);
+      const indexById = new Map(msgs.map((m, i) => [m.id, i] as const));
+      const bounds = unitBounds(msgs);
       const applied: string[] = [];
+      const summaries: string[] = [];
       const unknown: string[] = [];
-      const noop: string[] = [];
-      for (const id of params.ids) {
-        if (!valid.has(id)) unknown.push(id);
-        else if (pruned.has(id)) noop.push(id);
-        else {
-          pruned.add(id);
-          applied.push(id);
+      let collapsed = 0;
+      for (const item of params.items) {
+        // Spans mutieren pro Item -> Lookup jeweils frisch.
+        const spanByFrom = new Map(spans.map((s) => [s.fromId, s] as const));
+        const startIdx = (id: string) => {
+          const s = spanByFrom.get(id);
+          return indexById.get(s ? s.memberIds[0] : id);
+        };
+        const endIdx = (id: string) => {
+          const s = spanByFrom.get(id);
+          return indexById.get(s ? s.memberIds[s.memberIds.length - 1] : id);
+        };
+        const toId = item.to ?? item.from;
+        const a = startIdx(item.from);
+        const b = endIdx(toId);
+        if (a === undefined) unknown.push(item.from);
+        if (b === undefined && toId !== item.from) unknown.push(toId);
+        if (a === undefined || b === undefined) continue;
+        const { lo, hi } = expandRange(
+          msgs,
+          bounds,
+          spans,
+          Math.min(a, b),
+          Math.max(a, b),
+        );
+        const memberIds = msgs.slice(lo, hi + 1).map((m) => m.id);
+        const memberSet = new Set(memberIds);
+        // Ueberlappte Spans flach absorbieren (deren Member sind voll enthalten).
+        for (let i = spans.length - 1; i >= 0; i--) {
+          if (spans[i].memberIds.some((id) => memberSet.has(id)))
+            spans.splice(i, 1);
         }
+        spans.push({
+          fromId: memberIds[0],
+          memberIds,
+          summary: item.summary ?? "",
+        });
+        applied.push(memberIds[0]);
+        summaries.push(item.summary ?? "");
+        collapsed += memberIds.length;
       }
       if (applied.length) persist();
+      const text = applied.length
+        ? `Forgot ${collapsed} message(s) into ${applied.length} stub(s): ${applied.join(", ")}` +
+          (unknown.length ? `. unknown id(s): ${unknown.join(", ")}` : "")
+        : `Forgot nothing. unknown id(s): ${unknown.join(", ")}`;
       return {
-        content: [
-          { type: "text", text: summarize("forget", applied, unknown, noop) },
-        ],
+        content: [{ type: "text", text }],
         details: {
           action: "forget",
           applied,
           unknown,
-          noop,
-          total: pruned.size + spans.length,
+          noop: [],
+          collapsed,
+          summaries,
+          total: spans.length,
         } as PruneDetails,
       };
     },
     renderResult(result, _opts, theme) {
       const d = result.details as PruneDetails | undefined;
       if (!d) return new Text("", 0, 0);
+      if (!d.applied.length)
+        return new Text(theme.fg("warning", "unknown id(s)"), 0, 0);
+      const sum = d.summaries.find((s) => s);
+      const tail = sum
+        ? ` → ${sum.length > 80 ? sum.slice(0, 79) + "…" : sum}`
+        : "";
       return new Text(
-        theme.fg("success", `✓ forgot ${d.applied.length}`) +
-          theme.fg("dim", ` (${d.total} total)`),
+        theme.fg("success", `✓ forgot ${d.collapsed} msg(s)`) +
+          theme.fg("dim", `${tail} (${d.total} total)`),
         0,
         0,
       );
     },
   });
 
+  // --- remember ------------------------------------------------------------
+
+  const IdsParam = Type.Object({
+    ids: Type.Array(Type.String(), {
+      description:
+        "Stub ids from their [#id] markers (the 8-char hex inside the brackets).",
+    }),
+  });
+
   pi.registerTool({
-    name: "recall_messages",
-    label: "Recall Messages",
+    name: "remember",
+    label: "Remember",
     description:
-      "Restore previously forgotten messages back into context by their [#id] markers.",
+      "Restore previously forgotten messages/ranges back into the model context by their [#id] markers " +
+      "(the stub's id). Inverse of forget.",
     parameters: IdsParam,
     async execute(_id, params, _signal, _onUpdate, _ctx) {
       const applied: string[] = [];
       const noop: string[] = [];
       for (const id of params.ids) {
-        if (pruned.delete(id)) {
-          applied.push(id);
-          continue;
-        }
-        // id koennte die fromId eines Spans sein -> Span aufloesen (flach: alle Originale zurueck).
         const i = spans.findIndex((s) => s.fromId === id);
         if (i >= 0) {
           spans.splice(i, 1);
@@ -465,128 +491,30 @@ export default function (pi: ExtensionAPI) {
         }
       }
       if (applied.length) persist();
-      return {
-        content: [
-          { type: "text", text: summarize("recall", applied, [], noop) },
-        ],
-        details: {
-          action: "recall",
-          applied,
-          unknown: [],
-          noop,
-          total: pruned.size + spans.length,
-        } as PruneDetails,
-      };
-    },
-    renderResult(result, _opts, theme) {
-      const d = result.details as PruneDetails | undefined;
-      if (!d) return new Text("", 0, 0);
-      return new Text(
-        theme.fg("success", `✓ recalled ${d.applied.length}`) +
-          theme.fg("dim", ` (${d.total} forgotten)`),
-        0,
-        0,
-      );
-    },
-  });
-
-  const FromToParam = Type.Object({
-    from: Type.String({
-      description:
-        "Start id (the 8-char hex in a [#id] marker); a real message or an existing summary's id.",
-    }),
-    to: Type.String({
-      description:
-        "End id (the 8-char hex in a [#id] marker), inclusive. Order relative to `from` does not matter.",
-    }),
-    summary: Type.String({
-      description: "Short summary text that replaces the whole range.",
-    }),
-  });
-
-  pi.registerTool({
-    name: "forget_range",
-    label: "Forget Range",
-    description:
-      "Collapse a contiguous range of messages (from..to, inclusive, by their [#id] markers) into a single " +
-      "summary you write. Reclaims context on finished sub-threads. The range snaps outward to keep tool " +
-      "call/result pairs whole. Reversible via recall_messages.",
-    promptSnippet:
-      "Collapse a finished range of messages into one summary via their [#id] markers",
-    promptGuidelines: [
-      "Use forget_range to replace a finished span of the conversation (from..to by their [#id] markers) with one short summary you write; recall_messages restores all originals at once.",
-      "Whenever you finish a task or a self-contained sub-thread, routinely collapse its messages into a single summary with forget_range to keep the working context lean. Capture decisions, outcomes and anything still needed later in the summary.",
-    ],
-    parameters: FromToParam,
-    async execute(_id, params, _signal, _onUpdate, ctx) {
-      const msgs = branchMessages(ctx);
-      const indexById = new Map(msgs.map((m, i) => [m.id, i] as const));
-      const spanByFrom = new Map(spans.map((s) => [s.fromId, s] as const));
-      const startIdx = (id: string) => {
-        const s = spanByFrom.get(id);
-        return indexById.get(s ? s.memberIds[0] : id);
-      };
-      const endIdx = (id: string) => {
-        const s = spanByFrom.get(id);
-        return indexById.get(s ? s.memberIds[s.memberIds.length - 1] : id);
-      };
-      const a = startIdx(params.from);
-      const b = endIdx(params.to);
-      const unknown = [
-        ...(a === undefined ? [params.from] : []),
-        ...(b === undefined ? [params.to] : []),
-      ];
-      if (unknown.length) {
-        return {
-          content: [
-            { type: "text", text: `unknown id(s): ${unknown.join(", ")}` },
-          ],
-          details: {
-            action: "forget",
-            applied: [],
-            unknown,
-            noop: [],
-            total: pruned.size + spans.length,
-          } as PruneDetails,
-        };
-      }
-      const reqLo = Math.min(a!, b!);
-      const reqHi = Math.max(a!, b!);
-      const bounds = unitBounds(msgs);
-      const { lo, hi } = expandRange(msgs, bounds, spans, reqLo, reqHi);
-      const memberIds = msgs.slice(lo, hi + 1).map((m) => m.id);
-      const memberSet = new Set(memberIds);
-      // Absorbierte Spans entfernen (flach) und Einzel-Tombstones im Bereich aufloesen.
-      for (let i = spans.length - 1; i >= 0; i--) {
-        if (spans[i].memberIds.some((id) => memberSet.has(id)))
-          spans.splice(i, 1);
-      }
-      for (const id of memberIds) pruned.delete(id);
-      spans.push({ fromId: memberIds[0], memberIds, summary: params.summary });
-      persist();
-      const snapped = lo < reqLo || hi > reqHi;
       const text =
-        `Collapsed ${memberIds.length} message(s) into a summary [#${memberIds[0]}]` +
-        (snapped ? " (range snapped outward to keep tool pairs whole)" : "") +
-        ".";
+        (applied.length
+          ? `Remembered ${applied.length}: ${applied.join(", ")}`
+          : "Remembered nothing") +
+        (noop.length ? `. not forgotten: ${noop.join(", ")}` : "");
       return {
         content: [{ type: "text", text }],
         details: {
-          action: "forget",
-          applied: [memberIds[0]],
+          action: "remember",
+          applied,
           unknown: [],
-          noop: [],
-          total: pruned.size + spans.length,
+          noop,
+          collapsed: 0,
+          summaries: [],
+          total: spans.length,
         } as PruneDetails,
       };
     },
     renderResult(result, _opts, theme) {
       const d = result.details as PruneDetails | undefined;
       if (!d) return new Text("", 0, 0);
-      if (!d.applied.length)
-        return new Text(theme.fg("warning", `unknown id(s)`), 0, 0);
       return new Text(
-        theme.fg("success", `✓ summarized → ${d.applied[0]}`),
+        theme.fg("success", `✓ remembered ${d.applied.length}`) +
+          theme.fg("dim", ` (${d.total} still forgotten)`),
         0,
         0,
       );
