@@ -341,9 +341,9 @@ in {
         file = "mill-zsh-completions.plugin.zsh";
         src = pkgs.fetchFromGitHub {
           owner = "carlosedp";
-          repo = "/mill-zsh-completions";
+          repo = "mill-zsh-completions";
           rev = "3e66e19868bda2f361d6ea8cb8abb8ff91dcc920";
-          sha256 = "sha256-6ZyRkg4eXh1JVtYRHTfxJ8ctdOLw4Ff8NsEqfpoxyfI=";
+          sha256 = "sha256-zmWTT65HlVsvFTGzs5SQsVqSHc1XaLwCHmiWZgkZsCU=";
         };
       }
     ];
