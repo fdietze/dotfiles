@@ -42,6 +42,12 @@ export interface AgentRecord {
 	activity?: AgentActivity;
 	/** Tool name while `activity === "tool"`. */
 	currentTool?: string;
+	/**
+	 * Set when the swarm was halted (manual /halt or turn-budget) while this agent was
+	 * mid-turn. Marks it for re-triggering on resume; survives the agent_end of an
+	 * allowed-to-complete turn (setStreaming(false) must NOT clear it). Cleared by resume().
+	 */
+	halted?: boolean;
 	/** Reservation intermediate state: name taken, session still being created. */
 	pending?: boolean;
 	/** Messages buffered while pending (flushed to the session on attach). */
@@ -60,7 +66,7 @@ export type AgentEvent =
 	| { type: "spawn"; name: string; by: string; ts: number }
 	| { type: "route"; from: string; to: string; preview: string; ts: number }
 	| { type: "turn"; name: string; ts: number }
-	| { type: "halt"; ts: number }
+	| { type: "halt"; reason: "manual" | "budget"; ts: number }
 	| { type: "resume"; ts: number }
 	| { type: "kill"; name: string; ts: number }
 	| { type: "blocked"; reason: string; ts: number }
@@ -79,6 +85,8 @@ export class Engine {
 	private readonly messageEdges = new Map<string, Map<string, number>>(); // from -> (to -> count)
 	private readonly spawnParent = new Map<string, string>(); // child -> parent (main = root, no entry)
 	private frozen = false;
+	// Why the swarm is halted; drives the escalation-to-main decision (only "budget" escalates).
+	private frozenReason: "manual" | "budget" | undefined;
 	private turnsUsed = 0;
 	private readonly caps: Caps;
 
@@ -217,14 +225,25 @@ export class Engine {
 		return this.frozen;
 	}
 
-	halt(): void {
+	/**
+	 * Freeze the swarm. Marks every agent that is currently mid-turn (`streaming`) as
+	 * `halted` so resume can re-trigger their interrupted work; idle agents are left alone.
+	 * Cause-agnostic: covers manual /halt and the turn-budget path uniformly.
+	 */
+	halt(reason: "manual" | "budget" = "manual"): void {
 		this.frozen = true;
-		this.emit({ type: "halt", ts: Date.now() });
+		this.frozenReason = reason;
+		for (const rec of this.agents.values()) {
+			if (rec.name !== "main" && rec.streaming) rec.halted = true;
+		}
+		this.emit({ type: "halt", reason, ts: Date.now() });
 	}
 
 	resume(): void {
 		this.frozen = false;
+		this.frozenReason = undefined;
 		this.turnsUsed = 0;
+		for (const rec of this.agents.values()) rec.halted = false;
 		this.emit({ type: "resume", ts: Date.now() });
 	}
 
@@ -272,9 +291,11 @@ export class Engine {
 
 	/** Call before every background turn. abort=true => caller must call session.abort(). */
 	recordTurnStart(name: string): { abort: boolean; reason?: string } {
-		if (this.frozen) return { abort: true, reason: "agents halted" };
-		if (this.turnsUsed >= this.caps.turnBudget) {
-			return { abort: true, reason: `turn budget exhausted (${this.caps.turnBudget})` };
+		if (this.frozen) {
+			return {
+				abort: true,
+				reason: this.frozenReason === "budget" ? `turn budget exhausted (${this.caps.turnBudget})` : "agents halted",
+			};
 		}
 		this.turnsUsed++;
 		const rec = this.agents.get(name);
@@ -283,6 +304,12 @@ export class Engine {
 			rec.lastActivity = Date.now();
 		}
 		this.emit({ type: "turn", name, ts: Date.now() });
+		// Freeze-by-blocking: the turn that REACHES the budget is allowed to complete
+		// (abort:false). Only subsequent turn_starts hit the frozen guard above and abort.
+		// This stops agents at clean turn boundaries instead of cutting an in-flight turn.
+		// pi's SDK exposes no "stop after current turn" hook (agent-core shouldStopAfterTurn
+		// is internal), so blocking the next turn_start is the closest reachable equivalent.
+		if (this.turnsUsed >= this.caps.turnBudget) this.halt("budget");
 		return { abort: false };
 	}
 
@@ -318,13 +345,15 @@ export class Engine {
 /**
  * Single source of truth for an agent's display status, shared by the agent-facing
  * roster (list_agents) and the TUI panel so the vocabulary stays consistent.
- * spawning = session starting · thinking = model reasoning · writing = generating
- * answer text · tool:<name> = running a tool · idle = waiting for input.
+ * spawning = session starting · halted = stopped mid-work by /halt or the turn budget
+ * (resume re-triggers it) · thinking = model reasoning · writing = generating answer
+ * text · tool:<name> = running a tool · idle = finished its turn, waiting for input.
  */
 export function statusLabel(
-	rec: Pick<AgentRecord, "pending" | "streaming" | "activity" | "currentTool">,
+	rec: Pick<AgentRecord, "pending" | "streaming" | "activity" | "currentTool" | "halted">,
 ): string {
 	if (rec.pending) return "spawning";
+	if (rec.halted) return "halted";
 	if (!rec.streaming) return "idle";
 	if (rec.activity === "tool") return rec.currentTool ? `tool:${rec.currentTool}` : "tool";
 	if (rec.activity === "writing") return "writing";

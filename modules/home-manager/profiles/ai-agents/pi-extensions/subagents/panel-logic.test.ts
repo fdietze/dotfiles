@@ -53,9 +53,10 @@ test("swarmStateLine: halted vs live with activity count", () => {
 	assert.doesNotMatch(swarmStateLine(false, 0), /running/);
 });
 
-test("isBusy: only idle/spawning are not busy", () => {
+test("isBusy: idle/spawning/halted are not busy", () => {
 	assert.equal(isBusy("idle"), false);
 	assert.equal(isBusy("spawning"), false);
+	assert.equal(isBusy("halted"), false);
 	assert.equal(isBusy("thinking"), true);
 	assert.equal(isBusy("writing"), true);
 	assert.equal(isBusy("tool:bash"), true);

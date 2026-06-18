@@ -159,6 +159,50 @@ test("resume clears frozen and resets budget", () => {
 	assert.equal(e.recordTurnStart("a").abort, false);
 });
 
+test("freeze-by-blocking: budget-reaching turn completes, next is blocked, swarm freezes", () => {
+	const e = new Engine({ maxAgents: 5, maxSpawnDepth: 5, turnBudget: 2 });
+	e.addAgent({ ...mainRecord(), name: "a", depth: 1 });
+	assert.equal(e.recordTurnStart("a").abort, false); // used 1
+	assert.equal(e.isFrozen(), false);
+	assert.equal(e.recordTurnStart("a").abort, false); // used 2 == budget: completes, then freezes
+	assert.equal(e.isFrozen(), true);
+	assert.equal(e.events.at(-1)?.type, "halt");
+	assert.equal((e.events.at(-1) as { reason?: string }).reason, "budget");
+	const blocked = e.recordTurnStart("a"); // next turn blocked
+	assert.equal(blocked.abort, true);
+	assert.match(blocked.reason ?? "", /budget/i);
+});
+
+test("halt marks only streaming agents as halted; manual halt reason", () => {
+	const e = new Engine(caps);
+	e.addAgent({ ...mainRecord(), name: "busy", depth: 1, streaming: true });
+	e.addAgent({ ...mainRecord(), name: "done", depth: 1, streaming: false });
+	e.halt();
+	assert.equal(e.get("busy")?.halted, true);
+	assert.equal(e.get("done")?.halted, undefined);
+	assert.equal((e.events.at(-1) as { type: string; reason?: string }).reason, "manual");
+	// halted survives the natural agent_end of an allowed-to-complete turn.
+	e.setStreaming("busy", false);
+	assert.equal(e.get("busy")?.halted, true);
+	assert.equal(statusLabel(e.get("busy")!), "halted");
+	assert.equal(statusLabel(e.get("done")!), "idle");
+});
+
+test("resume clears halted flags", () => {
+	const e = new Engine(caps);
+	e.addAgent({ ...mainRecord(), name: "busy", depth: 1, streaming: true });
+	e.halt();
+	assert.equal(e.get("busy")?.halted, true);
+	e.resume();
+	assert.equal(e.get("busy")?.halted, false);
+});
+
+test("statusLabel: spawning and halted take precedence over streaming phase", () => {
+	assert.equal(statusLabel({ pending: true, streaming: true, halted: true }), "spawning");
+	assert.equal(statusLabel({ halted: true, streaming: true, activity: "tool", currentTool: "bash" }), "halted");
+	assert.equal(statusLabel({ streaming: true, activity: "writing" }), "writing");
+});
+
 test("setStreaming updates record flag", () => {
 	const e = new Engine(caps);
 	e.addAgent({ ...mainRecord(), name: "a", depth: 1 });

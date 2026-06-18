@@ -40,9 +40,13 @@ export function swarmStateLine(frozen: boolean, runningCount: number): string {
 
 /** Status column width; fits "thinking"/"spawning" and short "tool:bash" labels. */
 const STATUS_COL = 10;
-/** A status counts as "busy" (highlighted) unless the agent is idle or still spawning. */
+/**
+ * A status counts as "busy" (active-work highlight) unless the agent is idle, still
+ * spawning, or halted. halted is a stopped state (awaiting resume), so it gets the same
+ * subtle styling as idle rather than the active-work highlight.
+ */
 export function isBusy(status: string): boolean {
-	return status !== "idle" && status !== "spawning";
+	return status !== "idle" && status !== "spawning" && status !== "halted";
 }
 
 /** Short model id for the roster: drop the "provider/" prefix, truncate to fit. */

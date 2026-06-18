@@ -24,7 +24,15 @@ import { createSubagentsPanel } from "./panel.ts";
 import { createSpawner, type ResolvedModel, type SessionLike } from "./spawner.ts";
 
 // Caps — Phase 1: module constants (binding them to settings is a trivial later addition).
-const CAPS = { maxAgents: 8, maxSpawnDepth: 3, turnBudget: 100 };
+const CAPS = { maxAgents: 8, maxSpawnDepth: 3, turnBudget: 200 };
+
+// Fired to each halted agent on resume to re-trigger its interrupted work. Fixed text
+// (not main-authored) so resume stays a single tool call from main's side.
+const RESUME_NUDGE = "[resumed] continue your interrupted work";
+// Injected into 'main' when the swarm halts on the turn budget (not on manual /halt).
+const BUDGET_ESCALATION = (total: number) =>
+	`turn budget (${total}) exhausted, swarm halted. resume_agents() to re-arm and continue. ` +
+	`If turns ran higher than expected, inspect with list_agents before resuming.`;
 
 // The Engine is a globalThis singleton so it survives /reload. Consequence: a persisted
 // instance keeps the SHAPE (methods) of the code that built it — adding/changing Engine
@@ -191,17 +199,32 @@ export default function subagents(pi: ExtensionAPI) {
 			const haltLine = engine.isFrozen()
 				? theme.bg("toolPendingBg", stateLine.padEnd(80))
 				: theme.bg("selectedBg", stateLine);
+			// Same header the /agents panel shows, so the turn budget is always visible at a
+			// glance (matters for the budget-halt escalation) — not only inside the panel.
+			const { used, total } = engine.budget;
+			const header = theme.fg("accent", `─ agents · ${background.length} agents · ${running} running · budget ${used}/${total} `);
 			ui.setWidget(
 				"agents-roster",
-				panelOpen || background.length === 0 ? undefined : [...rosterLines, haltLine],
+				panelOpen || background.length === 0 ? undefined : [header, ...rosterLines, haltLine],
 			);
 		} catch {
 			/* ui from a stale ctx -> skip this tick, refreshes on the next handler */
 		}
 	};
 
-	// Update the status on every engine event.
-	engine.subscribe(() => updateStatus());
+	// Update the status on every engine event; escalate budget-halts to 'main' exactly once
+	// (the halt event fires once — the frozen guard in recordTurnStart prevents re-entry).
+	// Manual /halt does NOT escalate (the human initiated it).
+	engine.subscribe((e) => {
+		if (e.type === "halt" && e.reason === "budget") {
+			try {
+				deliverToMain(BUDGET_ESCALATION(engine.budget.total));
+			} catch {
+				/* no live foreground session — escalation surfaces in /feed + panel instead */
+			}
+		}
+		updateStatus();
+	});
 
 	const resolveModel = (ref: string | undefined): ResolvedModel | undefined => {
 		if (ref && ref.includes("/")) {
@@ -328,6 +351,20 @@ export default function subagents(pi: ExtensionAPI) {
 
 	const { spawnAgent } = createSpawner({ engine, resolveModel, createSession, onActivity: updateStatus });
 
+	// Shared by /unhalt and the resume_agents tool: re-arm the budget, unfreeze, and
+	// re-trigger only the halted agents (idle agents finished naturally — nothing to do).
+	// resume() must precede the nudge: route() rejects delivery while frozen.
+	const resumeAgents = (): number => {
+		const halted = engine
+			.list()
+			.filter((a) => a.name !== "main" && a.halted)
+			.map((a) => a.name);
+		engine.resume();
+		for (const name of halted) void engine.route("main", name, RESUME_NUDGE);
+		updateStatus();
+		return halted.length;
+	};
+
 	// Capture the foreground model (for inheritance to spawned agents).
 	pi.on("model_select", (event) => {
 		captureForegroundModel(event.model);
@@ -404,6 +441,24 @@ export default function subagents(pi: ExtensionAPI) {
 		pi.registerTool(tool);
 	}
 
+	// Main-only: deciding whether the halted group continues is main's call. NOT added to
+	// makeAgentTools (background agents must not self-resume the swarm).
+	pi.registerTool({
+		name: "resume_agents",
+		label: "Resume Agents",
+		description:
+			"Re-arm the turn budget and resume halted agents (re-trigger their interrupted work). " +
+			"Call after the swarm halts on the turn budget to let the group continue.",
+		parameters: Type.Object({}),
+		execute: async () => {
+			const n = resumeAgents();
+			return {
+				content: [{ type: "text", text: n ? `resumed ${n} halted agent(s); budget re-armed` : "no halted agents; budget re-armed" }],
+				details: {},
+			};
+		},
+	});
+
 	pi.registerCommand("halt", {
 		description: "Freeze all agents (stop new turns, abort running background agents).",
 		handler: async (_args, ctx) => {
@@ -418,11 +473,13 @@ export default function subagents(pi: ExtensionAPI) {
 
 	// Note: not "resume" — that collides with pi's built-in /resume (continue session).
 	pi.registerCommand("unhalt", {
-		description: "Resume halted agents and reset the turn budget.",
+		description: "Resume halted agents (re-trigger their work) and reset the turn budget.",
 		handler: async (_args, ctx) => {
-			engine.resume();
-			ctx.ui.notify("Agents resumed; turn budget reset.", "info");
-			updateStatus();
+			const n = resumeAgents();
+			ctx.ui.notify(
+				n ? `Resumed ${n} halted agent(s); turn budget reset.` : "Agents resumed; turn budget reset.",
+				"info",
+			);
 		},
 	});
 
