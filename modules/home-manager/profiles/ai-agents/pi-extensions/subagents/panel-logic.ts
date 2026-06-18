@@ -94,13 +94,78 @@ export function formatRosterRow(
 		entry.status.length > STATUS_COL ? `${entry.status.slice(0, STATUS_COL - 1)}…` : entry.status.padEnd(STATUS_COL);
 	const name = entry.name.length > 14 ? `${entry.name.slice(0, 13)}…` : entry.name.padEnd(14);
 	const model = shortModel(entry.model).padEnd(MODEL_COL);
-	// Fixed-width base columns; the variable send-targets cell is appended in full (not
-	// capped to width — long target lists wrap rather than hide who an agent talks to).
-	const base = `${cursor} ${label} ${name} ${model} ${entry.context}`;
+	// Layout: <cursor> <name> <status> <model> <context> <targets>. Name first (the primary
+	// identifier), then status. Fixed-width base columns; the variable send-targets cell is
+	// appended in full (not capped to width — long target lists wrap rather than hide who an
+	// agent talks to).
+	const base = `${cursor} ${name} ${label} ${model} ${entry.context}`;
 	// Degenerate guard: only the fixed base is bounded by width (it always fits in practice).
 	if (base.length > width) return base.slice(0, width);
-	const styledBase = `${cursor} ${styleStatus(label, busy)} ${name} ${model} ${entry.context}`;
+	const styledBase = `${cursor} ${name} ${styleStatus(label, busy)} ${model} ${entry.context}`;
 	return entry.targets ? `${styledBase}  ${entry.targets}` : styledBase;
+}
+
+// ── agent_history: a windowed, text-only transcript dump for inspecting any agent ──
+
+type HistMessage = { role?: string; content?: unknown };
+
+const trunc = (s: string, n: number): string => (s.length > n ? `${s.slice(0, n)}…` : s);
+
+/** Concatenated thinking text of an assistant message ("" if none). */
+function thinkingText(m: HistMessage): string {
+	if (!Array.isArray(m.content)) return "";
+	return (m.content as { type?: string; thinking?: string }[])
+		.filter((p) => p?.type === "thinking")
+		.map((p) => p.thinking ?? "")
+		.join("");
+}
+
+/**
+ * Render a window of an agent's transcript as plain text. A single slice primitive covers
+ * beginning/middle/end: offset>=0 counts from the start (0 = beginning, the default),
+ * offset<0 counts from the end (-30 = last 30). The header reports total + the shown range
+ * so callers can page deterministically. The system prompt is included only when the window
+ * covers index 0 (so the default offset:0 yields the agent's task + first exchange).
+ * Thinking blocks are shown only when not hidden (aligned with the main UI's hideThinkingBlock).
+ * Tool results are truncated hard (they are the bloat); message text is kept fuller.
+ */
+export function formatHistory(opts: {
+	name: string;
+	systemPrompt?: string;
+	messages: HistMessage[];
+	offset?: number;
+	limit?: number;
+	hideThinking?: boolean;
+}): string {
+	const { name, systemPrompt, messages, hideThinking } = opts;
+	const total = messages.length;
+	const limit = Math.max(1, opts.limit ?? 30);
+	const raw = opts.offset ?? 0;
+	const start = raw >= 0 ? Math.min(raw, total) : Math.max(0, total + raw);
+	const end = Math.min(start + limit, total);
+	const lines: string[] = [`agent ${name} · ${total} messages · showing [${start}, ${end})`];
+	if (start === 0 && systemPrompt) lines.push("── system ──", trunc(systemPrompt, 800));
+	for (let i = start; i < end; i++) {
+		const m = messages[i];
+		const role = m.role ?? "?";
+		if (role === "assistant") {
+			if (!hideThinking) {
+				const th = thinkingText(m);
+				if (th) lines.push(`#${i} assistant·thinking: ${trunc(th, 800)}`);
+			}
+			const txt = messageText(m.content);
+			if (txt) lines.push(`#${i} assistant: ${trunc(txt, 800)}`);
+			for (const c of toolCalls(m)) lines.push(`#${i} ⚙ ${c.name}(${trunc(JSON.stringify(c.arguments), 200)})`);
+		} else if (role === "toolResult") {
+			lines.push(`#${i} ⚙→ ${trunc(messageText(m.content), 200)}`);
+		} else if (role === "user") {
+			lines.push(`#${i} user: ${trunc(messageText(m.content), 800)}`);
+		} else {
+			lines.push(`#${i} ${role}: ${trunc(messageText(m.content), 200)}`);
+		}
+	}
+	if (end - start === 0) lines.push("(no messages in range)");
+	return lines.join("\n");
 }
 
 export function moveSelection(current: number, delta: number, count: number): number {

@@ -15,7 +15,47 @@ import {
 	swarmStateLine,
 	sendTargets,
 	formatSendTargets,
+	formatHistory,
 } from "./panel-logic.ts";
+
+const histMsgs = [
+	{ role: "user", content: "start task" },
+	{
+		role: "assistant",
+		content: [
+			{ type: "thinking", thinking: "secret reasoning" },
+			{ type: "text", text: "on it" },
+			{ type: "toolCall", id: "t1", name: "send_message", arguments: { to: "main", content: "hi" } },
+		],
+	},
+	{ role: "toolResult", toolCallId: "t1", content: [{ type: "text", text: "sent to main" }] },
+	{ role: "assistant", content: [{ type: "text", text: "done" }] },
+];
+
+test("formatHistory: default offset 0 shows beginning + system prompt + header total", () => {
+	const out = formatHistory({ name: "comic", systemPrompt: "be funny", messages: histMsgs, limit: 2 });
+	assert.match(out, /agent comic · 4 messages · showing \[0, 2\)/);
+	assert.match(out, /── system ──\nbe funny/);
+	assert.match(out, /#0 user: start task/);
+	assert.doesNotMatch(out, /#3/); // limited to 2
+});
+
+test("formatHistory: negative offset shows the tail, no system prompt", () => {
+	const out = formatHistory({ name: "comic", systemPrompt: "be funny", messages: histMsgs, offset: -1 });
+	assert.match(out, /showing \[3, 4\)/);
+	assert.match(out, /#3 assistant: done/);
+	assert.doesNotMatch(out, /── system ──/); // window does not cover index 0
+});
+
+test("formatHistory: thinking shown/hidden per flag; tool calls + results rendered", () => {
+	const shown = formatHistory({ name: "a", messages: histMsgs, offset: 1, limit: 2 });
+	assert.match(shown, /assistant·thinking: secret reasoning/);
+	assert.match(shown, /⚙ send_message\(/);
+	assert.match(shown, /⚙→ sent to main/);
+	const hidden = formatHistory({ name: "a", messages: histMsgs, offset: 1, limit: 2, hideThinking: true });
+	assert.doesNotMatch(hidden, /secret reasoning/);
+	assert.match(hidden, /assistant: on it/);
+});
 
 test("formatContext renders tokens/window/percent (percent is already 0-100), dash when unknown", () => {
 	// pi's ContextUsage.percent is already a percentage (footer.js uses it directly).

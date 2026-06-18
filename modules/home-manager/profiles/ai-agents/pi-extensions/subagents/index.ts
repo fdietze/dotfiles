@@ -14,13 +14,14 @@ import {
 	type ExtensionAPI,
 	ModelRegistry,
 	SessionManager,
+	SettingsManager,
 	type ToolDefinition,
 } from "@earendil-works/pi-coding-agent";
 import { Text } from "@earendil-works/pi-tui";
 import { Type } from "typebox";
 import { Engine, statusLabel, type AgentHandle } from "./engine.ts";
 import { formatFeedLines, formatKillResult, formatMulticastResult, formatSnapshot, normalizeTargets } from "./feed.ts";
-import { formatContext, formatRosterRow, formatSendTargets, swarmStateLine } from "./panel-logic.ts";
+import { formatContext, formatHistory, formatRosterRow, formatSendTargets, swarmStateLine } from "./panel-logic.ts";
 import { createSubagentsPanel } from "./panel.ts";
 import { danglingToolResultIds, deriveStatus, type RawMessage } from "./persistence-logic.ts";
 import { readRoster, subagentsDir, writeRoster } from "./persistence.ts";
@@ -94,7 +95,13 @@ function agentSystemPrompt(name: string, systemPrompt: string, spawnedBy: string
 		"- list_agents(): see who exists.",
 		"- kill_agent({name}): terminate an agent or a list of agents (you cannot kill 'main').",
 		"Messages you receive are prefixed with [message from <sender>].",
-		"To reply, use send_message back to that sender.",
+		"",
+		"CRITICAL — how communication works: other agents and main CANNOT see your thinking or",
+		"your normal response text. The ONLY channel between agents is the send_message tool. A",
+		"turn that ends WITHOUT a send_message call communicates nothing to anyone and silently",
+		"stalls the conversation. Whenever you owe a reply, a progress update, or a final result,",
+		"you MUST end that turn with a send_message call. To reply to a sender, send_message back",
+		"to that sender. You can inspect any agent's transcript with agent_history.",
 		"",
 		"Reporting rule:",
 		`- Report to your parent ("${spawnedBy}") ONLY final results or blockers you cannot resolve yourself.`,
@@ -150,6 +157,20 @@ export default function subagents(pi: ExtensionAPI) {
 	// from the main session; undefined until then (and for an in-memory main session) -> new
 	// agents fall back to in-memory (no persistence).
 	let subDir: string | undefined;
+
+	// Read the live hideThinkingBlock setting (the static config AND the ctrl+t runtime toggle
+	// both persist to it). reload() picks up runtime toggles; we read fresh per panel-open and
+	// per agent_history call so subagent thinking display stays aligned with the main UI.
+	let settingsMgr: SettingsManager | undefined;
+	const getHideThinking = async (): Promise<boolean> => {
+		try {
+			if (!settingsMgr) settingsMgr = SettingsManager.create(cwd, realAgentDir);
+			await settingsMgr.reload();
+			return settingsMgr.getHideThinkingBlock();
+		} catch {
+			return false;
+		}
+	};
 
 	// The UI is only available via ctx.ui (ExtensionUIContext), not on `pi`.
 	// We cache the reference from session_start so we can update the footer from
@@ -330,6 +351,33 @@ export default function subagents(pi: ExtensionAPI) {
 				});
 				persistRoster();
 				return { content: [{ type: "text", text: formatKillResult(results) }], details: {} };
+			},
+		},
+		{
+			name: "agent_history",
+			label: "Agent History",
+			renderCall: (args, theme) => renderToolArgs("agent_history", args as Record<string, unknown>, theme as RenderTheme),
+			description:
+				"Inspect any agent's message transcript. offset: start index (0 = beginning, the default; " +
+				"negative = from the end, e.g. -30 = last 30). limit: window size (default 30). The header " +
+				"reports the total message count and the shown range so you can page through.",
+			parameters: Type.Object({
+				name: Type.String({ description: "agent whose history to inspect" }),
+				offset: Type.Optional(Type.Number({ description: "start index; 0=beginning (default), negative=from end" })),
+				limit: Type.Optional(Type.Number({ description: "number of messages to show (default 30)" })),
+			}),
+			execute: async (_id, args) => {
+				const rec = engine.get(args.name);
+				if (!rec) return { content: [{ type: "text", text: `unknown agent '${args.name}'` }], details: {} };
+				const text = formatHistory({
+					name: args.name,
+					systemPrompt: rec.view?.getSystemPrompt?.(),
+					messages: (rec.view?.getMessages() ?? []) as { role?: string; content?: unknown }[],
+					offset: args.offset,
+					limit: args.limit,
+					hideThinking: await getHideThinking(),
+				});
+				return { content: [{ type: "text", text }], details: {} };
 			},
 		},
 	];
@@ -634,9 +682,15 @@ export default function subagents(pi: ExtensionAPI) {
 			ui = ctx.ui;
 			panelOpen = true;
 			updateStatus(); // hide the redundant persistent roster
+			const hideThinking = await getHideThinking(); // align panel thinking with the main UI
 			try {
 				await ctx.ui.custom<void>((tui, theme, _kb, done) =>
-					createSubagentsPanel({ engine, cwd, route: (to, content) => void engine.route("main", to, content) }, tui, theme, done),
+					createSubagentsPanel(
+						{ engine, cwd, hideThinking, route: (to, content) => void engine.route("main", to, content) },
+						tui,
+						theme,
+						done,
+					),
 				);
 			} finally {
 				panelOpen = false;

@@ -26,6 +26,8 @@ interface PanelDeps {
 	engine: Engine;
 	route: (to: string, content: string) => void;
 	cwd: string;
+	/** Hide assistant thinking blocks, aligned with the main UI's hideThinkingBlock setting. */
+	hideThinking: boolean;
 }
 
 interface TuiLike {
@@ -157,7 +159,7 @@ export function createSubagentsPanel(deps: PanelDeps, tui: TuiLike, theme: Theme
 			} else if (m.role === "assistant") {
 				lines.push(
 					...renderComponentLines(
-						() => new AssistantMessageComponent(m as never, false, undefined as never),
+						() => new AssistantMessageComponent(m as never, deps.hideThinking, undefined as never),
 						width,
 						messageText(m.content),
 					),
