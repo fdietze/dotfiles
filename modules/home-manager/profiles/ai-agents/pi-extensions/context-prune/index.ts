@@ -105,7 +105,7 @@ export default function (pi: ExtensionAPI) {
         summary: Type.Optional(
           Type.String({
             description:
-              "Optional one-line digest that replaces the range. Omit to just drop the content (noise).",
+              "Optional digest that replaces the range — write it so you can resume from it alone, and hint what detail is inside so you can judge whether to `remember` it later. Omit to just drop the content (noise).",
           }),
         ),
       }),
@@ -121,7 +121,7 @@ export default function (pi: ExtensionAPI) {
     label: "Forget",
     description:
       "Forget earlier messages to keep the model context lean — reversible. Pass a list of ranges by their " +
-      "[#id] markers; each is { from, to?, summary? }. With `summary`, the range collapses into your one-line " +
+      "[#id] markers; each is { from, to?, summary? }. With `summary`, the range collapses into your " +
       "digest (use for finished sub-threads worth condensing). Without `summary`, the range's content is just " +
       "dropped (use for noise: tool outputs, detours, resolved debugging). `to` defaults to `from` for a single " +
       "message. Ranges snap outward to keep tool call/result pairs whole. Restore later with remember.",
@@ -130,6 +130,7 @@ export default function (pi: ExtensionAPI) {
     promptGuidelines: [
       "`[#id]` markers are labels the system prepends to each message so you can reference it — they are NOT part of the message text. Never write a `[#id]` marker in your own replies. Use these ids only as arguments to `forget` / `remember`.",
       "Routinely forget finished sub-threads: pass a range with a short `summary` to condense it, or without `summary` to drop pure noise (tool outputs, detours, resolved debugging). Keeps the working context lean; reversible via `remember`.",
+      "Write a `summary` you could resume from alone (without `remember`). Lead with open loops (unfinished work, pending decisions/commits/confirmations); then current state (what is now true — commit hashes, paths, passing tests); then decisions and why, including rejected options; then gotchas learned; and hint what detail sits inside the range so you can judge whether to `remember` it later. Be specific — name files, symbols, hashes; avoid vague verbs like 'fixed it'. Drop play-by-play and tool output. As terse as possible while still resumable.",
     ],
     parameters: ForgetParam,
     async execute(_id, params, _signal, _onUpdate, ctx) {
@@ -160,16 +161,16 @@ export default function (pi: ExtensionAPI) {
       if (!d) return new Text("", 0, 0);
       if (!d.applied.length)
         return new Text(theme.fg("warning", "unknown id(s)"), 0, 0);
-      const sum = d.summaries.find((s) => s);
-      const tail = sum
-        ? ` → ${sum.length > 80 ? sum.slice(0, 79) + "…" : sum}`
-        : "";
-      return new Text(
+      // Show the full digest(s) untruncated: renderResult is TUI-only (never
+      // serialized into context) and Text word-wraps, so it is free to display.
+      const head =
         theme.fg("success", `✓ forgot ${d.collapsed} msg(s)`) +
-          theme.fg("dim", `${tail} (${d.total} total)`),
-        0,
-        0,
-      );
+        theme.fg("dim", ` (${d.total} total)`);
+      const body = d.summaries
+        .filter((s) => s)
+        .map((s) => theme.fg("dim", `→ ${s}`))
+        .join("\n");
+      return new Text(body ? `${head}\n${body}` : head, 0, 0);
     },
   });
 
