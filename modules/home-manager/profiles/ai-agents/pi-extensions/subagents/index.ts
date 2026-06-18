@@ -20,7 +20,7 @@ import { Text } from "@earendil-works/pi-tui";
 import { Type } from "typebox";
 import { Engine, statusLabel, type AgentHandle } from "./engine.ts";
 import { formatFeedLines, formatKillResult, formatMulticastResult, formatSnapshot, normalizeTargets } from "./feed.ts";
-import { formatContext, formatRosterRow, swarmStateLine } from "./panel-logic.ts";
+import { formatContext, formatRosterRow, formatSendTargets, swarmStateLine } from "./panel-logic.ts";
 import { createSubagentsPanel } from "./panel.ts";
 import { danglingToolResultIds, deriveStatus, type RawMessage } from "./persistence-logic.ts";
 import { readRoster, subagentsDir, writeRoster } from "./persistence.ts";
@@ -196,9 +196,16 @@ export default function subagents(pi: ExtensionAPI) {
 			const theme = ui.theme;
 			const styler = (label: string, busy: boolean) =>
 				busy ? theme.bg("toolSuccessBg", label) : theme.fg("dim", label);
+			const matrix = engine.getMessageMatrix();
 			const rosterLines = background.map((a) =>
 				formatRosterRow(
-					{ name: a.name, model: a.model, context: formatContext(a.view?.getContextUsage()), status: statusLabel(a) },
+					{
+						name: a.name,
+						model: a.model,
+						context: formatContext(a.view?.getContextUsage()),
+						status: statusLabel(a),
+						targets: formatSendTargets(matrix, a.name),
+					},
 					false,
 					80,
 					styler,

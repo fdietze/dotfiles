@@ -12,11 +12,31 @@ export function formatContext(u: ContextUsageLike | undefined): string {
 	if (!u || u.tokens === null) return "—";
 	// Fixed field widths so the display does not jump as the numbers grow.
 	// pi's ContextUsage.percent is already a percentage (0–100), not a fraction.
+	// Compact form "  15k/200k ( 7%)" — no separator, padded for stable column alignment.
 	const used = k(u.tokens).padStart(5);
-	const total = k(u.contextWindow);
+	const total = k(u.contextWindow).padEnd(4);
 	if (u.percent === null) return `${used}/${total}`;
-	const pct = `${Math.round(u.percent)}%`.padStart(4);
-	return `${used}/${total} · ${pct}`;
+	const pct = `${Math.round(u.percent)}%`.padStart(3);
+	return `${used}/${total} (${pct})`;
+}
+
+/** Send targets of an agent from the message matrix, ordered by count desc (alpha tiebreak). */
+export function sendTargets(
+	matrix: Record<string, Record<string, number>>,
+	name: string,
+): { to: string; count: number }[] {
+	const row = matrix[name];
+	if (!row) return [];
+	return Object.entries(row)
+		.map(([to, count]) => ({ to, count }))
+		.sort((a, b) => b.count - a.count || a.to.localeCompare(b.to));
+}
+
+/** Roster cell of send targets: "→main·3 coder·1" (most-messaged first); "" when none. */
+export function formatSendTargets(matrix: Record<string, Record<string, number>>, name: string): string {
+	const t = sendTargets(matrix, name);
+	if (t.length === 0) return "";
+	return `→${t.map((x) => `${x.to}·${x.count}`).join(" ")}`;
 }
 
 export interface RosterEntry {
@@ -25,6 +45,8 @@ export interface RosterEntry {
 	context: string;
 	/** Display status from engine.statusLabel (spawning/thinking/writing/tool:.../idle). */
 	status: string;
+	/** Send targets cell (formatSendTargets); appended in full, never truncated. */
+	targets?: string;
 }
 
 /**
@@ -72,10 +94,13 @@ export function formatRosterRow(
 		entry.status.length > STATUS_COL ? `${entry.status.slice(0, STATUS_COL - 1)}…` : entry.status.padEnd(STATUS_COL);
 	const name = entry.name.length > 14 ? `${entry.name.slice(0, 13)}…` : entry.name.padEnd(14);
 	const model = shortModel(entry.model).padEnd(MODEL_COL);
-	const plain = `${cursor} ${label} ${name} ${model} ${entry.context}`;
-	// Width logic on the uncolored string (ANSI would corrupt .length).
-	if (plain.length > width) return plain.slice(0, width);
-	return `${cursor} ${styleStatus(label, busy)} ${name} ${model} ${entry.context}`;
+	// Fixed-width base columns; the variable send-targets cell is appended in full (not
+	// capped to width — long target lists wrap rather than hide who an agent talks to).
+	const base = `${cursor} ${label} ${name} ${model} ${entry.context}`;
+	// Degenerate guard: only the fixed base is bounded by width (it always fits in practice).
+	if (base.length > width) return base.slice(0, width);
+	const styledBase = `${cursor} ${styleStatus(label, busy)} ${name} ${model} ${entry.context}`;
+	return entry.targets ? `${styledBase}  ${entry.targets}` : styledBase;
 }
 
 export function moveSelection(current: number, delta: number, count: number): number {

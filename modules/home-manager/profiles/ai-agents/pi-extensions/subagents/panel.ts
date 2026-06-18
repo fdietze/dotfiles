@@ -13,6 +13,7 @@ import {
 	clampScroll,
 	formatContext,
 	formatRosterRow,
+	formatSendTargets,
 	findToolResult,
 	mergeStreaming,
 	messageText,
@@ -228,10 +229,17 @@ export function createSubagentsPanel(deps: PanelDeps, tui: TuiLike, theme: Theme
 			const header = `─ agents · ${agents().length} agents · ${running} running · budget ${used}/${total} `;
 			lines.push(theme.fg("accent", truncateToWidth(header.padEnd(width, "─"), width)));
 			const styler = styleStatus(theme);
+			const matrix = deps.engine.getMessageMatrix();
 			agents().forEach((a, i) => {
 				lines.push(
 					formatRosterRow(
-						{ name: a.name, model: a.model, context: formatContext(a.view?.getContextUsage()), status: statusLabel(a) },
+						{
+							name: a.name,
+							model: a.model,
+							context: formatContext(a.view?.getContextUsage()),
+							status: statusLabel(a),
+							targets: formatSendTargets(matrix, a.name),
+						},
 						i === selectedIndex,
 						width,
 						styler,

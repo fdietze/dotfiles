@@ -13,6 +13,8 @@ import {
 	mergeStreaming,
 	isBusy,
 	swarmStateLine,
+	sendTargets,
+	formatSendTargets,
 } from "./panel-logic.ts";
 
 test("formatContext renders tokens/window/percent (percent is already 0-100), dash when unknown", () => {
@@ -21,6 +23,37 @@ test("formatContext renders tokens/window/percent (percent is already 0-100), da
 	assert.match(formatContext({ tokens: 124000, contextWindow: 200000, percent: 62 }), /62%/);
 	assert.equal(formatContext({ tokens: null, contextWindow: 200000, percent: null }), "—");
 	assert.equal(formatContext(undefined), "—");
+	// Compact form: no separator, percent in parentheses.
+	const c = formatContext({ tokens: 15000, contextWindow: 200000, percent: 7 });
+	assert.match(c, /15k\/200k \( ?7%\)/);
+	assert.doesNotMatch(c, /·/);
+});
+
+test("sendTargets: ordered by count desc, alpha tiebreak; empty when none", () => {
+	const matrix = { a: { main: 3, coder: 3, zed: 1 }, b: {} };
+	assert.deepEqual(sendTargets(matrix, "a"), [
+		{ to: "coder", count: 3 },
+		{ to: "main", count: 3 },
+		{ to: "zed", count: 1 },
+	]);
+	assert.deepEqual(sendTargets(matrix, "b"), []);
+	assert.deepEqual(sendTargets(matrix, "missing"), []);
+});
+
+test("formatSendTargets: arrow + name·count, most-messaged first; '' when none", () => {
+	const matrix = { a: { main: 3, coder: 1 } };
+	assert.equal(formatSendTargets(matrix, "a"), "→main·3 coder·1");
+	assert.equal(formatSendTargets(matrix, "none"), "");
+});
+
+test("formatRosterRow appends send targets in full (not truncated to width)", () => {
+	const row = formatRosterRow(
+		{ name: "echo", model: "x/y", context: "", status: "idle", targets: "→main·3 coder·1 longtarget·2" },
+		false,
+		50, // >= fixed base width (45); targets then overflow it
+	);
+	assert.match(row, /→main·3 coder·1 longtarget·2$/);
+	assert.ok(row.length > 50); // targets overflow width on purpose
 });
 
 test("formatRosterRow shows cursor, name, model, context, status", () => {
