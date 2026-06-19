@@ -24,7 +24,7 @@ function mainRecord() {
 	};
 }
 
-test("reportError clears streaming/activity so status does not stick mid-turn", () => {
+test("reportError clears streaming/activity and surfaces the error status", () => {
 	const e = new Engine(caps);
 	e.addAgent({ ...mainRecord(), name: "w", depth: 1, streaming: true });
 	e.setActivity("w", "thinking");
@@ -33,7 +33,7 @@ test("reportError clears streaming/activity so status does not stick mid-turn", 
 	const rec = e.get("w")!;
 	assert.equal(rec.streaming, false);
 	assert.equal(rec.activity, undefined);
-	assert.equal(statusLabel(rec), "idle");
+	assert.equal(statusLabel(rec), "error"); // failure visible at idle, not silently "idle"
 	assert.equal(e.events.at(-1)?.type, "error");
 });
 
@@ -211,6 +211,29 @@ test("setCustomStatus sets and clears; no-op on unknown name", () => {
 	e.setCustomStatus("a", "");
 	assert.equal(e.get("a")?.customStatus, undefined);
 	assert.doesNotThrow(() => e.setCustomStatus("ghost", "x"));
+});
+
+test("statusLabel: idle reflects terminal stopReason (error/truncated)", () => {
+	assert.equal(statusLabel({ streaming: false, stopReason: "error" }), "error");
+	assert.equal(statusLabel({ streaming: false, stopReason: "length" }), "truncated");
+	assert.equal(statusLabel({ streaming: false, stopReason: "stop" }), "idle");
+	assert.equal(statusLabel({ streaming: false, stopReason: "aborted" }), "idle");
+	assert.equal(statusLabel({ streaming: false }), "idle");
+	// While streaming, the live phase wins over any stale stopReason.
+	assert.equal(statusLabel({ streaming: true, activity: "thinking", stopReason: "error" }), "thinking");
+});
+
+test("setStopReason sets it; a new turn (setStreaming true) clears it", () => {
+	const e = new Engine(caps);
+	e.addAgent({ ...mainRecord(), name: "a", depth: 1 });
+	e.setStopReason("a", "error");
+	assert.equal(e.get("a")?.stopReason, "error");
+	assert.equal(statusLabel(e.get("a")!), "error");
+	e.setStreaming("a", true); // new turn starts -> stale outcome cleared
+	assert.equal(e.get("a")?.stopReason, undefined);
+	e.setStreaming("a", false);
+	assert.equal(statusLabel(e.get("a")!), "idle");
+	assert.doesNotThrow(() => e.setStopReason("ghost", "error"));
 });
 
 test("setStreaming updates record flag", () => {

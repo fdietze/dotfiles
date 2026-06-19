@@ -21,7 +21,7 @@ import { Text, truncateToWidth } from "@earendil-works/pi-tui";
 import { Type } from "typebox";
 import { Engine, statusLabel, type AgentHandle } from "./engine.ts";
 import { formatFeedLines, formatKillResult, formatMulticastResult, formatSnapshot, normalizeTargets } from "./feed.ts";
-import { formatContext, formatHistory, formatRosterRow, formatSendTargets, swarmStateLine } from "./panel-logic.ts";
+import { formatContext, formatHistory, formatRosterRow, formatSendTargets, type StatusTone, swarmStateLine } from "./panel-logic.ts";
 import { createSubagentsPanel } from "./panel.ts";
 import { danglingToolResultIds, deriveStatus, type RawMessage } from "./persistence-logic.ts";
 import { readRoster, subagentsDir, writeRoster } from "./persistence.ts";
@@ -46,7 +46,8 @@ const BUDGET_ESCALATION = (total: number) =>
 // v4: halt(reason)+frozenReason, freeze-by-blocking recordTurnStart, halted flag, 200 cap.
 // v5: AgentRecord gains systemPrompt+sessionFile (persistence roster), attach() sets them.
 // v6: Engine gains setCustomStatus + AgentRecord.customStatus (agent-settable status line).
-const ENGINE_KEY = "__subagentsEngine_v6";
+// v7: Engine gains setStopReason + AgentRecord.stopReason; setStreaming(true) clears it.
+const ENGINE_KEY = "__subagentsEngine_v7";
 
 function getEngine(): Engine {
 	const g = globalThis as Record<string, unknown>;
@@ -224,8 +225,12 @@ export default function subagents(pi: ExtensionAPI) {
 			// Only show background agents ('main' = the chat itself, redundant).
 			const background = agents.filter((a) => a.name !== "main");
 			const theme = ui.theme;
-			const styler = (label: string, busy: boolean) =>
-				busy ? theme.bg("toolSuccessBg", label) : theme.fg("dim", label);
+			const styler = (label: string, tone: StatusTone) =>
+				tone === "error"
+					? theme.bg("toolErrorBg", label)
+					: tone === "busy"
+						? theme.bg("toolSuccessBg", label)
+						: theme.fg("dim", label);
 			const matrix = engine.getMessageMatrix();
 			// EVERY widget line must fit the live terminal width or pi's renderer throws
 			// ("Rendered line N exceeds terminal width"). pi checks against this.terminal.columns,
@@ -608,11 +613,15 @@ export default function subagents(pi: ExtensionAPI) {
 		engine.setActivity("main", "tool", (event as { toolName?: string }).toolName);
 		updateStatus();
 	});
-	pi.on("agent_end", (_event, ctx) => {
+	pi.on("agent_end", (event, ctx) => {
 		ui = ctx.ui;
 		captureMainContext(ctx);
 		mainState().streaming = false;
 		engine.setStreaming("main", false);
+		// Reflect main's terminal outcome too (error/truncated), consistent with background agents.
+		const msgs = (event as { messages?: { role?: string; stopReason?: string }[] }).messages ?? [];
+		const lastAssistant = [...msgs].reverse().find((m) => m.role === "assistant");
+		engine.setStopReason("main", lastAssistant?.stopReason as never);
 		updateStatus();
 	});
 

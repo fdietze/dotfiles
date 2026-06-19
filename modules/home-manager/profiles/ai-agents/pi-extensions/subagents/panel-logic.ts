@@ -78,6 +78,15 @@ export function isBusy(status: string): boolean {
 	return status !== "idle" && status !== "spawning" && status !== "halted";
 }
 
+/** Visual tone of a status: error gets a distinct (red) highlight, active work green, rest dim. */
+export type StatusTone = "idle" | "busy" | "error";
+export function statusTone(status: string): StatusTone {
+	if (status === "error") return "error";
+	// "truncated" is a resting outcome, not active work — dim it like idle, not busy-green.
+	if (status === "truncated") return "idle";
+	return isBusy(status) ? "busy" : "idle";
+}
+
 /** Short model id for the roster: drop the "provider/" prefix, truncate to fit. */
 const MODEL_COL = 16;
 export function shortModel(model: string | undefined): string {
@@ -90,15 +99,15 @@ export function formatRosterRow(
 	entry: RosterEntry,
 	selected: boolean,
 	width: number,
-	// Optional styler for the status label (background color when busy). Default: identity.
-	styleStatus: (label: string, busy: boolean) => string = (l) => l,
+	// Optional styler for the status label, keyed by visual tone. Default: identity.
+	styleStatus: (label: string, tone: StatusTone) => string = (l) => l,
 ): string {
 	// Layout: <cursor> <status> <name> <context>. Status as a fixed ASCII column at the
 	// front (robustly aligned, independent of the variable context width at the end).
 	const cursor = selected ? "▸" : " ";
-	// Busy highlight keys off the SYSTEM status only — an idle agent that set a custom status
-	// must still read as idle, not busy.
-	const busy = isBusy(entry.status);
+	// Tone keys off the SYSTEM status only — an idle agent that set a custom status must still
+	// read as idle (not busy), and an errored one as error.
+	const tone = statusTone(entry.status);
 	// Custom status shown right after the system status ("idle · parsing files"); the combined
 	// string shares the fixed column and truncates as a whole.
 	const combined = entry.customStatus ? `${entry.status} · ${entry.customStatus}` : entry.status;
@@ -112,7 +121,7 @@ export function formatRosterRow(
 	const base = `${cursor} ${name} ${label} ${model} ${entry.context}`;
 	// Degenerate guard: only the fixed base is bounded by width (it always fits in practice).
 	if (base.length > width) return base.slice(0, width);
-	const styledBase = `${cursor} ${name} ${styleStatus(label, busy)} ${model} ${entry.context}`;
+	const styledBase = `${cursor} ${name} ${styleStatus(label, tone)} ${model} ${entry.context}`;
 	return entry.targets ? `${styledBase}  ${entry.targets}` : styledBase;
 }
 

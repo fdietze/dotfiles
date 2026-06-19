@@ -3,7 +3,16 @@
  * index.ts injects the real pi/SDK adapters (createSession, resolveModel, ...).
  * Design: docs/superpowers/specs/2026-06-15-actor-swarm-pi-extension-design.md
  */
-import type { AgentHandle, AgentView, Engine } from "./engine.ts";
+import type { AgentHandle, AgentView, Engine, StopReason } from "./engine.ts";
+
+/** Terminal stopReason of the last assistant message in a transcript (undefined if none). */
+function lastStopReason(messages: unknown[]): StopReason | undefined {
+	for (let i = messages.length - 1; i >= 0; i--) {
+		const m = messages[i] as { role?: string; stopReason?: StopReason };
+		if (m.role === "assistant") return m.stopReason;
+	}
+	return undefined;
+}
 
 /** Minimal slice of an AgentSession that the orchestration needs. */
 export interface SessionLike {
@@ -91,7 +100,11 @@ export function createSpawner(deps: SpawnerDeps): Spawner {
 			}
 			if (ev.type === "tool_execution_start")
 				engine.setActivity(name, "tool", (ev as { toolName?: string }).toolName);
-			if (ev.type === "agent_end") engine.setStreaming(name, false);
+			if (ev.type === "agent_end") {
+				engine.setStreaming(name, false);
+				// Surface the turn's terminal outcome at idle (error after retries / truncated).
+				engine.setStopReason(name, lastStopReason(session.messages));
+			}
 			onActivity?.();
 		});
 	};

@@ -12,6 +12,7 @@ import {
 	shortModel,
 	mergeStreaming,
 	isBusy,
+	statusTone,
 	swarmStateLine,
 	sendTargets,
 	formatSendTargets,
@@ -106,12 +107,12 @@ test("formatRosterRow shows custom status after the system status", () => {
 });
 
 test("formatRosterRow: custom status does not make an idle agent read as busy", () => {
-	// styleStatus receives busy=false for idle, even with a custom status set.
+	// styleStatus receives tone "idle" for idle, even with a custom status set.
 	const row = formatRosterRow(
 		{ name: "echo", model: "x/y", context: "", status: "idle", customStatus: "waiting" },
 		false,
 		80,
-		(label, busy) => (busy ? `BUSY[${label}]` : label),
+		(label, tone) => (tone === "busy" ? `BUSY[${label}]` : label),
 	);
 	assert.doesNotMatch(row, /BUSY/);
 });
@@ -162,6 +163,26 @@ test("isBusy: idle/spawning/halted are not busy", () => {
 	assert.equal(isBusy("thinking"), true);
 	assert.equal(isBusy("writing"), true);
 	assert.equal(isBusy("tool:bash"), true);
+});
+
+test("statusTone: error is its own tone, truncated dims like idle, work is busy", () => {
+	assert.equal(statusTone("error"), "error");
+	assert.equal(statusTone("truncated"), "idle");
+	assert.equal(statusTone("idle"), "idle");
+	assert.equal(statusTone("halted"), "idle");
+	assert.equal(statusTone("thinking"), "busy");
+	assert.equal(statusTone("tool:bash"), "busy");
+});
+
+test("formatRosterRow passes the error tone to the styler", () => {
+	const row = formatRosterRow(
+		{ name: "echo", model: "x/y", context: "", status: "error", customStatus: "drafting joke" },
+		false,
+		80,
+		(label, tone) => `[${tone}]${label}`,
+	);
+	assert.match(row, /\[error\]/);
+	assert.match(row, /error · drafting joke/);
 });
 
 test("shortModel drops provider prefix and truncates", () => {

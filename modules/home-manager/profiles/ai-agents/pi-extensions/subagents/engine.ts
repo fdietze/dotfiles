@@ -26,6 +26,14 @@ export interface AgentView {
 /** What an agent is doing right now (only meaningful while `streaming`). */
 export type AgentActivity = "thinking" | "writing" | "tool";
 
+/**
+ * Terminal reason of an agent's last turn (mirror of pi-ai's StopReason; redeclared here to
+ * keep the engine SDK-free). Only the idle-time outcomes matter for the status: "error"
+ * (failed after the SDK exhausted its retries) and "length" (output truncated at max tokens).
+ * "toolUse" never reaches idle (the agent keeps streaming), "aborted" is covered by halt/kill.
+ */
+export type StopReason = "stop" | "length" | "toolUse" | "error" | "aborted";
+
 export interface AgentRecord {
 	name: string;
 	model: string; // "provider/id", display only
@@ -48,6 +56,8 @@ export interface AgentRecord {
 	customStatus?: string;
 	/** Tool name while `activity === "tool"`. */
 	currentTool?: string;
+	/** Terminal reason of the last finished turn; drives the idle-time status (error/truncated). Cleared when a new turn starts. */
+	stopReason?: StopReason;
 	/**
 	 * Set when the swarm was halted (manual /halt or turn-budget) while this agent was
 	 * mid-turn. Marks it for re-triggering on resume; survives the agent_end of an
@@ -336,13 +346,25 @@ export class Engine {
 		// A failed turn may never fire agent_end, so clear streaming here to avoid the
 		// status sticking at thinking/writing/tool (setStreaming(false) also resets activity).
 		this.setStreaming(name, false);
+		// Surface the failure as the idle "error" status (this is the thrown-exception path; the
+		// SDK's retry-exhausted path goes through setStopReason at agent_end). Order matters:
+		// setStreaming(false) does NOT clear stopReason, so set it after.
+		this.setStopReason(name, "error");
 		this.emit({ type: "error", name, reason, ts: Date.now() });
+	}
+
+	/** Record the terminal reason of an agent's last turn (shown at idle via statusLabel). */
+	setStopReason(name: string, reason: StopReason | undefined): void {
+		const rec = this.agents.get(name);
+		if (rec) rec.stopReason = reason;
 	}
 
 	setStreaming(name: string, streaming: boolean): void {
 		const rec = this.agents.get(name);
 		if (!rec) return;
 		rec.streaming = streaming;
+		// A new turn supersedes the previous outcome: clear the stale stopReason on turn start.
+		if (streaming) rec.stopReason = undefined;
 		if (!streaming) {
 			// Turn over -> no activity/tool to report.
 			rec.activity = undefined;
@@ -371,14 +393,20 @@ export class Engine {
  * roster (list_agents) and the TUI panel so the vocabulary stays consistent.
  * spawning = session starting · halted = stopped mid-work by /halt or the turn budget
  * (resume re-triggers it) · thinking = model reasoning · writing = generating answer
- * text · tool:<name> = running a tool · idle = finished its turn, waiting for input.
+ * text · tool:<name> = running a tool · idle = finished its turn, waiting for input ·
+ * error = last turn failed after retries exhausted · truncated = output hit max tokens.
  */
 export function statusLabel(
-	rec: Pick<AgentRecord, "pending" | "streaming" | "activity" | "currentTool" | "halted">,
+	rec: Pick<AgentRecord, "pending" | "streaming" | "activity" | "currentTool" | "halted" | "stopReason">,
 ): string {
 	if (rec.pending) return "spawning";
 	if (rec.halted) return "halted";
-	if (!rec.streaming) return "idle";
+	if (!rec.streaming) {
+		// Idle: surface a noteworthy terminal outcome of the last turn, else plain idle.
+		if (rec.stopReason === "error") return "error";
+		if (rec.stopReason === "length") return "truncated";
+		return "idle";
+	}
 	if (rec.activity === "tool") return rec.currentTool ? `tool:${rec.currentTool}` : "tool";
 	if (rec.activity === "writing") return "writing";
 	return "thinking";
