@@ -17,7 +17,7 @@ import {
 	SettingsManager,
 	type ToolDefinition,
 } from "@earendil-works/pi-coding-agent";
-import { Text } from "@earendil-works/pi-tui";
+import { Text, truncateToWidth } from "@earendil-works/pi-tui";
 import { Type } from "typebox";
 import { Engine, statusLabel, type AgentHandle } from "./engine.ts";
 import { formatFeedLines, formatKillResult, formatMulticastResult, formatSnapshot, normalizeTargets } from "./feed.ts";
@@ -227,30 +227,41 @@ export default function subagents(pi: ExtensionAPI) {
 			const styler = (label: string, busy: boolean) =>
 				busy ? theme.bg("toolSuccessBg", label) : theme.fg("dim", label);
 			const matrix = engine.getMessageMatrix();
+			// EVERY widget line must fit the live terminal width or pi's renderer throws
+			// ("Rendered line N exceeds terminal width"). pi checks against this.terminal.columns,
+			// so truncate each composed line to process.stdout.columns (NOT a hardcoded width —
+			// that crashed on narrower terminals). truncateToWidth is ANSI/unicode aware.
+			const width = process.stdout.columns ?? 80;
 			const rosterLines = background.map((a) =>
-				formatRosterRow(
-					{
-						name: a.name,
-						model: a.model,
-						context: formatContext(a.view?.getContextUsage()),
-						status: statusLabel(a),
-						customStatus: a.customStatus,
-						targets: formatSendTargets(matrix, a.name),
-					},
-					false,
-					100,
-					styler,
+				truncateToWidth(
+					formatRosterRow(
+						{
+							name: a.name,
+							model: a.model,
+							context: formatContext(a.view?.getContextUsage()),
+							status: statusLabel(a),
+							customStatus: a.customStatus,
+							targets: formatSendTargets(matrix, a.name),
+						},
+						false,
+						width,
+						styler,
+					),
+					width,
 				),
 			);
 			const running = background.filter((a) => a.streaming).length;
 			const stateLine = swarmStateLine(engine.isFrozen(), running);
 			const haltLine = engine.isFrozen()
-				? theme.bg("toolPendingBg", stateLine.padEnd(80))
-				: theme.bg("selectedBg", stateLine);
+				? theme.bg("toolPendingBg", truncateToWidth(stateLine.padEnd(width), width))
+				: theme.bg("selectedBg", truncateToWidth(stateLine, width));
 			// Same header the /agents panel shows, so the turn budget is always visible at a
 			// glance (matters for the budget-halt escalation) — not only inside the panel.
 			const { used, total } = engine.budget;
-			const header = theme.fg("accent", `─ agents · ${background.length} agents · ${running} running · budget ${used}/${total} `);
+			const header = theme.fg(
+				"accent",
+				truncateToWidth(`─ agents · ${background.length} agents · ${running} running · budget ${used}/${total} `, width),
+			);
 			ui.setWidget(
 				"agents-roster",
 				panelOpen || background.length === 0 ? undefined : [header, ...rosterLines, haltLine],
