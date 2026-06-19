@@ -21,7 +21,15 @@ import { Text, truncateToWidth } from "@earendil-works/pi-tui";
 import { Type } from "typebox";
 import { Engine, statusLabel, type AgentHandle } from "./engine.ts";
 import { formatFeedLines, formatKillResult, formatMulticastResult, formatSnapshot, normalizeTargets } from "./feed.ts";
-import { formatContext, formatHistory, formatRosterRow, formatSendTargets, type StatusTone, swarmStateLine } from "./panel-logic.ts";
+import {
+	formatContext,
+	formatHistory,
+	formatRosterRow,
+	formatSendTargets,
+	type StatusTone,
+	swarmStateLine,
+	toolPreviewParts,
+} from "./panel-logic.ts";
 import { createSubagentsPanel } from "./panel.ts";
 import { danglingToolResultIds, deriveStatus, type RawMessage } from "./persistence-logic.ts";
 import { readRoster, subagentsDir, writeRoster } from "./persistence.ts";
@@ -125,17 +133,17 @@ function agentSystemPrompt(name: string, systemPrompt: string, spawnedBy: string
 // Tool-call preview that shows the FULL parameter content. Without a custom renderCall,
 // pi's fallback for registered tools shows only the tool name (see ToolExecutionComponent
 // createCallFallback) — long fields like systemPrompt would be missing entirely.
+// No indents (they only waste width): scalar args sit inline on the title line for density,
+// multiline string fields (e.g. systemPrompt) follow as unindented blocks.
 type RenderTheme = { fg(color: string, s: string): string; bold(s: string): string };
 function renderToolArgs(toolName: string, args: Record<string, unknown>, theme: RenderTheme): Text {
-	const lines = [theme.fg("toolTitle", theme.bold(toolName))];
-	for (const [key, value] of Object.entries(args ?? {})) {
-		if (typeof value === "string" && value.includes("\n")) {
-			lines.push(theme.fg("dim", `  ${key}:`));
-			for (const l of value.split("\n")) lines.push(theme.fg("toolOutput", `    ${l}`));
-		} else {
-			const val = typeof value === "string" ? value : JSON.stringify(value);
-			lines.push(`${theme.fg("dim", `  ${key}: `)}${theme.fg("toolOutput", val)}`);
-		}
+	const { scalars, blocks } = toolPreviewParts(args ?? {});
+	const title =
+		theme.fg("toolTitle", theme.bold(toolName)) + (scalars.length ? ` ${theme.fg("dim", scalars.join("  "))}` : "");
+	const lines = [title];
+	for (const { key, value } of blocks) {
+		lines.push(theme.fg("dim", `${key}:`));
+		for (const l of value.split("\n")) lines.push(theme.fg("toolOutput", l));
 	}
 	return new Text(lines.join("\n"), 0, 0);
 }

@@ -39,6 +39,24 @@ export function formatSendTargets(matrix: Record<string, Record<string, number>>
 	return `→${t.map((x) => `${x.to}·${x.count}`).join(" ")}`;
 }
 
+/**
+ * Pure half of the main-chat tool-call preview (renderToolArgs in index.ts). Splits args
+ * into inline scalars ("key=value", joined on the title line for density) and multiline
+ * string blocks (rendered unindented below the title). No indents — they only waste width.
+ */
+export function toolPreviewParts(args: Record<string, unknown>): {
+	scalars: string[];
+	blocks: { key: string; value: string }[];
+} {
+	const scalars: string[] = [];
+	const blocks: { key: string; value: string }[] = [];
+	for (const [key, value] of Object.entries(args ?? {})) {
+		if (typeof value === "string" && value.includes("\n")) blocks.push({ key, value });
+		else scalars.push(`${key}=${typeof value === "string" ? value : JSON.stringify(value)}`);
+	}
+	return { scalars, blocks };
+}
+
 export interface RosterEntry {
 	name: string;
 	model: string;

@@ -13,6 +13,7 @@ import {
 	mergeStreaming,
 	isBusy,
 	statusTone,
+	toolPreviewParts,
 	swarmStateLine,
 	sendTargets,
 	formatSendTargets,
@@ -163,6 +164,24 @@ test("isBusy: idle/spawning/halted are not busy", () => {
 	assert.equal(isBusy("thinking"), true);
 	assert.equal(isBusy("writing"), true);
 	assert.equal(isBusy("tool:bash"), true);
+});
+
+test("toolPreviewParts: scalars inline, multiline strings as blocks, no indents", () => {
+	const { scalars, blocks } = toolPreviewParts({
+		name: "w1",
+		model: "x/y",
+		offset: -10,
+		to: ["a", "b"],
+		systemPrompt: "line1\nline2",
+	});
+	assert.deepEqual(scalars, ["name=w1", "model=x/y", "offset=-10", 'to=["a","b"]']);
+	assert.deepEqual(blocks, [{ key: "systemPrompt", value: "line1\nline2" }]);
+});
+
+test("toolPreviewParts: no args -> empty", () => {
+	const { scalars, blocks } = toolPreviewParts({});
+	assert.equal(scalars.length, 0);
+	assert.equal(blocks.length, 0);
 });
 
 test("statusTone: error is its own tone, truncated dims like idle, work is busy", () => {
