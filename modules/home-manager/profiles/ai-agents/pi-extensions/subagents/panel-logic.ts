@@ -41,9 +41,12 @@ export function formatSendTargets(matrix: Record<string, Record<string, number>>
 
 /**
  * Pure half of the main-chat tool-call preview (renderToolArgs in index.ts). Splits args
- * into inline scalars ("key=value", joined on the title line for density) and multiline
- * string blocks (rendered unindented below the title). No indents — they only waste width.
+ * into inline scalars ("key=value", joined on the title line for density) and string blocks
+ * (rendered unindented below the title, each on its own line). No indents — they only waste
+ * width. The free-text payload fields always get their own line (no length heuristic);
+ * everything else stays inline.
  */
+const BLOCK_FIELDS = new Set(["systemPrompt", "message", "content"]);
 export function toolPreviewParts(args: Record<string, unknown>): {
 	scalars: string[];
 	blocks: { key: string; value: string }[];
@@ -51,8 +54,11 @@ export function toolPreviewParts(args: Record<string, unknown>): {
 	const scalars: string[] = [];
 	const blocks: { key: string; value: string }[] = [];
 	for (const [key, value] of Object.entries(args ?? {})) {
-		if (typeof value === "string" && value.includes("\n")) blocks.push({ key, value });
-		else scalars.push(`${key}=${typeof value === "string" ? value : JSON.stringify(value)}`);
+		if (typeof value === "string" && BLOCK_FIELDS.has(key)) {
+			blocks.push({ key, value });
+		} else {
+			scalars.push(`${key}=${typeof value === "string" ? value : JSON.stringify(value)}`);
+		}
 	}
 	return { scalars, blocks };
 }

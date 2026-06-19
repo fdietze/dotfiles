@@ -166,16 +166,27 @@ test("isBusy: idle/spawning/halted are not busy", () => {
 	assert.equal(isBusy("tool:bash"), true);
 });
 
-test("toolPreviewParts: scalars inline, multiline strings as blocks, no indents", () => {
+test("toolPreviewParts: systemPrompt/message/content are always blocks, others inline", () => {
 	const { scalars, blocks } = toolPreviewParts({
 		name: "w1",
 		model: "x/y",
 		offset: -10,
 		to: ["a", "b"],
-		systemPrompt: "line1\nline2",
+		systemPrompt: "you are w1", // short, still a block (field-based, no length logic)
+		message: "go",
 	});
 	assert.deepEqual(scalars, ["name=w1", "model=x/y", "offset=-10", 'to=["a","b"]']);
-	assert.deepEqual(blocks, [{ key: "systemPrompt", value: "line1\nline2" }]);
+	assert.deepEqual(blocks, [
+		{ key: "systemPrompt", value: "you are w1" },
+		{ key: "message", value: "go" },
+	]);
+});
+
+test("toolPreviewParts: a long non-payload field stays inline (no length heuristic)", () => {
+	const longStatus = "x".repeat(80);
+	const { scalars, blocks } = toolPreviewParts({ status: longStatus });
+	assert.deepEqual(scalars, [`status=${longStatus}`]);
+	assert.equal(blocks.length, 0);
 });
 
 test("toolPreviewParts: no args -> empty", () => {
