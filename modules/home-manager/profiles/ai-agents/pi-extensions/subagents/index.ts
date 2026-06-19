@@ -19,6 +19,7 @@ import {
 } from "@earendil-works/pi-coding-agent";
 import { Text, truncateToWidth } from "@earendil-works/pi-tui";
 import { Type } from "typebox";
+import { orderAgents } from "./agent-order.ts";
 import { Engine, statusLabel, type AgentHandle } from "./engine.ts";
 import { formatFeedLines, formatKillResult, formatMulticastResult, formatSnapshot, normalizeTargets } from "./feed.ts";
 import {
@@ -225,7 +226,7 @@ export default function subagents(pi: ExtensionAPI) {
 	const updateStatus = () => {
 		if (!ui) return;
 		try {
-			const agents = engine.list();
+			const agents = orderAgents(engine.list(), engine.getMessageMatrix());
 			// No footer status — count/running/budget live in the /agents panel header.
 			// Permanent roster display above the editor (plan-mode pattern, no overlay).
 			// Only show when at least one background agent exists (just 'main' alone is
@@ -370,7 +371,8 @@ export default function subagents(pi: ExtensionAPI) {
 			parameters: Type.Object({}),
 			execute: async () => {
 				const { used, total } = engine.budget;
-				return { content: [{ type: "text", text: formatSnapshot(engine.list(), used, total, selfName) }], details: {} };
+				const ordered = orderAgents(engine.list(), engine.getMessageMatrix());
+				return { content: [{ type: "text", text: formatSnapshot(ordered, used, total, selfName) }], details: {} };
 			},
 		},
 		{

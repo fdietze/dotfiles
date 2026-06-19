@@ -8,6 +8,7 @@
  */
 import { Editor, type EditorTheme, Key, matchesKey, truncateToWidth } from "@earendil-works/pi-tui";
 import { AssistantMessageComponent, ToolExecutionComponent, UserMessageComponent } from "@earendil-works/pi-coding-agent";
+import { orderAgents } from "./agent-order.ts";
 import { statusLabel, type Engine } from "./engine.ts";
 import {
 	clampScroll,
@@ -90,7 +91,9 @@ export function createSubagentsPanel(deps: PanelDeps, tui: TuiLike, theme: Theme
 	const editor = new Editor(tui as never, editorTheme);
 
 	// 'main' is not listed in the panel (= the main chat you are already in).
-	const agents = () => deps.engine.list().filter((a) => a.name !== "main");
+	// Spawn-tree order (parent followed by its subtree; siblings by parent traffic), then drop
+	// main. Recomputed per access so it tracks live spawns/messages.
+	const agents = () => orderAgents(deps.engine.list(), deps.engine.getMessageMatrix()).filter((a) => a.name !== "main");
 	const refresh = () => tui.requestRender();
 	const selectedName = () => agents()[selectedIndex]?.name;
 
