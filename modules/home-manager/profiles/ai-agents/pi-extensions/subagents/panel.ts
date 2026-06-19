@@ -15,6 +15,7 @@ import {
 	formatRosterRow,
 	formatSendTargets,
 	findToolResult,
+	type StatusTone,
 	mergeStreaming,
 	messageText,
 	moveSelection,
@@ -39,8 +40,12 @@ interface ThemeLike {
 }
 
 // busy = clearly visible background, idle/spawning = subtle.
-const styleStatus = (theme: ThemeLike) => (label: string, busy: boolean) =>
-	busy ? theme.bg("toolSuccessBg", label) : theme.fg("dim", label);
+const styleStatus = (theme: ThemeLike) => (label: string, tone: StatusTone) =>
+	tone === "error"
+		? theme.bg("toolErrorBg", label)
+		: tone === "busy"
+			? theme.bg("toolSuccessBg", label)
+			: theme.fg("dim", label);
 
 const TRANSCRIPT_VIEWPORT = 18;
 
@@ -125,7 +130,11 @@ export function createSubagentsPanel(deps: PanelDeps, tui: TuiLike, theme: Theme
 					call.id,
 					call.arguments,
 					{ showImages: false },
-					undefined as never,
+					// Pass a (empty) toolDefinition so the component takes the renderer path: call =
+					// just the tool name (createCallFallback), result = the preview (createResultFallback).
+					// With undefined it instead falls back to formatToolExecution() which ALSO dumps the
+					// full pretty-printed args JSON — redundant noise; the result preview is enough.
+					{} as never,
 					tui as never,
 					deps.cwd,
 				);
