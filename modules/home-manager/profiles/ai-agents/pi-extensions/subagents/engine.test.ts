@@ -203,12 +203,6 @@ test("statusLabel: spawning and halted take precedence over streaming phase", ()
 	assert.equal(statusLabel({ streaming: true, activity: "writing" }), "writing");
 });
 
-test("statusLabel: appends custom status to base status", () => {
-	assert.equal(statusLabel({ streaming: true, activity: "thinking", customStatus: "parsing files" }), "thinking · parsing files");
-	assert.equal(statusLabel({ streaming: false, customStatus: "waiting on review" }), "idle · waiting on review");
-	assert.equal(statusLabel({ streaming: false }), "idle");
-});
-
 test("setCustomStatus sets and clears; no-op on unknown name", () => {
 	const e = new Engine(caps);
 	e.addAgent({ ...mainRecord(), name: "a", depth: 1 });

@@ -374,20 +374,12 @@ export class Engine {
  * text · tool:<name> = running a tool · idle = finished its turn, waiting for input.
  */
 export function statusLabel(
-	rec: Pick<AgentRecord, "pending" | "streaming" | "activity" | "currentTool" | "halted" | "customStatus">,
+	rec: Pick<AgentRecord, "pending" | "streaming" | "activity" | "currentTool" | "halted">,
 ): string {
-	const base = rec.pending
-		? "spawning"
-		: rec.halted
-			? "halted"
-			: !rec.streaming
-				? "idle"
-				: rec.activity === "tool"
-					? rec.currentTool
-						? `tool:${rec.currentTool}`
-						: "tool"
-					: rec.activity === "writing"
-						? "writing"
-						: "thinking";
-	return rec.customStatus ? `${base} · ${rec.customStatus}` : base;
+	if (rec.pending) return "spawning";
+	if (rec.halted) return "halted";
+	if (!rec.streaming) return "idle";
+	if (rec.activity === "tool") return rec.currentTool ? `tool:${rec.currentTool}` : "tool";
+	if (rec.activity === "writing") return "writing";
+	return "thinking";
 }

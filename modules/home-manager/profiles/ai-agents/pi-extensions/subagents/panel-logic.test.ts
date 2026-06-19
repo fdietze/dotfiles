@@ -90,32 +90,61 @@ test("formatRosterRow appends send targets in full (not truncated to width)", ()
 	const row = formatRosterRow(
 		{ name: "echo", model: "x/y", context: "", status: "idle", targets: "→main·3 coder·1 longtarget·2" },
 		false,
-		50, // >= fixed base width (45); targets then overflow it
+		70, // >= fixed base width (63 with STATUS_COL 28); targets then overflow it
 	);
 	assert.match(row, /→main·3 coder·1 longtarget·2$/);
-	assert.ok(row.length > 50); // targets overflow width on purpose
+	assert.ok(row.length > 70); // targets overflow width on purpose
+});
+
+test("formatRosterRow shows custom status after the system status", () => {
+	const row = formatRosterRow(
+		{ name: "echo", model: "x/y", context: "", status: "idle", customStatus: "parsing files" },
+		false,
+		80,
+	);
+	assert.match(row, /idle · parsing files/);
+});
+
+test("formatRosterRow: custom status does not make an idle agent read as busy", () => {
+	// styleStatus receives busy=false for idle, even with a custom status set.
+	const row = formatRosterRow(
+		{ name: "echo", model: "x/y", context: "", status: "idle", customStatus: "waiting" },
+		false,
+		80,
+		(label, busy) => (busy ? `BUSY[${label}]` : label),
+	);
+	assert.doesNotMatch(row, /BUSY/);
+});
+
+test("formatRosterRow truncates a long combined status to the column", () => {
+	const row = formatRosterRow(
+		{ name: "echo", model: "x/y", context: "", status: "idle", customStatus: "a much longer status than fits the column" },
+		false,
+		120,
+	);
+	assert.match(row, /idle · a much longer status…/); // truncated at STATUS_COL (28) with ellipsis
 });
 
 test("formatRosterRow shows cursor, name, model, context, status", () => {
 	const row = formatRosterRow(
 		{ name: "echo", model: "anthropic/claude-sonnet-4-5", context: "3k/200k · 2%", status: "thinking" },
 		true,
-		60,
+		80,
 	);
 	assert.match(row, /▸/);
 	assert.match(row, /echo/);
 	assert.match(row, /thinking/);
 	assert.match(row, /claude-sonnet-4/); // short id, provider prefix dropped
-	assert.ok(row.length <= 60);
+	assert.ok(row.length <= 80);
 });
 
 test("formatRosterRow truncates a long tool status to the column", () => {
 	const row = formatRosterRow(
-		{ name: "echo", model: "x/y", context: "", status: "tool:some_very_long_tool" },
+		{ name: "echo", model: "x/y", context: "", status: "tool:some_very_long_tool_name_here" },
 		false,
 		80,
 	);
-	assert.match(row, /tool:some…/);
+	assert.match(row, /tool:some_very_long_tool_na…/); // truncated at STATUS_COL (28)
 });
 
 test("swarmStateLine: halted vs live with activity count", () => {

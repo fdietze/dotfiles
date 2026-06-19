@@ -43,8 +43,10 @@ export interface RosterEntry {
 	name: string;
 	model: string;
 	context: string;
-	/** Display status from engine.statusLabel (spawning/thinking/writing/tool:.../idle). */
+	/** System status from engine.statusLabel (spawning/thinking/writing/tool:.../idle/halted). */
 	status: string;
+	/** Agent-set freeform status (engine.setCustomStatus); shown after the system status. */
+	customStatus?: string;
 	/** Send targets cell (formatSendTargets); appended in full, never truncated. */
 	targets?: string;
 }
@@ -60,8 +62,13 @@ export function swarmStateLine(frozen: boolean, runningCount: number): string {
 	return ` ▶ live · ${runningCount > 0 ? `${runningCount} working` : "idle"} `;
 }
 
-/** Status column width; fits "thinking"/"spawning" and short "tool:bash" labels. */
-const STATUS_COL = 10;
+/**
+ * Status column width. Holds the system status plus the agent-set custom status appended
+ * as "idle · <custom>". Sized for the persistent case (idle/thinking + a ~20-char custom
+ * status, see set_status's prompt cap); longer combos (e.g. a long tool: name) truncate
+ * with an ellipsis, which is fine since those are transient.
+ */
+const STATUS_COL = 28;
 /**
  * A status counts as "busy" (active-work highlight) unless the agent is idle, still
  * spawning, or halted. halted is a stopped state (awaiting resume), so it gets the same
@@ -89,9 +96,13 @@ export function formatRosterRow(
 	// Layout: <cursor> <status> <name> <context>. Status as a fixed ASCII column at the
 	// front (robustly aligned, independent of the variable context width at the end).
 	const cursor = selected ? "▸" : " ";
+	// Busy highlight keys off the SYSTEM status only — an idle agent that set a custom status
+	// must still read as idle, not busy.
 	const busy = isBusy(entry.status);
-	const label =
-		entry.status.length > STATUS_COL ? `${entry.status.slice(0, STATUS_COL - 1)}…` : entry.status.padEnd(STATUS_COL);
+	// Custom status shown right after the system status ("idle · parsing files"); the combined
+	// string shares the fixed column and truncates as a whole.
+	const combined = entry.customStatus ? `${entry.status} · ${entry.customStatus}` : entry.status;
+	const label = combined.length > STATUS_COL ? `${combined.slice(0, STATUS_COL - 1)}…` : combined.padEnd(STATUS_COL);
 	const name = entry.name.length > 14 ? `${entry.name.slice(0, 13)}…` : entry.name.padEnd(14);
 	const model = shortModel(entry.model).padEnd(MODEL_COL);
 	// Layout: <cursor> <name> <status> <model> <context> <targets>. Name first (the primary

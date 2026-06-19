@@ -234,10 +234,11 @@ export default function subagents(pi: ExtensionAPI) {
 						model: a.model,
 						context: formatContext(a.view?.getContextUsage()),
 						status: statusLabel(a),
+						customStatus: a.customStatus,
 						targets: formatSendTargets(matrix, a.name),
 					},
 					false,
-					80,
+					100,
 					styler,
 				),
 			);
@@ -402,7 +403,8 @@ export default function subagents(pi: ExtensionAPI) {
 			description:
 				"Set your short status line shown in list_agents and the agents panel " +
 				"(e.g. 'parsing 500 files', 'waiting on review'). Pass empty string to clear. " +
-				"Keep it short — one phrase. Update it when your phase changes.",
+				"Keep it to ~20 characters — one terse phrase (longer is truncated in the roster). " +
+				"Update it when your phase changes.",
 			parameters: Type.Object({
 				status: Type.String({ description: "Short status phrase; empty clears" }),
 			}),

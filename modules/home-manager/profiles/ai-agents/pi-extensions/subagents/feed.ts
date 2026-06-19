@@ -38,13 +38,14 @@ export function formatSnapshot(
 	if (agents.length === 0) return "no agents";
 	const viewerParent = agents.find((a) => a.name === viewer)?.spawnedBy;
 	const rows = agents.map((a) => {
-		const status = statusLabel(a);
+		// Custom status shown right after the system status, matching the TUI roster ("idle · ...").
+		const status = a.customStatus ? `${statusLabel(a)} · ${a.customStatus}` : statusLabel(a);
 		const u = a.view?.getContextUsage();
 		const ctx = u && u.percent != null ? `${Math.round(u.percent)}%` : "--";
 		const rel = relTo(a, viewer, viewerParent);
 		const queued = a.pending && a.buffer && a.buffer.length > 0 ? `, ${a.buffer.length} queued` : "";
 		return (
-			`  ${a.name.padEnd(14)} ${rel.padEnd(6)} ${status.padEnd(12)} ` +
+			`  ${a.name.padEnd(14)} ${rel.padEnd(6)} ${status.padEnd(28)} ` +
 			`turns:${String(a.turns).padEnd(3)} ctx:${ctx.padEnd(4)} last ${formatAge(now - a.lastActivity).padEnd(4)} ` +
 			`${a.model}  (by ${a.spawnedBy}${queued})`
 		);

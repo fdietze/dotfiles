@@ -240,6 +240,7 @@ export function createSubagentsPanel(deps: PanelDeps, tui: TuiLike, theme: Theme
 							model: a.model,
 							context: formatContext(a.view?.getContextUsage()),
 							status: statusLabel(a),
+							customStatus: a.customStatus,
 							targets: formatSendTargets(matrix, a.name),
 						},
 						i === selectedIndex,

@@ -21,7 +21,11 @@ widget (for the human). One source of truth, consistent display.
 - **Consumer: both** agents and human. Status appears in every render site.
 - **Relation to system status: append.** `thinking · parsing files`, `idle ·
   waiting for review`. System status stays authoritative about runtime state;
-  custom status adds semantic context. No extra column.
+  custom status adds semantic context. Combined only at render time — NOT inside
+  `statusLabel()`, which stays system-status-only so `isBusy()` keys off the real
+  runtime state (an idle agent with a custom status must not read as busy). The
+  custom status is capped to ~20 chars (prompt guidance + hard ellipsis at the
+  28-char roster column).
 - **Interface: simple setter.** `set_status({ status })`. Empty string clears.
   No TTL, no progress, no structured phases (YAGNI). Staleness is already
   observable via the `halted` status + `last activity` age.

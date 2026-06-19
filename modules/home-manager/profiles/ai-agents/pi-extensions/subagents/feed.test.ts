@@ -35,6 +35,12 @@ test("formatSnapshot lists each agent with status and turns", () => {
 	assert.match(out, /4/);
 });
 
+test("formatSnapshot appends the agent-set custom status after the system status", () => {
+	const agents = [rec({ name: "coder", customStatus: "parsing files" })];
+	const out = formatSnapshot(agents, 0, 100, "main");
+	assert.match(out, /idle · parsing files/);
+});
+
 test("formatSnapshot renders fine-grained activity (writing / tool:name)", () => {
 	const agents = [
 		rec({ name: "w", streaming: true, activity: "writing" }),
