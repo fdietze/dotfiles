@@ -45,7 +45,8 @@ const BUDGET_ESCALATION = (total: number) =>
 // v2: 'user' -> 'main' rename. v3: added setActivity (fine-grained status phases).
 // v4: halt(reason)+frozenReason, freeze-by-blocking recordTurnStart, halted flag, 200 cap.
 // v5: AgentRecord gains systemPrompt+sessionFile (persistence roster), attach() sets them.
-const ENGINE_KEY = "__subagentsEngine_v5";
+// v6: Engine gains setCustomStatus + AgentRecord.customStatus (agent-settable status line).
+const ENGINE_KEY = "__subagentsEngine_v6";
 
 function getEngine(): Engine {
 	const g = globalThis as Record<string, unknown>;
@@ -94,6 +95,7 @@ function agentSystemPrompt(name: string, systemPrompt: string, spawnedBy: string
 		"- send_message({to, content}): to is an agent name OR a list of names; fire-and-forget (e.g. 'main').",
 		"- list_agents(): see who exists.",
 		"- kill_agent({name}): terminate an agent or a list of agents (you cannot kill 'main').",
+		"- set_status({status}): set your short status line (shown to others in list_agents); empty string clears.",
 		"Messages you receive are prefixed with [message from <sender>].",
 		"",
 		"CRITICAL — how communication works: other agents and main CANNOT see your thinking or",
@@ -393,6 +395,26 @@ export default function subagents(pi: ExtensionAPI) {
 				return { content: [{ type: "text", text }], details: {} };
 			},
 		},
+		{
+			name: "set_status",
+			label: "Set Status",
+			renderCall: (args, theme) => renderToolArgs("set_status", args as Record<string, unknown>, theme as RenderTheme),
+			description:
+				"Set your short status line shown in list_agents and the agents panel " +
+				"(e.g. 'parsing 500 files', 'waiting on review'). Pass empty string to clear. " +
+				"Keep it short — one phrase. Update it when your phase changes.",
+			parameters: Type.Object({
+				status: Type.String({ description: "Short status phrase; empty clears" }),
+			}),
+			execute: async (_id, args) => {
+				engine.setCustomStatus(selfName, args.status);
+				updateStatus();
+				return {
+					content: [{ type: "text", text: args.status ? `status set: ${args.status}` : "status cleared" }],
+					details: {},
+				};
+			},
+		},
 	];
 
 	// Repair a crash-truncated transcript before the LLM sees it: a kill between persisting an
@@ -623,8 +645,11 @@ export default function subagents(pi: ExtensionAPI) {
 		updateStatus();
 	});
 
-	// Register the foreground tools for 'main'.
+	// Register the foreground tools for 'main'. set_status is background-only: main has
+	// ctx.ui.setStatus() + the human watches the chat directly, so a second status channel
+	// would only confuse.
 	for (const tool of makeAgentTools("main")) {
+		if (tool.name === "set_status") continue;
 		pi.registerTool(tool);
 	}
 

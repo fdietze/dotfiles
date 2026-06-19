@@ -44,6 +44,8 @@ export interface AgentRecord {
 	sessionFile?: string;
 	/** Fine-grained phase within a turn (reasoning vs answer text vs tool run). */
 	activity?: AgentActivity;
+	/** Agent-set semantic status, appended to the system status (in-memory; resets on restart). */
+	customStatus?: string;
 	/** Tool name while `activity === "tool"`. */
 	currentTool?: string;
 	/**
@@ -348,6 +350,12 @@ export class Engine {
 		}
 	}
 
+	/** Set the agent-set semantic status line (empty string clears). */
+	setCustomStatus(name: string, status: string | undefined): void {
+		const rec = this.agents.get(name);
+		if (rec) rec.customStatus = status || undefined;
+	}
+
 	/** Set the fine-grained phase within a turn (thinking/writing/tool). */
 	setActivity(name: string, activity: AgentActivity, tool?: string): void {
 		const rec = this.agents.get(name);
@@ -366,12 +374,20 @@ export class Engine {
  * text · tool:<name> = running a tool · idle = finished its turn, waiting for input.
  */
 export function statusLabel(
-	rec: Pick<AgentRecord, "pending" | "streaming" | "activity" | "currentTool" | "halted">,
+	rec: Pick<AgentRecord, "pending" | "streaming" | "activity" | "currentTool" | "halted" | "customStatus">,
 ): string {
-	if (rec.pending) return "spawning";
-	if (rec.halted) return "halted";
-	if (!rec.streaming) return "idle";
-	if (rec.activity === "tool") return rec.currentTool ? `tool:${rec.currentTool}` : "tool";
-	if (rec.activity === "writing") return "writing";
-	return "thinking";
+	const base = rec.pending
+		? "spawning"
+		: rec.halted
+			? "halted"
+			: !rec.streaming
+				? "idle"
+				: rec.activity === "tool"
+					? rec.currentTool
+						? `tool:${rec.currentTool}`
+						: "tool"
+					: rec.activity === "writing"
+						? "writing"
+						: "thinking";
+	return rec.customStatus ? `${base} · ${rec.customStatus}` : base;
 }
