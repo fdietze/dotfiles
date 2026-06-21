@@ -43,6 +43,9 @@ export interface SpawnerDeps {
 	engine: Engine;
 	/** Resolve "provider/id" or undefined (=> inherit); undefined if unknown. */
 	resolveModel: (ref: string | undefined) => ResolvedModel | undefined;
+	/** Available models as "provider/id" (auth configured) — listed in the unknown-model error
+	 * so a bad overrideModel self-corrects in one bounce instead of hallucinating again. */
+	listAvailableModels?: () => string[];
 	/**
 	 * Create an isolated background agent session (SDK adapter in index.ts).
 	 * Returns the live session plus its on-disk JSONL path (for the persistence roster;
@@ -78,7 +81,7 @@ export interface Spawner {
 }
 
 export function createSpawner(deps: SpawnerDeps): Spawner {
-	const { engine, resolveModel, createSession, onActivity } = deps;
+	const { engine, resolveModel, createSession, onActivity, listAvailableModels } = deps;
 
 	// Subscribe to a background session's lifecycle to enforce the turn budget and
 	// track streaming state.
@@ -173,7 +176,9 @@ export function createSpawner(deps: SpawnerDeps): Spawner {
 		const resolved = resolveModel(inheritRef);
 		if (!resolved) {
 			engine.release(spec.name);
-			return { ok: false, msg: `error: unknown model '${inheritRef ?? "(none)"}'` };
+			const avail = listAvailableModels?.() ?? [];
+			const hint = avail.length ? `; available: ${avail.join(", ")}` : "";
+			return { ok: false, msg: `error: unknown model '${inheritRef ?? "(none)"}'${hint}` };
 		}
 
 		// 2) Slow session creation (await). A concurrent send_message buffers meanwhile.

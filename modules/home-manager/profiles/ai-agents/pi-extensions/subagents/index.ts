@@ -101,7 +101,7 @@ function agentSystemPrompt(name: string, systemPrompt: string, spawnedBy: string
 		`You are agent "${name}" in a multi-agent system.`,
 		`You were spawned by "${spawnedBy}".`,
 		"You can talk to other agents with these tools:",
-		"- spawn_agent({name, systemPrompt, model?, message?}): create a new agent (message = optional first task).",
+		"- spawn_agent({name, systemPrompt, overrideModel?, message?}): create a new agent (message = optional first task).",
 		"- send_message({to, content}): to is an agent name OR a list of names; fire-and-forget (e.g. 'main').",
 		"- list_agents(): see who exists.",
 		"- kill_agent({name}): terminate an agent or a list of agents (you cannot kill 'main').",
@@ -328,13 +328,23 @@ export default function subagents(pi: ExtensionAPI) {
 			parameters: Type.Object({
 				name: Type.String({ description: "Unique agent name ([a-zA-Z0-9_-])" }),
 				systemPrompt: Type.String({ description: "System prompt defining the agent's behavior" }),
-				model: Type.Optional(Type.String({ description: "provider/id; default: inherited" })),
+				overrideModel: Type.Optional(
+					Type.String({
+						description:
+							"Omit to inherit your current model (the default — almost always correct). Set 'provider/id' " +
+							"ONLY when the user explicitly named a specific model; a wrong value returns the available list.",
+					}),
+				),
 				message: Type.Optional(
 					Type.String({ description: "Optional first message delivered to the new agent right after spawn" }),
 				),
 			}),
 			execute: async (_id, args) => {
-				const res = await spawnAgent(args, selfName);
+				// overrideModel is the agent-facing name; SpawnSpec uses the internal `model` field.
+				const res = await spawnAgent(
+					{ name: args.name, systemPrompt: args.systemPrompt, model: args.overrideModel, message: args.message },
+					selfName,
+				);
 				persistRoster();
 				return { content: [{ type: "text", text: res.msg }], details: {} };
 			},
@@ -516,7 +526,13 @@ export default function subagents(pi: ExtensionAPI) {
 		return { session, sessionFile: sm.getSessionFile() };
 	};
 
-	const { spawnAgent, restoreAgent } = createSpawner({ engine, resolveModel, createSession, onActivity: updateStatus });
+	const { spawnAgent, restoreAgent } = createSpawner({
+		engine,
+		resolveModel,
+		createSession,
+		onActivity: updateStatus,
+		listAvailableModels: () => modelRegistry.getAvailable().map((m) => `${m.provider}/${m.id}`),
+	});
 
 	// Overwrite roster.json with current background membership (called after spawn/kill).
 	// Best-effort: persistence must never break the swarm.
