@@ -6,10 +6,14 @@ import {
   type Span,
   branchMessages,
   buildOverlay,
-  planForget,
-  planRemember,
+  estimateTokens,
+  fmtTokens,
+  planCollapse,
+  planExpand,
   reconstructSpans,
+  serializeSpan,
   stripLeadingMarkers,
+  summarizeTree,
   unitBounds,
 } from "./core.ts";
 
@@ -51,92 +55,188 @@ function batchedReadBranch(): BranchEntry[] {
   ];
 }
 
+// Five standalone user messages (no tool units) -> splittable span.
+function fiveUserBranch(): BranchEntry[] {
+  ts = 0;
+  return [
+    userE("u1", "one"),
+    userE("u2", "two two"),
+    userE("u3", "three three three"),
+    userE("u4", "four four four four"),
+    userE("u5", "five"),
+  ];
+}
+
+// --- estimateTokens / fmtTokens -------------------------------------------
+
+test("estimateTokens: chars/4 over string and over text+toolCall blocks", () => {
+  assert.equal(estimateTokens({ role: "user", content: "x".repeat(40) }), 10);
+  // "ab"(2) + name "read"(4) + JSON.stringify({path:"f"}) '{"path":"f"}'(12) = 18 -> ceil/4 = 5
+  const a: AgentMessageLike = {
+    role: "assistant",
+    content: [
+      { type: "text", text: "ab" },
+      { type: "toolCall", name: "read", arguments: { path: "f" } },
+    ] as AgentMessageLike["content"],
+  };
+  assert.equal(estimateTokens(a), 5);
+});
+
+test("fmtTokens: raw below 1000, k-suffix with trailing .0 dropped", () => {
+  assert.equal(fmtTokens(0), "0");
+  assert.equal(fmtTokens(999), "999");
+  assert.equal(fmtTokens(1000), "1k");
+  assert.equal(fmtTokens(1200), "1.2k");
+  assert.equal(fmtTokens(3400), "3.4k");
+  assert.equal(fmtTokens(12000), "12k");
+});
+
 // --- unitBounds ------------------------------------------------------------
 
 test("unitBounds groups parallel tool calls of one assistant turn into one unit", () => {
   const msgs = branchMessages(batchedReadBranch());
-  // order: u1(0) A(1) R1(2) R2(3) R3(4) A2(5)
   const { start, end } = unitBounds(msgs);
   assert.deepEqual(start, [0, 1, 1, 1, 1, 5]);
   assert.deepEqual(end, [0, 4, 4, 4, 4, 5]);
 });
 
-// --- planForget: the merge bug (regression) --------------------------------
+// --- planCollapse ----------------------------------------------------------
 
-test("planForget: two items hitting the same tool unit merge into ONE stub, keep the non-empty summary, count distinct", () => {
+test("planCollapse: two items hitting the same tool unit merge into ONE stub, keep the non-empty summary, count distinct", () => {
   const msgs = branchMessages(batchedReadBranch());
-  // forget R1 with a summary AND R2 without one - both snap to the same unit.
-  const plan = planForget(msgs, [], [
+  const plan = planCollapse(msgs, [], [
     { from: "R1", summary: "f01 done" },
     { from: "R2" },
   ]);
   assert.equal(plan.spans.length, 1, "one merged span");
   assert.deepEqual(plan.spans[0].memberIds, ["A", "R1", "R2", "R3"]);
   assert.equal(plan.spans[0].fromId, "A");
-  assert.equal(plan.spans[0].summary, "f01 done", "empty summary must not clobber the real one");
-  assert.deepEqual(plan.applied, ["A"], "deduplicated: one stub, not [A, A]");
-  assert.equal(plan.collapsed, 4, "distinct members, not 4+4=8");
+  assert.equal(plan.spans[0].summary, "f01 done");
+  assert.deepEqual(plan.applied, ["A"]);
+  assert.equal(plan.collapsed, 4);
   assert.deepEqual(plan.summaries, ["f01 done"]);
 });
 
-test("planForget: single standalone message -> single-member span", () => {
-  ts = 0;
-  const branch = [userE("u1", "hi"), userE("u2", "a note"), asstText("a1", "ok")];
-  const plan = planForget(branchMessages(branch), [], [{ from: "u2" }]);
+test("planCollapse: freedTokens > 0 for a fresh fold, and excludes already-folded members", () => {
+  const msgs = branchMessages(batchedReadBranch());
+  const first = planCollapse(msgs, [], [{ from: "R1" }]);
+  assert.ok(first.freedTokens > 0, "fresh fold frees tokens");
+  // re-collapsing the identical (already folded) range frees no new live tokens
+  const second = planCollapse(msgs, first.spans, [{ from: "R1" }]);
+  assert.ok(second.freedTokens <= 0, "no double-counting already-folded members");
+});
+
+test("planCollapse: single standalone message -> single-member span", () => {
+  const plan = planCollapse(branchMessages(fiveUserBranch()), [], [{ from: "u2" }]);
   assert.equal(plan.spans.length, 1);
   assert.deepEqual(plan.spans[0].memberIds, ["u2"]);
   assert.equal(plan.spans[0].summary, "");
   assert.equal(plan.collapsed, 1);
 });
 
-test("planForget: summary present sets digest, absent leaves empty (drop)", () => {
+test("planCollapse: unknown ids reported, not applied", () => {
   const msgs = branchMessages(batchedReadBranch());
-  const withSum = planForget(msgs, [], [{ from: "A2", summary: "wrap up" }]);
-  assert.equal(withSum.spans[0].summary, "wrap up");
-  const noSum = planForget(msgs, [], [{ from: "A2" }]);
-  assert.equal(noSum.spans[0].summary, "");
-});
-
-test("planForget: unknown ids reported, not applied", () => {
-  const msgs = branchMessages(batchedReadBranch());
-  const plan = planForget(msgs, [], [{ from: "nope" }, { from: "A2" }]);
+  const plan = planCollapse(msgs, [], [{ from: "nope" }, { from: "A2" }]);
   assert.deepEqual(plan.unknown, ["nope"]);
   assert.deepEqual(plan.applied, ["A2"]);
 });
 
-test("planForget: forgetting over an existing span absorbs it and inherits its summary", () => {
-  const msgs = branchMessages(batchedReadBranch());
-  const first = planForget(msgs, [], [{ from: "A2", summary: "kept" }]);
-  // Now forget a wider range (u1..A2) - should absorb the A2 span and keep "kept".
-  const second = planForget(msgs, first.spans, [
-    { from: "u1", to: "A2", summary: "outer" },
+test("planCollapse: folding over an existing span absorbs it and inherits its summary", () => {
+  const msgs = branchMessages(fiveUserBranch());
+  const first = planCollapse(msgs, [], [{ from: "u5", summary: "kept" }]);
+  const second = planCollapse(msgs, first.spans, [
+    { from: "u1", to: "u5", summary: "outer" },
   ]);
   assert.equal(second.spans.length, 1);
   assert.match(second.spans[0].summary, /kept/);
   assert.match(second.spans[0].summary, /outer/);
 });
 
-test("planForget: input spans are not mutated (pure)", () => {
+test("planCollapse: input spans are not mutated (pure)", () => {
   const msgs = branchMessages(batchedReadBranch());
   const input: Span[] = [];
-  const plan = planForget(msgs, input, [{ from: "A2", summary: "x" }]);
-  assert.equal(input.length, 0, "caller's array untouched");
+  const plan = planCollapse(msgs, input, [{ from: "A2", summary: "x" }]);
+  assert.equal(input.length, 0);
   assert.equal(plan.spans.length, 1);
 });
 
-// --- planRemember ----------------------------------------------------------
+// --- planExpand (range-aware, splits) --------------------------------------
 
-test("planRemember: dissolves spans by fromId, reports unknown as noop, is pure", () => {
-  const input: Span[] = [
-    { fromId: "A", memberIds: ["A", "R1"], summary: "s" },
-    { fromId: "u2", memberIds: ["u2"], summary: "" },
-  ];
-  const plan = planRemember(input, ["A", "missing"]);
-  assert.deepEqual(plan.applied, ["A"]);
-  assert.deepEqual(plan.noop, ["missing"]);
+test("planExpand: bare span fromId expands the whole fold", () => {
+  const msgs = branchMessages(fiveUserBranch());
+  const folded = planCollapse(msgs, [], [{ from: "u1", to: "u5", summary: "s" }]);
+  const plan = planExpand(msgs, folded.spans, [{ from: "u1" }]);
+  assert.equal(plan.spans.length, 0, "fold fully dissolved");
+  assert.deepEqual(plan.applied, ["u1"]);
+  assert.ok(plan.restoredTokens > 0);
+});
+
+test("planExpand: sub-range splits the fold into two remnants that inherit the summary", () => {
+  const msgs = branchMessages(fiveUserBranch());
+  const folded = planCollapse(msgs, [], [{ from: "u1", to: "u5", summary: "s" }]);
+  const plan = planExpand(msgs, folded.spans, [{ from: "u3", to: "u3" }]);
+  assert.deepEqual(plan.applied, ["u3"]);
+  assert.equal(plan.spans.length, 2);
+  const byFrom = Object.fromEntries(plan.spans.map((s) => [s.fromId, s]));
+  assert.deepEqual(byFrom["u1"].memberIds, ["u1", "u2"]);
+  assert.deepEqual(byFrom["u4"].memberIds, ["u4", "u5"]);
+  assert.equal(byFrom["u1"].summary, "s");
+  assert.equal(byFrom["u4"].summary, "s");
+  assert.equal(plan.restoredTokens, estimateTokens({ role: "user", content: "three three three" }));
+});
+
+test("planExpand: sub-range snaps to whole tool units (no orphaned pair)", () => {
+  const msgs = branchMessages(batchedReadBranch());
+  const folded = planCollapse(msgs, [], [{ from: "u1", to: "A2", summary: "s" }]);
+  // try to expand just R2 (inside the A..R3 unit) -> snaps to the whole unit
+  const plan = planExpand(msgs, folded.spans, [{ from: "R2", to: "R2" }]);
+  // the restored chunk must be the whole unit A,R1,R2,R3; remnants are u1 and A2
+  const fromsRestoredUnit = plan.applied[0];
+  assert.equal(fromsRestoredUnit, "A");
+  const remnants = plan.spans.flatMap((s) => s.memberIds).sort();
+  assert.deepEqual(remnants, ["A2", "u1"]);
+});
+
+test("planExpand: id matching no span is a noop", () => {
+  const msgs = branchMessages(fiveUserBranch());
+  const folded = planCollapse(msgs, [], [{ from: "u1", to: "u2", summary: "s" }]);
+  const plan = planExpand(msgs, folded.spans, [{ from: "u5" }]);
+  assert.deepEqual(plan.noop, ["u5"]);
   assert.equal(plan.spans.length, 1);
-  assert.equal(plan.spans[0].fromId, "u2");
-  assert.equal(input.length, 2, "caller's array untouched");
+});
+
+// --- summarizeTree ---------------------------------------------------------
+
+test("summarizeTree: totals + one line per span in branch order", () => {
+  const msgs = branchMessages(fiveUserBranch());
+  const spans: Span[] = [
+    { fromId: "u4", memberIds: ["u4", "u5"], summary: "" },
+    { fromId: "u1", memberIds: ["u1", "u2"], summary: "early notes" },
+  ];
+  const t = summarizeTree(spans, msgs);
+  assert.equal(t.totalSpans, 2);
+  assert.ok(t.hiddenTokens > 0);
+  // ordered by first-member position: u1 span before u4 span
+  assert.match(t.lines[0], /^\[#u1\] · 2 msgs · \S+ · early notes$/);
+  assert.match(t.lines[1], /^\[#u4\] · 2 msgs · \S+ · \(no summary\)$/);
+});
+
+// --- serializeSpan ---------------------------------------------------------
+
+test("serializeSpan: members with inner id + role + size + content, capped", () => {
+  const msgs = branchMessages(fiveUserBranch());
+  const span: Span = { fromId: "u2", memberIds: ["u2", "u3"], summary: "" };
+  const out = serializeSpan(span, msgs);
+  assert.match(out, /\[#u2\] user \d+\ntwo two/);
+  assert.match(out, /\[#u3\] user \d+\nthree three three/);
+});
+
+test("serializeSpan: long content is truncated with a marker", () => {
+  ts = 0;
+  const branch = [userE("big", "z".repeat(5000))];
+  const span: Span = { fromId: "big", memberIds: ["big"], summary: "" };
+  const out = serializeSpan(span, branchMessages(branch), 2000);
+  assert.match(out, /… \[\+3000 chars\]$/);
 });
 
 // --- reconstructSpans ------------------------------------------------------
@@ -148,7 +248,6 @@ test("reconstructSpans: last custom entry wins; legacy `pruned` ids migrate to s
     { type: "custom", customType: "context-prune", data: { pruned: ["p1", "p2"], spans: [{ fromId: "A", memberIds: ["A", "R1"], summary: "keep" }] } },
   ];
   const spans = reconstructSpans(branch);
-  // latest entry: one real span + two migrated tombstones
   assert.equal(spans.length, 3);
   assert.deepEqual(spans[0], { fromId: "A", memberIds: ["A", "R1"], summary: "keep" });
   assert.deepEqual(spans[1], { fromId: "p1", memberIds: ["p1"], summary: "" });
@@ -157,60 +256,50 @@ test("reconstructSpans: last custom entry wins; legacy `pruned` ids migrate to s
 
 // --- stripLeadingMarkers ---------------------------------------------------
 
-test("stripLeadingMarkers: removes a leading run of [#8hex], keeps mid-prose references", () => {
+test("stripLeadingMarkers: removes a leading run of [#8hex] incl. sized form, keeps mid-prose references", () => {
   assert.equal(
-    (stripLeadingMarkers({ role: "assistant", content: "[#abc12345] [#deadbeef] hi" }).content as string),
+    stripLeadingMarkers({ role: "assistant", content: "[#abc12345] [#deadbeef] hi" }).content,
     "hi",
   );
-  // mid-prose reference is preserved
+  // sized markers are stripped too
+  assert.equal(
+    stripLeadingMarkers({ role: "assistant", content: "[#abc12345 1.2k] [#deadbeef 340] hi" }).content,
+    "hi",
+  );
   const keep = { role: "assistant", content: "see [#abc12345] there" };
   assert.equal(stripLeadingMarkers(keep).content, "see [#abc12345] there");
-  // non-marker content returns the same object (no copy)
   const same = { role: "assistant", content: "plain" } as AgentMessageLike;
   assert.equal(stripLeadingMarkers(same), same);
 });
 
-test("stripLeadingMarkers: handles array content (first text block)", () => {
-  const m: AgentMessageLike = {
-    role: "assistant",
-    content: [{ type: "text", text: "[#12345678] body" }],
-  };
-  const out = stripLeadingMarkers(m);
-  assert.equal((out.content as Array<{ text?: string }>)[0].text, "body");
-});
-
 // --- buildOverlay ----------------------------------------------------------
 
-// Clone the branch's messages into a plain list (like event.messages, no ids).
 function messagesOf(branch: BranchEntry[]): AgentMessageLike[] {
   return branch
     .filter((e) => e.type === "message" && e.message)
     .map((e) => ({ ...(e.message as AgentMessageLike) }));
 }
 
-test("buildOverlay: tags taggable messages with their entry id", () => {
+test("buildOverlay: tags taggable messages with a sized [#id N] marker", () => {
   const branch = batchedReadBranch();
   const out = buildOverlay(messagesOf(branch), branch, []);
-  // user u1 gets a leading [#u1] marker
-  assert.equal(out[0].content, "[#u1] read 3 files");
-  // toolResult R1 text block prefixed
+  assert.match(out[0].content as string, /^\[#u1 \d+\] read 3 files$/);
   const r1 = out[2].content as Array<{ text?: string }>;
-  assert.match(r1[0].text as string, /^\[#R1\] /);
+  assert.match(r1[0].text as string, /^\[#R1 \d+\] /);
 });
 
-test("buildOverlay: a span replaces fromId with a stub and hides the other members", () => {
+test("buildOverlay: a summarized span renders a stub with hidden cost and hides members", () => {
   const branch = batchedReadBranch();
   const span: Span = { fromId: "A", memberIds: ["A", "R1", "R2", "R3"], summary: "read 3 files" };
   const out = buildOverlay(messagesOf(branch), branch, [span]);
-  // u1 (kept, tagged), then ONE stub for the whole unit, then A2.
   assert.equal(out.length, 3);
   assert.equal(out[1].role, "user");
-  assert.equal(out[1].content, "[#A] (summary) read 3 files");
+  assert.match(out[1].content as string, /^\[#A\] \(summary, \S+ hidden\) read 3 files$/);
 });
 
-test("buildOverlay: empty-summary span renders a (forgotten N) stub", () => {
+test("buildOverlay: empty-summary span renders a (forgotten N, X hidden) stub", () => {
   const branch = batchedReadBranch();
   const span: Span = { fromId: "A", memberIds: ["A", "R1", "R2", "R3"], summary: "" };
   const out = buildOverlay(messagesOf(branch), branch, [span]);
-  assert.equal(out[1].content, "[#A] (forgotten 4 messages)");
+  assert.match(out[1].content as string, /^\[#A\] \(forgotten 4 messages, \S+ hidden\)$/);
 });

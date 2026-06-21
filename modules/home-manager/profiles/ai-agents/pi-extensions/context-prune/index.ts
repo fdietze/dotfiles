@@ -2,9 +2,11 @@
  * Context Prune - the agent edits its own context (imperative shell).
  *
  * Idea: in the `context` event every conversation message gets a visible
- * `[#id]` marker prepended (only for that LLM call, non-destructive). The agent
- * references messages by it and calls `forget` (forget a range, optionally with
- * a summary) or `remember` (restore).
+ * `[#id 1.2k]` marker prepended (id + token size, only for that LLM call,
+ * non-destructive). The agent references messages by id and calls `collapse`
+ * (fold a range, optionally with a summary), `expand` (restore a fold or a
+ * sub-range, which splits it), or `peek` (read a fold's contents without
+ * changing state). collapse/expand are the mutators; peek is the read.
  *
  * Why markers in text rather than JSON: the provider serializes only `role` +
  * `content`; extra fields on the message object never reach the model. The
@@ -32,24 +34,54 @@ import { Type } from "typebox";
 import {
   type AgentMessageLike,
   type BranchEntry,
+  type BranchMsg,
   type Span,
   PRUNE_ENTRY,
   branchMessages,
   buildOverlay,
-  planForget,
-  planRemember,
+  fmtTokens,
+  planCollapse,
+  planExpand,
   reconstructSpans,
+  serializeSpan,
   stripLeadingMarkers,
+  summarizeTree,
 } from "./core.ts";
 
 interface PruneDetails {
-  action: "forget" | "remember";
+  action: "collapse" | "expand";
   applied: string[];
   unknown: string[];
   noop: string[];
   collapsed: number;
   summaries: string[];
   total: number;
+  deltaTokens: number; // freed (collapse) or restored (expand)
+  tail: string; // the shared overview tail line(s)
+}
+
+// Shared, symmetric overview tail: totals + budget, identical after either
+// mutator so the model always sees the same map + pressure. ctx% is the only
+// I/O (getContextUsage) - everything else is pure core.
+function overviewTail(
+  spans: Span[],
+  msgs: BranchMsg[],
+  contextWindow: number,
+  contextTokens: number | null,
+): string {
+  const { totalSpans, hiddenTokens } = summarizeTree(spans, msgs);
+  const ctx =
+    contextWindow > 0 && contextTokens != null
+      ? ` · ctx ${Math.round((contextTokens / contextWindow) * 100)}% (${fmtTokens(contextTokens)}/${fmtTokens(contextWindow)})`
+      : "";
+  return `folded: ${totalSpans} span${totalSpans === 1 ? "" : "s"} · ${fmtTokens(hiddenTokens)} hidden${ctx}`;
+}
+
+// freed/restored magnitude as a % of the context window, with an explicit sign
+// (collapse frees -> "−", expand restores -> "+").
+function pctOf(tokens: number, contextWindow: number, sign: "−" | "+"): string {
+  if (contextWindow <= 0) return "";
+  return ` (${sign}${((tokens / contextWindow) * 100).toFixed(1)}%)`;
 }
 
 export default function (pi: ExtensionAPI) {
@@ -89,12 +121,12 @@ export default function (pi: ExtensionAPI) {
 
   // --- forget --------------------------------------------------------------
 
-  const ForgetParam = Type.Object({
+  const CollapseParam = Type.Object({
     items: Type.Array(
       Type.Object({
         from: Type.String({
           description:
-            "Start id (the 8-char hex in a [#id] marker). For a single message, omit `to`.",
+            "Start id (the 8-char hex in a [#id 1.2k] marker). For a single message, omit `to`.",
         }),
         to: Type.Optional(
           Type.String({
@@ -105,54 +137,62 @@ export default function (pi: ExtensionAPI) {
         summary: Type.Optional(
           Type.String({
             description:
-              "Optional digest that replaces the range — write it so you can resume from it alone, and hint what detail is inside so you can judge whether to `remember` it later. Omit to just drop the content (noise).",
+              "Optional digest that replaces the range — write it so you can resume from it alone, and hint what detail is inside so you can judge whether to `expand` it later. Omit to just drop the content (noise).",
           }),
         ),
       }),
       {
         description:
-          "Ranges to forget, each { from, to?, summary? }. Multiple items = batch in one call.",
+          "Ranges to collapse, each { from, to?, summary? }. Multiple items = batch in one call.",
       },
     ),
   });
 
   pi.registerTool({
-    name: "forget",
-    label: "Forget",
+    name: "collapse",
+    label: "Collapse",
     description:
-      "Forget earlier messages to keep the model context lean — reversible. Pass a list of ranges by their " +
-      "[#id] markers; each is { from, to?, summary? }. With `summary`, the range collapses into your " +
-      "digest (use for finished sub-threads worth condensing). Without `summary`, the range's content is just " +
-      "dropped (use for noise: tool outputs, detours, resolved debugging). `to` defaults to `from` for a single " +
-      "message. Ranges snap outward to keep tool call/result pairs whole. Restore later with remember.",
+      "Collapse earlier messages into a stub to keep the model context lean — reversible (fold, not delete). " +
+      "Pass a list of ranges by their [#id 1.2k] markers; each is { from, to?, summary? }. With `summary`, the " +
+      "range folds into your digest (use for finished sub-threads worth condensing). Without `summary`, the " +
+      "range's content is just dropped (use for noise: tool outputs, detours, resolved debugging). `to` defaults " +
+      "to `from` for a single message. Ranges snap outward to keep tool call/result pairs whole. Expand later, " +
+      "or `peek` to read inside without expanding.",
     promptSnippet:
-      "Forget/compact earlier messages via their [#id] markers to free context",
+      "Collapse/fold earlier messages via their [#id N] markers to free context (expand/peek to recover)",
     promptGuidelines: [
-      "`[#id]` markers are labels the system prepends to each message so you can reference it — they are NOT part of the message text. Never write a `[#id]` marker in your own replies. Use these ids only as arguments to `forget` / `remember`.",
-      "Routinely forget finished sub-threads: pass a range with a short `summary` to condense it, or without `summary` to drop pure noise (tool outputs, detours, resolved debugging). Keeps the working context lean; reversible via `remember`.",
-      "Write a `summary` you could resume from alone (without `remember`). Lead with open loops (unfinished work, pending decisions/commits/confirmations); then current state (what is now true — commit hashes, paths, passing tests); then decisions and why, including rejected options; then gotchas learned; and hint what detail sits inside the range so you can judge whether to `remember` it later. Be specific — name files, symbols, hashes; avoid vague verbs like 'fixed it'. Drop play-by-play and tool output. As terse as possible while still resumable.",
+      "`[#id 1.2k]` markers are labels the system prepends to each message: the 8-char hex id plus that message's token size. They are NOT part of the message text. Never write a marker in your own replies. Use the id only as an argument to `collapse` / `expand` / `peek`; use the size to find the fat messages worth collapsing.",
+      "Routinely collapse finished sub-threads: pass a range with a short `summary` to condense it, or without `summary` to drop pure noise (tool outputs, detours, resolved debugging). Keeps the working context lean; reversible via `expand`.",
+      "To recover something from a collapsed range, `peek` it first — that prints its contents (transient, itself collapsible) without un-folding anything. Only `expand` (optionally a sub-range, which splits the fold) when you need that content live again. Never do the expand-whole-then-recollapse dance.",
+      "Write a `summary` you could resume from alone (without `expand`). Lead with open loops (unfinished work, pending decisions/commits/confirmations); then current state (what is now true — commit hashes, paths, passing tests); then decisions and why, including rejected options; then gotchas learned; and hint what detail sits inside the range so you can judge whether to `expand`/`peek` it later. Be specific — name files, symbols, hashes; avoid vague verbs like 'fixed it'. Drop play-by-play and tool output. As terse as possible while still resumable.",
     ],
-    parameters: ForgetParam,
+    parameters: CollapseParam,
     async execute(_id, params, _signal, _onUpdate, ctx) {
-      const plan = planForget(branchMessages(branch(ctx)), spans, params.items);
+      const msgs = branchMessages(branch(ctx));
+      const plan = planCollapse(msgs, spans, params.items);
       spans = plan.spans;
       if (plan.collapsed) persist();
-      const text = plan.applied.length
-        ? `Forgot ${plan.collapsed} message(s) into ${plan.applied.length} stub(s): ${plan.applied.join(", ")}` +
+      const usage = ctx.getContextUsage();
+      const win = usage?.contextWindow ?? 0;
+      const tail = overviewTail(spans, msgs, win, usage?.tokens ?? null);
+      const head = plan.applied.length
+        ? `+ collapsed ${plan.collapsed} msg(s) into ${plan.applied.length} stub(s): ${plan.applied.join(", ")}, freed ${fmtTokens(plan.freedTokens)}${pctOf(plan.freedTokens, win, "−")}` +
           (plan.unknown.length
             ? `. unknown id(s): ${plan.unknown.join(", ")}`
             : "")
-        : `Forgot nothing. unknown id(s): ${plan.unknown.join(", ")}`;
+        : `Collapsed nothing. unknown id(s): ${plan.unknown.join(", ")}`;
       return {
-        content: [{ type: "text", text }],
+        content: [{ type: "text", text: `${head}\n${tail}` }],
         details: {
-          action: "forget",
+          action: "collapse",
           applied: plan.applied,
           unknown: plan.unknown,
           noop: [],
           collapsed: plan.collapsed,
           summaries: plan.summaries,
           total: spans.length,
+          deltaTokens: plan.freedTokens,
+          tail,
         } as PruneDetails,
       };
     },
@@ -161,11 +201,11 @@ export default function (pi: ExtensionAPI) {
       if (!d) return new Text("", 0, 0);
       if (!d.applied.length)
         return new Text(theme.fg("warning", "unknown id(s)"), 0, 0);
-      // Show the full digest(s) untruncated: renderResult is TUI-only (never
-      // serialized into context) and Text word-wraps, so it is free to display.
+      // Full digest(s) untruncated: renderResult is TUI-only (never serialized
+      // into context) and Text word-wraps, so it is free to display.
       const head =
-        theme.fg("success", `✓ forgot ${d.collapsed} msg(s)`) +
-        theme.fg("dim", ` (${d.total} total)`);
+        theme.fg("success", `✓ collapsed ${d.collapsed} msg(s), freed ${fmtTokens(d.deltaTokens)}`) +
+        theme.fg("dim", ` · ${d.tail}`);
       const body = d.summaries
         .filter((s) => s)
         .map((s) => theme.fg("dim", `→ ${s}`))
@@ -176,39 +216,61 @@ export default function (pi: ExtensionAPI) {
 
   // --- remember ------------------------------------------------------------
 
-  const IdsParam = Type.Object({
-    ids: Type.Array(Type.String(), {
-      description:
-        "Stub ids from their [#id] markers (the 8-char hex inside the brackets).",
-    }),
+  const ExpandParam = Type.Object({
+    items: Type.Array(
+      Type.Object({
+        from: Type.String({
+          description:
+            "A stub's [#id] to expand the whole fold, OR (after peek) an inner member id to start a sub-range.",
+        }),
+        to: Type.Optional(
+          Type.String({
+            description:
+              "End inner id (inclusive) for a sub-range expand — SPLITS the fold: only from..to comes back live, the rest stays folded (remnants inherit the summary). Omit to expand the whole fold.",
+          }),
+        ),
+      }),
+      {
+        description:
+          "Ranges to expand, each { from, to? }. Multiple items = batch in one call.",
+      },
+    ),
   });
 
   pi.registerTool({
-    name: "remember",
-    label: "Remember",
+    name: "expand",
+    label: "Expand",
     description:
-      "Restore previously forgotten messages/ranges back into the model context by their [#id] markers " +
-      "(the stub's id). Inverse of forget.",
-    parameters: IdsParam,
-    async execute(_id, params, _signal, _onUpdate, _ctx) {
-      const plan = planRemember(spans, params.ids);
+      "Restore previously collapsed messages back into the model context — inverse of collapse. Pass `from` = a " +
+      "stub's [#id] to expand the whole fold. For surgical recovery, `peek` the fold first to see inner ids, then " +
+      "give from/to inner ids to expand only that sub-range — this SPLITS the fold (the rest stays collapsed), so " +
+      "context never explodes. If you only need to read a value, prefer `peek` and don't expand at all.",
+    parameters: ExpandParam,
+    async execute(_id, params, _signal, _onUpdate, ctx) {
+      const msgs = branchMessages(branch(ctx));
+      const plan = planExpand(msgs, spans, params.items);
       spans = plan.spans;
       if (plan.applied.length) persist();
-      const text =
+      const usage = ctx.getContextUsage();
+      const win = usage?.contextWindow ?? 0;
+      const tail = overviewTail(spans, msgs, win, usage?.tokens ?? null);
+      const head =
         (plan.applied.length
-          ? `Remembered ${plan.applied.length}: ${plan.applied.join(", ")}`
-          : "Remembered nothing") +
-        (plan.noop.length ? `. not forgotten: ${plan.noop.join(", ")}` : "");
+          ? `− expanded ${plan.applied.length}: ${plan.applied.join(", ")}, +${fmtTokens(plan.restoredTokens)}${pctOf(plan.restoredTokens, win, "+")}`
+          : "Expanded nothing") +
+        (plan.noop.length ? `. not folded: ${plan.noop.join(", ")}` : "");
       return {
-        content: [{ type: "text", text }],
+        content: [{ type: "text", text: `${head}\n${tail}` }],
         details: {
-          action: "remember",
+          action: "expand",
           applied: plan.applied,
           unknown: [],
           noop: plan.noop,
           collapsed: 0,
           summaries: [],
           total: spans.length,
+          deltaTokens: plan.restoredTokens,
+          tail,
         } as PruneDetails,
       };
     },
@@ -216,11 +278,75 @@ export default function (pi: ExtensionAPI) {
       const d = result.details as PruneDetails | undefined;
       if (!d) return new Text("", 0, 0);
       return new Text(
-        theme.fg("success", `✓ remembered ${d.applied.length}`) +
-          theme.fg("dim", ` (${d.total} still forgotten)`),
+        theme.fg("success", `✓ expanded ${d.applied.length}, +${fmtTokens(d.deltaTokens)}`) +
+          theme.fg("dim", ` · ${d.tail}`),
         0,
         0,
       );
+    },
+  });
+
+  // --- peek (read-only) ----------------------------------------------------
+
+  const PeekParam = Type.Object({
+    id: Type.Optional(
+      Type.String({
+        description:
+          "A stub's [#id] to look inside that fold (prints its members, capped). Omit to list the whole fold tree (overview + budget).",
+      }),
+    ),
+  });
+
+  pi.registerTool({
+    name: "peek",
+    label: "Peek",
+    description:
+      "Look at the collapsed-fold structure WITHOUT changing it (read-only). No arg — lists every fold (id, msg " +
+      "count, size, summary) plus totals and context budget. With `id` — prints that fold's hidden members " +
+      "(inner ids + content, capped per message) so you can read-extract a value or pick a sub-range to expand. " +
+      "The result is itself a normal message you can later collapse away.",
+    parameters: PeekParam,
+    async execute(_id, params, _signal, _onUpdate, ctx) {
+      const msgs = branchMessages(branch(ctx));
+      if (!params.id) {
+        const { totalSpans, hiddenTokens, lines } = summarizeTree(spans, msgs);
+        const usage = ctx.getContextUsage();
+        const tail = overviewTail(spans, msgs, usage?.contextWindow ?? 0, usage?.tokens ?? null);
+        const text = totalSpans
+          ? `${tail}\n${lines.join("\n")}`
+          : "No folds. Nothing collapsed yet.";
+        return {
+          content: [{ type: "text", text }],
+          details: { kind: "tree", totalSpans, hiddenTokens } as unknown,
+        };
+      }
+      const span = spans.find(
+        (s) => s.fromId === params.id || s.memberIds.includes(params.id!),
+      );
+      if (!span)
+        return {
+          content: [{ type: "text", text: `No fold for id ${params.id}.` }],
+          details: { kind: "miss" } as unknown,
+        };
+      const body = serializeSpan(span, msgs);
+      return {
+        content: [
+          {
+            type: "text",
+            text: `fold [#${span.fromId}] · ${span.memberIds.length} members:\n\n${body}`,
+          },
+        ],
+        details: { kind: "span", fromId: span.fromId, members: span.memberIds.length } as unknown,
+      };
+    },
+    renderResult(result, _opts, theme) {
+      const d = result.details as { kind?: string; totalSpans?: number; members?: number } | undefined;
+      if (!d) return new Text("", 0, 0);
+      if (d.kind === "tree")
+        return new Text(theme.fg("accent", `◈ ${d.totalSpans ?? 0} fold(s)`), 0, 0);
+      if (d.kind === "span")
+        return new Text(theme.fg("accent", `◈ peeked ${d.members ?? 0} members`), 0, 0);
+      return new Text(theme.fg("warning", "no such fold"), 0, 0);
     },
   });
 }

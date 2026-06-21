@@ -54,8 +54,64 @@ export interface Span {
   summary: string;
 }
 
-// Marker the agent reads and passes back to forget/remember.
+// Marker the agent reads and passes back to collapse/expand. The plain form is
+// the reference token (stubs, tool args); live messages additionally carry a
+// size via sizedMarker so the model can spot the fat ones to collapse.
 export const marker = (id: string) => `[#${id}]`;
+export const sizedMarker = (id: string, tokens: number) =>
+  `[#${id} ${fmtTokens(tokens)}]`;
+
+/**
+ * Compact token label: <1000 -> "340"; else one-decimal k with trailing ".0"
+ * dropped ("1.2k", "12k"). Single formatter (DRY) for markers, stubs, tails, peek.
+ */
+export function fmtTokens(n: number): string {
+  if (n < 1000) return String(n);
+  return `${(n / 1000).toFixed(1).replace(/\.0$/, "")}k`;
+}
+
+/** Sum of content chars across the shapes we see (text/thinking/toolCall). */
+function messageChars(message: AgentMessageLike): number {
+  const c = message.content;
+  if (typeof c === "string") return c.length;
+  if (!Array.isArray(c)) return 0;
+  let chars = 0;
+  for (const block of c as Array<Record<string, unknown>>) {
+    if (typeof block.text === "string") chars += block.text.length;
+    if (typeof block.thinking === "string") chars += block.thinking.length;
+    if (block.type === "toolCall") {
+      if (typeof block.name === "string") chars += block.name.length;
+      if ("arguments" in block) chars += JSON.stringify(block.arguments).length;
+    }
+  }
+  return chars;
+}
+
+/**
+ * Conservative chars/4 token estimate, mirroring pi's exported estimateTokens
+ * (compaction.ts). Reimplemented here to keep the core free of pi imports
+ * (testable in isolation). Used for the per-message marker size and all
+ * freed/hidden/restored token math.
+ */
+export function estimateTokens(message: AgentMessageLike): number {
+  return Math.ceil(messageChars(message) / 4);
+}
+
+/** Plain text of a message's content, for peek serialization. */
+export function serializeContent(message: AgentMessageLike): string {
+  const c = message.content;
+  if (typeof c === "string") return c;
+  if (!Array.isArray(c)) return "";
+  const parts: string[] = [];
+  for (const block of c as Array<Record<string, unknown>>) {
+    if (typeof block.text === "string") parts.push(block.text);
+    else if (typeof block.thinking === "string")
+      parts.push(`(thinking) ${block.thinking}`);
+    else if (block.type === "toolCall")
+      parts.push(`(call ${block.name ?? "?"} ${JSON.stringify(block.arguments ?? {})})`);
+  }
+  return parts.join("\n");
+}
 
 // Leading [#8hex] markers the model imitates in its own output. Prompt
 // instructions do not prevent this: empirically ~85% imitation across
@@ -64,7 +120,10 @@ export const marker = (id: string) => `[#${id}]`;
 // to ~30 markers/message). So strip them at the output boundary (message_end)
 // -> fakes are never persisted and cannot accumulate. Leading/positional only:
 // an id referenced mid-prose (e.g. "forgetting [#abc12345]") is kept.
-export const LEADING_FAKE_MARKERS = /^(?:\s*\[#[0-9a-f]{8}\]\s*)+/;
+// Widened to also swallow the optional ` 1.2k` size inside the bracket, so the
+// sizedMarker form the model imitates is stripped too.
+export const LEADING_FAKE_MARKERS =
+  /^(?:\s*\[#[0-9a-f]{8}(?:\s+[0-9.]+k?)?\]\s*)+/;
 
 export function stripLeadingMarkers(
   message: AgentMessageLike,
@@ -88,9 +147,14 @@ export function stripLeadingMarkers(
   return message;
 }
 
-/** Prepend the visible `[#id]` marker to the first text block. */
-export function tag(message: AgentMessageLike, id: string): void {
-  const prefix = `${marker(id)} `;
+/** Prepend the visible sized `[#id 1.2k]` marker to the first text block. */
+export function tag(
+  message: AgentMessageLike,
+  id: string,
+  tokens: number,
+): void {
+  const m = sizedMarker(id, tokens);
+  const prefix = `${m} `;
   // Also strip already-persisted fakes from old sessions while tagging
   // (message_end only catches new messages). assistant only, since only the
   // model imitates markers; user/toolResult text is left untouched.
@@ -114,7 +178,7 @@ export function tag(message: AgentMessageLike, id: string): void {
   let insertAt = 0;
   while (insertAt < blocks.length && blocks[insertAt]?.type === "thinking")
     insertAt++;
-  blocks.splice(insertAt, 0, { type: "text", text: marker(id) });
+  blocks.splice(insertAt, 0, { type: "text", text: m });
 }
 
 /** Ordered, taggable message entries of the branch (branch order). */
@@ -220,18 +284,27 @@ export function expandRange(
   return { lo, hi };
 }
 
-export interface ForgetItem {
+export interface CollapseItem {
   from: string;
   to?: string;
   summary?: string;
 }
 
-export interface ForgetPlan {
+export interface CollapsePlan {
   spans: Span[]; // new span state (the input is left unchanged)
   applied: string[]; // fromIds of the resulting stubs (deduplicated)
   summaries: string[]; // summary per applied stub
   collapsed: number; // distinct collapsed messages
   unknown: string[]; // ids that could not be resolved
+  freedTokens: number; // net context tokens freed (live members - new stubs)
+}
+
+/** What buildOverlay renders as a span's stub text (sans the [#id] marker). */
+function stubText(summary: string, n: number, hidden: number): string {
+  const h = fmtTokens(hidden);
+  return summary
+    ? `(summary, ${h} hidden) ${summary}`
+    : `(forgotten ${n} message${n > 1 ? "s" : ""}, ${h} hidden)`;
 }
 
 /**
@@ -242,16 +315,21 @@ export interface ForgetPlan {
  * the final state -> deduplicated and counted correctly no matter how many
  * items coincided.
  */
-export function planForget(
+export function planCollapse(
   msgs: BranchMsg[],
   spans: Span[],
-  items: ForgetItem[],
-): ForgetPlan {
+  items: CollapseItem[],
+): CollapsePlan {
   const next: Span[] = spans.map((s) => ({
     ...s,
     memberIds: s.memberIds.slice(),
   }));
   const indexById = new Map(msgs.map((m, i) => [m.id, i] as const));
+  const tokById = new Map(
+    msgs.map((m) => [m.id, estimateTokens(m.message)] as const),
+  );
+  // Members already folded before this call do not count as newly freed.
+  const priorMembers = new Set(spans.flatMap((s) => s.memberIds));
   const bounds = unitBounds(msgs);
   const unknown: string[] = [];
   const touched = new Set<string>();
@@ -298,36 +376,187 @@ export function planForget(
   const resultSpans = next.filter((s) =>
     s.memberIds.some((id) => touched.has(id)),
   );
+  // freed = newly-hidden live members minus the stub(s) that replace them.
+  // Members folded by a prior span are excluded (already saved).
+  let freedTokens = 0;
+  for (const s of resultSpans) {
+    const hidden = s.memberIds.reduce((t, id) => t + (tokById.get(id) ?? 0), 0);
+    const live = s.memberIds.reduce(
+      (t, id) => t + (priorMembers.has(id) ? 0 : (tokById.get(id) ?? 0)),
+      0,
+    );
+    const stubTok = Math.ceil(
+      stubText(s.summary, s.memberIds.length, hidden).length / 4,
+    );
+    freedTokens += live - stubTok;
+  }
   return {
     spans: next,
     applied: resultSpans.map((s) => s.fromId),
     summaries: resultSpans.map((s) => s.summary),
     collapsed: touched.size,
     unknown,
+    freedTokens,
   };
 }
 
-export interface RememberPlan {
-  spans: Span[];
-  applied: string[];
-  noop: string[];
+export interface ExpandItem {
+  from: string;
+  to?: string;
 }
 
-/** Pure resolution of spans by fromId (inverse of forget). */
-export function planRemember(spans: Span[], ids: string[]): RememberPlan {
-  const next = spans.slice();
+export interface ExpandPlan {
+  spans: Span[];
+  applied: string[]; // fromId of each restored sub-range
+  noop: string[]; // ids matching no span
+  restoredTokens: number; // context tokens brought back live
+}
+
+/**
+ * Pure expand planning (inverse of collapse). Range-aware: an item is matched to
+ * the span containing `from` (its stub fromId, or any inner member id revealed
+ * by peek). A bare span fromId (no `to`) expands the WHOLE span; an explicit
+ * from/to sub-range SPLITS the span - the sub-range is restored live, the two
+ * leftover halves stay folded, both inheriting the original summary (lossless).
+ * The sub-range is snapped to whole tool units and clamped within the span, so
+ * remnants never orphan a tool call/result pair.
+ */
+export function planExpand(
+  msgs: BranchMsg[],
+  spans: Span[],
+  items: ExpandItem[],
+): ExpandPlan {
+  const next: Span[] = spans.map((s) => ({
+    ...s,
+    memberIds: s.memberIds.slice(),
+  }));
+  const indexById = new Map(msgs.map((m, i) => [m.id, i] as const));
+  const tokById = new Map(
+    msgs.map((m) => [m.id, estimateTokens(m.message)] as const),
+  );
+  const bounds = unitBounds(msgs);
   const applied: string[] = [];
   const noop: string[] = [];
-  for (const id of ids) {
-    const i = next.findIndex((s) => s.fromId === id);
-    if (i >= 0) {
-      next.splice(i, 1);
-      applied.push(id);
-    } else {
-      noop.push(id);
+  let restoredTokens = 0;
+  for (const item of items) {
+    const si = next.findIndex(
+      (s) => s.fromId === item.from || s.memberIds.includes(item.from),
+    );
+    if (si < 0) {
+      noop.push(item.from);
+      continue;
     }
+    const span = next[si];
+    const wholeSpan = item.to === undefined && item.from === span.fromId;
+    const subFromId = wholeSpan ? span.memberIds[0] : item.from;
+    const subToId = wholeSpan
+      ? span.memberIds[span.memberIds.length - 1]
+      : (item.to ?? item.from);
+    const ai = indexById.get(subFromId);
+    const bi = indexById.get(subToId);
+    if (ai === undefined || bi === undefined) {
+      noop.push(item.from);
+      continue;
+    }
+    // Snap to whole tool units, clamped to the span's own member index range.
+    const memberIdx = span.memberIds.map((id) => indexById.get(id)!);
+    const spanLo = Math.min(...memberIdx);
+    const spanHi = Math.max(...memberIdx);
+    let lo = Math.min(ai, bi);
+    let hi = Math.max(ai, bi);
+    let changed = true;
+    while (changed) {
+      changed = false;
+      for (let i = lo; i <= hi; i++) {
+        if (bounds.start[i] >= spanLo && bounds.start[i] < lo) {
+          lo = bounds.start[i];
+          changed = true;
+        }
+        if (bounds.end[i] <= spanHi && bounds.end[i] > hi) {
+          hi = bounds.end[i];
+          changed = true;
+        }
+      }
+    }
+    const left: string[] = [];
+    const right: string[] = [];
+    const restored: string[] = [];
+    for (const id of span.memberIds) {
+      const idx = indexById.get(id)!;
+      if (idx < lo) left.push(id);
+      else if (idx > hi) right.push(id);
+      else restored.push(id);
+    }
+    if (restored.length === 0) {
+      noop.push(item.from);
+      continue;
+    }
+    next.splice(si, 1);
+    if (left.length)
+      next.push({ fromId: left[0], memberIds: left, summary: span.summary });
+    if (right.length)
+      next.push({ fromId: right[0], memberIds: right, summary: span.summary });
+    applied.push(restored[0]);
+    for (const id of restored) restoredTokens += tokById.get(id) ?? 0;
   }
-  return { spans: next, applied, noop };
+  return { spans: next, applied, noop, restoredTokens };
+}
+
+/**
+ * Overview of the fold tree: totals + one line per span (branch order). Used by
+ * peek() and the collapse/expand result tails.
+ */
+export function summarizeTree(
+  spans: Span[],
+  msgs: BranchMsg[],
+): { totalSpans: number; hiddenTokens: number; lines: string[] } {
+  const tokById = new Map(
+    msgs.map((m) => [m.id, estimateTokens(m.message)] as const),
+  );
+  const idxById = new Map(msgs.map((m, i) => [m.id, i] as const));
+  const ordered = spans
+    .slice()
+    .sort(
+      (a, b) =>
+        (idxById.get(a.memberIds[0]) ?? 0) - (idxById.get(b.memberIds[0]) ?? 0),
+    );
+  let hiddenTokens = 0;
+  const lines = ordered.map((s) => {
+    const tok = s.memberIds.reduce((t, id) => t + (tokById.get(id) ?? 0), 0);
+    hiddenTokens += tok;
+    const n = s.memberIds.length;
+    const label = s.summary
+      ? s.summary.length > 60
+        ? `${s.summary.slice(0, 60)}…`
+        : s.summary
+      : "(no summary)";
+    return `[#${s.fromId}] · ${n} msg${n > 1 ? "s" : ""} · ${fmtTokens(tok)} · ${label}`;
+  });
+  return { totalSpans: spans.length, hiddenTokens, lines };
+}
+
+/**
+ * Serialize a span's hidden members for peek(id): per message its inner id,
+ * role, size and content (capped, so peeking a fat span can't blow the budget).
+ */
+export function serializeSpan(
+  span: Span,
+  msgs: BranchMsg[],
+  cap = 2000,
+): string {
+  const byId = new Map(msgs.map((m) => [m.id, m.message] as const));
+  const out: string[] = [];
+  for (const id of span.memberIds) {
+    const m = byId.get(id);
+    if (!m) continue;
+    const text = serializeContent(m);
+    const body =
+      text.length > cap
+        ? `${text.slice(0, cap)}… [+${text.length - cap} chars]`
+        : text;
+    out.push(`[#${id}] ${m.role} ${fmtTokens(estimateTokens(m))}\n${body}`);
+  }
+  return out.join("\n\n");
 }
 
 /**
@@ -363,6 +592,9 @@ export function buildOverlay(
   // Entry ids in branch order per (timestamp,role) as a queue, to consume equal
   // keys position-stably.
   const idQueues = new Map<string, string[]>();
+  // Per entry id, its estimated token footprint (from the branch message, which
+  // matches event.messages content). Used for live markers and stub hidden-cost.
+  const idTokens = new Map<string, number>();
   for (const entry of branch) {
     if (entry.type !== "message" || !entry.message || entry.id === undefined)
       continue;
@@ -371,6 +603,7 @@ export function buildOverlay(
     const key = `${msg.timestamp}|${msg.role}`;
     const queue = idQueues.get(key) ?? idQueues.set(key, []).get(key)!;
     queue.push(entry.id);
+    idTokens.set(entry.id, estimateTokens(msg));
   }
 
   const spanByFrom = new Map(spans.map((s) => [s.fromId, s] as const));
@@ -393,16 +626,18 @@ export function buildOverlay(
     const span = spanByFrom.get(id);
     if (span) {
       const n = span.memberIds.length;
+      const hidden = span.memberIds.reduce(
+        (t, m) => t + (idTokens.get(m) ?? 0),
+        0,
+      );
       message.role = "user";
-      message.content = span.summary
-        ? `${marker(id)} (summary) ${span.summary}`
-        : `${marker(id)} (forgotten ${n} message${n > 1 ? "s" : ""})`;
+      message.content = `${marker(id)} ${stubText(span.summary, n, hidden)}`;
       message.details = undefined;
       message.toolCallId = undefined;
       out.push(message);
       continue;
     }
-    tag(message, id);
+    tag(message, id, idTokens.get(id) ?? estimateTokens(message));
     out.push(message);
   }
   return out;
