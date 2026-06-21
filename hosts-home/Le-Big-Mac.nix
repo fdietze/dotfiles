@@ -16,6 +16,10 @@
     ../modules/home-manager/profiles/standalone-extras.nix
   ];
 
+  # Only pi + claude: skip codex (slow Rust source build, no aarch64-darwin
+  # cache) and opencode. claude-code is a light npm fetch.
+  aiAgents.names = ["pi" "claude"];
+
   # macOS-Home; überschreibt shell-cores /home/felix-Default (username = felix
   # ist bereits der shell-core-Default).
   home.homeDirectory = "/Users/felix";
