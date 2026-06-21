@@ -263,7 +263,6 @@ export default function subagents(pi: ExtensionAPI) {
 							targets: formatSendTargets(matrix, a.name),
 						},
 						false,
-						width,
 						styler,
 					),
 					width,

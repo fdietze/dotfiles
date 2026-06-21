@@ -246,18 +246,20 @@ export function createSubagentsPanel(deps: PanelDeps, tui: TuiLike, theme: Theme
 			const matrix = deps.engine.getMessageMatrix();
 			agents().forEach((a, i) => {
 				lines.push(
-					formatRosterRow(
-						{
-							name: a.name,
-							model: a.model,
-							context: formatContext(a.view?.getContextUsage()),
-							status: statusLabel(a),
-							customStatus: a.customStatus,
-							targets: formatSendTargets(matrix, a.name),
-						},
-						i === selectedIndex,
+					truncateToWidth(
+						formatRosterRow(
+							{
+								name: a.name,
+								model: a.model,
+								context: formatContext(a.view?.getContextUsage()),
+								status: statusLabel(a),
+								customStatus: a.customStatus,
+								targets: formatSendTargets(matrix, a.name),
+							},
+							i === selectedIndex,
+							styler,
+						),
 						width,
-						styler,
 					),
 				);
 			});

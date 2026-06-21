@@ -123,12 +123,13 @@ export function shortModel(model: string | undefined): string {
 export function formatRosterRow(
 	entry: RosterEntry,
 	selected: boolean,
-	width: number,
 	// Optional styler for the status label, keyed by visual tone. Default: identity.
 	styleStatus: (label: string, tone: StatusTone) => string = (l) => l,
 ): string {
-	// Layout: <cursor> <status> <name> <context>. Status as a fixed ASCII column at the
-	// front (robustly aligned, independent of the variable context width at the end).
+	// Layout: <cursor> <name> <status> <model> <context> <targets>. Name first (the primary
+	// identifier), then the tone-styled status. Width-bounding is the renderer's job — callers
+	// wrap this in the ANSI-aware truncateToWidth. A plain slice here would strip the status
+	// styling (it sits mid-row), so this returns the full styled row and never self-truncates.
 	const cursor = selected ? "▸" : " ";
 	// Tone keys off the SYSTEM status only — an idle agent that set a custom status must still
 	// read as idle (not busy), and an errored one as error.
@@ -139,13 +140,8 @@ export function formatRosterRow(
 	const label = combined.length > STATUS_COL ? `${combined.slice(0, STATUS_COL - 1)}…` : combined.padEnd(STATUS_COL);
 	const name = entry.name.length > 18 ? `${entry.name.slice(0, 17)}…` : entry.name.padEnd(18);
 	const model = shortModel(entry.model).padEnd(MODEL_COL);
-	// Layout: <cursor> <name> <status> <model> <context> <targets>. Name first (the primary
-	// identifier), then status. Fixed-width base columns; the variable send-targets cell is
-	// appended in full (not capped to width — long target lists wrap rather than hide who an
-	// agent talks to).
-	const base = `${cursor} ${name} ${label} ${model} ${entry.context}`;
-	// Degenerate guard: only the fixed base is bounded by width (it always fits in practice).
-	if (base.length > width) return base.slice(0, width);
+	// Variable send-targets cell appended in full (long target lists are kept, not hidden);
+	// the caller's truncateToWidth bounds the whole row to the terminal.
 	const styledBase = `${cursor} ${name} ${styleStatus(label, tone)} ${model} ${entry.context}`;
 	return entry.targets ? `${styledBase}  ${entry.targets}` : styledBase;
 }
