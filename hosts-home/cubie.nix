@@ -12,9 +12,37 @@
     ../modules/home-manager/profiles/shell-core.nix
     ../modules/home-manager/profiles/ai-agents/vanilla.nix
     ../modules/home-manager/profiles/standalone-extras.nix
+    # Full Neovim (nvf) for remote editing. LSP servers/formatters already come
+    # from packages-cli; nvf adds the editor itself. neovim + vimPlugins +
+    # treesitter are cached for aarch64-linux (unlike codex's Rust source build),
+    # so this stays a mostly-substituted closure on the 1 GB SBC.
+    ../modules/home-manager/nvf.nix
   ];
 
   # pi + claude on this 1 GB SBC. Skip codex (slow aarch64 Rust source build,
   # no binary cache) and opencode. claude-code is a light npm fetch.
   aiAgents.names = ["pi" "claude"];
+
+  # Per-repo GitHub deploy keys, now nix-managed (was hand-written ~/.ssh/config).
+  # Each alias forces exactly one repo's write-scoped key via IdentitiesOnly, so
+  # remotes git@github-dotfiles:… / git@github-ct:… push only to their repo.
+  # Private keys live on the SBC (~/.ssh/deploy_*), outside nix.
+  programs.ssh = {
+    enable = true;
+    enableDefaultConfig = false; # only these aliases, no global Host-* defaults
+    settings = {
+      "github-dotfiles" = {
+        hostname = "github.com";
+        user = "git";
+        identityFile = "~/.ssh/deploy_dotfiles";
+        identitiesOnly = true;
+      };
+      "github-ct" = {
+        hostname = "github.com";
+        user = "git";
+        identityFile = "~/.ssh/deploy_causal_transformer";
+        identitiesOnly = true;
+      };
+    };
+  };
 }
