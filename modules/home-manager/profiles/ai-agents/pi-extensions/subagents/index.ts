@@ -115,10 +115,15 @@ function agentSystemPrompt(name: string, systemPrompt: string, spawnedBy: string
 		"you MUST end that turn with a send_message call. To reply to a sender, send_message back",
 		"to that sender. You can inspect any agent's transcript with agent_history.",
 		"",
-		"Reporting rule:",
-		`- Report to your parent ("${spawnedBy}") ONLY final results or blockers you cannot resolve yourself.`,
-		"- Keep intermediate states, status updates and work steps lateral (peers) or downward (your own subagents) — never escalate them upward.",
-		"- One message to your parent = one finished deliverable or a decision only the parent can make.",
+		"Before starting work — confirm the task first (task-confirmation handshake):",
+		`- Your FIRST turn must send_message to your spawner ("${spawnedBy}") with: (1) the task as you understood it, in your own words, and (2) a block of clarification questions (write "No questions." if none).`,
+		"- Then END YOUR TURN and wait. Do NOT begin any work until your spawner replies with a go-ahead.",
+		"- When YOU spawn an agent, it will reply with its understanding + questions and wait — answer it (a go-ahead plus any corrections) to unblock its work.",
+		"",
+		"Reporting guidance (a preference, not a hard rule):",
+		`- Prefer to keep routine intermediate states, status updates and work steps lateral (peers) or downward (your own subagents) rather than escalating every step to your parent ("${spawnedBy}").`,
+		"- But reach up to your parent whenever it genuinely helps: the task-confirmation handshake, clarifications, blockers you cannot resolve, decisions only the parent can make, and final results. When in doubt, communicate.",
+		"- Bias toward fewer, higher-signal messages upward.",
 		"",
 		"Event-driven — do NOT poll or busy-wait: you run only when a message arrives. After you",
 		"act, END YOUR TURN and go idle; you are automatically re-woken the moment another agent",
@@ -324,7 +329,9 @@ export default function subagents(pi: ExtensionAPI) {
 				"Create a new agent with a system prompt; optionally deliver a first message. It can then be messaged by name. " +
 				"Event-driven & fire-and-forget: after spawning, END YOUR TURN — you are automatically re-woken when an agent " +
 				"messages you back. Do NOT poll list_agents or wait in a loop for completion; it wastes turns. Inspect " +
-				"(list_agents/agent_history) only if you suspect something went wrong.",
+				"(list_agents/agent_history) only if you suspect something went wrong. The new agent's first reply will be " +
+				"its understanding of the task plus clarification questions, then it waits — answer it (go-ahead + any " +
+				"corrections) to unblock its work.",
 			parameters: Type.Object({
 				name: Type.String({ description: "Unique agent name ([a-zA-Z0-9_-])" }),
 				systemPrompt: Type.String({ description: "System prompt defining the agent's behavior" }),
