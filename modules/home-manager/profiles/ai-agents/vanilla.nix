@@ -14,7 +14,8 @@
   ...
 }: let
   # Low CPU/IO priority so agent subprocesses don't starve interactive work.
-  prio = "${pkgs.util-linux}/bin/ionice -c 3 ${pkgs.coreutils}/bin/nice -n 19";
+  # ionice (util-linux) is Linux-only; on Darwin drop it and keep just nice.
+  prio = "${lib.optionalString pkgs.stdenv.isLinux "${pkgs.util-linux}/bin/ionice -c 3 "}${pkgs.coreutils}/bin/nice -n 19";
 
   mkAgent = {
     name,

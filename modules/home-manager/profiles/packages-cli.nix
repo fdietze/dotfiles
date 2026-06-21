@@ -1,5 +1,10 @@
-{pkgs, ...}: {
-  home.packages = with pkgs; [
+{
+  pkgs,
+  lib,
+  ...
+}: {
+  home.packages = with pkgs;
+    [
     # shell / TUI essentials
     tmux
     screen
@@ -8,10 +13,7 @@
     curl
     gnugrep
     gnused
-    procps
-    iproute2
     htop
-    atop
     btop
     ncdu
     gdu
@@ -44,11 +46,8 @@
     netcat
     nmap
     calc
-    inotify-tools
     lsof
-    psmisc
     file
-    smem
     dnsutils
     kondo
     yt-dlp
@@ -60,15 +59,12 @@
     man
     exiftool
     qrencode
-    trashy
     neovim-remote # used by nvim theme switcher
-    bubblewrap
     nono
     pgcli
     sqlite-interactive
     timewarrior
     speedtest-cli
-    nethogs
     devbox # install dev tools in project; zshrc ruft `devbox global shellenv` (shell.nix)
     # neovim editing stack
     clang # cc for nvim treesitter
@@ -108,5 +104,18 @@
     marksman
     markdownlint-cli2
     rtk
-  ];
+    ]
+    # Kernel-/proc-/Landlock-gebundene Tools: bauen nicht (oder sinnlos) auf
+    # Darwin. Per isLinux ausgeklammert, damit shell-core auf dem Mac baut.
+    ++ lib.optionals pkgs.stdenv.isLinux [
+      procps
+      iproute2
+      atop
+      smem
+      inotify-tools
+      psmisc
+      nethogs
+      bubblewrap
+      trashy
+    ];
 }
