@@ -114,12 +114,12 @@ test("formatRosterRow: custom status does not make an idle agent read as busy", 
 	assert.doesNotMatch(row, /BUSY/);
 });
 
-test("formatRosterRow truncates a long combined status to the column", () => {
+test("formatRosterRow writes a long combined status out in full (no max width)", () => {
 	const row = formatRosterRow(
 		{ name: "echo", model: "x/y", context: "", status: "idle", customStatus: "a much longer status than fits the column" },
 		false,
 	);
-	assert.match(row, /a much longer status than fits the …/); // truncated at STATUS_COL (36) with ellipsis
+	assert.match(row, /a much longer status than fits the column · idle/); // full, never truncated
 });
 
 test("formatRosterRow shows cursor, name, model, context, status", () => {
@@ -133,12 +133,12 @@ test("formatRosterRow shows cursor, name, model, context, status", () => {
 	assert.match(row, /claude-sonnet-4/); // short id, provider prefix dropped
 });
 
-test("formatRosterRow truncates a long tool status to the column", () => {
+test("formatRosterRow writes a long tool status out in full (no max width)", () => {
 	const row = formatRosterRow(
 		{ name: "echo", model: "x/y", context: "", status: "tool:some_very_long_tool_name_that_overflows" },
 		false,
 	);
-	assert.match(row, /tool:some_very_long_tool_name_that_…/); // truncated at STATUS_COL (36)
+	assert.match(row, /tool:some_very_long_tool_name_that_overflows/); // full, never truncated
 });
 
 test("swarmStateLine: halted vs live with activity count", () => {

@@ -87,11 +87,11 @@ export function swarmStateLine(frozen: boolean, runningCount: number): string {
 }
 
 /**
- * Status column width. Holds the agent-set custom status first, then the system status,
- * as "<custom> · idle" — the self-reported activity is the scannable part, so it leads.
- * Sized for the persistent case (a ~20-char custom status, see set_status's prompt cap, +
- * idle/thinking); longer combos (e.g. a long tool: name) truncate with an ellipsis, which
- * is fine since those are transient.
+ * Status column MIN width (a floor for alignment only — no max). Holds the agent-set custom
+ * status first, then the system status, as "<custom> · idle" — the self-reported activity is
+ * the scannable part, so it leads. Short statuses pad to this width so the columns after them
+ * line up; longer statuses are written out in full and just push the trailing columns right
+ * for that row (never truncated).
  */
 const STATUS_COL = 36;
 /**
@@ -137,7 +137,8 @@ export function formatRosterRow(
 	// Self-set custom status leads, system status trails ("parsing files · idle"); the
 	// combined string shares the fixed column and truncates as a whole.
 	const combined = entry.customStatus ? `${entry.customStatus} · ${entry.status}` : entry.status;
-	const label = combined.length > STATUS_COL ? `${combined.slice(0, STATUS_COL - 1)}…` : combined.padEnd(STATUS_COL);
+	// padEnd only pads (never truncates): STATUS_COL is a min width, the status is always full.
+	const label = combined.padEnd(STATUS_COL);
 	const name = entry.name.length > 18 ? `${entry.name.slice(0, 17)}…` : entry.name.padEnd(18);
 	const model = shortModel(entry.model).padEnd(MODEL_COL);
 	// Variable send-targets cell appended in full (long target lists are kept, not hidden);
