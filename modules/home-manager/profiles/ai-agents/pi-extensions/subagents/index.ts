@@ -453,8 +453,10 @@ export default function subagents(pi: ExtensionAPI) {
 			description:
 				"Set your short status line shown in list_agents and the agents panel " +
 				"(e.g. 'parsing 500 files', 'waiting on review'). Pass empty string to clear. " +
-				"Keep it to ~20 characters — one terse phrase (longer is truncated in the roster). " +
-				"It must describe your CURRENT state, not a past action. Update it when your phase " +
+				"Keep it terse — one short phrase. It must describe your CURRENT state, not a past action. " +
+				"If you are blocked on a long-running command with a known timeout or duration, include an " +
+				"ABSOLUTE ETA so others see when you'll be free (e.g. 'running tests · ETA 14:32') — absolute " +
+				"clock time, not a relative '~5m' which goes stale. Update it when your phase " +
 				"changes, and before you END A TURN and go idle set it to a resting/outcome state " +
 				"(e.g. 'done', 'waiting for critic', 'blocked: needs X') or clear it — never leave a " +
 				"stale in-progress phrase like 'sending to editor' once you are idle.",
