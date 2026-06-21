@@ -253,6 +253,8 @@
       # Benannte permanente Home-Manager-Hosts (hosts-home/<name>.nix):
       # "home-manager switch --flake .#<name>".
       cubie = mkHomeHost "aarch64-linux" "cubie";
+      # Apple Silicon Mac (aarch64-darwin); standalone HM, vanilla agents.
+      "Le-Big-Mac" = mkHomeHost "aarch64-darwin" "Le-Big-Mac";
     };
 
     # "nix-on-droid switch --flake .#korken"
