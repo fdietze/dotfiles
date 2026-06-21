@@ -120,8 +120,10 @@ in
     gtk.gtk4.enable = lib.mkForce false;
 
     # post_hook target for the gtk-theme-trigger template (user-templates.toml).
-    # Writes gtk-{3,4}.0/settings.ini with the adw-gtk3 + Papirus variants that
-    # match noctalia's current mode. The mode arrives as $1 (the rendered
+    # Writes gtk-{3,4}.0/settings.ini with the adw-gtk3 + Papirus variants AND
+    # the matching org.gnome.desktop.interface dconf keys (color-scheme/gtk-theme/
+    # icon-theme, which v5 noctalia no longer sets) so portal-following apps (Firefox,
+    # Signal, GTK4/libadwaita) switch too. The mode arrives as $1 (the rendered
     # {{mode}}); when called without args (activation seed) it falls back to
     # noctalia's settings.json. Installed at a stable HM-owned path so the
     # post_hook reference survives rebuilds.
@@ -148,11 +150,35 @@ in
           gtk_theme=adw-gtk3-dark
           icon_theme=Papirus-Dark
           prefer_dark=1
+          color_scheme=prefer-dark
         else
           gtk_theme=adw-gtk3
           icon_theme=Papirus
           prefer_dark=0
+          color_scheme=prefer-light
         fi
+
+        # Mirror the mode into the org.gnome.desktop.interface dconf keys. v5
+        # noctalia (C++ rewrite) dropped v4's syncGsettings, so nothing else
+        # writes them. xdg-desktop-portal re-exports color-scheme as
+        # org.freedesktop.appearance — the signal libadwaita/GTK4, Firefox, and
+        # Signal (Electron) follow. Without this the portal stays frozen at its
+        # last value (settings.ini only flips legacy GTK2/3 apps), so those apps
+        # never switch dark/light.
+        #
+        # Use `dconf write`, NOT `gsettings`: this is a non-GNOME (niri) session
+        # where gsettings-desktop-schemas is not on XDG_DATA_DIRS, so gsettings
+        # aborts with "No schemas installed". dconf writes the backing db
+        # directly; the portal backend (which bundles the schema) reads it back
+        # and propagates to org.freedesktop.appearance. Verified: a dconf write
+        # of color-scheme flips the portal's ReadOne result. enum keys are stored
+        # as the quoted GVariant string.
+        # || true: the activation seed may run before a usable dbus/dconf session
+        # exists; noctalia re-fires this hook on startup with the real {{mode}}.
+        dconf=${pkgs.dconf}/bin/dconf
+        "$dconf" write /org/gnome/desktop/interface/color-scheme "'$color_scheme'" 2>/dev/null || true
+        "$dconf" write /org/gnome/desktop/interface/gtk-theme "'$gtk_theme'" 2>/dev/null || true
+        "$dconf" write /org/gnome/desktop/interface/icon-theme "'$icon_theme'" 2>/dev/null || true
 
         # Cursor values mirror home.pointerCursor so the file stays complete.
         for ver in 3.0 4.0; do
