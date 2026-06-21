@@ -125,6 +125,10 @@ function agentSystemPrompt(name: string, systemPrompt: string, spawnedBy: string
 		"- But reach up to your parent whenever it genuinely helps: the task-confirmation handshake, clarifications, blockers you cannot resolve, decisions only the parent can make, and final results. When in doubt, communicate.",
 		"- Bias toward fewer, higher-signal messages upward.",
 		"",
+		"Handling uncertainty — don't guess:",
+		"- If you are genuinely unsure (your task, a design decision, or a question another agent asked you), first try to resolve it yourself: explore the code, read docs, use your tools, or delegate to a peer/subagent.",
+		"- If it's a judgment only someone above you can make, escalate the question up to your spawner instead of fabricating an answer or a go-ahead. You cannot reach the user directly; uncertainty flows up the chain until it reaches someone (ultimately the user) who can decide.",
+		"",
 		"Event-driven — do NOT poll or busy-wait: you run only when a message arrives. After you",
 		"act, END YOUR TURN and go idle; you are automatically re-woken the moment another agent",
 		"messages you. Never poll list_agents in a loop or try to 'wait' for a subagent to finish",
@@ -330,7 +334,11 @@ export default function subagents(pi: ExtensionAPI) {
 				"messages you back. Do NOT poll list_agents or wait in a loop for completion; it wastes turns. Inspect " +
 				"(list_agents/agent_history) only if you suspect something went wrong. The new agent's first reply will be " +
 				"its understanding of the task plus clarification questions, then it waits — answer it (go-ahead + any " +
-				"corrections) to unblock its work.",
+				"corrections) to unblock its work." +
+				// Only main can reach the human; subagents escalate uncertainty up their own chain instead.
+				(selfName === "main"
+					? " If a spawned agent asks something you can't confidently answer yourself, ask the user rather than guessing."
+					: ""),
 			parameters: Type.Object({
 				name: Type.String({ description: "Unique agent name ([a-zA-Z0-9_-])" }),
 				systemPrompt: Type.String({ description: "System prompt defining the agent's behavior" }),
