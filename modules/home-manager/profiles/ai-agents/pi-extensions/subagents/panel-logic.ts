@@ -87,12 +87,13 @@ export function swarmStateLine(frozen: boolean, runningCount: number): string {
 }
 
 /**
- * Status column width. Holds the system status plus the agent-set custom status appended
- * as "idle · <custom>". Sized for the persistent case (idle/thinking + a ~20-char custom
- * status, see set_status's prompt cap); longer combos (e.g. a long tool: name) truncate
- * with an ellipsis, which is fine since those are transient.
+ * Status column width. Holds the agent-set custom status first, then the system status,
+ * as "<custom> · idle" — the self-reported activity is the scannable part, so it leads.
+ * Sized for the persistent case (a ~20-char custom status, see set_status's prompt cap, +
+ * idle/thinking); longer combos (e.g. a long tool: name) truncate with an ellipsis, which
+ * is fine since those are transient.
  */
-const STATUS_COL = 28;
+const STATUS_COL = 36;
 /**
  * A status counts as "busy" (active-work highlight) unless the agent is idle, still
  * spawning, or halted. halted is a stopped state (awaiting resume), so it gets the same
@@ -132,11 +133,11 @@ export function formatRosterRow(
 	// Tone keys off the SYSTEM status only — an idle agent that set a custom status must still
 	// read as idle (not busy), and an errored one as error.
 	const tone = statusTone(entry.status);
-	// Custom status shown right after the system status ("idle · parsing files"); the combined
-	// string shares the fixed column and truncates as a whole.
-	const combined = entry.customStatus ? `${entry.status} · ${entry.customStatus}` : entry.status;
+	// Self-set custom status leads, system status trails ("parsing files · idle"); the
+	// combined string shares the fixed column and truncates as a whole.
+	const combined = entry.customStatus ? `${entry.customStatus} · ${entry.status}` : entry.status;
 	const label = combined.length > STATUS_COL ? `${combined.slice(0, STATUS_COL - 1)}…` : combined.padEnd(STATUS_COL);
-	const name = entry.name.length > 14 ? `${entry.name.slice(0, 13)}…` : entry.name.padEnd(14);
+	const name = entry.name.length > 18 ? `${entry.name.slice(0, 17)}…` : entry.name.padEnd(18);
 	const model = shortModel(entry.model).padEnd(MODEL_COL);
 	// Layout: <cursor> <name> <status> <model> <context> <targets>. Name first (the primary
 	// identifier), then status. Fixed-width base columns; the variable send-targets cell is
