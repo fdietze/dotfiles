@@ -573,8 +573,11 @@ export interface SearchHit {
 
 /**
  * Case-insensitive substring search across ALL taggable messages (live and
- * folded), flagging which fold (if any) hides each hit. The find-by-content
- * complement to peek's look-by-id: locate a keyword, then peek/expand the hit.
+ * folded) AND every fold's summary digest, flagging which fold (if any) hides
+ * each hit. The find-by-content complement to peek's look-by-id: locate a
+ * keyword, then peek/expand the hit. A fold whose *summary* matches is returned
+ * as its own hit (role "fold", id = the fold's stub) - the digest is curated to
+ * be findable, so it must be searchable even though it is not a stored message.
  */
 export function searchMessages(
   msgs: BranchMsg[],
@@ -588,24 +591,34 @@ export function searchMessages(
   for (const s of spans) for (const id of s.memberIds) foldOf.set(id, s.fromId);
   const hits: SearchHit[] = [];
   let total = 0;
-  for (const m of msgs) {
-    const text = serializeContent(m.message);
-    const idx = text.toLowerCase().indexOf(q);
-    if (idx < 0) continue;
+  const push = (
+    id: string,
+    role: string,
+    foldFrom: string | null,
+    text: string,
+    at: number,
+  ) => {
     total++;
-    if (hits.length >= cap) continue;
-    const start = Math.max(0, idx - 40);
-    const end = Math.min(text.length, idx + q.length + 40);
+    if (hits.length >= cap) return;
+    const start = Math.max(0, at - 40);
+    const end = Math.min(text.length, at + q.length + 40);
     const snippet =
       (start > 0 ? "…" : "") +
       text.slice(start, end).replace(/\s+/g, " ").trim() +
       (end < text.length ? "…" : "");
-    hits.push({
-      id: m.id,
-      role: m.message.role,
-      foldFrom: foldOf.get(m.id) ?? null,
-      snippet,
-    });
+    hits.push({ id, role, foldFrom, snippet });
+  };
+  for (const m of msgs) {
+    const text = serializeContent(m.message);
+    const idx = text.toLowerCase().indexOf(q);
+    if (idx >= 0) push(m.id, m.message.role, foldOf.get(m.id) ?? null, text, idx);
+  }
+  // Fold summaries: not stored as messages, so scanned separately. The fold
+  // itself is the hit (role "fold"); foldFrom is null since it IS the fold.
+  for (const s of spans) {
+    if (!s.summary) continue;
+    const idx = s.summary.toLowerCase().indexOf(q);
+    if (idx >= 0) push(s.fromId, "fold", null, s.summary, idx);
   }
   return { hits, total };
 }

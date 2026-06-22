@@ -265,6 +265,19 @@ test("searchMessages: case-insensitive, flags folded hits with their fold fromId
   assert.equal(live.hits[0].foldFrom, null);
 });
 
+test("searchMessages: a fold whose summary matches is returned as a 'fold' hit", () => {
+  const msgs = branchMessages(fiveUserBranch());
+  const spans: Span[] = [
+    { fromId: "u2", memberIds: ["u2", "u3"], summary: "the secret digest keyword" },
+  ];
+  const { hits, total } = searchMessages(msgs, spans, "digest keyword");
+  assert.equal(total, 1);
+  assert.equal(hits[0].id, "u2");
+  assert.equal(hits[0].role, "fold");
+  assert.equal(hits[0].foldFrom, null);
+  assert.match(hits[0].snippet, /digest keyword/);
+});
+
 test("searchMessages: empty query yields nothing; cap limits hits but total counts all", () => {
   const msgs = branchMessages(fiveUserBranch());
   assert.equal(searchMessages(msgs, [], "").total, 0);

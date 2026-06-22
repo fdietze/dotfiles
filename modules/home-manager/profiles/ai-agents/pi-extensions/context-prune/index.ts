@@ -436,9 +436,10 @@ export default function (pi: ExtensionAPI) {
     label: "Search",
     description:
       "Find a keyword across the whole conversation — live AND collapsed messages (matches message text, thinking, " +
-      "and tool-call arguments). Returns up to the first 20 matches, each with its [#id], role, which fold it is " +
-      "hidden in (if any), and a snippet. The efficient way to locate content before peek/expand when there are " +
-      "many folds (find-by-content, vs peek's look-by-id).",
+      "and tool-call arguments) plus every fold's summary digest. Returns up to the first 20 matches, each with " +
+      "its [#id], role (a fold whose summary matched has role 'fold'), which fold it is hidden in (if any), and a " +
+      "snippet. The efficient way to locate content before peek/expand when there are many folds (find-by-content, " +
+      "vs peek's look-by-id).",
     parameters: SearchParam,
     async execute(_id, params, _signal, _onUpdate, ctx) {
       const msgs = branchMessages(branch(ctx));
