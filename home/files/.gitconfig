@@ -137,3 +137,9 @@
 
 [core]
 	excludesfile = /home/felix/.config/git/ignore
+
+[filter "noctalia-wallpaper"]
+	# Keeps the git-tracked dotfiles' home/noctalia/settings.toml clean despite
+	# frottage rotating the noctalia wallpaper path 4x/day. Activated only where
+	# .gitattributes opts in. Script is on PATH on every spec via home/bin.
+	clean = noctalia-wallpaper-clean

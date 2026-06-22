@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Git clean filter for home/noctalia/settings.toml.
+#
+# Frottage rotates the noctalia wallpaper 4x/day, and noctalia persists each
+# (unique, dated) path into settings.toml — which is git-tracked. Without this
+# filter the working tree would be perpetually dirty. On `git add`, this collapses
+# every frottage wallpaper path back to one stable placeholder symlink so the
+# staged content matches the committed baseline (no diff), while the real dated
+# path stays in the working copy so the live image still refreshes.
+#
+# Only paths containing "frottage" are touched, so hand-picked wallpapers stay
+# tracked normally. Idempotent. Registered as filter.noctalia-wallpaper.clean in
+# home/files/.gitconfig, activated via .gitattributes.
+#
+# bash+sed is the deliberate KISS choice for a one-line text-stream filter (cf.
+# the design spec docs/superpowers/specs/2026-06-22-noctalia-frottage-wallpaper-design.md).
+exec sed -E 's|^([[:space:]]*)path = "[^"]*frottage[^"]*"|\1path = "~/.cache/frottage/current-wallpaper.jpg"|'

@@ -1,0 +1,4 @@
+# Collapse frottage's 4x/day wallpaper-path churn to a stable placeholder when
+# staging noctalia's GUI settings. See home/bin/noctalia-wallpaper-clean and
+# home/files/.gitconfig ([filter "noctalia-wallpaper"]).
+home/noctalia/settings.toml filter=noctalia-wallpaper
