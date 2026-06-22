@@ -3,6 +3,7 @@
  * No pi/TUI dependency; the strings are rendered into the UI in index.ts.
  */
 import { statusLabel, type AgentRecord, type AgentEvent } from "./engine.ts";
+import { formatCustomStatus } from "./eta.ts";
 
 /** Compact relative age: 3s / 4m / 2h. */
 function formatAge(ms: number): string {
@@ -38,8 +39,9 @@ export function formatSnapshot(
 	if (agents.length === 0) return "no agents";
 	const viewerParent = agents.find((a) => a.name === viewer)?.spawnedBy;
 	const rows = agents.map((a) => {
-		// Custom status shown right after the system status, matching the TUI roster ("idle · ...").
-		const status = a.customStatus ? `${statusLabel(a)} · ${a.customStatus}` : statusLabel(a);
+		// Custom status (with any ETA) shown right after the system status, matching the TUI roster ("idle · ...").
+		const customDisplay = formatCustomStatus(a.customStatus, a.etaTs, now);
+		const status = customDisplay ? `${statusLabel(a)} · ${customDisplay}` : statusLabel(a);
 		const u = a.view?.getContextUsage();
 		const ctx = u && u.percent != null ? `${Math.round(u.percent)}%` : "--";
 		const rel = relTo(a, viewer, viewerParent);

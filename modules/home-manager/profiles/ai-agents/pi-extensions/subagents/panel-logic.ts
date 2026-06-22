@@ -1,4 +1,5 @@
 /** Pure helpers for the subagents panel — no pi/TUI dependency, fully testable. */
+import { formatCustomStatus } from "./eta.ts";
 
 export interface ContextUsageLike {
 	tokens: number | null;
@@ -71,6 +72,8 @@ export interface RosterEntry {
 	status: string;
 	/** Agent-set freeform status (engine.setCustomStatus); shown after the system status. */
 	customStatus?: string;
+	/** Absolute ETA target (epoch ms); rendered as clock time after the custom status. */
+	etaTs?: number;
 	/** Send targets cell (formatSendTargets); appended in full, never truncated. */
 	targets?: string;
 }
@@ -125,6 +128,8 @@ export function formatRosterRow(
 	selected: boolean,
 	// Optional styler for the status label, keyed by visual tone. Default: identity.
 	styleStatus: (label: string, tone: StatusTone) => string = (l) => l,
+	// Injected for testability; the live ETA hint is recomputed at each render.
+	now: number = Date.now(),
 ): string {
 	// Layout: <cursor> <name> <status> <model> <context> <targets>. Name first (the primary
 	// identifier), then the tone-styled status. Width-bounding is the renderer's job — callers
@@ -134,9 +139,10 @@ export function formatRosterRow(
 	// Tone keys off the SYSTEM status only — an idle agent that set a custom status must still
 	// read as idle (not busy), and an errored one as error.
 	const tone = statusTone(entry.status);
-	// Self-set custom status leads, system status trails ("parsing files · idle"); the
-	// combined string shares the fixed column and truncates as a whole.
-	const combined = entry.customStatus ? `${entry.customStatus} · ${entry.status}` : entry.status;
+	// Self-set custom status (with any ETA) leads, system status trails ("parsing files · idle");
+	// the combined string shares the fixed column and truncates as a whole.
+	const customDisplay = formatCustomStatus(entry.customStatus, entry.etaTs, now);
+	const combined = customDisplay ? `${customDisplay} · ${entry.status}` : entry.status;
 	// padEnd only pads (never truncates): STATUS_COL is a min width, the status is always full.
 	const label = combined.padEnd(STATUS_COL);
 	const name = entry.name.length > 18 ? `${entry.name.slice(0, 17)}…` : entry.name.padEnd(18);

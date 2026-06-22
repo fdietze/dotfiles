@@ -104,6 +104,26 @@ test("formatRosterRow shows custom status before the system status", () => {
 	assert.match(row, /parsing files · idle/);
 });
 
+test("formatRosterRow appends an absolute-time ETA after the custom status", () => {
+	const now = new Date();
+	now.setHours(15, 0, 0, 0);
+	const row = formatRosterRow(
+		{ name: "echo", model: "x/y", context: "", status: "idle", customStatus: "running tests", etaTs: now.getTime() + 20 * 60000 },
+		false,
+		undefined,
+		now.getTime(),
+	);
+	assert.match(row, /running tests · ETA ~15:20 \(in 20min\) · idle/);
+});
+
+test("formatRosterRow omits the ETA when etaTs is unset", () => {
+	const row = formatRosterRow(
+		{ name: "echo", model: "x/y", context: "", status: "idle", customStatus: "running tests" },
+		false,
+	);
+	assert.doesNotMatch(row, /ETA/);
+});
+
 test("formatRosterRow: custom status does not make an idle agent read as busy", () => {
 	// styleStatus receives tone "idle" for idle, even with a custom status set.
 	const row = formatRosterRow(

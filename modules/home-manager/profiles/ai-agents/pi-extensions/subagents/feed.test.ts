@@ -41,6 +41,19 @@ test("formatSnapshot appends the agent-set custom status after the system status
 	assert.match(out, /idle · parsing files/);
 });
 
+test("formatSnapshot renders the ETA as absolute clock time after the custom status", () => {
+	const now = new Date();
+	now.setHours(15, 0, 0, 0);
+	const agents = [rec({ name: "coder", customStatus: "running tests", etaTs: now.getTime() + 20 * 60000 })];
+	const out = formatSnapshot(agents, 0, 100, "main", now.getTime());
+	assert.match(out, /idle · running tests · ETA ~15:20 \(in 20min\)/);
+});
+
+test("formatSnapshot omits the ETA when etaTs is unset", () => {
+	const out = formatSnapshot([rec({ name: "coder", customStatus: "running tests" })], 0, 100, "main");
+	assert.doesNotMatch(out, /ETA/);
+});
+
 test("formatSnapshot renders fine-grained activity (writing / tool:name)", () => {
 	const agents = [
 		rec({ name: "w", streaming: true, activity: "writing" }),

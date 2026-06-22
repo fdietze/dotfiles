@@ -254,6 +254,7 @@ export function createSubagentsPanel(deps: PanelDeps, tui: TuiLike, theme: Theme
 								context: formatContext(a.view?.getContextUsage()),
 								status: statusLabel(a),
 								customStatus: a.customStatus,
+								etaTs: a.etaTs,
 								targets: formatSendTargets(matrix, a.name),
 							},
 							i === selectedIndex,

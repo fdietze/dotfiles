@@ -56,7 +56,8 @@ const BUDGET_ESCALATION = (total: number) =>
 // v5: AgentRecord gains systemPrompt+sessionFile (persistence roster), attach() sets them.
 // v6: Engine gains setCustomStatus + AgentRecord.customStatus (agent-settable status line).
 // v7: Engine gains setStopReason + AgentRecord.stopReason; setStreaming(true) clears it.
-const ENGINE_KEY = "__subagentsEngine_v7";
+// v8: setCustomStatus(name, status, etaTs?) + AgentRecord.etaTs (absolute-time ETA).
+const ENGINE_KEY = "__subagentsEngine_v8";
 
 function getEngine(): Engine {
 	const g = globalThis as Record<string, unknown>;
@@ -265,6 +266,7 @@ export default function subagents(pi: ExtensionAPI) {
 							context: formatContext(a.view?.getContextUsage()),
 							status: statusLabel(a),
 							customStatus: a.customStatus,
+							etaTs: a.etaTs,
 							targets: formatSendTargets(matrix, a.name),
 						},
 						false,
@@ -455,17 +457,22 @@ export default function subagents(pi: ExtensionAPI) {
 				"Set your short status line shown in list_agents and the agents panel " +
 				"(e.g. 'parsing 500 files', 'waiting on review'). Pass empty string to clear. " +
 				"Keep it terse — one short phrase. It must describe your CURRENT state, not a past action. " +
-				"If you are blocked on a long-running command with a known timeout or duration, include an " +
-				"ABSOLUTE ETA so others see when you'll be free (e.g. 'running tests · ETA 14:32') — absolute " +
-				"clock time, not a relative '~5m' which goes stale. Update it when your phase " +
-				"changes, and before you END A TURN and go idle set it to a resting/outcome state " +
-				"(e.g. 'done', 'waiting for critic', 'blocked: needs X') or clear it — never leave a " +
-				"stale in-progress phrase like 'sending to editor' once you are idle.",
+				"If you are blocked on a long-running command with a known timeout or duration, pass " +
+				"etaMinutes (how many minutes from NOW until you're free) — the extension renders it as an " +
+				"absolute clock time so others see when you'll be free; do NOT write an ETA into the status " +
+				"text yourself. etaMinutes is fully respecified each call: omit it to clear a prior ETA. " +
+				"Update status when your phase changes, and before you END A TURN and go idle set it to a " +
+				"resting/outcome state (e.g. 'done', 'waiting for critic', 'blocked: needs X') or clear it — " +
+				"never leave a stale in-progress phrase like 'sending to editor' once you are idle.",
 			parameters: Type.Object({
 				status: Type.String({ description: "Short status phrase; empty clears" }),
+				etaMinutes: Type.Optional(
+					Type.Number({ description: "Minutes from now until you're free; rendered as absolute clock time. Omit to clear." }),
+				),
 			}),
 			execute: async (_id, args) => {
-				engine.setCustomStatus(selfName, args.status);
+				const etaTs = args.etaMinutes != null ? Date.now() + args.etaMinutes * 60000 : undefined;
+				engine.setCustomStatus(selfName, args.status, etaTs);
 				updateStatus();
 				return {
 					content: [{ type: "text", text: args.status ? `status set: ${args.status}` : "status cleared" }],

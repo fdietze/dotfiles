@@ -54,6 +54,8 @@ export interface AgentRecord {
 	activity?: AgentActivity;
 	/** Agent-set semantic status, appended to the system status (in-memory; resets on restart). */
 	customStatus?: string;
+	/** Absolute target time (epoch ms) for the agent's ETA, rendered as clock time. Set via set_status's etaMinutes; cleared when omitted. In-memory; resets on restart. */
+	etaTs?: number;
 	/** Tool name while `activity === "tool"`. */
 	currentTool?: string;
 	/** Terminal reason of the last finished turn; drives the idle-time status (error/truncated). Cleared when a new turn starts. */
@@ -372,10 +374,15 @@ export class Engine {
 		}
 	}
 
-	/** Set the agent-set semantic status line (empty string clears). */
-	setCustomStatus(name: string, status: string | undefined): void {
+	/**
+	 * Set the agent-set semantic status line (empty string clears) plus its optional ETA.
+	 * One call fully specifies the visible status: etaTs === undefined clears any prior ETA.
+	 */
+	setCustomStatus(name: string, status: string | undefined, etaTs?: number): void {
 		const rec = this.agents.get(name);
-		if (rec) rec.customStatus = status || undefined;
+		if (!rec) return;
+		rec.customStatus = status || undefined;
+		rec.etaTs = etaTs;
 	}
 
 	/** Set the fine-grained phase within a turn (thinking/writing/tool). */
