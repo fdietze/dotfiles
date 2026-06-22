@@ -11,6 +11,7 @@ import {
   planCollapse,
   planExpand,
   reconstructSpans,
+  searchMessages,
   serializeSpan,
   stripLeadingMarkers,
   summarizeTree,
@@ -237,6 +238,33 @@ test("serializeSpan: long content is truncated with a marker", () => {
   const span: Span = { fromId: "big", memberIds: ["big"], summary: "" };
   const out = serializeSpan(span, branchMessages(branch), 2000);
   assert.match(out, /… \[\+3000 chars\]$/);
+});
+
+// --- searchMessages --------------------------------------------------------
+
+test("searchMessages: case-insensitive, flags folded hits with their fold fromId", () => {
+  const msgs = branchMessages(fiveUserBranch());
+  const spans: Span[] = [
+    { fromId: "u3", memberIds: ["u3", "u4"], summary: "" },
+  ];
+  const { hits, total } = searchMessages(msgs, spans, "THREE");
+  assert.equal(total, 1);
+  assert.equal(hits[0].id, "u3");
+  assert.equal(hits[0].foldFrom, "u3", "u3 is folded");
+  assert.match(hits[0].snippet, /three three three/);
+  // a live hit has foldFrom null
+  const live = searchMessages(msgs, spans, "two");
+  assert.equal(live.hits[0].id, "u2");
+  assert.equal(live.hits[0].foldFrom, null);
+});
+
+test("searchMessages: empty query yields nothing; cap limits hits but total counts all", () => {
+  const msgs = branchMessages(fiveUserBranch());
+  assert.equal(searchMessages(msgs, [], "").total, 0);
+  // every fiveUserBranch message contains an 'o' or such? use a common letter
+  const r = searchMessages(msgs, [], "o", 1); // matches one/two/four...
+  assert.ok(r.total >= 2);
+  assert.equal(r.hits.length, 1, "cap respected");
 });
 
 // --- reconstructSpans ------------------------------------------------------

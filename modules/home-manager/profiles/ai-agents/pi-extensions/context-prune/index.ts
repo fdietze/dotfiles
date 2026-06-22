@@ -43,6 +43,7 @@ import {
   planCollapse,
   planExpand,
   reconstructSpans,
+  searchMessages,
   serializeSpan,
   stripLeadingMarkers,
   summarizeTree,
@@ -74,7 +75,7 @@ function overviewTail(
     contextWindow > 0 && contextTokens != null
       ? ` · ctx ${Math.round((contextTokens / contextWindow) * 100)}% (${fmtTokens(contextTokens)}/${fmtTokens(contextWindow)})`
       : "";
-  return `folded: ${totalSpans} span${totalSpans === 1 ? "" : "s"} · ${fmtTokens(hiddenTokens)} hidden${ctx}`;
+  return `folds: ${totalSpans} · ${fmtTokens(hiddenTokens)} hidden${ctx}`;
 }
 
 // freed/restored magnitude as a % of the context window, with an explicit sign
@@ -163,7 +164,7 @@ export default function (pi: ExtensionAPI) {
     promptGuidelines: [
       "`[#id 1.2k]` markers are labels the system prepends to each message: the 8-char hex id plus that message's token size. They are NOT part of the message text. Never write a marker in your own replies. Use the id only as an argument to `collapse` / `expand` / `peek`; use the size to find the fat messages worth collapsing.",
       "Routinely collapse finished sub-threads: pass a range with a short `summary` to condense it, or without `summary` to drop pure noise (tool outputs, detours, resolved debugging). Keeps the working context lean; reversible via `expand`.",
-      "To recover something from a collapsed range, `peek` it first — that prints its contents (transient, itself collapsible) without un-folding anything. Only `expand` (optionally a sub-range, which splits the fold) when you need that content live again. Never do the expand-whole-then-recollapse dance.",
+      "To recover something collapsed: `search <keyword>` to locate it across all folds, then `peek` the fold to read it (transient, itself collapsible) without un-folding anything. Only `expand` (optionally a sub-range, which splits the fold) when you need that content live again. Never do the expand-whole-then-recollapse dance.",
       "Write a `summary` you could resume from alone (without `expand`). Lead with open loops (unfinished work, pending decisions/commits/confirmations); then current state (what is now true — commit hashes, paths, passing tests); then decisions and why, including rejected options; then gotchas learned; and hint what detail sits inside the range so you can judge whether to `expand`/`peek` it later. Be specific — name files, symbols, hashes; avoid vague verbs like 'fixed it'. Drop play-by-play and tool output. As terse as possible while still resumable.",
     ],
     parameters: CollapseParam,
@@ -176,7 +177,7 @@ export default function (pi: ExtensionAPI) {
       const win = usage?.contextWindow ?? 0;
       const tail = overviewTail(spans, msgs, win, usage?.tokens ?? null);
       const head = plan.applied.length
-        ? `+ collapsed ${plan.collapsed} msg(s) into ${plan.applied.length} stub(s): ${plan.applied.join(", ")}, freed ${fmtTokens(plan.freedTokens)}${pctOf(plan.freedTokens, win, "−")}` +
+        ? `+ collapsed ${plan.collapsed} msgs into ${plan.applied.length} fold(s): ${plan.applied.join(", ")}, freed ${fmtTokens(plan.freedTokens)}${pctOf(plan.freedTokens, win, "−")}` +
           (plan.unknown.length
             ? `. unknown id(s): ${plan.unknown.join(", ")}`
             : "")
@@ -204,7 +205,7 @@ export default function (pi: ExtensionAPI) {
       // Full digest(s) untruncated: renderResult is TUI-only (never serialized
       // into context) and Text word-wraps, so it is free to display.
       const head =
-        theme.fg("success", `✓ collapsed ${d.collapsed} msg(s), freed ${fmtTokens(d.deltaTokens)}`) +
+        theme.fg("success", `✓ collapsed ${d.collapsed} msgs, freed ${fmtTokens(d.deltaTokens)}`) +
         theme.fg("dim", ` · ${d.tail}`);
       const body = d.summaries
         .filter((s) => s)
@@ -347,6 +348,46 @@ export default function (pi: ExtensionAPI) {
       if (d.kind === "span")
         return new Text(theme.fg("accent", `◈ peeked ${d.members ?? 0} members`), 0, 0);
       return new Text(theme.fg("warning", "no such fold"), 0, 0);
+    },
+  });
+
+  // --- search (read-only, find-by-content) ---------------------------------
+
+  const SearchParam = Type.Object({
+    query: Type.String({
+      description:
+        "Case-insensitive substring to find across all messages (live and collapsed).",
+    }),
+  });
+
+  pi.registerTool({
+    name: "search",
+    label: "Search",
+    description:
+      "Find a keyword across the whole conversation — live AND collapsed messages. Returns each match's [#id], " +
+      "role, which fold it is hidden in (if any), and a snippet. The efficient way to locate content before " +
+      "peek/expand when there are many folds (find-by-content, vs peek's look-by-id).",
+    parameters: SearchParam,
+    async execute(_id, params, _signal, _onUpdate, ctx) {
+      const msgs = branchMessages(branch(ctx));
+      const { hits, total } = searchMessages(msgs, spans, params.query, 20);
+      const text = total
+        ? `${total} hit(s) for "${params.query}"${total > hits.length ? ` (showing ${hits.length})` : ""}:\n` +
+          hits
+            .map(
+              (h) =>
+                `[#${h.id}] ${h.role}${h.foldFrom ? ` (folded in [#${h.foldFrom}])` : ""} · ${h.snippet}`,
+            )
+            .join("\n")
+        : `No hits for "${params.query}".`;
+      return {
+        content: [{ type: "text", text }],
+        details: { kind: "search", total, shown: hits.length } as unknown,
+      };
+    },
+    renderResult(result, _opts, theme) {
+      const d = result.details as { total?: number } | undefined;
+      return new Text(theme.fg("accent", `⌕ ${d?.total ?? 0} hit(s)`), 0, 0);
     },
   });
 }

@@ -559,6 +559,52 @@ export function serializeSpan(
   return out.join("\n\n");
 }
 
+export interface SearchHit {
+  id: string;
+  role: string;
+  foldFrom: string | null; // fromId of the fold hiding this msg, or null if live
+  snippet: string;
+}
+
+/**
+ * Case-insensitive substring search across ALL taggable messages (live and
+ * folded), flagging which fold (if any) hides each hit. The find-by-content
+ * complement to peek's look-by-id: locate a keyword, then peek/expand the hit.
+ */
+export function searchMessages(
+  msgs: BranchMsg[],
+  spans: Span[],
+  query: string,
+  cap = 20,
+): { hits: SearchHit[]; total: number } {
+  const q = query.toLowerCase();
+  if (!q) return { hits: [], total: 0 };
+  const foldOf = new Map<string, string>();
+  for (const s of spans) for (const id of s.memberIds) foldOf.set(id, s.fromId);
+  const hits: SearchHit[] = [];
+  let total = 0;
+  for (const m of msgs) {
+    const text = serializeContent(m.message);
+    const idx = text.toLowerCase().indexOf(q);
+    if (idx < 0) continue;
+    total++;
+    if (hits.length >= cap) continue;
+    const start = Math.max(0, idx - 40);
+    const end = Math.min(text.length, idx + q.length + 40);
+    const snippet =
+      (start > 0 ? "…" : "") +
+      text.slice(start, end).replace(/\s+/g, " ").trim() +
+      (end < text.length ? "…" : "");
+    hits.push({
+      id: m.id,
+      role: m.message.role,
+      foldFrom: foldOf.get(m.id) ?? null,
+      snippet,
+    });
+  }
+  return { hits, total };
+}
+
 /**
  * Reconstruct the span list from the branch. The last custom entry wins
  * (cumulative snapshot). Old sessions with a `pruned` list -> single-member spans.

@@ -17,7 +17,15 @@ class (SoC):
 |---|---|---|
 | collapse range → stub | **collapse** (was `forget`) | only token-freeing move |
 | expand stub/sub-range → live | **expand** (was `remember`) | only permanent-restore move; range-aware (splits spans) |
-| read without mutating | **peek** (new) | overview tree + drill-in |
+| read a known fold by id | **peek** (new) | overview tree + drill-in (look-by-id) |
+| find by content across all msgs | **search** (new) | keyword → hits w/ id, role, fold, snippet (find-by-content) |
+
+`search` and `peek` are both reads but different access paths (grep vs cat);
+with many folds, linear peek is O(n) — search is the index. search covers live
+*and* folded messages and flags which fold hides each hit.
+
+Wording: results/labels use "folds" (not internal "span"/"stub"); the tail is
+`folds: N · Xk hidden · ctx Y%` (replaces the cryptic `(N total)`).
 
 Hierarchy is a *view* (peek), not stored — store stays flat. Map ≠ territory.
 
