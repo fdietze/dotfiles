@@ -25,6 +25,16 @@
   # ist bereits der shell-core-Default).
   home.homeDirectory = "/Users/felix";
 
+  # zsh compinit prompts "insecure directories" on every shell here:
+  # /nix/var/nix/profiles/default/share/zsh* (the multi-user-nix DEFAULT
+  # profile) is owned by the admin user tiphaniedousset — neither root nor
+  # felix — so compaudit rejects it. (/nix/store is group-writable but sticky,
+  # which compaudit tolerates; felix's own profile dirs are felix-owned and
+  # fine.) felix has no sudo to chown the foreign dir, so make compinit skip
+  # insecure dirs with -i (felix's own completions still load). Host-scoped so
+  # gurke keeps the upstream default.
+  programs.zsh.completionInit = "autoload -U compinit && compinit -i";
+
   # Per-Repo Deploy-Keys statt eines fdietze-Account-Keys: jeder Key pusht NUR
   # in sein eines Repo (Blast-Radius = 1 Repo, falls ein unsandboxed Agent ihn
   # liest). Bewusste Abweichung von der "keine Keys im Filesystem"-Policy —
