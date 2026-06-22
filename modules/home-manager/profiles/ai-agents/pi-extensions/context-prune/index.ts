@@ -120,7 +120,7 @@ export default function (pi: ExtensionAPI) {
     return { messages };
   });
 
-  // --- forget --------------------------------------------------------------
+  // --- collapse ------------------------------------------------------------
 
   const CollapseParam = Type.Object({
     items: Type.Array(
@@ -138,7 +138,7 @@ export default function (pi: ExtensionAPI) {
         summary: Type.Optional(
           Type.String({
             description:
-              "Optional digest that replaces the range — write it so you can resume from it alone, and hint what detail is inside so you can judge whether to `expand` it later. Omit to just drop the content (noise).",
+              "Optional digest shown in place of the range — write it so you can resume from it alone, and hint what detail is inside so you can judge whether to `expand` it later. Omit to hide the range behind a bare stub (still recoverable via search/peek/expand; use for pure noise).",
           }),
         ),
       }),
@@ -153,16 +153,17 @@ export default function (pi: ExtensionAPI) {
     name: "collapse",
     label: "Collapse",
     description:
-      "Collapse earlier messages into a stub to keep the model context lean — reversible (fold, not delete). " +
-      "Pass a list of ranges by their [#id 1.2k] markers; each is { from, to?, summary? }. With `summary`, the " +
-      "range folds into your digest (use for finished sub-threads worth condensing). Without `summary`, the " +
-      "range's content is just dropped (use for noise: tool outputs, detours, resolved debugging). `to` defaults " +
-      "to `from` for a single message. Ranges snap outward to keep tool call/result pairs whole. Expand later, " +
-      "or `peek` to read inside without expanding.",
+      "Collapse earlier messages into a stub to keep the model context lean — reversible fold, not delete (content " +
+      "stays recoverable via search/peek/expand). Pass a list of ranges by their [#id 1.2k] markers; each is " +
+      "{ from, to?, summary? }. With `summary`, the range folds into your digest (finished sub-threads worth " +
+      "condensing); without `summary` it is hidden behind a bare stub (pure noise: tool outputs, detours, resolved " +
+      "debugging). `to` defaults to `from` for a single message; order of from/to does not matter. Ranges snap " +
+      "outward to keep tool call/result pairs whole, and a range overlapping existing folds merges with them " +
+      "(joining their summaries) into one fold.",
     promptSnippet:
       "Collapse/fold earlier messages via their [#id N] markers to free context (expand/peek to recover)",
     promptGuidelines: [
-      "`[#id 1.2k]` markers are labels the system prepends to each message: the 8-char hex id plus that message's token size. They are NOT part of the message text. Never write a marker in your own replies. Use the id only as an argument to `collapse` / `expand` / `peek`; use the size to find the fat messages worth collapsing.",
+      "`[#id 1.2k]` markers are labels the system prepends to each message: the 8-char hex id plus that message's token size. They are NOT part of the message text. Never write a marker in your own replies. Use the id only as an argument to `collapse` / `expand` / `peek` / `search`; use the size to find the fat messages worth collapsing.",
       "Routinely collapse finished sub-threads: pass a range with a short `summary` to condense it, or without `summary` to drop pure noise (tool outputs, detours, resolved debugging). Keeps the working context lean; reversible via `expand`.",
       "To recover something collapsed: `search <keyword>` to locate it across all folds, then `peek` the fold to read it (transient, itself collapsible) without un-folding anything. Only `expand` (optionally a sub-range, which splits the fold) when you need that content live again. Never do the expand-whole-then-recollapse dance.",
       "Write a `summary` you could resume from alone (without `expand`). Lead with open loops (unfinished work, pending decisions/commits/confirmations); then current state (what is now true — commit hashes, paths, passing tests); then decisions and why, including rejected options; then gotchas learned; and hint what detail sits inside the range so you can judge whether to `expand`/`peek` it later. Be specific — name files, symbols, hashes; avoid vague verbs like 'fixed it'. Drop play-by-play and tool output. As terse as possible while still resumable.",
@@ -215,19 +216,19 @@ export default function (pi: ExtensionAPI) {
     },
   });
 
-  // --- remember ------------------------------------------------------------
+  // --- expand --------------------------------------------------------------
 
   const ExpandParam = Type.Object({
     items: Type.Array(
       Type.Object({
         from: Type.String({
           description:
-            "A stub's [#id] to expand the whole fold, OR (after peek) an inner member id to start a sub-range.",
+            "A fold's stub [#id], or any inner member id (from search/peek). Omit `to` to expand the whole fold that contains this id.",
         }),
         to: Type.Optional(
           Type.String({
             description:
-              "End inner id (inclusive) for a sub-range expand — SPLITS the fold: only from..to comes back live, the rest stays folded (remnants inherit the summary). Omit to expand the whole fold.",
+              "End inner id (inclusive). Giving `to` expands the from..to SUB-RANGE and SPLITS the fold: only that range comes back live, the two remnants stay folded (inheriting the summary). For a single found message, set `to` = `from`. Omit `to` to expand the whole fold instead.",
           }),
         ),
       }),
@@ -242,10 +243,12 @@ export default function (pi: ExtensionAPI) {
     name: "expand",
     label: "Expand",
     description:
-      "Restore previously collapsed messages back into the model context — inverse of collapse. Pass `from` = a " +
-      "stub's [#id] to expand the whole fold. For surgical recovery, `peek` the fold first to see inner ids, then " +
-      "give from/to inner ids to expand only that sub-range — this SPLITS the fold (the rest stays collapsed), so " +
-      "context never explodes. If you only need to read a value, prefer `peek` and don't expand at all.",
+      "Restore collapsed messages back into the model context — inverse of collapse. Rule: omit `to` to expand the " +
+      "WHOLE fold containing `from`; give `to` to expand only the from..to SUB-RANGE, which SPLITS the fold (the " +
+      "rest stays collapsed, remnants inherit the summary) so context never explodes. For surgical recovery, " +
+      "`search` or `peek` to get the inner id, then expand from=to=that id. The sub-range snaps to whole tool " +
+      "units, so it may bring back a few neighbouring messages to keep a call/result pair intact. If you only " +
+      "need to read a value, prefer `peek` and don't expand at all.",
     parameters: ExpandParam,
     async execute(_id, params, _signal, _onUpdate, ctx) {
       const msgs = branchMessages(branch(ctx));
@@ -293,7 +296,7 @@ export default function (pi: ExtensionAPI) {
     id: Type.Optional(
       Type.String({
         description:
-          "A stub's [#id] to look inside that fold (prints its members, capped). Omit to list the whole fold tree (overview + budget).",
+          "A fold's stub [#id], or any inner member id, to print that whole fold's members (each capped ~2000 chars). Omit to list the whole fold tree (overview + budget).",
       }),
     ),
   });
@@ -303,9 +306,10 @@ export default function (pi: ExtensionAPI) {
     label: "Peek",
     description:
       "Look at the collapsed-fold structure WITHOUT changing it (read-only). No arg — lists every fold (id, msg " +
-      "count, size, summary) plus totals and context budget. With `id` — prints that fold's hidden members " +
-      "(inner ids + content, capped per message) so you can read-extract a value or pick a sub-range to expand. " +
-      "The result is itself a normal message you can later collapse away.",
+      "count, size, summary) plus totals and context budget. With `id` (a fold's stub id or any member id) — " +
+      "prints that whole fold's hidden members (inner ids + content, each capped ~2000 chars) so you can " +
+      "read-extract a value or pick a sub-range to expand. Only works on an id that belongs to a fold. The " +
+      "result is itself a normal message you can later collapse away.",
     parameters: PeekParam,
     async execute(_id, params, _signal, _onUpdate, ctx) {
       const msgs = branchMessages(branch(ctx));
@@ -364,9 +368,10 @@ export default function (pi: ExtensionAPI) {
     name: "search",
     label: "Search",
     description:
-      "Find a keyword across the whole conversation — live AND collapsed messages. Returns each match's [#id], " +
-      "role, which fold it is hidden in (if any), and a snippet. The efficient way to locate content before " +
-      "peek/expand when there are many folds (find-by-content, vs peek's look-by-id).",
+      "Find a keyword across the whole conversation — live AND collapsed messages (matches message text, thinking, " +
+      "and tool-call arguments). Returns up to the first 20 matches, each with its [#id], role, which fold it is " +
+      "hidden in (if any), and a snippet. The efficient way to locate content before peek/expand when there are " +
+      "many folds (find-by-content, vs peek's look-by-id).",
     parameters: SearchParam,
     async execute(_id, params, _signal, _onUpdate, ctx) {
       const msgs = branchMessages(branch(ctx));

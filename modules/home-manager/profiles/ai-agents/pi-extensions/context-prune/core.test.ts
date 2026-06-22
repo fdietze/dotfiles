@@ -172,6 +172,13 @@ test("planExpand: bare span fromId expands the whole fold", () => {
   assert.ok(plan.restoredTokens > 0);
 });
 
+test("planExpand: a bare inner member id (no `to`) also expands the WHOLE fold", () => {
+  const msgs = branchMessages(fiveUserBranch());
+  const folded = planCollapse(msgs, [], [{ from: "u1", to: "u5", summary: "s" }]);
+  const plan = planExpand(msgs, folded.spans, [{ from: "u3" }]); // u3 is inner, not the stub id
+  assert.equal(plan.spans.length, 0, "whole fold expanded, not just u3");
+});
+
 test("planExpand: sub-range splits the fold into two remnants that inherit the summary", () => {
   const msgs = branchMessages(fiveUserBranch());
   const folded = planCollapse(msgs, [], [{ from: "u1", to: "u5", summary: "s" }]);

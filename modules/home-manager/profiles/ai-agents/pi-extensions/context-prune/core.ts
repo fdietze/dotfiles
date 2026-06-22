@@ -414,12 +414,12 @@ export interface ExpandPlan {
 
 /**
  * Pure expand planning (inverse of collapse). Range-aware: an item is matched to
- * the span containing `from` (its stub fromId, or any inner member id revealed
- * by peek). A bare span fromId (no `to`) expands the WHOLE span; an explicit
- * from/to sub-range SPLITS the span - the sub-range is restored live, the two
- * leftover halves stay folded, both inheriting the original summary (lossless).
- * The sub-range is snapped to whole tool units and clamped within the span, so
- * remnants never orphan a tool call/result pair.
+ * the fold containing `from` (its stub fromId, or any inner member id revealed
+ * by search/peek). Uniform rule: omit `to` -> expand the WHOLE fold; give `to`
+ * -> the from..to sub-range SPLITS the fold - the sub-range is restored live,
+ * the two leftover halves stay folded, both inheriting the original summary
+ * (lossless). The sub-range is snapped to whole tool units and clamped within
+ * the fold, so remnants never orphan a tool call/result pair.
  */
 export function planExpand(
   msgs: BranchMsg[],
@@ -447,7 +447,9 @@ export function planExpand(
       continue;
     }
     const span = next[si];
-    const wholeSpan = item.to === undefined && item.from === span.fromId;
+    // Omit `to` -> whole fold (whether `from` is the stub id or an inner member);
+    // give `to` -> from..to sub-range (splits the fold).
+    const wholeSpan = item.to === undefined;
     const subFromId = wholeSpan ? span.memberIds[0] : item.from;
     const subToId = wholeSpan
       ? span.memberIds[span.memberIds.length - 1]
