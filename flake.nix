@@ -59,6 +59,15 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Paseo: self-hosted daemon + CLI, das die AI-Coding-Agents (claude, codex,
+    # opencode, pi) hinter einer Oberfläche orchestriert. Nur das Paket wird
+    # genutzt (kein services.paseo); siehe ai-agents/paseo.nix. follows nixpkgs,
+    # damit nur eine nixpkgs-Instanz evaluiert wird.
+    paseo = {
+      url = "github:getpaseo/paseo";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # Superpowers: harness-agnostische Agent-Skills (Agent Skills Standard) von
     # obra/superpowers. Kein Flake, nur Quell-Repo; die Skills werden in
     # modules/home-manager/profiles/superpowers.nix nach ~/.agents/skills/

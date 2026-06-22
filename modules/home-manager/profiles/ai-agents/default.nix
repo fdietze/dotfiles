@@ -45,7 +45,7 @@
     '')
   ];
 in {
-  imports = [./skills.nix ./pi-extensions.nix ./instructions.nix];
+  imports = [./skills.nix ./pi-extensions.nix ./instructions.nix ./paseo.nix];
 
   home.packages = lib.concatMap mkAgent (import ./agents.nix {inherit pkgs;});
 }
