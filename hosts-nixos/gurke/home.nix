@@ -5,6 +5,7 @@
     ../../modules/home-manager/desktops/gnome.nix
     ../../modules/home-manager/desktops/herbstluftwm.nix
     ../../modules/home-manager/desktops/noctalia-niri.nix
+    ../../modules/home-manager/desktops/noctalia-frottage.nix
     # NVF Neovim configuration explicitly enabled for this host.
     ../../modules/home-manager/nvf.nix
   ];
@@ -13,7 +14,7 @@
   # Nach Stabilisierung wieder entfernen — nicht committen.
   my.devLinks = [
     "modules/home-manager/profiles/ai-agents/pi-extensions/subagents"
-    "modules/home-manager/profiles/ai-agents/pi-extensions/context-prune.ts"
+    "modules/home-manager/profiles/ai-agents/pi-extensions/context-prune"
     "modules/home-manager/profiles/ai-agents/pi-extensions/question.ts"
   ];
 }
