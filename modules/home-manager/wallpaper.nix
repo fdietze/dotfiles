@@ -8,6 +8,9 @@
   desktopRegistry = import ../desktop-registry.nix;
   hasThemeVariants = builtins.elem desktop desktopRegistry.themedDesktops;
   currentThemeTarget = "theme-${theme}.target";
+  # Shared slot/download/fallback logic + current-wallpaper.jpg symlink. This
+  # module supplies only the X11 (feh) / GNOME (gsettings) backend below.
+  frottageDownload = import ./frottage-download.nix {inherit pkgs;};
   wallpaperTarget = mode:
     if mode == "light"
     then "desktop-light"
@@ -20,10 +23,6 @@
       set_wallpaper() {
         local path="$1"
         local uri="file://''${path}"
-        local cache_dir="''${XDG_CACHE_HOME:-$HOME/.cache}/frottage"
-
-        ${pkgs.coreutils}/bin/mkdir -p "$cache_dir"
-        ${pkgs.coreutils}/bin/ln -sfn "''${path}" "$cache_dir/current-wallpaper.jpg"
 
         if [[ "''${XDG_CURRENT_DESKTOP:-}" == *GNOME* ]] || [[ "''${DESKTOP_SESSION:-}" == gnome ]]; then
           echo "Setting wallpaper using GNOME gsettings."
@@ -38,58 +37,12 @@
         fi
       }
 
-      TARGET=${wallpaperTarget mode}
-
-      current_hour_utc="$(${pkgs.coreutils}/bin/date -u +%H)"
-      current_date_utc="$(${pkgs.coreutils}/bin/date -u +%F)"
-
-      if ((10#$current_hour_utc < 1)); then
-        slot_date="$(${pkgs.coreutils}/bin/date -u -d 'yesterday' +%F)"
-        slot_hour="19"
-      elif ((10#$current_hour_utc < 7)); then
-        slot_date="$current_date_utc"
-        slot_hour="01"
-      elif ((10#$current_hour_utc < 13)); then
-        slot_date="$current_date_utc"
-        slot_hour="07"
-      elif ((10#$current_hour_utc < 19)); then
-        slot_date="$current_date_utc"
-        slot_hour="13"
+      # Download/cache/fallback + current-wallpaper.jpg symlink is shared; this
+      # script only applies the resolved path via the X11/GNOME backend.
+      if path="$(${frottageDownload} ${wallpaperTarget mode})"; then
+        set_wallpaper "$path"
       else
-        slot_date="$current_date_utc"
-        slot_hour="19"
-      fi
-
-      TIMESTAMP_KEY="''${slot_date}_''${slot_hour}-00-00"
-      WALLPAPER_FILENAME="wallpaper-''${TARGET}-''${TIMESTAMP_KEY}.jpg"
-
-      CACHE_DIR="''${XDG_CACHE_HOME:-$HOME/.cache}/frottage"
-      ${pkgs.coreutils}/bin/mkdir -p "$CACHE_DIR"
-
-      DOWNLOAD_URL="https://frottage.app/static/''${WALLPAPER_FILENAME}"
-      OUTPUT_PATH="$CACHE_DIR/''${WALLPAPER_FILENAME}"
-      if [[ -e "$OUTPUT_PATH" ]]; then
-        echo "Using cached wallpaper for slot: ''${TIMESTAMP_KEY}"
-        set_wallpaper "$OUTPUT_PATH"
-        exit 0
-      fi
-
-      echo "Starting wallpaper download for theme: ''${TARGET}, slot: ''${TIMESTAMP_KEY}"
-      echo "Downloading $DOWNLOAD_URL to $OUTPUT_PATH with retries"
-
-      if ${pkgs.curl}/bin/curl --retry 5 --retry-delay 10 --retry-all-errors -sfSL -o "$OUTPUT_PATH" "$DOWNLOAD_URL"; then
-        echo "Download successful."
-        set_wallpaper "$OUTPUT_PATH"
-        exit 0
-      else
-        curl_exit_code=$?
-        echo "curl command failed after retries with exit code: $curl_exit_code." >&2
-        echo "Failed to download wallpaper from $DOWNLOAD_URL." >&2
-        echo "Falling back to the most recent cached wallpaper." >&2
-        latest_cached="$(${pkgs.findutils}/bin/find "$CACHE_DIR" -maxdepth 1 -type f -name 'wallpaper-*.jpg' -printf '%T@ %p\n' | ${pkgs.coreutils}/bin/sort -nr | ${pkgs.coreutils}/bin/head -n1 | ${pkgs.gawk}/bin/awk '{print $2}')"
-        if [[ -n "''${latest_cached:-}" && -e "''${latest_cached}" ]]; then
-          set_wallpaper "$latest_cached" || true
-        fi
+        echo "frottage-download produced no wallpaper." >&2
         exit 1
       fi
     '';
