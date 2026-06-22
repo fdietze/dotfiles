@@ -34,7 +34,7 @@ All else being equal, simpler is better. A small improvement that adds ugly comp
 - I care that filesystem paths and filenames function as a semantic index of the available contents, making the structure self-explanatory and free of surprises.
 
 # Software tools
-- don't install any software globally on my system. use nix-shell instead.
+- don't install any software globally on my system. Use project-local flake.nix/devbox.json or ad-hoc nix-shell instead.
 
 # Mental models
 Use these General Thinking Tools and explicitly mention when applying them.
