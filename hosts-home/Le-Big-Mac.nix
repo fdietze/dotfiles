@@ -14,6 +14,7 @@
     ../modules/home-manager/profiles/shell-core.nix
     ../modules/home-manager/profiles/ai-agents/vanilla.nix
     ../modules/home-manager/profiles/standalone-extras.nix
+    ../modules/home-manager/profiles/headless-mac.nix
   ];
 
   # Only pi + claude: skip codex (slow Rust source build, no aarch64-darwin
