@@ -225,8 +225,8 @@ test("summarizeTree: totals + one line per span in branch order", () => {
   assert.equal(t.totalSpans, 2);
   assert.ok(t.hiddenTokens > 0);
   // ordered by first-member position: u1 span before u4 span
-  assert.match(t.lines[0], /^\[#u1\] · 2 msgs · \S+ · early notes$/);
-  assert.match(t.lines[1], /^\[#u4\] · 2 msgs · \S+ · \(no summary\)$/);
+  assert.match(t.lines[0], /^\[#u1\] · 2 msgs · \S+ tok · early notes$/);
+  assert.match(t.lines[1], /^\[#u4\] · 2 msgs · \S+ tok · \(no summary\)$/);
 });
 
 // --- serializeSpan ---------------------------------------------------------

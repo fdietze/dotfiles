@@ -410,6 +410,7 @@ export interface ExpandPlan {
   applied: string[]; // fromId of each restored sub-range
   noop: string[]; // ids matching no span
   restoredTokens: number; // context tokens brought back live
+  restoredMsgs: number; // messages brought back live
 }
 
 /**
@@ -438,6 +439,7 @@ export function planExpand(
   const applied: string[] = [];
   const noop: string[] = [];
   let restoredTokens = 0;
+  let restoredMsgs = 0;
   for (const item of items) {
     const si = next.findIndex(
       (s) => s.fromId === item.from || s.memberIds.includes(item.from),
@@ -499,9 +501,10 @@ export function planExpand(
     if (right.length)
       next.push({ fromId: right[0], memberIds: right, summary: span.summary });
     applied.push(restored[0]);
+    restoredMsgs += restored.length;
     for (const id of restored) restoredTokens += tokById.get(id) ?? 0;
   }
-  return { spans: next, applied, noop, restoredTokens };
+  return { spans: next, applied, noop, restoredTokens, restoredMsgs };
 }
 
 /**
@@ -532,7 +535,7 @@ export function summarizeTree(
         ? `${s.summary.slice(0, 60)}…`
         : s.summary
       : "(no summary)";
-    return `[#${s.fromId}] · ${n} msg${n > 1 ? "s" : ""} · ${fmtTokens(tok)} · ${label}`;
+    return `[#${s.fromId}] · ${n} msg${n > 1 ? "s" : ""} · ${fmtTokens(tok)} tok · ${label}`;
   });
   return { totalSpans: spans.length, hiddenTokens, lines };
 }

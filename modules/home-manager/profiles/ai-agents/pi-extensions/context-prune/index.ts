@@ -28,6 +28,9 @@
 import type {
   ExtensionAPI,
   ExtensionContext,
+  Theme,
+  ThemeColor,
+  ToolRenderResultOptions,
 } from "@earendil-works/pi-coding-agent";
 import { Text } from "@earendil-works/pi-tui";
 import { Type } from "typebox";
@@ -39,9 +42,11 @@ import {
   PRUNE_ENTRY,
   branchMessages,
   buildOverlay,
+  estimateTokens,
   fmtTokens,
   planCollapse,
   planExpand,
+  type SearchHit,
   reconstructSpans,
   searchMessages,
   serializeSpan,
@@ -49,21 +54,21 @@ import {
   summarizeTree,
 } from "./core.ts";
 
-interface PruneDetails {
-  action: "collapse" | "expand";
-  applied: string[];
-  unknown: string[];
-  noop: string[];
-  collapsed: number;
-  summaries: string[];
-  total: number;
-  deltaTokens: number; // freed (collapse) or restored (expand)
-  tail: string; // the shared overview tail line(s)
+// --- preview formatting helpers (TUI only) -------------------------------
+const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? "" : "s"}`;
+// All numeric sizes in this extension are TOKEN estimates (chars/4). The `tok`
+// suffix disambiguates them from the `msgs` count on the same preview line.
+const tok = (n: number) => `${fmtTokens(n)} tok`;
+
+// Context fill as "20% (202.5k/1000k)", or "" when unknown.
+function ctxFill(contextWindow: number, contextTokens: number | null): string {
+  return contextWindow > 0 && contextTokens != null
+    ? `${Math.round((contextTokens / contextWindow) * 100)}% (${fmtTokens(contextTokens)}/${fmtTokens(contextWindow)})`
+    : "";
 }
 
-// Shared, symmetric overview tail: totals + budget, identical after either
-// mutator so the model always sees the same map + pressure. ctx% is the only
-// I/O (getContextUsage) - everything else is pure core.
+// Shared, symmetric overview tail (model-facing): totals + budget, identical
+// after either mutator so the model always sees the same map + pressure.
 function overviewTail(
   spans: Span[],
   msgs: BranchMsg[],
@@ -71,11 +76,8 @@ function overviewTail(
   contextTokens: number | null,
 ): string {
   const { totalSpans, hiddenTokens } = summarizeTree(spans, msgs);
-  const ctx =
-    contextWindow > 0 && contextTokens != null
-      ? ` · ctx ${Math.round((contextTokens / contextWindow) * 100)}% (${fmtTokens(contextTokens)}/${fmtTokens(contextWindow)})`
-      : "";
-  return `folds: ${totalSpans} · ${fmtTokens(hiddenTokens)} hidden${ctx}`;
+  const fill = ctxFill(contextWindow, contextTokens);
+  return `folds: ${totalSpans} · ${tok(hiddenTokens)} hidden${fill ? ` · ctx ${fill}` : ""}`;
 }
 
 // freed/restored magnitude as a % of the context window, with an explicit sign
@@ -83,6 +85,58 @@ function overviewTail(
 function pctOf(tokens: number, contextWindow: number, sign: "−" | "+"): string {
   if (contextWindow <= 0) return "";
   return ` (${sign}${((tokens / contextWindow) * 100).toFixed(1)}%)`;
+}
+
+// Shared TUI detail for the two inverse mutators (collapse/expand).
+interface PruneDetails {
+  action: "collapse" | "expand";
+  ok: boolean; // applied something
+  msgs: number; // messages collapsed / restored
+  deltaTokens: number; // freed (collapse) / restored (expand)
+  tail: string; // standing state line (folds · hidden · ctx)
+  summaries: string[]; // collapse digests (empty for expand)
+  failed: string[]; // unresolved ids
+  failLabel: string; // "unknown" | "not folded"
+}
+
+// One renderer for both mutators: terse action line when collapsed; standing
+// state + digests/failures when expanded. Symmetric glyphs ⊟ (fold) / ⊞ (unfold).
+function renderMutate(
+  d: PruneDetails,
+  opts: ToolRenderResultOptions,
+  theme: Theme,
+): Text {
+  const fold = d.action === "collapse";
+  const glyph = fold ? "⊟" : "⊞";
+  const past = fold ? "collapsed" : "expanded";
+  const verb = fold ? "freed" : "restored";
+  const color: ThemeColor = d.ok ? "success" : "warning";
+  const head = d.ok
+    ? `${glyph} ${past} ${plural(d.msgs, "msg")} · ${verb} ${tok(d.deltaTokens)}`
+    : `${glyph} nothing ${past} · ${d.failed.length} ${d.failLabel}`;
+  if (!opts.expanded) return new Text(theme.fg(color, head), 0, 0);
+  const lines = [theme.fg(color, head)];
+  if (d.ok) {
+    lines.push(theme.fg("dim", d.tail));
+    for (const s of d.summaries) lines.push(theme.fg("dim", `→ ${s}`));
+  }
+  if (d.failed.length)
+    lines.push(theme.fg("warning", `${d.failLabel}: ${d.failed.join(", ")}`));
+  return new Text(lines.join("\n"), 0, 0);
+}
+
+// TUI detail for peek (read): the tree, a single fold's members, or a miss.
+type PeekDetails =
+  | { kind: "tree"; folds: number; hidden: number; ctx: string; lines: string[] }
+  | { kind: "span"; members: number; tokens: number; rows: string[] }
+  | { kind: "miss" };
+
+// TUI detail for search (read).
+interface SearchDetails {
+  query: string;
+  total: number;
+  folded: number; // matches that are inside a fold (among shown)
+  hits: SearchHit[];
 }
 
 export default function (pi: ExtensionAPI) {
@@ -178,7 +232,7 @@ export default function (pi: ExtensionAPI) {
       const win = usage?.contextWindow ?? 0;
       const tail = overviewTail(spans, msgs, win, usage?.tokens ?? null);
       const head = plan.applied.length
-        ? `+ collapsed ${plan.collapsed} msgs into ${plan.applied.length} fold(s): ${plan.applied.join(", ")}, freed ${fmtTokens(plan.freedTokens)}${pctOf(plan.freedTokens, win, "−")}` +
+        ? `+ collapsed ${plural(plan.collapsed, "msg")} into ${plural(plan.applied.length, "fold")}: ${plan.applied.join(", ")}, freed ${fmtTokens(plan.freedTokens)}${pctOf(plan.freedTokens, win, "−")}` +
           (plan.unknown.length
             ? `. unknown id(s): ${plan.unknown.join(", ")}`
             : "")
@@ -187,32 +241,19 @@ export default function (pi: ExtensionAPI) {
         content: [{ type: "text", text: `${head}\n${tail}` }],
         details: {
           action: "collapse",
-          applied: plan.applied,
-          unknown: plan.unknown,
-          noop: [],
-          collapsed: plan.collapsed,
-          summaries: plan.summaries,
-          total: spans.length,
+          ok: plan.applied.length > 0,
+          msgs: plan.collapsed,
           deltaTokens: plan.freedTokens,
           tail,
+          summaries: plan.summaries.filter((s) => s),
+          failed: plan.unknown,
+          failLabel: "unknown",
         } as PruneDetails,
       };
     },
-    renderResult(result, _opts, theme) {
+    renderResult(result, opts, theme) {
       const d = result.details as PruneDetails | undefined;
-      if (!d) return new Text("", 0, 0);
-      if (!d.applied.length)
-        return new Text(theme.fg("warning", "unknown id(s)"), 0, 0);
-      // Full digest(s) untruncated: renderResult is TUI-only (never serialized
-      // into context) and Text word-wraps, so it is free to display.
-      const head =
-        theme.fg("success", `✓ collapsed ${d.collapsed} msgs, freed ${fmtTokens(d.deltaTokens)}`) +
-        theme.fg("dim", ` · ${d.tail}`);
-      const body = d.summaries
-        .filter((s) => s)
-        .map((s) => theme.fg("dim", `→ ${s}`))
-        .join("\n");
-      return new Text(body ? `${head}\n${body}` : head, 0, 0);
+      return d ? renderMutate(d, opts, theme) : new Text("", 0, 0);
     },
   });
 
@@ -260,33 +301,26 @@ export default function (pi: ExtensionAPI) {
       const tail = overviewTail(spans, msgs, win, usage?.tokens ?? null);
       const head =
         (plan.applied.length
-          ? `− expanded ${plan.applied.length}: ${plan.applied.join(", ")}, +${fmtTokens(plan.restoredTokens)}${pctOf(plan.restoredTokens, win, "+")}`
+          ? `− expanded ${plural(plan.restoredMsgs, "msg")}: ${plan.applied.join(", ")}, +${fmtTokens(plan.restoredTokens)}${pctOf(plan.restoredTokens, win, "+")}`
           : "Expanded nothing") +
         (plan.noop.length ? `. not folded: ${plan.noop.join(", ")}` : "");
       return {
         content: [{ type: "text", text: `${head}\n${tail}` }],
         details: {
           action: "expand",
-          applied: plan.applied,
-          unknown: [],
-          noop: plan.noop,
-          collapsed: 0,
-          summaries: [],
-          total: spans.length,
+          ok: plan.applied.length > 0,
+          msgs: plan.restoredMsgs,
           deltaTokens: plan.restoredTokens,
           tail,
+          summaries: [],
+          failed: plan.noop,
+          failLabel: "not folded",
         } as PruneDetails,
       };
     },
-    renderResult(result, _opts, theme) {
+    renderResult(result, opts, theme) {
       const d = result.details as PruneDetails | undefined;
-      if (!d) return new Text("", 0, 0);
-      return new Text(
-        theme.fg("success", `✓ expanded ${d.applied.length}, +${fmtTokens(d.deltaTokens)}`) +
-          theme.fg("dim", ` · ${d.tail}`),
-        0,
-        0,
-      );
+      return d ? renderMutate(d, opts, theme) : new Text("", 0, 0);
     },
   });
 
@@ -322,7 +356,13 @@ export default function (pi: ExtensionAPI) {
           : "No folds. Nothing collapsed yet.";
         return {
           content: [{ type: "text", text }],
-          details: { kind: "tree", totalSpans, hiddenTokens } as unknown,
+          details: {
+            kind: "tree",
+            folds: totalSpans,
+            hidden: hiddenTokens,
+            ctx: ctxFill(usage?.contextWindow ?? 0, usage?.tokens ?? null),
+            lines,
+          } satisfies PeekDetails,
         };
       }
       const span = spans.find(
@@ -331,9 +371,17 @@ export default function (pi: ExtensionAPI) {
       if (!span)
         return {
           content: [{ type: "text", text: `No fold for id ${params.id}.` }],
-          details: { kind: "miss" } as unknown,
+          details: { kind: "miss" } satisfies PeekDetails,
         };
       const body = serializeSpan(span, msgs);
+      const byId = new Map(msgs.map((m) => [m.id, m.message] as const));
+      let tokens = 0;
+      const rows = span.memberIds.map((id) => {
+        const mm = byId.get(id);
+        const t = mm ? estimateTokens(mm) : 0;
+        tokens += t;
+        return `[#${id}] ${mm?.role ?? "?"} · ${tok(t)}`;
+      });
       return {
         content: [
           {
@@ -341,17 +389,36 @@ export default function (pi: ExtensionAPI) {
             text: `fold [#${span.fromId}] · ${span.memberIds.length} members:\n\n${body}`,
           },
         ],
-        details: { kind: "span", fromId: span.fromId, members: span.memberIds.length } as unknown,
+        details: {
+          kind: "span",
+          members: span.memberIds.length,
+          tokens,
+          rows,
+        } satisfies PeekDetails,
       };
     },
-    renderResult(result, _opts, theme) {
-      const d = result.details as { kind?: string; totalSpans?: number; members?: number } | undefined;
+    renderResult(result, opts, theme) {
+      const d = result.details as PeekDetails | undefined;
       if (!d) return new Text("", 0, 0);
-      if (d.kind === "tree")
-        return new Text(theme.fg("accent", `◈ ${d.totalSpans ?? 0} fold(s)`), 0, 0);
-      if (d.kind === "span")
-        return new Text(theme.fg("accent", `◈ peeked ${d.members ?? 0} members`), 0, 0);
-      return new Text(theme.fg("warning", "no such fold"), 0, 0);
+      if (d.kind === "miss")
+        return new Text(theme.fg("warning", "◈ no fold for that id"), 0, 0);
+      if (d.kind === "tree") {
+        if (!d.folds) return new Text(theme.fg("muted", "◈ no folds"), 0, 0);
+        const head = `◈ ${plural(d.folds, "fold")} · ${tok(d.hidden)} hidden`;
+        if (!opts.expanded) return new Text(theme.fg("accent", head), 0, 0);
+        const lines = [
+          theme.fg("accent", d.ctx ? `${head} · ctx ${d.ctx}` : head),
+          ...d.lines.map((l) => theme.fg("dim", l)),
+        ];
+        return new Text(lines.join("\n"), 0, 0);
+      }
+      const head = `◈ ${plural(d.members, "member")} · ${tok(d.tokens)}`;
+      if (!opts.expanded) return new Text(theme.fg("accent", head), 0, 0);
+      const lines = [
+        theme.fg("accent", head),
+        ...d.rows.map((r) => theme.fg("dim", r)),
+      ];
+      return new Text(lines.join("\n"), 0, 0);
     },
   });
 
@@ -387,12 +454,30 @@ export default function (pi: ExtensionAPI) {
         : `No hits for "${params.query}".`;
       return {
         content: [{ type: "text", text }],
-        details: { kind: "search", total, shown: hits.length } as unknown,
+        details: {
+          query: params.query,
+          total,
+          folded: hits.filter((h) => h.foldFrom).length,
+          hits,
+        } satisfies SearchDetails,
       };
     },
-    renderResult(result, _opts, theme) {
-      const d = result.details as { total?: number } | undefined;
-      return new Text(theme.fg("accent", `⌕ ${d?.total ?? 0} hit(s)`), 0, 0);
+    renderResult(result, opts, theme) {
+      const d = result.details as SearchDetails | undefined;
+      if (!d) return new Text("", 0, 0);
+      if (!d.total)
+        return new Text(theme.fg("muted", `⌕ no hits for "${d.query}"`), 0, 0);
+      const head =
+        `⌕ ${plural(d.total, "hit")} for "${d.query}"` +
+        (d.folded ? ` · ${d.folded} folded` : "");
+      if (!opts.expanded) return new Text(theme.fg("accent", head), 0, 0);
+      const rows = d.hits.map((h) =>
+        theme.fg(
+          "dim",
+          `[#${h.id}] ${h.role}${h.foldFrom ? ` (in ${h.foldFrom})` : ""} · ${h.snippet}`,
+        ),
+      );
+      return new Text([theme.fg("accent", head), ...rows].join("\n"), 0, 0);
     },
   });
 }
