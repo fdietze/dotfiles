@@ -17,6 +17,10 @@
 in {
   imports = [
     ../shell.nix
+    # Featherweight Neovim base (editor + fzf-lua + theme + keymaps) so every
+    # shell-core host has a working $EDITOR and the vim aliases below resolve.
+    # The heavy ~1.5 GiB LSP/language layer is opt-in per host via nvf-lsp.nix.
+    ../nvf.nix
     ../dotfiles.nix
     ../dev-links.nix
     ../git.nix

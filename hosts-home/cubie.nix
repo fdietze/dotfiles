@@ -12,11 +12,10 @@
     ../modules/home-manager/profiles/shell-core.nix
     ../modules/home-manager/profiles/ai-agents/vanilla.nix
     ../modules/home-manager/profiles/standalone-extras.nix
-    # Full Neovim (nvf) for remote editing. LSP servers/formatters already come
-    # from packages-cli; nvf adds the editor itself. neovim + vimPlugins +
-    # treesitter are cached for aarch64-linux (unlike codex's Rust source build),
-    # so this stays a mostly-substituted closure on the 1 GB SBC.
-    ../modules/home-manager/nvf.nix
+    # Base Neovim arrives via shell-core (modules/home-manager/nvf.nix); this
+    # host opts into the full LSP/language toolchain for remote editing. LSP
+    # servers/formatters + grammars are cached for aarch64-linux (unlike codex's
+    # Rust source build), so it stays a mostly-substituted closure on the 1 GB SBC.
     ../modules/home-manager/nvf-lsp.nix
   ];
 

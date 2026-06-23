@@ -6,8 +6,8 @@
     ../../modules/home-manager/desktops/herbstluftwm.nix
     ../../modules/home-manager/desktops/noctalia-niri.nix
     ../../modules/home-manager/desktops/noctalia-frottage.nix
-    # NVF Neovim configuration explicitly enabled for this host.
-    ../../modules/home-manager/nvf.nix
+    # Base Neovim arrives via shell-core (modules/home-manager/nvf.nix); this
+    # host opts into the full LSP/language toolchain on top.
     ../../modules/home-manager/nvf-lsp.nix
   ];
 
