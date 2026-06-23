@@ -660,9 +660,12 @@ in {
     };
   };
 
-  systemd.user.services."nvim-theme-${theme}" = let
-    currentThemeTarget = "theme-${theme}.target";
-    applyNvimTheme = pkgs.writeShellScript "apply-nvim-theme-${theme}" ''
+  # systemd user services do not exist on aarch64-darwin (Le-Big-Mac); guard so
+  # the base editor module evaluates there. Linux hosts are unaffected.
+  systemd.user.services = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
+    "nvim-theme-${theme}" = let
+      currentThemeTarget = "theme-${theme}.target";
+      applyNvimTheme = pkgs.writeShellScript "apply-nvim-theme-${theme}" ''
       #!${pkgs.bash}/bin/bash
       set -euo pipefail
 
@@ -674,17 +677,18 @@ in {
           ${mkNvrArgs nvimSchemes.${theme}.applyCommands}
       done < <(${pkgs.neovim-remote}/bin/nvr --serverlist)
     '';
-  in {
-    Unit = {
-      Description = "Apply Neovim ${theme} theme";
-      After = ["graphical-session.target"];
-      PartOf = [currentThemeTarget];
+    in {
+      Unit = {
+        Description = "Apply Neovim ${theme} theme";
+        After = ["graphical-session.target"];
+        PartOf = [currentThemeTarget];
+      };
+      Service = {
+        Type = "oneshot";
+        ExecStart = "${applyNvimTheme}";
+      };
+      Install.WantedBy = [currentThemeTarget];
     };
-    Service = {
-      Type = "oneshot";
-      ExecStart = "${applyNvimTheme}";
-    };
-    Install.WantedBy = [currentThemeTarget];
   };
 
   # Runtime retint for compositors that switch schemes without re-activating
