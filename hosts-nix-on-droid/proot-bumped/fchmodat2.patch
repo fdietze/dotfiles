@@ -1,0 +1,86 @@
+Add fchmodat2 (syscall 452, Linux 6.6+) support to proot.
+
+GNU coreutils `cp` on a 6.6+ kernel sets directory permissions via
+fchmodat2(dirfd, path, mode, AT_SYMLINK_NOFOLLOW) — the only chmod variant
+supporting AT_SYMLINK_NOFOLLOW. proot ab2e3464 (2026-02-20) has no knowledge of
+this syscall, so in seccomp mode it is never trapped, the guest path is never
+translated, and the kernel returns ENOENT ("cp: setting permissions for
+'source': No such file or directory"). This breaks any build that cp -r's a
+read-only directory tree (e.g. cargo vendor staging) under nix-on-droid.
+
+Wire fchmodat2 exactly like the existing faccessat2: enum (sysnums.list), arch
+number tables (452 on arm64/x86_64/arm/i386), the AT_SYMLINK_NOFOLLOW-aware
+translation group in enter.c (flags in SYSARG_4), and the seccomp filter list.
+
+See docs/superpowers/specs/2026-06-23-proot-fchmodat2-design.md
+
+diff -ruN p2-orig/src/syscall/enter.c p2-work/src/syscall/enter.c
+--- a/src/syscall/enter.c	2026-06-24 00:03:57.657185380 +0400
++++ b/src/syscall/enter.c	2026-06-24 00:04:08.281260029 +0400
+@@ -408,6 +408,7 @@
+ 			status = translate_sysarg(tracee, SYSARG_1, REGULAR);
+ 		break;
+ 
++	case PR_fchmodat2:
+ 	case PR_fchownat:
+ 	case PR_fstatat64:
+ 	case PR_newfstatat:
+diff -ruN p2-orig/src/syscall/seccomp.c p2-work/src/syscall/seccomp.c
+--- a/src/syscall/seccomp.c	2026-06-24 00:03:57.657240840 +0400
++++ b/src/syscall/seccomp.c	2026-06-24 00:04:08.236198653 +0400
+@@ -348,6 +348,7 @@
+ 	{ PR_faccessat2,	FILTER_SYSEXIT },
+ 	{ PR_fchdir,		FILTER_SYSEXIT },
+ 	{ PR_fchmodat,		0 },
++	{ PR_fchmodat2,		0 },
+ 	{ PR_fchownat,		0 },
+ 	{ PR_fstatat64,		0 },
+ 	{ PR_futimesat,		0 },
+diff -ruN p2-orig/src/syscall/sysnums-arm64.h p2-work/src/syscall/sysnums-arm64.h
+--- a/src/syscall/sysnums-arm64.h	2026-06-24 00:03:57.657327308 +0400
++++ b/src/syscall/sysnums-arm64.h	2026-06-24 00:04:08.240198553 +0400
+@@ -280,4 +280,5 @@
+ 	[ 291 ] = PR_statx,
+ 	[ 435 ] = PR_clone3,
+ 	[ 439 ] = PR_faccessat2,
++	[ 452 ] = PR_fchmodat2,
+ };
+diff -ruN p2-orig/src/syscall/sysnums-arm.h p2-work/src/syscall/sysnums-arm.h
+--- a/src/syscall/sysnums-arm.h	2026-06-24 00:03:57.657286788 +0400
++++ b/src/syscall/sysnums-arm.h	2026-06-24 00:04:08.246032255 +0400
+@@ -357,5 +357,6 @@
+ 	[ 396 ] = PR_pkey_free,
+ 	[ 397 ] = PR_statx,
+ 	[ 439 ] = PR_faccessat2,
++	[ 452 ] = PR_fchmodat2,
+ 	[ 435 ] = PR_clone3,
+ };
+diff -ruN p2-orig/src/syscall/sysnums-i386.h p2-work/src/syscall/sysnums-i386.h
+--- a/src/syscall/sysnums-i386.h	2026-06-24 00:03:57.657367578 +0400
++++ b/src/syscall/sysnums-i386.h	2026-06-24 00:04:08.249300164 +0400
+@@ -383,4 +383,5 @@
+ 	[ 383 ] = PR_statx,
+ 	[ 435 ] = PR_clone3,
+ 	[ 439 ] = PR_faccessat2,
++	[ 452 ] = PR_fchmodat2,
+ };
+diff -ruN p2-orig/src/syscall/sysnums.list p2-work/src/syscall/sysnums.list
+--- a/src/syscall/sysnums.list	2026-06-24 00:03:57.657540164 +0400
++++ b/src/syscall/sysnums.list	2026-06-24 00:04:08.232259986 +0400
+@@ -72,6 +72,7 @@
+ SYSNUM(fchdir)
+ SYSNUM(fchmod)
+ SYSNUM(fchmodat)
++SYSNUM(fchmodat2)
+ SYSNUM(fchown)
+ SYSNUM(fchown32)
+ SYSNUM(fchownat)
+diff -ruN p2-orig/src/syscall/sysnums-x86_64.h p2-work/src/syscall/sysnums-x86_64.h
+--- a/src/syscall/sysnums-x86_64.h	2026-06-24 00:03:57.657499520 +0400
++++ b/src/syscall/sysnums-x86_64.h	2026-06-24 00:04:08.243149196 +0400
+@@ -336,4 +336,5 @@
+ 	[ 332 ] = PR_statx,
+         [ 435 ] = PR_clone3,
+ 	[ 439 ] = PR_faccessat2,
++	[ 452 ] = PR_fchmodat2,
+ };

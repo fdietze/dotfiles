@@ -36,7 +36,7 @@ stdenv.mkDerivation {
     ! (grep -F '#define HAS_LOADER_32BIT' src/arch.h)
   '';
   buildInputs = [ talloc ];
-  patches = [ ./detranslate-empty.patch ];
+  patches = [ ./detranslate-empty.patch ./fchmodat2.patch ];
   makeFlags = [ "-Csrc" "V=1" ];
   CFLAGS = [ "-O3" "-I../fake-ashmem" ] ++
     (if static then [ "-static" ] else [ ]);
