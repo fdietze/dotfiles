@@ -8,6 +8,7 @@
     ../../modules/home-manager/desktops/noctalia-frottage.nix
     # NVF Neovim configuration explicitly enabled for this host.
     ../../modules/home-manager/nvf.nix
+    ../../modules/home-manager/nvf-lsp.nix
   ];
 
   # TEMPORÄR: subagents live ans Working Tree linken für schnelles Feedback.

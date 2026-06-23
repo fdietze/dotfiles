@@ -17,6 +17,7 @@
     # treesitter are cached for aarch64-linux (unlike codex's Rust source build),
     # so this stays a mostly-substituted closure on the 1 GB SBC.
     ../modules/home-manager/nvf.nix
+    ../modules/home-manager/nvf-lsp.nix
   ];
 
   # pi + claude on this 1 GB SBC. Skip codex (slow aarch64 Rust source build,
