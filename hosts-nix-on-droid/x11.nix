@@ -23,7 +23,18 @@
   # FONTCONFIG_FILE points every Xft client at it.
   fontsConf = pkgs.makeFontsConf {fontDirectories = [pkgs.dejavu_fonts];};
 in {
-  home.packages = [pkgs.st];
+  home.packages = [
+    pkgs.st
+    # X setup/diagnostics: xrandr (monitor geometry on the external display),
+    # setxkbmap/xmodmap/xev/xinput (verify how Termux:X11 maps a real BT
+    # keyboard — layout + which physical modifier reaches Mod4).
+    pkgs.xorg.xrandr
+    pkgs.xorg.setxkbmap
+    pkgs.xorg.xmodmap
+    pkgs.xorg.xev
+    pkgs.xorg.xinput
+    pkgs.xorg.xdpyinfo
+  ];
 
   home.sessionVariables = {
     # The Termux:X11 server started with `-listen tcp` exposes display :1 on
