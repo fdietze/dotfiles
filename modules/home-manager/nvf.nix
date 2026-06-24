@@ -48,7 +48,16 @@ in {
           enable = true;
           registers = "unnamedplus";
         };
-        globals.clipboard = "osc52";
+        # OSC52 lets yanks reach the *terminal's* host clipboard (great over SSH),
+        # but neovide is a GUI with no terminal to interpret the escape sequence —
+        # and it installs its own RPC-backed g:clipboard at startup. Forcing osc52
+        # there clobbers neovide's native clipboard and breaks copy/paste. So only
+        # opt into osc52 outside neovide; neovide keeps its native provider.
+        luaConfigRC.osc52 = lib.mkAfter ''
+          if not vim.g.neovide then
+            vim.g.clipboard = "osc52"
+          end
+        '';
 
         # treesitter.context.enable = true;
 
