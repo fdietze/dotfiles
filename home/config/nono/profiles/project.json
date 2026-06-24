@@ -1,0 +1,69 @@
+{
+  "extends": [
+    "default"
+  ],
+  "meta": {
+    "name": "project",
+    "version": "0.1.0",
+    "description": "Generic per-project interactive shell jail, auto-entered via direnv. Dev toolchain caches + shell/prompt/direnv/git/nvim configs; no private creds (ssh-agent only).",
+    "author": "felix"
+  },
+  "security": {
+    "signal_mode": "isolated",
+    "capability_elevation": false
+  },
+  "filesystem": {
+    "allow": [
+      "$WORKDIR",
+      "$HOME/.cargo",
+      "$HOME/.cache",
+      "$HOME/.npm",
+      "$HOME/.local/state",
+      "$HOME/.local/share/direnv",
+      "$HOME/.local/share/devbox",
+      "$HOME/.local/share/nvf",
+      "$HOME/.local/share/opencode",
+      "$HOME/.local/share/opentui",
+      "$HOME/.local/share/zoxide",
+      "$HOME/.config/nono/profile-drafts",
+      "/tmp"
+    ],
+    "read": [
+      "$HOME/.config/nono/packages",
+      "$HOME/.config/nono/profiles",
+      "$HOME/.config/direnv",
+      "$HOME/.config/nvf",
+      "$HOME/.config/git",
+      "/nix/store",
+      "/etc",
+      "/run/nixos"
+    ],
+    "allow_file": [
+      "$HOME/.zsh_history.local",
+      "$HOME/.zcompdump",
+      "$XDG_RUNTIME_DIR/ssh-agent",
+      "/nix/var/nix/daemon-socket/socket"
+    ],
+    "read_file": [
+      "$HOME/.zshrc",
+      "$HOME/.zshenv",
+      "$HOME/.zprofile",
+      "$HOME/.config/starship.toml",
+      "$HOME/.gitconfig",
+      "$HOME/.ssh/known_hosts",
+      "$HOME/.ssh/config"
+    ],
+    "bypass_protection": [
+      "$HOME/.ssh/known_hosts",
+      "$HOME/.ssh/config"
+    ]
+  },
+  "network": {
+    "block": false
+  },
+  "workdir": {
+    "access": "readwrite"
+  },
+  "allow_launch_services": false,
+  "interactive": true
+}

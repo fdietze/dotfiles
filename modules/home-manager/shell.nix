@@ -143,6 +143,11 @@ in {
       setopt BANG_HIST                 # Treat the '!' character specially during expansion.
       setopt HIST_REDUCE_BLANKS        # Remove superfluous blanks before recording entry.
       setopt HIST_VERIFY               # Don't execute immediately upon history expansion.
+      # Write history in-place instead of via $HISTFILE.new + rename. The
+      # rename needs Landlock REFER on $HOME, which the per-project nono jail
+      # (profile: project) does not grant; in-place write only needs the
+      # already-allowed history file. Trade-off: no atomic-rewrite crash safety.
+      unsetopt HIST_SAVE_BY_COPY
 
       # history prefix search
       autoload -U history-search-end # have the cursor placed at the end of the line once you have selected your desired command
@@ -155,6 +160,27 @@ in {
           term=$(echo $TERM | grep -Eo '^[^-]+')
           print -Pn "\e]0;$term - zsh %~\a"
       }
+
+      # auto-enter per-project nono sandbox: when direnv activates a project,
+      # re-exec the interactive shell inside a nono jail rooted at the project.
+      # Leave the jail with `exit`. Registered as a precmd hook; direnv's own
+      # precmd hook sets $DIRENV_DIR, so on the cd that loads direnv this may
+      # fire one prompt late, then self-corrects.
+      #   NOSANDBOX=1  escape hatch (no jail)
+      #   SANDBOX=1    set inside the jail, guards re-entry
+      # On hosts without nono (e.g. proot/nix-on-droid) the command -v guard
+      # makes this a no-op.
+      function _sandbox_autoenter {
+          [[ -o interactive ]] || return
+          [[ -n $NOSANDBOX ]] && return
+          [[ -n $SANDBOX ]] && return
+          [[ -n $DIRENV_DIR ]] || return
+          command -v nono >/dev/null || return
+          export SANDBOX=1
+          exec nono wrap --profile project --workdir "''${DIRENV_DIR#-}" -- zsh
+      }
+      autoload -Uz add-zsh-hook
+      add-zsh-hook precmd _sandbox_autoenter
 
       # current command with args in window title
       function preexec {
