@@ -4,9 +4,14 @@
 # (`paseo`), nicht als systemd-Unit.
 #
 # Bewusst NICHT nono-gewrappt: Paseo spawnt die Agent-CLIs selbst. Auf PATH
-# liegen die in ./default.nix erzeugten, nono-gesandboxten Wrapper (claude,
-# codex, opencode, pi) — Paseo ruft also die bereits gesandboxten Varianten auf.
-# Paseo koordiniert, die Isolation bleibt in den Agent-Wrappern.
+# liegen die Agent-Wrapper aus ./default.nix (nono-gesandboxt) bzw. ./vanilla.nix
+# (unsandboxed, z.B. cubie) — Paseo ruft also die jeweils dort definierte
+# Variante auf und koordiniert nur; die Isolation (falls vorhanden) bleibt im
+# Agent-Wrapper.
+#
+# Importiert von ./default.nix (sandboxed Hosts) und direkt von hosts-home/
+# cubie.nix (vanilla Host mit Boot-Daemon). NICHT in ./vanilla.nix, weil das
+# auch korken (Phone) und Le-Big-Mac den schweren npm-Build aufzwingen würde.
 {
   pkgs,
   flake-inputs,
