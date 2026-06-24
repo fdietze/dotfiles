@@ -13,6 +13,11 @@
     curl
     gnugrep
     gnused
+    # awk: a POSIX shell essential. Pulled in transitively on full NixOS hosts,
+    # but standalone shell-core targets (e.g. nix-on-droid korken) lack it, so
+    # fzf's Ctrl-R history widget and shell.nix's worktree helpers break with
+    # "awk not found". Provide it explicitly here.
+    gawk
     htop
     btop
     ncdu
