@@ -368,15 +368,14 @@ in
           // home.packages alongside this module.
 
           layout {
-            // gaps 0 + border (not focus-ring): border shrinks windows to fit so
-            // no wallpaper shows between adjacent windows. focus-ring would draw
-            // outside the window without shrinking it and overlap neighbours at
-            // gaps 0. tab-indicator off for the same reason.
+            // 10px wallpaper gaps between windows and around screen edges. niri's
+            // single `gaps` value covers both — no separate inner/outer setting
+            // (https://yalter.github.io/niri/Configuration:-Layout.html).
             //
             // knuffel decodes per-field defaults, not the struct's Default impl
             // — so any `border { ... }` block (without `off`) enables it, even
             // though Border::default() has off=true. Same trap for tab-indicator.
-            gaps 0
+            gaps 10
 
             focus-ring {
               off
@@ -389,8 +388,11 @@ in
             border {
               width 2
             }
+            // Enabled (no `off`) so tabbed columns are visible — see
+            // Mod+T toggle-column-tabbed-display in binds. Colors merge from
+            // the noctalia include below (active green / inactive gray /
+            // urgent orange); width/position keep niri defaults.
             tab-indicator {
-              off
             }
           }
 
@@ -540,6 +542,10 @@ in
             // can stack vertically inside one column.
             Mod+R     { consume-window-into-column; }   // pull next column's window into current
             Mod+comma { expel-window-from-column; }     // pop focused window out of its stack
+            // Toggle the focused column between tiled-stack and tabbed display
+            // (one window shown, rest collapsed to the tab indicator). Switch
+            // tabs with focus-window-up/down (Mod+A / Mod+L).
+            Mod+T     { toggle-column-tabbed-display; }
 
             // ===== Focus (Arrow keys + neo i/a/l/e) =====
             Mod+Left  { focus-column-left; }
