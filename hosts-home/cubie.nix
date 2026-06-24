@@ -71,12 +71,19 @@ in {
   # Clients authenticate with the password and connect by tailscale IP (IPs
   # always pass the daemon's DNS-rebind check — no PASEO_HOSTNAMES needed).
   systemd.user.services.paseo = {
-    Unit.Description = "Paseo daemon (AI coding agents), tailscale-only";
+    Unit = {
+      Description = "Paseo daemon (AI coding agents), tailscale-only";
+      # Never stop retrying: a client can shut the daemon down over the websocket
+      # ("shutdown_server_request", a clean exit 0), and the boot race may need
+      # several tries before tailscale0 has an IP. Disable the start-rate limiter.
+      StartLimitIntervalSec = 0;
+    };
     Install.WantedBy = ["default.target"];
     Service = {
       ExecStart = "${paseoStart}";
-      # Backstop for the boot race if tailscale0 is not up within the wait loop.
-      Restart = "on-failure";
+      # always (not on-failure): bounce back even after a clean shutdown request
+      # from a client, and after the boot-race wait-loop exits non-zero.
+      Restart = "always";
       RestartSec = 5;
       # paseo-server spawns the agent CLIs; give it the home-manager profile bin
       # (pi/claude wrappers) plus the Debian/Nix system paths.
