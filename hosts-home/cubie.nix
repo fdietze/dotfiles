@@ -57,10 +57,18 @@ in {
   aiAgents.names = ["pi" "claude"];
 
   # Boot-start the Paseo daemon (tailscale-only) as a systemd user service.
-  # One-time manual prerequisites on the SBC (not expressible in home-manager):
+  # One-time manual prerequisites on the SBC (not expressible in felix's
+  # home-manager; need root, which is the radxa user — felix is unprivileged):
   #   loginctl enable-linger felix   # start at boot without an active login
   #   paseo daemon set-password      # stores a *hashed* secret in ~/.paseo/config.json
-  # Clients authenticate with that password and connect by tailscale IP (IPs
+  # And, because paseo OOMs when built on this 1 GB board (node code 134 in tsc),
+  # add the fdietze cachix cache so the CI-built aarch64 paseo is substituted
+  # (.github/workflows/build-paseo.yml). felix is not a nix trusted-user, so it
+  # must go in the system daemon config; append to /etc/nix/nix.custom.conf
+  # (Determinate's user-editable include) and restart nix-daemon:
+  #   extra-substituters = https://fdietze.cachix.org
+  #   extra-trusted-public-keys = fdietze.cachix.org-1:9XRlZtrv6HM2ZPnx5Vn+DnqZ8GbxsfAQ2/FMbwiCfiY=
+  # Clients authenticate with the password and connect by tailscale IP (IPs
   # always pass the daemon's DNS-rebind check — no PASEO_HOSTNAMES needed).
   systemd.user.services.paseo = {
     Unit.Description = "Paseo daemon (AI coding agents), tailscale-only";
