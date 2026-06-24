@@ -419,6 +419,23 @@ in {
   services.ollama.enable = false; # local ai models
   services.qdrant.enable = false; # vector search engine, used for kilo code indexing
 
+  # Self-hosted metasearch for the pi web-search extension (privacy path).
+  # Localhost-only, JSON API enabled; agents.nix points PI_SEARX_URL here.
+  # secret_key only signs CSRF/limiter on a 127.0.0.1-bound service -> not a
+  # real secret, literal in store is fine. Standalone server (no uwsgi/nginx),
+  # ~100MB idle RAM. Parsers update via `nix flake update`.
+  services.searx = {
+    enable = true;
+    settings = {
+      server = {
+        bind_address = "127.0.0.1";
+        port = 8888;
+        secret_key = "searx-localhost-only-not-a-real-secret";
+      };
+      search.formats = ["html" "json"];
+    };
+  };
+
   # Remove PAM configuration for i3lock
   # security.pam.services.i3lock = { ... };
 
