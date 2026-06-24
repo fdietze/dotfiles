@@ -1,0 +1,45 @@
+# Builds the aarch64-linux paseo daemon/CLI (github:getpaseo/paseo, pinned in
+# flake.lock) and pushes it to the fdietze cachix cache, so cubie substitutes the
+# exact store path on `home-manager switch` (hosts-home/cubie.nix) instead of
+# building it on the 1 GB SBC — where the TypeScript build OOMs (node code 134).
+#
+# Runs on a native arm64 runner (free for public repos): paseo is an npm/node
+# build that cannot cross-compile from x86 like the proot derivation, so it must
+# build on real aarch64. No QEMU.
+name: build-paseo
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - flake.lock
+      - ci/paseo.nix
+      - .github/workflows/build-paseo.yml
+  workflow_dispatch:
+
+concurrency:
+  group: build-paseo
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: DeterminateSystems/nix-installer-action@main
+
+      # Sets up the fdietze cache as a substituter and authenticates the CLI.
+      # skipPush: we push only the paseo closure explicitly below.
+      - uses: cachix/cachix-action@v15
+        with:
+          name: fdietze
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+          skipPush: true
+
+      - name: Build paseo (native aarch64)
+        run: nix build --impure -L -f ci/paseo.nix -o result
+
+      - name: Push paseo to cachix
+        run: cachix push fdietze "$(readlink -f result)"
