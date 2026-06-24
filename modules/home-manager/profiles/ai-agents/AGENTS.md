@@ -30,8 +30,11 @@ All else being equal, simpler is better. A small improvement that adds ugly comp
 - The complexity daemon is the enemy. Best weapon is the word **"no"** — to abstractions you don't need, layers you can't justify, features nobody asked for.
 - always think about if something can be done in a simpler way and talk about it.
 
-# File system
+# File system & Files
+- a filename should exactly represent what we can find inside a file, so it becomes very predictable to navgate the file system.
 - I care that filesystem paths and filenames function as a semantic index of the available contents, making the structure self-explanatory and free of surprises.
+- if you look into a path/file and it contains something else than what you expected, flag it.
+- always add comments to document why things are the way they are. The comments should only refer to the current code, not to past code.
 
 # Software tools
 - don't install any software globally on my system. Use project-local flake.nix/devbox.json or ad-hoc nix-shell instead.
