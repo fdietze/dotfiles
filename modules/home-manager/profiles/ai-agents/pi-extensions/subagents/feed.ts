@@ -40,7 +40,7 @@ export function formatSnapshot(
 	const viewerParent = agents.find((a) => a.name === viewer)?.spawnedBy;
 	const rows = agents.map((a) => {
 		// Custom status (with any ETA) shown right after the system status, matching the TUI roster ("idle · ...").
-		const customDisplay = formatCustomStatus(a.customStatus, a.etaTs, now);
+		const customDisplay = formatCustomStatus(a.customStatus, a.etaTs);
 		const status = customDisplay ? `${statusLabel(a)} · ${customDisplay}` : statusLabel(a);
 		const u = a.view?.getContextUsage();
 		const ctx = u && u.percent != null ? `${Math.round(u.percent)}%` : "--";

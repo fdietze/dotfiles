@@ -128,8 +128,6 @@ export function formatRosterRow(
 	selected: boolean,
 	// Optional styler for the status label, keyed by visual tone. Default: identity.
 	styleStatus: (label: string, tone: StatusTone) => string = (l) => l,
-	// Injected for testability; the live ETA hint is recomputed at each render.
-	now: number = Date.now(),
 ): string {
 	// Layout: <cursor> <name> <status> <model> <context> <targets>. Name first (the primary
 	// identifier), then the tone-styled status. Width-bounding is the renderer's job — callers
@@ -141,7 +139,7 @@ export function formatRosterRow(
 	const tone = statusTone(entry.status);
 	// Self-set custom status (with any ETA) leads, system status trails ("parsing files · idle");
 	// the combined string shares the fixed column and truncates as a whole.
-	const customDisplay = formatCustomStatus(entry.customStatus, entry.etaTs, now);
+	const customDisplay = formatCustomStatus(entry.customStatus, entry.etaTs);
 	const combined = customDisplay ? `${customDisplay} · ${entry.status}` : entry.status;
 	// padEnd only pads (never truncates): STATUS_COL is a min width, the status is always full.
 	const label = combined.padEnd(STATUS_COL);

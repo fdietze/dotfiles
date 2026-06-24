@@ -105,15 +105,13 @@ test("formatRosterRow shows custom status before the system status", () => {
 });
 
 test("formatRosterRow appends an absolute-time ETA after the custom status", () => {
-	const now = new Date();
-	now.setHours(15, 0, 0, 0);
+	const eta = new Date();
+	eta.setHours(15, 20, 0, 0);
 	const row = formatRosterRow(
-		{ name: "echo", model: "x/y", context: "", status: "idle", customStatus: "running tests", etaTs: now.getTime() + 20 * 60000 },
+		{ name: "echo", model: "x/y", context: "", status: "idle", customStatus: "running tests", etaTs: eta.getTime() },
 		false,
-		undefined,
-		now.getTime(),
 	);
-	assert.match(row, /running tests · ETA ~15:20 \(in 20min\) · idle/);
+	assert.match(row, /running tests · ETA ~15:20 · idle/);
 });
 
 test("formatRosterRow omits the ETA when etaTs is unset", () => {

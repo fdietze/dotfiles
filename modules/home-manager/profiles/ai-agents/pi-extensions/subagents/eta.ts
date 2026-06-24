@@ -2,11 +2,10 @@
  * ETA formatting for agent status lines.
  *
  * The agent supplies a duration (etaMinutes); the extension converts it to an absolute
- * target timestamp (etaTs) at write time so the displayed clock time never goes stale.
- * Here we render that timestamp: a stable absolute anchor (~HH:MM, the source of truth)
- * plus a live-recomputed relative hint (in 45min) for at-a-glance freshness.
- *
- * Pure functional core — no clock access; the caller passes `now`.
+ * target timestamp (etaTs) at write time. Here we render that timestamp as a static
+ * absolute clock anchor (~HH:MM). Deliberately no relative hint ("in 45min") and no
+ * "overdue" marker: both are now-derived and would silently go stale between renders,
+ * so the display is fully time-independent and never needs a refresh tick.
  */
 
 function pad2(n: number): string {
@@ -19,24 +18,9 @@ function clock(etaTs: number): string {
 	return `~${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
 }
 
-/** Remaining time as "in Xmin", or "in Xh Ym" when ≥ 60 min. Rounded to whole minutes. */
-function remaining(ms: number): string {
-	const mins = Math.round(ms / 60000);
-	if (mins < 60) return `in ${mins}min`;
-	const h = Math.floor(mins / 60);
-	const m = mins % 60;
-	return `in ${h}h ${m}min`;
-}
-
-/**
- * Render an ETA suffix for the status line, e.g.:
- *   future:  "ETA ~15:20 (in 45min)"
- *   overdue: "ETA ~15:20 (overdue)"   (now >= etaTs)
- * The absolute clock anchor is kept in both cases; only the parenthetical changes.
- */
-export function formatEtaSuffix(etaTs: number, now: number): string {
-	const hint = now >= etaTs ? "overdue" : remaining(etaTs - now);
-	return `ETA ${clock(etaTs)} (${hint})`;
+/** Render an ETA suffix for the status line, e.g. "ETA ~15:20". Static — no now needed. */
+export function formatEtaSuffix(etaTs: number): string {
+	return `ETA ${clock(etaTs)}`;
 }
 
 /**
@@ -48,9 +32,8 @@ export function formatEtaSuffix(etaTs: number, now: number): string {
 export function formatCustomStatus(
 	customStatus: string | undefined,
 	etaTs: number | undefined,
-	now: number,
 ): string | undefined {
-	const eta = etaTs != null ? formatEtaSuffix(etaTs, now) : undefined;
+	const eta = etaTs != null ? formatEtaSuffix(etaTs) : undefined;
 	if (customStatus && eta) return `${customStatus} · ${eta}`;
 	return customStatus || eta;
 }

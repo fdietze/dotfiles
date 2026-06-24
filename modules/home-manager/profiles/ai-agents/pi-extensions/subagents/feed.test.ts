@@ -46,7 +46,7 @@ test("formatSnapshot renders the ETA as absolute clock time after the custom sta
 	now.setHours(15, 0, 0, 0);
 	const agents = [rec({ name: "coder", customStatus: "running tests", etaTs: now.getTime() + 20 * 60000 })];
 	const out = formatSnapshot(agents, 0, 100, "main", now.getTime());
-	assert.match(out, /idle · running tests · ETA ~15:20 \(in 20min\)/);
+	assert.match(out, /idle · running tests · ETA ~15:20/);
 });
 
 test("formatSnapshot omits the ETA when etaTs is unset", () => {
