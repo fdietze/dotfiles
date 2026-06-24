@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
 	formatContext,
-	formatRosterRow,
+	formatRoster,
 	moveSelection,
 	clampScroll,
 	chatboxToRoute,
@@ -82,81 +82,109 @@ test("sendTargets: ordered by count desc, alpha tiebreak; empty when none", () =
 	assert.deepEqual(sendTargets(matrix, "missing"), []);
 });
 
-test("formatSendTargets: arrow + name·count, most-messaged first; '' when none", () => {
+test("formatSendTargets: ➜name[count], count omitted for a single message; '' when none", () => {
 	const matrix = { a: { main: 3, coder: 1 } };
-	assert.equal(formatSendTargets(matrix, "a"), "→main·3 coder·1");
+	assert.equal(formatSendTargets(matrix, "a"), "➜main[3] ➜coder");
 	assert.equal(formatSendTargets(matrix, "none"), "");
 });
 
-test("formatRosterRow appends send targets in full (not truncated to width)", () => {
-	const row = formatRosterRow(
-		{ name: "echo", model: "x/y", context: "", status: "idle", targets: "→main·3 coder·1 longtarget·2" },
-		false,
-	);
-	assert.match(row, /→main·3 coder·1 longtarget·2$/); // targets always appended in full (renderer bounds width)
+// ── formatRoster: responsive aligned single-line table ──
+const re = (over: Record<string, unknown> = {}) => ({ name: "a", model: "x/y", context: "", status: "idle", ...over });
+
+test("formatRoster: aligns the status column across rows (shared name-column width)", () => {
+	const rows = formatRoster([re({ name: "ab", status: "idle" }), re({ name: "abcdef", status: "thinking" })], 200);
+	assert.equal(rows[0].indexOf("idle"), rows[1].indexOf("thinking")); // same x → aligned
 });
 
-test("formatRosterRow shows custom status before the system status", () => {
-	const row = formatRosterRow(
-		{ name: "echo", model: "x/y", context: "", status: "idle", customStatus: "parsing files" },
-		false,
+test("formatRoster: name middle-ellipsis keeps the distinguishing tail (shared-prefix names stay distinct)", () => {
+	const rows = formatRoster(
+		[re({ name: "risk-R-UniformApp-pipeline-5" }), re({ name: "risk-R-UniformApp-pipeline-7" })],
+		200,
 	);
-	assert.match(row, /parsing files · idle/);
+	assert.notEqual(rows[0], rows[1]); // tails preserved → distinguishable
+	assert.match(rows[0], /…/); // middle ellipsis applied (name > cap 24)
+	assert.match(rows[0], /5\b/);
+	assert.match(rows[1], /7\b/);
 });
 
-test("formatRosterRow appends an absolute-time ETA after the custom status", () => {
+test("formatRoster: custom status leads, system status trails, both present", () => {
+	const row = formatRoster([re({ customStatus: "parsing files", status: "idle" })], 200)[0];
+	assert.match(row, /parsing files.*idle/);
+});
+
+test("formatRoster: ETA renders in its own column; column absent when no agent has one", () => {
 	const eta = new Date();
 	eta.setHours(15, 20, 0, 0);
-	const row = formatRosterRow(
-		{ name: "echo", model: "x/y", context: "", status: "idle", customStatus: "running tests", etaTs: eta.getTime() },
-		false,
-	);
-	assert.match(row, /running tests · ETA ~15:20 · idle/);
+	assert.match(formatRoster([re({ etaTs: eta.getTime() })], 200)[0], /ETA ~15:20/);
+	assert.doesNotMatch(formatRoster([re({})], 200)[0], /ETA/);
 });
 
-test("formatRosterRow omits the ETA when etaTs is unset", () => {
-	const row = formatRosterRow(
-		{ name: "echo", model: "x/y", context: "", status: "idle", customStatus: "running tests" },
-		false,
-	);
-	assert.doesNotMatch(row, /ETA/);
+test("formatRoster: ETA column padded blank for agents without one when another has it", () => {
+	const eta = new Date();
+	eta.setHours(15, 20, 0, 0);
+	const rows = formatRoster([re({ name: "a", etaTs: eta.getTime() }), re({ name: "b" })], 200);
+	assert.match(rows[0], /ETA ~15:20/);
+	assert.doesNotMatch(rows[1], /ETA/);
 });
 
-test("formatRosterRow: custom status does not make an idle agent read as busy", () => {
-	// styleStatus receives tone "idle" for idle, even with a custom status set.
-	const row = formatRosterRow(
-		{ name: "echo", model: "x/y", context: "", status: "idle", customStatus: "waiting" },
-		false,
-		(label, tone) => (tone === "busy" ? `BUSY[${label}]` : label),
-	);
+test("formatRoster: collapse order under narrowing width is model → targets → context → custom", () => {
+	const e = re({
+		name: "agent",
+		customStatus: "running tests",
+		status: "tool:bash",
+		context: "15k/200k (7%)",
+		model: "anthropic/opus",
+		targets: "➜main[3]",
+	});
+	const at = (w: number) => formatRoster([e], w)[0];
+	// full row (computed width 59): everything present
+	assert.match(at(59), /opus/);
+	assert.match(at(59), /➜main\[3\]/);
+	// model dropped first
+	assert.doesNotMatch(at(55), /opus/);
+	assert.match(at(55), /➜main\[3\]/);
+	// then targets
+	assert.doesNotMatch(at(50), /➜main/);
+	assert.match(at(50), /15k\/200k/);
+	// then context
+	assert.doesNotMatch(at(40), /15k\/200k/);
+	assert.match(at(40), /running tests/);
+	// then custom — only protected (name + system status) survive
+	assert.doesNotMatch(at(25), /running tests/);
+	assert.match(at(25), /tool:bash/);
+	assert.match(at(25), /agent/);
+});
+
+test("formatRoster: custom status capped at 32 with a trailing ellipsis", () => {
+	const row = formatRoster([re({ customStatus: "x".repeat(50), status: "idle" })], 200)[0];
+	assert.match(row, /x{31}…/); // 31 chars + ellipsis = 32
+	assert.doesNotMatch(row, /x{33}/);
+});
+
+test("formatRoster: ▸ cursor on the selected row only", () => {
+	const rows = formatRoster([re({ name: "a" }), re({ name: "b" })], 200, { selectedIndex: 1 });
+	assert.match(rows[1], /^▸ /);
+	assert.match(rows[0], /^ {2}/); // space cursor + gap → two leading spaces
+});
+
+test("formatRoster: tone keys off the system status — idle stays idle despite a custom status", () => {
+	const row = formatRoster([re({ status: "idle", customStatus: "waiting" })], 200, {
+		styleStatus: (l, tone) => (tone === "busy" ? `BUSY[${l}]` : l),
+	})[0];
 	assert.doesNotMatch(row, /BUSY/);
 });
 
-test("formatRosterRow writes a long combined status out in full (no max width)", () => {
-	const row = formatRosterRow(
-		{ name: "echo", model: "x/y", context: "", status: "idle", customStatus: "a much longer status than fits the column" },
-		false,
-	);
-	assert.match(row, /a much longer status than fits the column · idle/); // full, never truncated
+test("formatRoster: passes the error tone to the styler", () => {
+	const row = formatRoster([re({ status: "error", customStatus: "drafting joke" })], 200, {
+		styleStatus: (l, tone) => `[${tone}]${l}`,
+	})[0];
+	assert.match(row, /\[error\]/);
+	assert.match(row, /drafting joke/);
 });
 
-test("formatRosterRow shows cursor, name, model, context, status", () => {
-	const row = formatRosterRow(
-		{ name: "echo", model: "anthropic/claude-sonnet-4-5", context: "3k/200k · 2%", status: "thinking" },
-		true,
-	);
-	assert.match(row, /▸/);
-	assert.match(row, /echo/);
-	assert.match(row, /thinking/);
-	assert.match(row, /claude-sonnet-4/); // short id, provider prefix dropped
-});
-
-test("formatRosterRow writes a long tool status out in full (no max width)", () => {
-	const row = formatRosterRow(
-		{ name: "echo", model: "x/y", context: "", status: "tool:some_very_long_tool_name_that_overflows" },
-		false,
-	);
-	assert.match(row, /tool:some_very_long_tool_name_that_overflows/); // full, never truncated
+test("formatRoster: model id capped at 14 with ellipsis, provider prefix dropped", () => {
+	const row = formatRoster([re({ model: "anthropic/claude-sonnet-4-5", status: "thinking" })], 200)[0];
+	assert.match(row, /claude-sonnet…/);
 });
 
 test("swarmStateLine: halted vs live with activity count", () => {
@@ -214,22 +242,11 @@ test("statusTone: error is its own tone, truncated dims like idle, work is busy"
 	assert.equal(statusTone("tool:bash"), "busy");
 });
 
-test("formatRosterRow passes the error tone to the styler", () => {
-	const row = formatRosterRow(
-		{ name: "echo", model: "x/y", context: "", status: "error", customStatus: "drafting joke" },
-		// custom status now leads, system status trails: "drafting joke · error"
-		false,
-		(label, tone) => `[${tone}]${label}`,
-	);
-	assert.match(row, /\[error\]/);
-	assert.match(row, /drafting joke · error/);
-});
-
-test("shortModel drops provider prefix and truncates", () => {
+test("shortModel drops provider prefix and truncates to the model column cap (14)", () => {
 	assert.equal(shortModel("anthropic/opus"), "opus");
 	assert.equal(shortModel("local-model"), "local-model");
 	assert.equal(shortModel(undefined), "");
-	assert.equal(shortModel("x/" + "a".repeat(40)).length, 16); // truncated to column width
+	assert.equal(shortModel("x/" + "a".repeat(40)).length, 14); // truncated to column cap
 });
 
 test("mergeStreaming appends streaming msg, dedupes by identity", () => {

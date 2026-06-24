@@ -13,7 +13,7 @@ import { statusLabel, type Engine } from "./engine.ts";
 import {
 	clampScroll,
 	formatContext,
-	formatRosterRow,
+	formatRoster,
 	formatSendTargets,
 	findToolResult,
 	type StatusTone,
@@ -244,26 +244,21 @@ export function createSubagentsPanel(deps: PanelDeps, tui: TuiLike, theme: Theme
 			lines.push(theme.fg("accent", truncateToWidth(header.padEnd(width, "─"), width)));
 			const styler = styleStatus(theme);
 			const matrix = deps.engine.getMessageMatrix();
-			agents().forEach((a, i) => {
-				lines.push(
-					truncateToWidth(
-						formatRosterRow(
-							{
-								name: a.name,
-								model: a.model,
-								context: formatContext(a.view?.getContextUsage()),
-								status: statusLabel(a),
-								customStatus: a.customStatus,
-								etaTs: a.etaTs,
-								targets: formatSendTargets(matrix, a.name),
-							},
-							i === selectedIndex,
-							styler,
-						),
-						width,
-					),
-				);
-			});
+			for (const line of formatRoster(
+				agents().map((a) => ({
+					name: a.name,
+					model: a.model,
+					context: formatContext(a.view?.getContextUsage()),
+					status: statusLabel(a),
+					customStatus: a.customStatus,
+					etaTs: a.etaTs,
+					targets: formatSendTargets(matrix, a.name),
+				})),
+				width,
+				{ styleStatus: styler, selectedIndex },
+			)) {
+				lines.push(truncateToWidth(line, width));
+			}
 			// Global swarm mode (halted/live) below the list — one source of truth in panel-logic.
 			const stateLine = swarmStateLine(deps.engine.isFrozen(), running);
 			lines.push(

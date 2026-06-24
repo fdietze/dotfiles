@@ -25,7 +25,8 @@ import { formatFeedLines, formatKillResult, formatMulticastResult, formatSnapsho
 import {
 	formatContext,
 	formatHistory,
-	formatRosterRow,
+	formatRoster,
+	CUSTOM_STATUS_MAX,
 	formatSendTargets,
 	type StatusTone,
 	swarmStateLine,
@@ -257,24 +258,19 @@ export default function subagents(pi: ExtensionAPI) {
 			// so truncate each composed line to process.stdout.columns (NOT a hardcoded width —
 			// that crashed on narrower terminals). truncateToWidth is ANSI/unicode aware.
 			const width = process.stdout.columns ?? 80;
-			const rosterLines = background.map((a) =>
-				truncateToWidth(
-					formatRosterRow(
-						{
-							name: a.name,
-							model: a.model,
-							context: formatContext(a.view?.getContextUsage()),
-							status: statusLabel(a),
-							customStatus: a.customStatus,
-							etaTs: a.etaTs,
-							targets: formatSendTargets(matrix, a.name),
-						},
-						false,
-						styler,
-					),
-					width,
-				),
-			);
+			const rosterLines = formatRoster(
+				background.map((a) => ({
+					name: a.name,
+					model: a.model,
+					context: formatContext(a.view?.getContextUsage()),
+					status: statusLabel(a),
+					customStatus: a.customStatus,
+					etaTs: a.etaTs,
+					targets: formatSendTargets(matrix, a.name),
+				})),
+				width,
+				{ styleStatus: styler },
+			).map((line) => truncateToWidth(line, width));
 			const running = background.filter((a) => a.streaming).length;
 			const stateLine = swarmStateLine(engine.isFrozen(), running);
 			const haltLine = engine.isFrozen()
@@ -456,7 +452,8 @@ export default function subagents(pi: ExtensionAPI) {
 			description:
 				"Set your short status line shown in list_agents and the agents panel " +
 				"(e.g. 'parsing 500 files', 'waiting on review'). Pass empty string to clear. " +
-				"Keep it terse — one short phrase. It must describe your CURRENT state, not a past action. " +
+				`Keep it terse — one short phrase, ≤ ${CUSTOM_STATUS_MAX} chars (longer is truncated in the roster). ` +
+				"It must describe your CURRENT state, not a past action. " +
 				"If you are blocked on a long-running command with a known timeout or duration, pass " +
 				"etaMinutes (how many minutes from NOW until you're free) — the extension renders it as an " +
 				"absolute clock time so others see when you'll be free; do NOT write an ETA into the status " +
@@ -465,7 +462,7 @@ export default function subagents(pi: ExtensionAPI) {
 				"resting/outcome state (e.g. 'done', 'waiting for critic', 'blocked: needs X') or clear it — " +
 				"never leave a stale in-progress phrase like 'sending to editor' once you are idle.",
 			parameters: Type.Object({
-				status: Type.String({ description: "Short status phrase; empty clears" }),
+				status: Type.String({ description: `Short status phrase, ≤ ${CUSTOM_STATUS_MAX} chars; empty clears` }),
 				etaMinutes: Type.Optional(
 					Type.Number({ description: "Minutes from now until you're free; rendered as absolute clock time. Omit to clear." }),
 				),

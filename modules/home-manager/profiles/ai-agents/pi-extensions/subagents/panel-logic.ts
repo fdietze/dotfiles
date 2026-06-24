@@ -1,5 +1,5 @@
 /** Pure helpers for the subagents panel — no pi/TUI dependency, fully testable. */
-import { formatCustomStatus } from "./eta.ts";
+import { formatEtaSuffix } from "./eta.ts";
 
 export interface ContextUsageLike {
 	tokens: number | null;
@@ -33,11 +33,14 @@ export function sendTargets(
 		.sort((a, b) => b.count - a.count || a.to.localeCompare(b.to));
 }
 
-/** Roster cell of send targets: "→main·3 coder·1" (most-messaged first); "" when none. */
+/**
+ * Roster cell of send targets: "➜main[3] ➜coder" (most-messaged first); "" when none.
+ * The [count] is shown only when >1 message — a single message reads cleaner as plain "➜main".
+ */
 export function formatSendTargets(matrix: Record<string, Record<string, number>>, name: string): string {
 	const t = sendTargets(matrix, name);
 	if (t.length === 0) return "";
-	return `→${t.map((x) => `${x.to}·${x.count}`).join(" ")}`;
+	return t.map((x) => (x.count > 1 ? `➜${x.to}[${x.count}]` : `➜${x.to}`)).join(" ");
 }
 
 /**
@@ -72,7 +75,7 @@ export interface RosterEntry {
 	status: string;
 	/** Agent-set freeform status (engine.setCustomStatus); shown after the system status. */
 	customStatus?: string;
-	/** Absolute ETA target (epoch ms); rendered as clock time after the custom status. */
+	/** Absolute ETA target (epoch ms); rendered in its own ETA column as clock time. */
 	etaTs?: number;
 	/** Send targets cell (formatSendTargets); appended in full, never truncated. */
 	targets?: string;
@@ -89,14 +92,6 @@ export function swarmStateLine(frozen: boolean, runningCount: number): string {
 	return ` ▶ live · ${runningCount > 0 ? `${runningCount} working` : "idle"} `;
 }
 
-/**
- * Status column MIN width (a floor for alignment only — no max). Holds the agent-set custom
- * status first, then the system status, as "<custom> · idle" — the self-reported activity is
- * the scannable part, so it leads. Short statuses pad to this width so the columns after them
- * line up; longer statuses are written out in full and just push the trailing columns right
- * for that row (never truncated).
- */
-const STATUS_COL = 36;
 /**
  * A status counts as "busy" (active-work highlight) unless the agent is idle, still
  * spawning, or halted. halted is a stopped state (awaiting resume), so it gets the same
@@ -115,40 +110,119 @@ export function statusTone(status: string): StatusTone {
 	return isBusy(status) ? "busy" : "idle";
 }
 
-/** Short model id for the roster: drop the "provider/" prefix, truncate to fit. */
-const MODEL_COL = 16;
+/** Short model id for the roster: drop the "provider/" prefix, truncate to the model column cap. */
+const MODEL_COL = 14;
 export function shortModel(model: string | undefined): string {
 	if (!model) return "";
 	const id = model.includes("/") ? model.slice(model.lastIndexOf("/") + 1) : model;
 	return id.length > MODEL_COL ? `${id.slice(0, MODEL_COL - 1)}…` : id;
 }
 
-export function formatRosterRow(
-	entry: RosterEntry,
-	selected: boolean,
-	// Optional styler for the status label, keyed by visual tone. Default: identity.
-	styleStatus: (label: string, tone: StatusTone) => string = (l) => l,
-): string {
-	// Layout: <cursor> <name> <status> <model> <context> <targets>. Name first (the primary
-	// identifier), then the tone-styled status. Width-bounding is the renderer's job — callers
-	// wrap this in the ANSI-aware truncateToWidth. A plain slice here would strip the status
-	// styling (it sits mid-row), so this returns the full styled row and never self-truncates.
-	const cursor = selected ? "▸" : " ";
-	// Tone keys off the SYSTEM status only — an idle agent that set a custom status must still
-	// read as idle (not busy), and an errored one as error.
-	const tone = statusTone(entry.status);
-	// Self-set custom status (with any ETA) leads, system status trails ("parsing files · idle");
-	// the combined string shares the fixed column and truncates as a whole.
-	const customDisplay = formatCustomStatus(entry.customStatus, entry.etaTs);
-	const combined = customDisplay ? `${customDisplay} · ${entry.status}` : entry.status;
-	// padEnd only pads (never truncates): STATUS_COL is a min width, the status is always full.
-	const label = combined.padEnd(STATUS_COL);
-	const name = entry.name.length > 18 ? `${entry.name.slice(0, 17)}…` : entry.name.padEnd(18);
-	const model = shortModel(entry.model).padEnd(MODEL_COL);
-	// Variable send-targets cell appended in full (long target lists are kept, not hidden);
-	// the caller's truncateToWidth bounds the whole row to the terminal.
-	const styledBase = `${cursor} ${name} ${styleStatus(label, tone)} ${model} ${entry.context}`;
-	return entry.targets ? `${styledBase}  ${entry.targets}` : styledBase;
+// ── responsive roster table (formatRoster) ──
+//
+// One single-line row per agent, columns aligned across rows. Reading order:
+//   name · custom-status · system-status · eta · context · model · targets
+// Protected columns (name, system-status, eta) are never hidden. The rest collapse — whole
+// column dropped, all rows — when the terminal is too narrow, in this order:
+//   model → targets → context → custom-status
+// Alignment requires a roster-wide pass (column widths = max content across agents), so this
+// replaces any per-row formatting. Layout math is plain-text (ASCII content + single-width
+// glyphs); the status cell is styled only AFTER padding so ANSI never corrupts the widths.
+// Callers still wrap each line in the ANSI-aware truncateToWidth as a final overflow guard.
+
+const NAME_CAP = 24; // names beyond this are middle-elided (keeps the distinguishing tail)
+export const CUSTOM_STATUS_MAX = 32; // hard cap on the agent-set status (also stated in the set_status prompt)
+const SYS_STATUS_CAP = 18;
+
+/** Truncate to width with a trailing ellipsis (plain-text width). */
+function fitEnd(s: string, w: number): string {
+	if (w <= 0) return "";
+	if (s.length <= w) return s;
+	return w === 1 ? "…" : `${s.slice(0, w - 1)}…`;
+}
+
+/** Truncate to width keeping head + tail (middle ellipsis) — for names, whose tail distinguishes. */
+function fitMiddle(s: string, w: number): string {
+	if (w <= 0) return "";
+	if (s.length <= w) return s;
+	if (w === 1) return "…";
+	const keep = w - 1;
+	const head = Math.ceil(keep / 2);
+	const tail = keep - head;
+	return `${s.slice(0, head)}…${tail > 0 ? s.slice(s.length - tail) : ""}`;
+}
+
+interface ColSpec {
+	key: string;
+	// 0 = protected (never dropped); else the collapse order (1 dropped first … 4 dropped last).
+	collapseRank: number;
+	fit: "end" | "middle";
+	cap?: number;
+	cellOf: (e: RosterEntry) => string;
+}
+
+/**
+ * Render the whole roster as aligned single-line rows (one string per agent, in input order).
+ * `opts.selectedIndex` draws the ▸ cursor on that row (panel only; omit for the widget).
+ * `opts.styleStatus` tones the system-status cell. Lines may still exceed `width` in the
+ * degenerate case where the protected columns alone overflow — the caller's truncateToWidth clips.
+ */
+export function formatRoster(
+	entries: RosterEntry[],
+	width: number,
+	opts: { selectedIndex?: number; styleStatus?: (label: string, tone: StatusTone) => string } = {},
+): string[] {
+	const styleStatus = opts.styleStatus ?? ((l) => l);
+	// The ETA column exists only when at least one agent has set an ETA (otherwise wasted space).
+	const hasEta = entries.some((e) => e.etaTs != null);
+
+	const cols: ColSpec[] = [
+		{ key: "name", collapseRank: 0, fit: "middle", cap: NAME_CAP, cellOf: (e) => e.name },
+		{ key: "custom", collapseRank: 4, fit: "end", cap: CUSTOM_STATUS_MAX, cellOf: (e) => e.customStatus ?? "" },
+		{ key: "status", collapseRank: 0, fit: "end", cap: SYS_STATUS_CAP, cellOf: (e) => e.status },
+		...(hasEta
+			? [{ key: "eta", collapseRank: 0, fit: "end", cellOf: (e: RosterEntry) => (e.etaTs != null ? formatEtaSuffix(e.etaTs) : "") } as ColSpec]
+			: []),
+		{ key: "context", collapseRank: 3, fit: "end", cellOf: (e) => e.context },
+		{ key: "model", collapseRank: 1, fit: "end", cellOf: (e) => shortModel(e.model) },
+		{ key: "targets", collapseRank: 2, fit: "end", cellOf: (e) => e.targets ?? "" },
+	];
+
+	// Natural width per column = widest content across agents, clamped to its cap.
+	const widthOf = new Map<string, number>();
+	for (const c of cols) {
+		let w = 0;
+		for (const e of entries) w = Math.max(w, c.cellOf(e).length);
+		widthOf.set(c.key, c.cap != null ? Math.min(w, c.cap) : w);
+	}
+
+	// Drop any collapsible column that is empty for every agent (e.g. no one has send targets).
+	let visible = cols.filter((c) => c.collapseRank === 0 || (widthOf.get(c.key) ?? 0) > 0);
+
+	const GAP = 1; // single space between columns
+	const PREFIX = 2; // cursor + space
+	const lineWidth = (set: ColSpec[]) =>
+		PREFIX + set.reduce((sum, c) => sum + (widthOf.get(c.key) ?? 0), 0) + GAP * Math.max(0, set.length - 1);
+
+	// Collapse the lowest-priority column until the row fits; protected columns are never dropped.
+	while (lineWidth(visible) > width) {
+		const victim = visible
+			.filter((c) => c.collapseRank > 0)
+			.sort((a, b) => a.collapseRank - b.collapseRank)[0];
+		if (!victim) break; // only protected columns left — final guard clips the line
+		visible = visible.filter((c) => c !== victim);
+	}
+
+	return entries.map((e, i) => {
+		const cursor = opts.selectedIndex === i ? "▸" : " ";
+		const cells = visible.map((c) => {
+			const w = widthOf.get(c.key) ?? 0;
+			const fitted = (c.fit === "middle" ? fitMiddle : fitEnd)(c.cellOf(e), w).padEnd(w);
+			// Tone styling keys off the SYSTEM status only, applied after padding so widths stay exact.
+			return c.key === "status" ? styleStatus(fitted, statusTone(e.status)) : fitted;
+		});
+		return `${cursor} ${cells.join(" ")}`.replace(/ +$/, "");
+	});
 }
 
 // ── agent_history: a windowed, text-only transcript dump for inspecting any agent ──
