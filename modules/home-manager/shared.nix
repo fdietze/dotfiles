@@ -136,6 +136,13 @@
       # https://sw.kovidgoyal.net/kitty/conf/#opt-kitty.listen_on
       allow_remote_control = "socket-only";
       listen_on = "unix:@kitty-{kitty_pid}";
+      # Horizontal tab bar as an alternative to WM splits. powerline style
+      # gives clear tab boundaries; bottom edge avoids fighting the WM bar.
+      # tab_bar_min_tabs stays at its default (2), so the strip is hidden
+      # in single-tab use and only appears once a 2nd tab is opened.
+      # https://sw.kovidgoyal.net/kitty/conf/#opt-kitty.tab_bar_style
+      tab_bar_style = "powerline";
+      tab_bar_edge = "bottom";
     };
     # Font-Zoom auf ctrl+plus/minus/0 wie in alacritty. kittys Defaults
     # (kitty_mod+equal/minus/backspace) bleiben zusätzlich aktiv.
@@ -145,6 +152,18 @@
       "ctrl+equal" = "change_font_size current +1.0";
       "ctrl+minus" = "change_font_size current -1.0";
       "ctrl+0" = "change_font_size current 0";
+      # Jump directly to tab N. Not bound by default; complements kitty's
+      # default tab binds (ctrl+shift+t new, +q close, +right/left cycle,
+      # +,/. move). https://sw.kovidgoyal.net/kitty/actions/#goto_tab
+      "ctrl+shift+1" = "goto_tab 1";
+      "ctrl+shift+2" = "goto_tab 2";
+      "ctrl+shift+3" = "goto_tab 3";
+      "ctrl+shift+4" = "goto_tab 4";
+      "ctrl+shift+5" = "goto_tab 5";
+      "ctrl+shift+6" = "goto_tab 6";
+      "ctrl+shift+7" = "goto_tab 7";
+      "ctrl+shift+8" = "goto_tab 8";
+      "ctrl+shift+9" = "goto_tab 9";
     };
   };
   # Validate the generated kitty.conf at build time, mirroring the
