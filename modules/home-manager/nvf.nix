@@ -584,7 +584,8 @@ in {
 
           -- keep the LSP log from growing unboundedly (was 7.7 GB)
           -- one-shot cleanup: truncate -s 0 ~/.local/state/nvf/lsp.log
-          vim.lsp.set_log_level("WARN")
+          -- vim.lsp.set_log_level was deprecated in nvim 0.12; use vim.lsp.log.set_level
+          vim.lsp.log.set_level("WARN")
 
           function smart_goto_definition()
             local clients = vim.lsp.get_clients({ bufnr = 0 })
