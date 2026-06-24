@@ -27,8 +27,8 @@ keeps the scannable signals, and bounds the free-text status.
 | 2 | custom status | collapsible (4th) | hard max **32**, tail ellipsis |
 | 3 | system status | yes | max across agents, cap **18**; tone-styled (idle/busy/error) |
 | 4 | eta | yes | `ETA ~HH:MM` (10); blank if unset for that agent; **whole column vanishes** if no agent has one |
-| 5 | context | collapsible (3rd) | fixed `  178k/1000k (18%)` (~16) |
-| 6 | model | collapsible (1st) | cap **14**, ellipsis |
+| 5 | context | collapsible (3rd) | `  178k/1000k` (~10); **percentage omitted** from the roster |
+| 6 | model | collapsible (1st) | natural width, **no hard cap**; provider prefix dropped; truncated only via the line-level ellipsis when too narrow, else dropped per collapse order |
 | 7 | targets | collapsible (2nd) | variable, max-content width |
 
 - **Protected (never hidden):** name, system status, eta.

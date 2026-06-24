@@ -12,13 +12,10 @@ const k = (n: number) => (n >= 1000 ? `${Math.round(n / 1000)}k` : `${n}`);
 export function formatContext(u: ContextUsageLike | undefined): string {
 	if (!u || u.tokens === null) return "—";
 	// Fixed field widths so the display does not jump as the numbers grow.
-	// pi's ContextUsage.percent is already a percentage (0–100), not a fraction.
-	// Compact form "  15k/200k ( 7%)" — no separator, padded for stable column alignment.
+	// Tokens used / context window only — the percentage is intentionally omitted from the roster.
 	const used = k(u.tokens).padStart(5);
 	const total = k(u.contextWindow).padEnd(4);
-	if (u.percent === null) return `${used}/${total}`;
-	const pct = `${Math.round(u.percent)}%`.padStart(3);
-	return `${used}/${total} (${pct})`;
+	return `${used}/${total}`;
 }
 
 /** Send targets of an agent from the message matrix, ordered by count desc (alpha tiebreak). */
@@ -110,12 +107,14 @@ export function statusTone(status: string): StatusTone {
 	return isBusy(status) ? "busy" : "idle";
 }
 
-/** Short model id for the roster: drop the "provider/" prefix, truncate to the model column cap. */
-const MODEL_COL = 14;
+/**
+ * Short model id for the roster: drop the "provider/" prefix. No hard cap — the model column
+ * takes its natural width and is only truncated (line-level ellipsis) when the terminal is too
+ * narrow, falling back to the column collapse order before that.
+ */
 export function shortModel(model: string | undefined): string {
 	if (!model) return "";
-	const id = model.includes("/") ? model.slice(model.lastIndexOf("/") + 1) : model;
-	return id.length > MODEL_COL ? `${id.slice(0, MODEL_COL - 1)}…` : id;
+	return model.includes("/") ? model.slice(model.lastIndexOf("/") + 1) : model;
 }
 
 // ── responsive roster table (formatRoster) ──

@@ -59,16 +59,12 @@ test("formatHistory: thinking shown/hidden per flag; tool calls + results render
 	assert.match(hidden, /assistant: on it/);
 });
 
-test("formatContext renders tokens/window/percent (percent is already 0-100), dash when unknown", () => {
-	// pi's ContextUsage.percent is already a percentage (footer.js uses it directly).
-	assert.match(formatContext({ tokens: 12000, contextWindow: 200000, percent: 6 }), /12k\/200k.*6%/);
-	assert.match(formatContext({ tokens: 124000, contextWindow: 200000, percent: 62 }), /62%/);
+test("formatContext renders tokens/window only (no percentage), dash when unknown", () => {
+	assert.match(formatContext({ tokens: 12000, contextWindow: 200000, percent: 6 }), /12k\/200k/);
+	assert.doesNotMatch(formatContext({ tokens: 12000, contextWindow: 200000, percent: 6 }), /%/);
 	assert.equal(formatContext({ tokens: null, contextWindow: 200000, percent: null }), "—");
 	assert.equal(formatContext(undefined), "—");
-	// Compact form: no separator, percent in parentheses.
-	const c = formatContext({ tokens: 15000, contextWindow: 200000, percent: 7 });
-	assert.match(c, /15k\/200k \( ?7%\)/);
-	assert.doesNotMatch(c, /·/);
+	assert.doesNotMatch(formatContext({ tokens: 15000, contextWindow: 200000, percent: 7 }), /·/);
 });
 
 test("sendTargets: ordered by count desc, alpha tiebreak; empty when none", () => {
@@ -182,9 +178,9 @@ test("formatRoster: passes the error tone to the styler", () => {
 	assert.match(row, /drafting joke/);
 });
 
-test("formatRoster: model id capped at 14 with ellipsis, provider prefix dropped", () => {
+test("formatRoster: model id shown in full (provider prefix dropped, no hard cap)", () => {
 	const row = formatRoster([re({ model: "anthropic/claude-sonnet-4-5", status: "thinking" })], 200)[0];
-	assert.match(row, /claude-sonnet…/);
+	assert.match(row, /claude-sonnet-4-5/);
 });
 
 test("swarmStateLine: halted vs live with activity count", () => {
@@ -242,11 +238,11 @@ test("statusTone: error is its own tone, truncated dims like idle, work is busy"
 	assert.equal(statusTone("tool:bash"), "busy");
 });
 
-test("shortModel drops provider prefix and truncates to the model column cap (14)", () => {
+test("shortModel drops the provider prefix, no truncation (model column sizes itself)", () => {
 	assert.equal(shortModel("anthropic/opus"), "opus");
 	assert.equal(shortModel("local-model"), "local-model");
 	assert.equal(shortModel(undefined), "");
-	assert.equal(shortModel("x/" + "a".repeat(40)).length, 14); // truncated to column cap
+	assert.equal(shortModel("x/" + "a".repeat(40)), "a".repeat(40));
 });
 
 test("mergeStreaming appends streaming msg, dedupes by identity", () => {
