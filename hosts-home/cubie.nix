@@ -36,6 +36,21 @@
     export PASEO_LISTEN="$ip:6767"
     exec ${paseoPkg}/bin/paseo-server --no-relay
   '';
+
+  # paseo detects provider availability by running `<cmd> --version` with a
+  # hardcoded 2 s timeout. pi is a node CLI whose cold start is ~2.2 s on this
+  # 1 GB SBC, so the probe always times out and pi shows "unavailable" (claude
+  # starts fast enough). This shim answers --version instantly from the build-time
+  # version string; every real call execs pi at low priority (matching
+  # ai-agents/vanilla.nix). PI_COMMAND below points paseo's pi provider at it.
+  piPkg = pkgs.llm-agents.pi;
+  piForPaseo = pkgs.writeShellScriptBin "pi" ''
+    if [ "$#" -eq 1 ] && [ "$1" = "--version" ]; then
+      echo "${piPkg.version}"
+      exit 0
+    fi
+    exec ${pkgs.util-linux}/bin/ionice -c 3 ${pkgs.coreutils}/bin/nice -n 19 ${piPkg}/bin/pi "$@"
+  '';
 in {
   imports = [
     ../modules/home-manager/profiles/shell-core.nix
@@ -91,6 +106,9 @@ in {
         "NODE_ENV=production"
         "PASEO_HOME=%h/.paseo"
         "PATH=${config.home.profileDirectory}/bin:/nix/var/nix/profiles/default/bin:/usr/bin:/bin"
+        # Fast-`--version` pi shim so the 2 s availability probe doesn't time out
+        # on this slow SBC (see piForPaseo above).
+        "PI_COMMAND=${piForPaseo}/bin/pi"
       ];
     };
   };
