@@ -111,7 +111,8 @@ in {
       G = "| rg -C 2";
       H = "| head";
       L = "| less";
-      C = "| xclip -selection clipboard";
+      # OSC 52 clipboard write (works over ssh, no clipboard manager needed).
+      C = "| osc52-copy";
       N = ''"$(\ls -tr | tail -1)"'';
     };
 
@@ -318,14 +319,13 @@ in {
       }
 
       eval "$(devbox global shellenv)"
+
+      # OSC 52 clipboard (osc52-copy/osc52-paste + vi widgets); see
+      # zsh-osc52-clipboard.zsh. Replaces the old zsh-system-clipboard plugin.
+      ${builtins.readFile ./zsh-osc52-clipboard.zsh}
     '';
 
     plugins = [
-      {
-        name = "zsh-system-clipboard";
-        src = pkgs.zsh-system-clipboard;
-        file = "share/zsh/zsh-system-clipboard/zsh-system-clipboard.zsh";
-      }
       {
         name = "zsh-print-alias";
         file = "print-alias.plugin.zsh";
