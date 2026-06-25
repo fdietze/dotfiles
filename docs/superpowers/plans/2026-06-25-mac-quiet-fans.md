@@ -6,7 +6,31 @@
 
 **Architecture:** Single rust-script file (nix-shell shebang, `smc` crate for sensing). Functional core / imperative shell: a **pure** PI controller function (unit-tested via `--selftest`), a sensor unit (temp + fan RPM with plausibility gate + EMA), and an imperative actuator/selector that scans the user's processes each tick and applies one aggregate duty cycle. Setpoint = a constant fan knee learned once by passive observation. Safety: signal handler + panic guard SIGCONT every managed process on exit.
 
-**Tech Stack:** rust-script (nixpkgs 0.35), rustc 1.83 (nixpkgs), crates `smc = "0.2"` (edition 2018, SMC reads), `libc = "0.2"` (kill/signals), `signal-hook = "0.3"` (clean shutdown). Process scan via `ps`.
+**Tech Stack:** rust-script (nixpkgs 0.35), rustc 1.83 (nixpkgs), crates `smc = "0.2"` + `four-char-code = "=0.0.5"` (SMC reads via raw `read_key`), `libc = "0.2"` (kill/signals), `signal-hook = "0.3"` (clean shutdown). Process scan via `ps`.
+
+**Task 0 result (verified on this M-machine):** The `smc` crate's convenience
+methods are Intel-only and FAIL here — `cpus_temperature()` → `Sysctl(2)`,
+`fans()` → `KeyNotFound("F0ID")`, `all_temperature_sensors()` → `NotPrivileged`.
+But raw `read_key::<f32>(FourCharCode)` works for explicit keys. Confirmed
+readings: `TCMb`=74.6°C, `TCMz`=87.7°C, `TCDX`=70.9°C (CPU); `F0Ac`/`F1Ac`
+(fan RPM), `F0Tg` (target), `F0Mn`=2317 (floor). So: supply our own keys, never
+use the convenience methods. No smctemp fallback needed.
+
+**Working nix-shell + rust-script shebang** (the two-line `#!nix-shell` form
+breaks rust-script's parser; hide the directive in a block comment that still
+starts with `#!` at column 0 — nix scans for it, Rust ignores it):
+```
+#!/usr/bin/env nix-shell
+//! ```cargo
+//! [dependencies]
+//! ...
+//! ```
+/*
+#! nix-shell -i rust-script -p rust-script cargo rustc
+*/
+```
+The `//!` cargo manifest MUST be the first thing after the shebang (a leading
+block comment displaces it and deps go unresolved).
 
 **Spec:** `docs/superpowers/specs/2026-06-25-mac-quiet-fans-design.md`
 
@@ -40,24 +64,22 @@ Because sensing is an isolated unit, the Task 0 spike de-risks the only external
 ```bash
 cat > /tmp/smc-spike <<'EOF'
 #!/usr/bin/env nix-shell
-#! nix-shell -i rust-script -p rust-script cargo rustc
 //! ```cargo
 //! [dependencies]
 //! smc = "0.2"
+//! four-char-code = "=0.0.5"
 //! ```
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let smc = smc::SMC::new()?;
-    let temps = smc.cpus_temperature()?;
-    let max = temps.iter().cloned().fold(f64::MIN, f64::max);
-    println!("cpu temps: {:?}", temps);
-    println!("cpu max:   {:.1} C", max);
-    for fan in smc.fans()? {
-        println!(
-            "fan {}: rpm={:.0} min={:.0} cur={:.0}",
-            fan.id(), fan.rpm()?, fan.min_speed()?, fan.current_speed()?
-        );
+/*
+#! nix-shell -i rust-script -p rust-script cargo rustc
+*/
+use four_char_code::FourCharCode;
+fn key(s: &[u8; 4]) -> FourCharCode { FourCharCode(u32::from_be_bytes(*s)) }
+fn main() {
+    let smc = smc::SMC::new().expect("open SMC");
+    for k in [b"TCMb", b"TCMz", b"TCDX", b"F0Ac", b"F1Ac", b"F0Tg", b"F0Mn"] {
+        let v: Result<f32, _> = smc.read_key(key(k));
+        println!("{} = {:?}", std::str::from_utf8(k).unwrap(), v);
     }
-    Ok(())
 }
 EOF
 chmod +x /tmp/smc-spike
@@ -66,12 +88,14 @@ chmod +x /tmp/smc-spike
 - [ ] **Step 2: Run it**
 
 Run: `/tmp/smc-spike`
-Expected (first run compiles, then prints): a `cpu max` near the value `smctemp` gave (~70–85°C), and at least one fan line with `rpm` ≈ `min` ≈ ~2300 when idle.
+Expected (first run compiles, then prints): `TCMb`/`TCMz`/`TCDX` as plausible CPU
+temps (~60–90°C, not 0.0), `F0Ac`/`F1Ac` as real fan RPM, `F0Mn`=2317.
 
-- [ ] **Step 3: Decision gate**
+- [ ] **Step 3: Decision gate — DONE (proceed)**
 
-- If temps are plausible (not 0.0, not absurd) and fan RPM is real → proceed to Task 1.
-- If the crate errors or returns 0.0/garbage on this Apple Silicon machine → **STOP and revise the spec**: fall back to packaging the proven `smctemp` C++ in the mac flake and shelling out. Do not continue with `smc` if the spike fails.
+Raw `read_key` returned plausible temps + fan RPM → use the `smc` crate via raw
+`read_key`. (Fallback to packaging smctemp would only have triggered if raw reads
+also failed; they did not.)
 
 - [ ] **Step 4: Clean up**
 
@@ -93,14 +117,20 @@ Run: `rm -f /tmp/smc-spike`
 //! ```cargo
 //! [dependencies]
 //! smc = "0.2"
+//! four-char-code = "=0.0.5"
 //! libc = "0.2"
 //! signal-hook = "0.3"
 //! ```
+/*
+#! nix-shell -i rust-script -p rust-script cargo rustc
+*/
 // mac-quiet-fans — throttle the user's hot processes (PWM SIGSTOP/SIGCONT under a
 // conservative PI controller) to hold CPU die temp flat just under the fan knee,
-// keeping fans quiet. Sensing via the `smc` crate. See
+// keeping fans quiet. Sensing via the `smc` crate raw read_key (its convenience
+// methods are Intel-only). See
 // docs/superpowers/specs/2026-06-25-mac-quiet-fans-design.md
 use std::env;
+use four_char_code::FourCharCode;
 
 #[derive(Clone, Debug)]
 struct Config {
@@ -322,37 +352,47 @@ git commit -m "feat(mac-quiet-fans): pure PI controller with anti-windup + selft
 Add above `fn main`:
 
 ```rust
-// Plausibility gate: reject the failure modes seen in prototyping (0.0 C from
-// wrong-arch SMC keys; absurd highs). Returns None to mean "hold last good value".
+// Raw SMC read of a 4-char key as f32 (temps + fan RPM are all `flt` here).
+// The smc crate's convenience methods (fans/cpus_temperature) are Intel-only and
+// fail on this machine; raw read_key with explicit keys works.
+fn smc_key(s: &[u8; 4]) -> FourCharCode { FourCharCode(u32::from_be_bytes(*s)) }
+fn read_f32(smc: &smc::SMC, k: &[u8; 4]) -> Option<f64> {
+    smc.read_key::<f32>(smc_key(k)).ok().map(|v| v as f64)
+}
+
+// CPU temp keys verified present on this machine (Task 0). Hotspot = max of them.
+// The knee is calibrated against THIS same metric (--observe), so the absolute
+// definition doesn't matter as long as it stays identical here and in control.
+const CPU_KEYS: [&[u8; 4]; 3] = [b"TCMb", b"TCMz", b"TCDX"];
+// (actual-rpm, target-rpm, floor-rpm) per fan; this machine has 2 fans.
+const FAN_KEYS: [(&[u8; 4], &[u8; 4], &[u8; 4]); 2] =
+    [(b"F0Ac", b"F0Tg", b"F0Mn"), (b"F1Ac", b"F1Tg", b"F1Mn")];
+
+// Plausibility gate: reject failure modes (0.0 C from a bad key; absurd highs).
+// Returns None to mean "hold last good value".
 fn plausible_temp(t: f64) -> Option<f64> {
-    if t >= 1.0 && t <= 110.0 { Some(t) } else { None }
+    if (1.0..=110.0).contains(&t) { Some(t) } else { None }
 }
 
-// Hotspot = max across reported CPU sensors (the die's hottest point drives fans).
 fn read_temp(smc: &smc::SMC) -> Option<f64> {
-    let temps = smc.cpus_temperature().ok()?;
-    let max = temps.iter().cloned().fold(f64::MIN, f64::max);
-    plausible_temp(max)
+    let hot = CPU_KEYS.iter().filter_map(|k| read_f32(smc, k)).fold(f64::MIN, f64::max);
+    if hot == f64::MIN { return None; }
+    plausible_temp(hot)
 }
 
-// True iff every fan is essentially at its floor (knee not yet crossed).
-// Tolerance absorbs the small idle wobble (e.g. actual 2282 vs min 2317).
+// True iff every readable fan is essentially at its floor (knee not yet crossed).
+// Tolerance absorbs idle wobble (e.g. actual 2282 vs min 2317).
 fn fans_at_floor(smc: &smc::SMC) -> bool {
-    match smc.fans() {
-        Ok(fans) if !fans.is_empty() => fans.iter().all(|f| {
-            match (f.rpm(), f.min_speed()) {
-                (Ok(rpm), Ok(min)) => rpm <= min + 150.0,
-                _ => true,
-            }
-        }),
-        _ => true, // can't read -> don't claim knee crossed
+    for (ac, _tg, mn) in FAN_KEYS {
+        if let (Some(a), Some(m)) = (read_f32(smc, ac), read_f32(smc, mn)) {
+            if a > m + 150.0 { return false; }
+        }
     }
+    true
 }
 
 fn read_fans_max_rpm(smc: &smc::SMC) -> f64 {
-    smc.fans().ok().into_iter().flatten()
-        .filter_map(|f| f.rpm().ok())
-        .fold(0.0, f64::max)
+    FAN_KEYS.iter().filter_map(|(ac, _, _)| read_f32(smc, ac)).fold(0.0, f64::max)
 }
 ```
 
