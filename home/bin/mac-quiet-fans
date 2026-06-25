@@ -213,7 +213,26 @@ fn main() {
             println!("fan max:   {:.0} rpm", read_fans_max_rpm(&smc));
             println!("at floor:  {}", fans_at_floor(&smc));
         }
-        "--observe"      => { println!("observe: not implemented yet"); }
+        "--observe" => {
+            let smc = smc::SMC::new().expect("open SMC");
+            println!("watching for fan knee (Ctrl-C to stop)... run your heavy job now.");
+            let mut hottest_at_floor = 0.0_f64;
+            loop {
+                if let Some(t) = read_temp(&smc) {
+                    if fans_at_floor(&smc) {
+                        if t > hottest_at_floor {
+                            hottest_at_floor = t;
+                            println!("floor: {t:.1} C (fans still asleep; knee is above this)");
+                        }
+                    } else {
+                        println!("KNEE CROSSED at {t:.1} C  (fan max {:.0} rpm)", read_fans_max_rpm(&smc));
+                        println!("=> set QF_KNEE_C around {:.0}. hottest-still-quiet was {:.1} C.",
+                                 t.floor(), hottest_at_floor);
+                    }
+                }
+                std::thread::sleep(std::time::Duration::from_millis(2000));
+            }
+        }
         "--list-managed" => { println!("list-managed: not implemented yet"); }
         "" => { println!("run: not implemented yet; setpoint={:.1}", cfg.setpoint()); }
         other => { eprintln!("unknown arg: {other}\n{HELP}"); std::process::exit(2); }
