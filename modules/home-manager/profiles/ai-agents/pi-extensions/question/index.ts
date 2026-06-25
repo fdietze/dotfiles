@@ -14,6 +14,7 @@ import {
 	matchesKey,
 	Text,
 	truncateToWidth,
+	visibleWidth,
 	wrapTextWithAnsi,
 } from "@earendil-works/pi-tui";
 import { Type } from "typebox";
@@ -136,7 +137,7 @@ export default function question(pi: ExtensionAPI) {
 								refresh();
 								return;
 							}
-							if (data.length === 1 && data >= " ") {
+							if (data.length === 1 && data >= " " && data !== "\x7f") {
 								mode = "edit";
 								editor.handleInput(data);
 								refresh();
@@ -156,9 +157,12 @@ export default function question(pi: ExtensionAPI) {
 						const lines: string[] = [];
 						// Wrap a styled block: wrap raw text, then reapply style per line
 						// (tui resets SGR each line, so styles must be reapplied).
-						const addWrapped = (raw: string, indent: string, style: (t: string) => string) => {
-							for (const w of wrapTextWithAnsi(raw, Math.max(1, width - indent.length))) {
-								lines.push(truncateToWidth(indent + style(w), width));
+						// Prefix is shown at the start of every wrapped line; its VISIBLE
+						// width (ANSI stripped) is subtracted from the wrap budget so styled
+						// gutters/pointers don't push text past the terminal edge.
+						const addWrapped = (raw: string, prefix: string, style: (t: string) => string) => {
+							for (const w of wrapTextWithAnsi(raw, Math.max(1, width - visibleWidth(prefix)))) {
+								lines.push(truncateToWidth(prefix + style(w), width));
 							}
 						};
 
@@ -170,14 +174,14 @@ export default function question(pi: ExtensionAPI) {
 							const opt = params.options[i];
 							const onRow = mode === "nav" && cursor === i;
 							const box = checked[i] ? "[x]" : "[ ]";
-							const pointer = onRow ? theme.fg("accent", ">") : " ";
+							// 2-col gutter: "> " (accent) when focused, "  " otherwise.
+							const prefix = onRow ? theme.fg("accent", "> ") : "  ";
 							const labelStyle = (t: string) =>
 								onRow || checked[i] ? theme.fg("accent", t) : theme.fg("text", t);
-							addWrapped(`${box} ${i + 1}. ${opt.label}`, `${onRow ? "" : " "}`, (t) =>
-								`${pointer} ${labelStyle(t)}`,
-							);
+							addWrapped(`${box} ${i + 1}. ${opt.label}`, prefix, labelStyle);
 							if (opt.description) {
-								addWrapped(opt.description, "       ", (t) => theme.fg("muted", t));
+								// 9 cols = 2 gutter + len("[x] N. "), so description aligns under label.
+								addWrapped(opt.description, "         ", (t) => theme.fg("muted", t));
 							}
 						}
 
