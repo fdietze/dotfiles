@@ -98,12 +98,18 @@ fn read_temp(smc: &smc::SMC) -> Option<f64> {
     plausible_temp(hot)
 }
 
-// True iff every readable fan is essentially at its floor (knee not yet crossed).
-// Tolerance absorbs idle wobble (e.g. actual 2282 vs min 2317).
+// RPM a fan's commanded TARGET may sit above its min-capability key while still
+// idle/quiet. Observed on this machine: fan1 idles at target 2502 vs F1Mn 2317
+// (+185), while a real ramp pushes target to ~4300 (+2000). 400 cleanly separates.
+const FLOOR_TOLERANCE_RPM: f64 = 400.0;
+
+// True iff every readable fan's TARGET is essentially at its floor (knee not yet
+// crossed). Target (F*Tg) leads actual RPM and is far less wobbly, so it is the
+// crisp knee signal. Compared to the fan's min-capability key + tolerance.
 fn fans_at_floor(smc: &smc::SMC) -> bool {
-    for (ac, _tg, mn) in FAN_KEYS {
-        if let (Some(a), Some(m)) = (read_f32(smc, ac), read_f32(smc, mn)) {
-            if a > m + 150.0 { return false; }
+    for (_ac, tg, mn) in FAN_KEYS {
+        if let (Some(t), Some(m)) = (read_f32(smc, tg), read_f32(smc, mn)) {
+            if t > m + FLOOR_TOLERANCE_RPM { return false; }
         }
     }
     true
@@ -133,9 +139,12 @@ impl Config {
         fn f(k: &str, d: f64) -> f64 { env::var(k).ok().and_then(|v| v.parse().ok()).unwrap_or(d) }
         fn u(k: &str, d: u64) -> u64 { env::var(k).ok().and_then(|v| v.parse().ok()).unwrap_or(d) }
         Config {
-            // PROVISIONAL default — calibrate per machine via `--observe` from a
-            // cooled baseline with the real workload, then set QF_KNEE_C.
-            knee_c:         f("QF_KNEE_C", 80.0),
+            // Calibrated lower-bound: 8x `yes` for 70s reached 86 C with fans still
+            // at floor (knee is ABOVE 86; pure-ALU load under-drives it vs real
+            // builds). Set to 88 as a conservative estimate. Recalibrate with your
+            // actual heavy job via `--observe` and raise QF_KNEE_C if fans stay
+            // quiet higher.
+            knee_c:         f("QF_KNEE_C", 88.0),
             margin_c:       f("QF_MARGIN_C", 3.0),
             kp:             f("QF_KP", 0.05),
             ti_s:           f("QF_TI_S", 30.0),
