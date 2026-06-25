@@ -619,11 +619,12 @@ in
             Mod+Shift+G { set-window-height "-10%"; }
             Mod+Shift+R { set-window-height "+10%"; }
 
-            // ===== Monitors =====
-            Mod+O { focus-monitor-right; }
-            Mod+U { focus-monitor-left; }
-            Mod+Shift+O { move-column-to-monitor-right; }
-            Mod+Shift+U { move-column-to-monitor-left; }
+            // ===== Strip ends (O/U flank the neo arrow cluster i/a/l/e) =====
+            // U = beginning (home), O = end of the whole column strip.
+            Mod+U { focus-column-first; }
+            Mod+O { focus-column-last; }
+            Mod+Shift+U { move-column-to-first; }
+            Mod+Shift+O { move-column-to-last; }
 
             // ===== System =====
             Mod+Shift+Y      { spawn "niri" "msg" "action" "load-config-file"; }
