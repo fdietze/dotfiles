@@ -1,0 +1,273 @@
+/**
+ * Question Tool — always multi-select checkboxes + combinable custom note.
+ * Full custom UI. Note field is focused (edit mode) on open. Enter submits the
+ * whole set from anywhere; Esc in edit returns to navigation; Esc in navigation
+ * cancels. All text wraps to terminal width (wrapTextWithAnsi).
+ * Pure result/cursor logic lives in ./core.ts (unit-tested).
+ */
+
+import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import {
+	Editor,
+	type EditorTheme,
+	Key,
+	matchesKey,
+	Text,
+	truncateToWidth,
+	wrapTextWithAnsi,
+} from "@earendil-works/pi-tui";
+import { Type } from "typebox";
+import { clampCursor, formatResult, isNoteRow } from "./core.ts";
+
+interface OptionWithDesc {
+	label: string;
+	description?: string;
+}
+
+interface QuestionDetails {
+	question: string;
+	options: string[]; // all offered labels
+	selected: string[]; // checked labels
+	note: string | null;
+	cancelled: boolean;
+}
+
+const OptionSchema = Type.Object({
+	label: Type.String({ description: "Display label for the option" }),
+	description: Type.Optional(Type.String({ description: "Optional description shown below label" })),
+});
+
+const QuestionParams = Type.Object({
+	question: Type.String({ description: "The question to ask the user" }),
+	options: Type.Array(OptionSchema, { description: "Options for the user to choose from" }),
+});
+
+export default function question(pi: ExtensionAPI) {
+	pi.registerTool({
+		name: "question",
+		label: "Question",
+		description:
+			"Ask the user a question. They pick any number of the given options (checkboxes) and/or write a custom note. Use when you need user input to proceed.",
+		parameters: QuestionParams,
+
+		async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
+			const labels = params.options.map((o) => o.label);
+
+			if (ctx.mode !== "tui") {
+				return {
+					content: [{ type: "text", text: "Error: UI not available (running in non-interactive mode)" }],
+					details: {
+						question: params.question,
+						options: labels,
+						selected: [],
+						note: null,
+						cancelled: true,
+					} as QuestionDetails,
+				};
+			}
+
+			const result = await ctx.ui.custom<{ selected: string[]; note: string | null; content: string } | null>(
+				(tui, theme, _kb, done) => {
+					const checked: boolean[] = params.options.map(() => false);
+					// Note row sits after all option rows. Focused + editable on open.
+					let cursor = params.options.length;
+					let mode: "edit" | "nav" = "edit";
+					let cachedLines: string[] | undefined;
+
+					const editorTheme: EditorTheme = {
+						borderColor: (s) => theme.fg("accent", s),
+						selectList: {
+							selectedPrefix: (t) => theme.fg("accent", t),
+							selectedText: (t) => theme.fg("accent", t),
+							description: (t) => theme.fg("muted", t),
+							scrollInfo: (t) => theme.fg("dim", t),
+							noMatch: (t) => theme.fg("warning", t),
+						},
+					};
+					const editor = new Editor(tui, editorTheme);
+
+					function refresh() {
+						cachedLines = undefined;
+						tui.requestRender();
+					}
+
+					function submit() {
+						const r = formatResult(labels, checked, editor.getText());
+						done({ selected: r.selected, note: r.note, content: r.content });
+					}
+
+					function handleInput(data: string) {
+						// Enter submits the whole set from anywhere, including edit mode.
+						if (matchesKey(data, Key.enter)) {
+							submit();
+							return;
+						}
+
+						if (mode === "edit") {
+							if (matchesKey(data, Key.escape)) {
+								mode = "nav";
+								refresh();
+								return;
+							}
+							editor.handleInput(data);
+							refresh();
+							return;
+						}
+
+						// nav mode
+						if (matchesKey(data, Key.escape)) {
+							done(null);
+							return;
+						}
+						if (matchesKey(data, Key.up)) {
+							cursor = clampCursor(cursor - 1, params.options.length);
+							refresh();
+							return;
+						}
+						if (matchesKey(data, Key.down)) {
+							cursor = clampCursor(cursor + 1, params.options.length);
+							refresh();
+							return;
+						}
+						if (isNoteRow(cursor, params.options.length)) {
+							// Space or any printable char enters edit; forward printables to editor.
+							if (matchesKey(data, Key.space)) {
+								mode = "edit";
+								refresh();
+								return;
+							}
+							if (data.length === 1 && data >= " ") {
+								mode = "edit";
+								editor.handleInput(data);
+								refresh();
+								return;
+							}
+							return;
+						}
+						// option row: Space toggles its checkbox
+						if (matchesKey(data, Key.space)) {
+							checked[cursor] = !checked[cursor];
+							refresh();
+						}
+					}
+
+					function render(width: number): string[] {
+						if (cachedLines) return cachedLines;
+						const lines: string[] = [];
+						// Wrap a styled block: wrap raw text, then reapply style per line
+						// (tui resets SGR each line, so styles must be reapplied).
+						const addWrapped = (raw: string, indent: string, style: (t: string) => string) => {
+							for (const w of wrapTextWithAnsi(raw, Math.max(1, width - indent.length))) {
+								lines.push(truncateToWidth(indent + style(w), width));
+							}
+						};
+
+						lines.push(truncateToWidth(theme.fg("accent", "─".repeat(width)), width));
+						addWrapped(params.question, " ", (t) => theme.fg("text", t));
+						lines.push("");
+
+						for (let i = 0; i < params.options.length; i++) {
+							const opt = params.options[i];
+							const onRow = mode === "nav" && cursor === i;
+							const box = checked[i] ? "[x]" : "[ ]";
+							const pointer = onRow ? theme.fg("accent", ">") : " ";
+							const labelStyle = (t: string) =>
+								onRow || checked[i] ? theme.fg("accent", t) : theme.fg("text", t);
+							addWrapped(`${box} ${i + 1}. ${opt.label}`, `${onRow ? "" : " "}`, (t) =>
+								`${pointer} ${labelStyle(t)}`,
+							);
+							if (opt.description) {
+								addWrapped(opt.description, "       ", (t) => theme.fg("muted", t));
+							}
+						}
+
+						lines.push("");
+						const noteFocused = isNoteRow(cursor, params.options.length);
+						const notePointer = mode === "nav" && noteFocused ? theme.fg("accent", "> ") : "  ";
+						lines.push(truncateToWidth(notePointer + theme.fg("muted", "Note:") + (mode === "edit" ? theme.fg("accent", " ✎") : ""), width));
+						for (const line of editor.render(width - 2)) {
+							lines.push(truncateToWidth(` ${line}`, width));
+						}
+
+						lines.push("");
+						const hint =
+							mode === "edit"
+								? " Enter submit • Esc to navigate options"
+								: " ↑↓ move • Space toggle/edit note • Enter submit • Esc cancel";
+						lines.push(truncateToWidth(theme.fg("dim", hint), width));
+						lines.push(truncateToWidth(theme.fg("accent", "─".repeat(width)), width));
+
+						cachedLines = lines;
+						return lines;
+					}
+
+					return {
+						render,
+						invalidate: () => {
+							cachedLines = undefined;
+						},
+						handleInput,
+					};
+				},
+			);
+
+			if (!result) {
+				return {
+					content: [{ type: "text", text: "User cancelled the selection" }],
+					details: {
+						question: params.question,
+						options: labels,
+						selected: [],
+						note: null,
+						cancelled: true,
+					} as QuestionDetails,
+				};
+			}
+
+			return {
+				content: [{ type: "text", text: result.content }],
+				details: {
+					question: params.question,
+					options: labels,
+					selected: result.selected,
+					note: result.note,
+					cancelled: false,
+				} as QuestionDetails,
+			};
+		},
+
+		renderCall(args, theme, _context) {
+			let text = theme.fg("toolTitle", theme.bold("question ")) + theme.fg("muted", args.question);
+			const opts = Array.isArray(args.options) ? args.options : [];
+			if (opts.length) {
+				const numbered = opts.map((o: OptionWithDesc, i: number) => `${i + 1}. ${o.label}`);
+				text += `\n${theme.fg("dim", `  Options: ${numbered.join(", ")} (+ custom note)`)}`;
+			} else {
+				text += `\n${theme.fg("dim", "  (custom note only)")}`;
+			}
+			return new Text(text, 0, 0);
+		},
+
+		renderResult(result, _options, theme, _context) {
+			const details = result.details as QuestionDetails | undefined;
+			if (!details) {
+				const text = result.content[0];
+				return new Text(text?.type === "text" ? text.text : "", 0, 0);
+			}
+			if (details.cancelled) {
+				return new Text(theme.fg("warning", "Cancelled"), 0, 0);
+			}
+			const parts: string[] = [];
+			if (details.selected.length) {
+				const numbered = details.selected.map((label) => {
+					const idx = details.options.indexOf(label) + 1;
+					return idx > 0 ? `${idx}. ${label}` : label;
+				});
+				parts.push(numbered.join(", "));
+			}
+			if (details.note) parts.push(`note: ${details.note}`);
+			const body = parts.length ? parts.join(" | ") : "(empty answer)";
+			return new Text(theme.fg("success", "✓ ") + theme.fg("accent", body), 0, 0);
+		},
+	});
+}

@@ -16,6 +16,6 @@
   my.devLinks = [
     "modules/home-manager/profiles/ai-agents/pi-extensions/subagents"
     "modules/home-manager/profiles/ai-agents/pi-extensions/context-prune"
-    "modules/home-manager/profiles/ai-agents/pi-extensions/question.ts"
+    "modules/home-manager/profiles/ai-agents/pi-extensions/question"
   ];
 }
