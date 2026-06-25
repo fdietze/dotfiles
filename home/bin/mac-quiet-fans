@@ -50,6 +50,95 @@ impl Config {
     fn setpoint(&self) -> f64 { self.knee_c - self.margin_c }
 }
 
+// Pure PI controller. error e = setpoint - temp (e<0 when too hot -> lower duty).
+// Steady-state duty comes entirely from the integral term (no feedforward).
+// Anti-windup: conditional integration — don't accumulate further into a saturated bound.
+struct PiController {
+    kp: f64,
+    ki: f64, // kp / ti
+    integral: f64,
+    d_min: f64,
+    d_max: f64,
+    setpoint: f64,
+}
+
+impl PiController {
+    fn new(cfg: &Config) -> PiController {
+        PiController {
+            kp: cfg.kp,
+            ki: cfg.kp / cfg.ti_s,
+            integral: 0.0,
+            d_min: cfg.d_min,
+            d_max: cfg.d_max,
+            setpoint: cfg.setpoint(),
+        }
+    }
+
+    // dt in seconds. Returns duty in [d_min, d_max].
+    fn update(&mut self, temp: f64, dt: f64) -> f64 {
+        let e = self.setpoint - temp;
+        let candidate = self.integral + e * dt;
+        let raw = self.kp * e + self.ki * candidate;
+        if raw > self.d_max {
+            if e <= 0.0 { self.integral = candidate; } // block only growth deeper into saturation
+            self.d_max
+        } else if raw < self.d_min {
+            if e >= 0.0 { self.integral = candidate; }
+            self.d_min
+        } else {
+            self.integral = candidate;
+            raw
+        }
+    }
+}
+
+fn run_selftest() -> i32 {
+    let cfg = Config {
+        kp: 0.1, ti_s: 20.0, d_min: 0.15, d_max: 1.0,
+        knee_c: 80.0, margin_c: 0.0, // setpoint = 80
+        cpu_threshold: 50.0, debounce_ticks: 3, window_ms: 200, tick_ms: 1000,
+    };
+    let mut failures = 0;
+    macro_rules! check { ($name:expr, $cond:expr) => {
+        if $cond { println!("ok   - {}", $name); } else { println!("FAIL - {}", $name); failures += 1; }
+    }; }
+
+    // 1. Too hot -> duty parks at floor.
+    {
+        let mut c = PiController::new(&cfg);
+        let mut d = 1.0;
+        for _ in 0..50 { d = c.update(95.0, 1.0); }
+        check!("too hot parks at d_min", (d - cfg.d_min).abs() < 1e-9);
+    }
+    // 2. Too cold -> duty climbs to ceiling.
+    {
+        let mut c = PiController::new(&cfg);
+        let mut d = 0.0;
+        for _ in 0..50 { d = c.update(60.0, 1.0); }
+        check!("too cold reaches d_max", (d - cfg.d_max).abs() < 1e-9);
+    }
+    // 3. Anti-windup: integral does NOT wind up while saturated hot, so once temp
+    //    drops below setpoint the duty recovers off the floor within a few ticks.
+    {
+        let mut c = PiController::new(&cfg);
+        for _ in 0..1000 { c.update(95.0, 1.0); } // long saturation hot
+        check!("integral does not wind up under saturation", c.integral.abs() < 1.0);
+        let mut d = cfg.d_min;
+        let mut ticks = 0;
+        for _ in 0..200 { d = c.update(78.0, 1.0); ticks += 1; if d > cfg.d_min + 0.01 { break; } }
+        check!("recovers off floor once below setpoint", ticks < 50 && d > cfg.d_min);
+    }
+    // 4. At setpoint with built-up (in-range) integral, output = ki*integral.
+    {
+        let mut c = PiController::new(&cfg);
+        c.integral = 100.0; // ki*100 = 0.5, within [d_min, d_max]
+        let d = c.update(80.0, 1.0);
+        check!("steady duty from integral at setpoint", (d - (cfg.kp / cfg.ti_s) * 100.0).abs() < 1e-9);
+    }
+
+    if failures == 0 { println!("PASS"); 0 } else { println!("{failures} FAILED"); 1 }
+}
+
 const HELP: &str = "\
 mac-quiet-fans — keep the fans quiet by throttling your hot processes.
 
@@ -71,7 +160,7 @@ fn main() {
     let cfg = Config::from_env();
     match arg.as_str() {
         "--help" | "-h"  => print!("{HELP}"),
-        "--selftest"     => { println!("no tests yet"); }
+        "--selftest"     => { std::process::exit(run_selftest()); }
         "--probe"        => { println!("probe: not implemented yet"); }
         "--observe"      => { println!("observe: not implemented yet"); }
         "--list-managed" => { println!("list-managed: not implemented yet"); }
