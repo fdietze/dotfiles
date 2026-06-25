@@ -25,5 +25,9 @@
     # pi: no permission-gating flag exists; its tools run directly under nono.
     name = "pi";
     bin = "${pkgs.llm-agents.pi}/bin/pi";
+    # Point the web-search extension's backend auto-detect at the local SearXNG
+    # (services.searx on the host, 127.0.0.1:8888). Privacy path: queries never
+    # leave via a third-party API. Exported into pi's env by the wrapper.
+    env = "export PI_SEARX_URL=http://127.0.0.1:8888\n";
   }
 ]
