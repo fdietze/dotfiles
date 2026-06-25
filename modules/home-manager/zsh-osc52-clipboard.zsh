@@ -34,18 +34,32 @@ osc52-copy() {
 }
 
 # Clipboard read -> stdout. Queries the terminal and parses its OSC 52 reply.
+# Reply format: ESC ] 52 ; c ; <base64> <terminator>, where the terminator is
+# BEL (\a) OR ST (ESC backslash) depending on the terminal. Earlier versions
+# waited only for BEL with `read -t 1 -d`, but zsh's -t guards only the initial
+# availability check, not the whole read: once any byte arrives, read blocks
+# forever on the missing delimiter, and stty raw has disabled isig so ctrl-c is
+# a mere byte -> hard freeze. So: non-blocking tty (min 0 time 0), read one
+# byte at a time under a bounded iteration deadline, accept BOTH terminators,
+# and restore stty in `always {}` so a stuck read can never strand the tty.
 osc52-paste() {
-  local old reply
-  old=$(stty -g </dev/tty)
-  trap 'stty "$old" </dev/tty' EXIT INT TERM
-  stty raw -echo </dev/tty
-  printf '\e]52;c;?\a' > /dev/tty
-  # Reply: ESC ] 52 ; c ; <base64> (BEL | ESC backslash). Read until BEL.
-  IFS= read -r -t 1 -d $'\a' reply </dev/tty || true
-  stty "$old" </dev/tty
-  trap - EXIT INT TERM
-  # Strip everything up to the last "52;c;" then base64-decode.
+  local old reply='' c i=0
+  old=$(stty -g </dev/tty) || return
+  {
+    stty raw -echo min 0 time 0 </dev/tty
+    printf '\e]52;c;?\e\\' > /dev/tty
+    # ~2 s worst case (200 * 10 ms) when the terminal answers nothing; returns
+    # as soon as a terminator arrives when it does.
+    while (( i++ < 200 )); do
+      IFS= read -r -k 1 -t 0.01 c </dev/tty && reply+=$c
+      [[ $reply == *$'\a' || $reply == *$'\e\\' ]] && break
+    done
+  } always {
+    stty "$old" </dev/tty
+  }
+  # Strip everything up to the last "52;c;", then any trailing terminator.
   reply=${reply##*52;c;}
+  reply=${reply%$'\a'}; reply=${reply%$'\e\\'}; reply=${reply%$'\e'}
   [[ -n "$reply" ]] && printf '%s' "$reply" | base64 -d 2>/dev/null
 }
 
