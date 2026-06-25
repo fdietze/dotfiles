@@ -12,6 +12,7 @@ import {
 	createAgentSession,
 	DefaultResourceLoader,
 	type ExtensionAPI,
+	keyHint,
 	ModelRegistry,
 	SessionManager,
 	SettingsManager,
@@ -27,6 +28,7 @@ import {
 	formatHistory,
 	formatRoster,
 	CUSTOM_STATUS_MAX,
+	collapseBlock,
 	formatSendTargets,
 	type StatusTone,
 	swarmStateLine,
@@ -148,17 +150,38 @@ function agentSystemPrompt(name: string, systemPrompt: string, spawnedBy: string
 // createCallFallback) — long fields like systemPrompt would be missing entirely.
 // No indents (they only waste width): scalar args sit inline on the title line for density,
 // multiline string fields (e.g. systemPrompt) follow as unindented blocks.
+// Collapsed-preview budget per block field: at most this many lines / characters are shown
+// when the tool call is NOT expanded. spawn_agent.systemPrompt + .message and send_message
+// .content are the long fields this bounds; expanding (app.tools.expand) shows them in full.
+const BLOCK_COLLAPSE_LINES = 2;
+const BLOCK_COLLAPSE_CHARS = 200;
 type RenderTheme = { fg(color: string, s: string): string; bold(s: string): string };
-function renderToolArgs(toolName: string, args: Record<string, unknown>, theme: RenderTheme): Text {
+function renderToolArgs(
+	toolName: string,
+	args: Record<string, unknown>,
+	theme: RenderTheme,
+	expanded: boolean,
+): Text {
 	const { scalars, blocks } = toolPreviewParts(args ?? {});
-	const title =
+	let title =
 		theme.fg("toolTitle", theme.bold(toolName)) + (scalars.length ? ` ${theme.fg("dim", scalars.join("  "))}` : "");
-	const lines = [title];
+	const body: string[] = [];
+	let anyTruncated = false;
 	for (const { key, value } of blocks) {
-		lines.push(theme.fg("dim", `${key}:`));
-		for (const l of value.split("\n")) lines.push(theme.fg("toolOutput", l));
+		body.push(theme.fg("dim", `${key}:`));
+		// Expanded: full value. Collapsed: each block truncated separately (lines + chars).
+		const { shown, hiddenLines, truncated } = expanded
+			? { shown: value, hiddenLines: 0, truncated: false }
+			: collapseBlock(value, BLOCK_COLLAPSE_LINES, BLOCK_COLLAPSE_CHARS);
+		for (const l of shown.split("\n")) body.push(theme.fg("toolOutput", l));
+		if (truncated) {
+			anyTruncated = true;
+			if (hiddenLines > 0) body.push(theme.fg("dim", `  … +${hiddenLines} line${hiddenLines === 1 ? "" : "s"}`));
+		}
 	}
-	return new Text(lines.join("\n"), 0, 0);
+	// One expand hint on the title line when anything was cut (keybinding-aware).
+	if (anyTruncated) title += ` ${theme.fg("dim", `(${keyHint("app.tools.expand", "expand")})`)}`;
+	return new Text([title, ...body].join("\n"), 0, 0);
 }
 
 export default function subagents(pi: ExtensionAPI) {
@@ -326,7 +349,7 @@ export default function subagents(pi: ExtensionAPI) {
 		{
 			name: "spawn_agent",
 			label: "Spawn Agent",
-			renderCall: (args, theme) => renderToolArgs("spawn_agent", args as Record<string, unknown>, theme as RenderTheme),
+			renderCall: (args, theme, context) => renderToolArgs("spawn_agent", args as Record<string, unknown>, theme as RenderTheme, context?.expanded ?? false),
 			description:
 				"Create a new agent with a system prompt; optionally deliver a first message. It can then be messaged by name. " +
 				"Event-driven & fire-and-forget: after spawning, END YOUR TURN — you are automatically re-woken when an agent " +
@@ -365,7 +388,7 @@ export default function subagents(pi: ExtensionAPI) {
 		{
 			name: "send_message",
 			label: "Send Message",
-			renderCall: (args, theme) => renderToolArgs("send_message", args as Record<string, unknown>, theme as RenderTheme),
+			renderCall: (args, theme, context) => renderToolArgs("send_message", args as Record<string, unknown>, theme as RenderTheme, context?.expanded ?? false),
 			description:
 				"Fire-and-forget message to one agent or a list of agents (e.g. 'main'). Returns immediately. After sending, " +
 				"END YOUR TURN — you are automatically re-woken if a reply arrives. Do NOT poll or wait in a loop; inspect only " +
@@ -389,7 +412,7 @@ export default function subagents(pi: ExtensionAPI) {
 		{
 			name: "list_agents",
 			label: "List Agents",
-			renderCall: (args, theme) => renderToolArgs("list_agents", args as Record<string, unknown>, theme as RenderTheme),
+			renderCall: (args, theme, context) => renderToolArgs("list_agents", args as Record<string, unknown>, theme as RenderTheme, context?.expanded ?? false),
 			description: "List all agents and their status.",
 			parameters: Type.Object({}),
 			execute: async () => {
@@ -401,7 +424,7 @@ export default function subagents(pi: ExtensionAPI) {
 		{
 			name: "kill_agent",
 			label: "Kill Agent",
-			renderCall: (args, theme) => renderToolArgs("kill_agent", args as Record<string, unknown>, theme as RenderTheme),
+			renderCall: (args, theme, context) => renderToolArgs("kill_agent", args as Record<string, unknown>, theme as RenderTheme, context?.expanded ?? false),
 			description: "Terminate one agent or a list of agents. 'main' cannot be killed.",
 			parameters: Type.Object({
 				name: Type.Union([Type.String(), Type.Array(Type.String())], {
@@ -421,7 +444,7 @@ export default function subagents(pi: ExtensionAPI) {
 		{
 			name: "agent_history",
 			label: "Agent History",
-			renderCall: (args, theme) => renderToolArgs("agent_history", args as Record<string, unknown>, theme as RenderTheme),
+			renderCall: (args, theme, context) => renderToolArgs("agent_history", args as Record<string, unknown>, theme as RenderTheme, context?.expanded ?? false),
 			description:
 				"Inspect any agent's message transcript. offset: start index (0 = beginning, the default; " +
 				"negative = from the end, e.g. -30 = last 30). limit: window size (default 30). The header " +
@@ -448,7 +471,7 @@ export default function subagents(pi: ExtensionAPI) {
 		{
 			name: "set_status",
 			label: "Set Status",
-			renderCall: (args, theme) => renderToolArgs("set_status", args as Record<string, unknown>, theme as RenderTheme),
+			renderCall: (args, theme, context) => renderToolArgs("set_status", args as Record<string, unknown>, theme as RenderTheme, context?.expanded ?? false),
 			description:
 				"Set your short status line shown in list_agents and the agents panel " +
 				"(e.g. 'parsing 500 files', 'waiting on review'). Pass empty string to clear. " +
