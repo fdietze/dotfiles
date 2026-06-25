@@ -1,0 +1,81 @@
+#!/usr/bin/env nix-shell
+//! ```cargo
+//! [dependencies]
+//! smc = "0.2"
+//! four-char-code = "=0.0.5"
+//! libc = "0.2"
+//! signal-hook = "0.3"
+//! ```
+/*
+#! nix-shell -i rust-script -p rust-script cargo rustc
+*/
+// mac-quiet-fans — throttle the user's hot processes (PWM SIGSTOP/SIGCONT under a
+// conservative PI controller) to hold CPU die temp flat just under the fan knee,
+// keeping fans quiet. Sensing via the `smc` crate raw read_key (its convenience
+// methods are Intel-only and fail on Apple Silicon). See
+// docs/superpowers/specs/2026-06-25-mac-quiet-fans-design.md
+use std::env;
+
+#[derive(Clone, Debug)]
+struct Config {
+    knee_c: f64,         // measured fan-knee die temperature (constant for this machine)
+    margin_c: f64,       // setpoint = knee_c - margin_c
+    kp: f64,             // PI proportional gain (duty per degree)
+    ti_s: f64,           // PI integral time (seconds) ~ thermal tau
+    cpu_threshold: f64,  // %CPU to consider a process "hot"
+    debounce_ticks: u32, // consecutive scans above/below threshold before add/drop
+    window_ms: u64,      // PWM window
+    d_min: f64,          // duty floor (always make some progress)
+    d_max: f64,          // duty ceiling (full speed when cool)
+    tick_ms: u64,        // control loop period (also rescan cadence)
+}
+
+impl Config {
+    fn from_env() -> Config {
+        fn f(k: &str, d: f64) -> f64 { env::var(k).ok().and_then(|v| v.parse().ok()).unwrap_or(d) }
+        fn u(k: &str, d: u64) -> u64 { env::var(k).ok().and_then(|v| v.parse().ok()).unwrap_or(d) }
+        Config {
+            knee_c:         f("QF_KNEE_C", 85.0),
+            margin_c:       f("QF_MARGIN_C", 3.0),
+            kp:             f("QF_KP", 0.05),
+            ti_s:           f("QF_TI_S", 30.0),
+            cpu_threshold:  f("QF_CPU_THRESHOLD", 50.0),
+            debounce_ticks: u("QF_DEBOUNCE_TICKS", 3) as u32,
+            window_ms:      u("QF_WINDOW_MS", 200),
+            d_min:          f("QF_D_MIN", 0.15),
+            d_max:          f("QF_D_MAX", 1.0),
+            tick_ms:        u("QF_TICK_MS", 1000),
+        }
+    }
+    fn setpoint(&self) -> f64 { self.knee_c - self.margin_c }
+}
+
+const HELP: &str = "\
+mac-quiet-fans — keep the fans quiet by throttling your hot processes.
+
+USAGE:
+  mac-quiet-fans            run the thermal governor (default)
+  mac-quiet-fans --probe    print current temp + fan RPM once and exit
+  mac-quiet-fans --observe  watch for the fan knee (logs temp when fans leave floor)
+  mac-quiet-fans --list-managed  print which of your processes would be throttled
+  mac-quiet-fans --selftest run the pure-controller unit tests
+  mac-quiet-fans --help
+
+TUNING (env vars, no recompile):
+  QF_KNEE_C QF_MARGIN_C QF_KP QF_TI_S QF_CPU_THRESHOLD
+  QF_DEBOUNCE_TICKS QF_WINDOW_MS QF_D_MIN QF_D_MAX QF_TICK_MS
+";
+
+fn main() {
+    let arg = env::args().nth(1).unwrap_or_default();
+    let cfg = Config::from_env();
+    match arg.as_str() {
+        "--help" | "-h"  => print!("{HELP}"),
+        "--selftest"     => { println!("no tests yet"); }
+        "--probe"        => { println!("probe: not implemented yet"); }
+        "--observe"      => { println!("observe: not implemented yet"); }
+        "--list-managed" => { println!("list-managed: not implemented yet"); }
+        "" => { println!("run: not implemented yet; setpoint={:.1}", cfg.setpoint()); }
+        other => { eprintln!("unknown arg: {other}\n{HELP}"); std::process::exit(2); }
+    }
+}
