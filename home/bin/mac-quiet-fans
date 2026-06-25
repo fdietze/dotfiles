@@ -15,6 +15,51 @@
 // methods are Intel-only and fail on Apple Silicon). See
 // docs/superpowers/specs/2026-06-25-mac-quiet-fans-design.md
 use std::env;
+use four_char_code::FourCharCode;
+
+// Raw SMC read of a 4-char key as f32 (temps + fan RPM are all `flt` here).
+// The smc crate's convenience methods (fans/cpus_temperature) are Intel-only and
+// fail on this machine; raw read_key with explicit keys works (verified Task 0).
+fn smc_key(s: &[u8; 4]) -> FourCharCode { FourCharCode(u32::from_be_bytes(*s)) }
+fn read_f32(smc: &smc::SMC, k: &[u8; 4]) -> Option<f64> {
+    smc.read_key::<f32>(smc_key(k)).ok().map(|v| v as f64)
+}
+
+// CPU temp keys verified present on this machine (Task 0). Read = max of them.
+// TCMb/TCDX track the package/CPU metric (TCMb 68 ~= smctemp -c 66); TCMz is a
+// hotspot sensor ~15C hotter and noisier, so it is excluded to keep the control
+// signal smooth and representative of what the fans respond to.
+const CPU_KEYS: [&[u8; 4]; 2] = [b"TCMb", b"TCDX"];
+// (actual-rpm, target-rpm, floor-rpm) per fan; this machine has 2 fans.
+const FAN_KEYS: [(&[u8; 4], &[u8; 4], &[u8; 4]); 2] =
+    [(b"F0Ac", b"F0Tg", b"F0Mn"), (b"F1Ac", b"F1Tg", b"F1Mn")];
+
+// Plausibility gate: reject failure modes (0.0 C from a bad key; absurd highs).
+// Returns None to mean "hold last good value".
+fn plausible_temp(t: f64) -> Option<f64> {
+    if (1.0..=110.0).contains(&t) { Some(t) } else { None }
+}
+
+fn read_temp(smc: &smc::SMC) -> Option<f64> {
+    let hot = CPU_KEYS.iter().filter_map(|k| read_f32(smc, k)).fold(f64::MIN, f64::max);
+    if hot == f64::MIN { return None; }
+    plausible_temp(hot)
+}
+
+// True iff every readable fan is essentially at its floor (knee not yet crossed).
+// Tolerance absorbs idle wobble (e.g. actual 2282 vs min 2317).
+fn fans_at_floor(smc: &smc::SMC) -> bool {
+    for (ac, _tg, mn) in FAN_KEYS {
+        if let (Some(a), Some(m)) = (read_f32(smc, ac), read_f32(smc, mn)) {
+            if a > m + 150.0 { return false; }
+        }
+    }
+    true
+}
+
+fn read_fans_max_rpm(smc: &smc::SMC) -> f64 {
+    FAN_KEYS.iter().filter_map(|(ac, _, _)| read_f32(smc, ac)).fold(0.0, f64::max)
+}
 
 #[derive(Clone, Debug)]
 struct Config {
@@ -161,7 +206,13 @@ fn main() {
     match arg.as_str() {
         "--help" | "-h"  => print!("{HELP}"),
         "--selftest"     => { std::process::exit(run_selftest()); }
-        "--probe"        => { println!("probe: not implemented yet"); }
+        "--probe" => {
+            let smc = smc::SMC::new().expect("open SMC");
+            let t = read_temp(&smc);
+            println!("cpu temp:  {}", t.map(|v| format!("{v:.1} C")).unwrap_or("(implausible)".into()));
+            println!("fan max:   {:.0} rpm", read_fans_max_rpm(&smc));
+            println!("at floor:  {}", fans_at_floor(&smc));
+        }
         "--observe"      => { println!("observe: not implemented yet"); }
         "--list-managed" => { println!("list-managed: not implemented yet"); }
         "" => { println!("run: not implemented yet; setpoint={:.1}", cfg.setpoint()); }
