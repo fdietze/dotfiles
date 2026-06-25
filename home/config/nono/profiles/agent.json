@@ -26,6 +26,7 @@
   "filesystem": {
     "allow": [
       "$WORKDIR",
+      "$HOME/projects/dotfiles",
       "$HOME/.claude",
       "$HOME/.opencode",
       "$HOME/.pi",
