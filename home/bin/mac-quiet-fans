@@ -14,8 +14,47 @@
 // keeping fans quiet. Sensing via the `smc` crate raw read_key (its convenience
 // methods are Intel-only and fail on Apple Silicon). See
 // docs/superpowers/specs/2026-06-25-mac-quiet-fans-design.md
+use std::collections::{HashMap, HashSet};
 use std::env;
 use four_char_code::FourCharCode;
+
+// One process line we care about.
+struct Proc { pid: i32, ppid: i32, cpu: f64 }
+
+// Current user's processes with pid, ppid, %cpu (own uid only -> signalable).
+fn ps_snapshot() -> Vec<Proc> {
+    let me = unsafe { libc::getuid() };
+    let mut v = Vec::new();
+    if let Ok(out) = std::process::Command::new("ps").args(["-Ao", "pid=,ppid=,uid=,%cpu="]).output() {
+        for line in String::from_utf8_lossy(&out.stdout).lines() {
+            let f: Vec<&str> = line.split_whitespace().collect();
+            if f.len() != 4 { continue; }
+            if let (Ok(pid), Ok(ppid), Ok(uid), Ok(cpu)) =
+                (f[0].parse::<i32>(), f[1].parse::<i32>(), f[2].parse::<u32>(), f[3].parse::<f64>())
+            {
+                if uid == me { v.push(Proc { pid, ppid, cpu }); }
+            }
+        }
+    }
+    v
+}
+
+// Update debounce counters; return currently-managed pid set.
+// `debounce` maps pid -> consecutive ticks hot (capped); negative = ticks cooled.
+// Self (and own children) excluded so the governor never SIGSTOPs itself.
+fn scan_managed(cfg: &Config, self_pid: i32, debounce: &mut HashMap<i32, i32>) -> Vec<i32> {
+    let snap = ps_snapshot();
+    let hot: HashSet<i32> = snap.iter()
+        .filter(|p| p.pid != self_pid && p.ppid != self_pid && p.cpu >= cfg.cpu_threshold)
+        .map(|p| p.pid).collect();
+    let alive: HashSet<i32> = snap.iter().map(|p| p.pid).collect();
+    let dt = cfg.debounce_ticks as i32;
+    for &pid in &hot { let c = debounce.entry(pid).or_insert(0); *c = (*c + 1).min(dt); }
+    let cooled: Vec<i32> = debounce.keys().cloned().filter(|p| !hot.contains(p)).collect();
+    for pid in cooled { *debounce.get_mut(&pid).unwrap() -= 1; }
+    debounce.retain(|pid, &mut c| alive.contains(pid) && c > -dt);
+    debounce.iter().filter(|(_, &c)| c >= dt).map(|(&pid, _)| pid).collect()
+}
 
 // Raw SMC read of a 4-char key as f32 (temps + fan RPM are all `flt` here).
 // The smc crate's convenience methods (fans/cpus_temperature) are Intel-only and
@@ -233,7 +272,20 @@ fn main() {
                 std::thread::sleep(std::time::Duration::from_millis(2000));
             }
         }
-        "--list-managed" => { println!("list-managed: not implemented yet"); }
+        "--list-managed" => {
+            let self_pid = std::process::id() as i32;
+            let mut debounce = HashMap::new();
+            let mut managed = Vec::new();
+            for _ in 0..cfg.debounce_ticks {
+                managed = scan_managed(&cfg, self_pid, &mut debounce);
+                std::thread::sleep(std::time::Duration::from_millis(300));
+            }
+            println!("threshold {:.0}% CPU; managed pids: {:?}", cfg.cpu_threshold, managed);
+            for pid in &managed {
+                let _ = std::process::Command::new("ps")
+                    .args(["-o", "pid=,%cpu=,comm=", "-p", &pid.to_string()]).status();
+            }
+        }
         "" => { println!("run: not implemented yet; setpoint={:.1}", cfg.setpoint()); }
         other => { eprintln!("unknown arg: {other}\n{HELP}"); std::process::exit(2); }
     }
