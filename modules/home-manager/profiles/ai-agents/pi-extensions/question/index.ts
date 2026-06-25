@@ -1,7 +1,9 @@
 /**
  * Question Tool — always multi-select checkboxes + combinable custom note.
- * Full custom UI. Note field is focused (edit mode) on open. Enter submits the
- * whole set from anywhere; Esc in edit returns to navigation; Esc in navigation
+ * Full custom UI. Note field is focused on open. ↑/↓ navigate all rows
+ * (options + note) and move into/out of the note field directly; no edit/nav
+ * mode. Space toggles a checkbox on an option row, or types into the note when
+ * the note row is focused. Enter submits the whole set from anywhere; Esc
  * cancels. All text wraps to terminal width (wrapTextWithAnsi).
  * Pure result/cursor logic lives in ./core.ts (unit-tested).
  */
@@ -70,9 +72,11 @@ export default function question(pi: ExtensionAPI) {
 			const result = await ctx.ui.custom<{ selected: string[]; note: string | null; content: string } | null>(
 				(tui, theme, _kb, done) => {
 					const checked: boolean[] = params.options.map(() => false);
-					// Note row sits after all option rows. Focused + editable on open.
+					// Note row sits after all option rows; cursor starts there so the
+					// note field is focused on open. Cursor position alone determines
+					// behavior — no separate edit/nav mode (KISS): a single-line note
+					// has no in-editor up/down, so arrows navigate rows globally.
 					let cursor = params.options.length;
-					let mode: "edit" | "nav" = "edit";
 					let cachedLines: string[] | undefined;
 
 					const editorTheme: EditorTheme = {
@@ -98,28 +102,19 @@ export default function question(pi: ExtensionAPI) {
 					}
 
 					function handleInput(data: string) {
-						// Enter submits the whole set from anywhere, including edit mode.
+						// Enter submits the whole set from anywhere.
 						if (matchesKey(data, Key.enter)) {
 							submit();
 							return;
 						}
-
-						if (mode === "edit") {
-							if (matchesKey(data, Key.escape)) {
-								mode = "nav";
-								refresh();
-								return;
-							}
-							editor.handleInput(data);
-							refresh();
-							return;
-						}
-
-						// nav mode
+						// Esc cancels from anywhere.
 						if (matchesKey(data, Key.escape)) {
 							done(null);
 							return;
 						}
+						// Up/Down navigate rows globally — they move into and out of the
+						// note field directly (no Esc/Space needed), since a single-line
+						// note has no in-editor up/down meaning.
 						if (matchesKey(data, Key.up)) {
 							cursor = clampCursor(cursor - 1, params.options.length);
 							refresh();
@@ -130,22 +125,14 @@ export default function question(pi: ExtensionAPI) {
 							refresh();
 							return;
 						}
+						// On the note row the editor is active: forward all other input
+						// (including Space, which types a space into the note).
 						if (isNoteRow(cursor, params.options.length)) {
-							// Space or any printable char enters edit; forward printables to editor.
-							if (matchesKey(data, Key.space)) {
-								mode = "edit";
-								refresh();
-								return;
-							}
-							if (data.length === 1 && data >= " " && data !== "\x7f") {
-								mode = "edit";
-								editor.handleInput(data);
-								refresh();
-								return;
-							}
+							editor.handleInput(data);
+							refresh();
 							return;
 						}
-						// option row: Space toggles its checkbox
+						// Option row: Space toggles its checkbox.
 						if (matchesKey(data, Key.space)) {
 							checked[cursor] = !checked[cursor];
 							refresh();
@@ -172,7 +159,7 @@ export default function question(pi: ExtensionAPI) {
 
 						for (let i = 0; i < params.options.length; i++) {
 							const opt = params.options[i];
-							const onRow = mode === "nav" && cursor === i;
+							const onRow = cursor === i;
 							const box = checked[i] ? "[x]" : "[ ]";
 							// 2-col gutter: "> " (accent) when focused, "  " otherwise.
 							const prefix = onRow ? theme.fg("accent", "> ") : "  ";
@@ -187,17 +174,14 @@ export default function question(pi: ExtensionAPI) {
 
 						lines.push("");
 						const noteFocused = isNoteRow(cursor, params.options.length);
-						const notePointer = mode === "nav" && noteFocused ? theme.fg("accent", "> ") : "  ";
-						lines.push(truncateToWidth(notePointer + theme.fg("muted", "Note:") + (mode === "edit" ? theme.fg("accent", " ✎") : ""), width));
+						const notePointer = noteFocused ? theme.fg("accent", "> ") : "  ";
+						lines.push(truncateToWidth(notePointer + theme.fg("muted", "Note:") + (noteFocused ? theme.fg("accent", " ✎") : ""), width));
 						for (const line of editor.render(width - 2)) {
 							lines.push(truncateToWidth(` ${line}`, width));
 						}
 
 						lines.push("");
-						const hint =
-							mode === "edit"
-								? " Enter submit • Esc to navigate options"
-								: " ↑↓ move • Space toggle/edit note • Enter submit • Esc cancel";
+						const hint = " ↑↓ move • Space toggle • Enter submit • Esc cancel";
 						lines.push(truncateToWidth(theme.fg("dim", hint), width));
 						lines.push(truncateToWidth(theme.fg("accent", "─".repeat(width)), width));
 
