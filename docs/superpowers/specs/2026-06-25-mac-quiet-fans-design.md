@@ -156,6 +156,40 @@ user == felix  AND  %CPU ≥ threshold (default 50%)  AND  pid ∉ {self + own c
 - Proc exits or cools (after debounce) → drop it **and `SIGCONT` it on the way
   out** — never leave a dropped/exited proc paused.
 
+## GPU coverage via fan-RPM backstop (min-selector) — added after CPU version shipped
+
+**Problem found in testing:** a Metal/GPU benchmark (`bench-metal`, only 47% CPU)
+spun fans to 4830 RPM while CPU temp was 63-79C and GPU temp only ~52C. The
+fans ramped on **power draw / heat rate**, not absolute temperature. The
+CPU-scoped governor missed this entirely: CPU temp below setpoint (no throttle)
+and the heat source below the 50% CPU selection threshold (not even selected).
+
+**Per-process GPU attribution is unavailable** on macOS without sudo/private
+APIs (`ps` has no GPU field; `ioreg` IOAccelerator is device-level only;
+`powermetrics` needs root and still doesn't attribute per-PID). Confirmed dead
+end. But GPU workloads have a **host-side CPU thread** (bench-metal 47%), and
+SIGSTOP-ing that process halts its GPU submission too. So GPU jobs are caught by
+**lowering the CPU selection threshold to 30%** (only bites when throttling,
+since apply_duty never pauses anyone at duty=100%).
+
+**GPU temp rejected as a control signal** — it is a weak proxy (fans were loud at
+an unremarkable 52C), and a GPU knee would be near-impossible to calibrate.
+
+**Control structure: min-selector override control** (classic Regelungstechnik) —
+two independent PI loops, `duty = min(duty_cpu, duty_fan)`, most-restrictive wins:
+- **CPU-temp loop:** fast, preemptive; signal max(TCMb,TCDX); setpoint knee-margin.
+- **Fan-RPM loop:** universal backstop; signal `fan_excess = max over fans of
+  (F*Tg - F*Mn)`; setpoint `QF_FAN_SETPOINT_RPM` (=400, the floor tolerance);
+  own gains `QF_FAN_KP` (~0.0006 duty/RPM), `QF_FAN_TI` (~30s). **No calibration**
+  (setpoint is a known constant), directly targets the goal (quiet fans), so it
+  covers GPU and any future heat source that CPU temp misses.
+- Reuses the same `PiController` (anti-windup) for both loops; the fan loop just
+  feeds `fan_excess` as its "temp" and 400 as setpoint.
+
+**Honest limits:** GPU throttling is slower (the fan-RPM loop closes around the
+OS's own fan controller; conservative gains avoid hunting), and a GPU job with
+<30% host CPU still evades selection.
+
 ## Architecture (functional core / imperative shell)
 
 Single rust-script file, conceptually three units:

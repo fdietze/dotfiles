@@ -119,12 +119,25 @@ fn read_fans_max_rpm(smc: &smc::SMC) -> f64 {
     FAN_KEYS.iter().filter_map(|(ac, _, _)| read_f32(smc, ac)).fold(0.0, f64::max)
 }
 
+// Fan target-excess = how far the hottest fan's commanded TARGET sits above its
+// min key. The fan-RPM backstop loop controls this toward fan_setpoint_rpm. None
+// (no fan readable) -> caller treats as 0 excess (don't throttle on fan account).
+fn read_fan_excess(smc: &smc::SMC) -> Option<f64> {
+    let ex = FAN_KEYS.iter()
+        .filter_map(|(_ac, tg, mn)| Some(read_f32(smc, tg)? - read_f32(smc, mn)?))
+        .fold(f64::MIN, f64::max);
+    if ex == f64::MIN { None } else { Some(ex) }
+}
+
 #[derive(Clone, Debug)]
 struct Config {
     knee_c: f64,         // measured fan-knee die temperature (constant for this machine)
     margin_c: f64,       // setpoint = knee_c - margin_c
-    kp: f64,             // PI proportional gain (duty per degree)
-    ti_s: f64,           // PI integral time (seconds) ~ thermal tau
+    kp: f64,             // CPU-loop PI proportional gain (duty per degree)
+    ti_s: f64,           // CPU-loop PI integral time (seconds) ~ thermal tau
+    fan_kp: f64,         // fan-loop PI gain (duty per RPM of target-excess)
+    fan_ti_s: f64,       // fan-loop PI integral time (seconds)
+    fan_setpoint_rpm: f64, // allowed fan target-excess over min before throttling
     cpu_threshold: f64,  // %CPU to ADD a process to the managed set
     release_threshold: f64, // %CPU below which a managed process is RELEASED (hysteresis)
     debounce_ticks: u32, // consecutive scans above/below threshold before add/drop
@@ -148,7 +161,14 @@ impl Config {
             margin_c:       f("QF_MARGIN_C", 3.0),
             kp:             f("QF_KP", 0.05),
             ti_s:           f("QF_TI_S", 30.0),
-            cpu_threshold:  f("QF_CPU_THRESHOLD", 50.0),
+            // Fan-loop gains are in duty-per-RPM: ~0.0006 spans full duty over the
+            // ~1600 RPM between the 400 setpoint and a ~2000 RPM real ramp.
+            fan_kp:           f("QF_FAN_KP", 0.0006),
+            fan_ti_s:         f("QF_FAN_TI", 30.0),
+            fan_setpoint_rpm: f("QF_FAN_SETPOINT_RPM", 400.0),
+            // 30% (not 50%) so GPU jobs whose host thread is moderate (e.g. a Metal
+            // benchmark ~47%) are caught; only bites while throttling.
+            cpu_threshold:  f("QF_CPU_THRESHOLD", 30.0),
             // Must be below d_min*100 so a process throttled to the floor stays
             // managed; above idle (~0) so a finished process is released.
             release_threshold: f("QF_RELEASE_THRESHOLD", 8.0),
@@ -175,15 +195,16 @@ struct PiController {
 }
 
 impl PiController {
+    fn with(kp: f64, ti_s: f64, setpoint: f64, d_min: f64, d_max: f64) -> PiController {
+        PiController { kp, ki: kp / ti_s, integral: 0.0, d_min, d_max, setpoint }
+    }
+    // CPU-temp loop: control die temp to knee - margin.
     fn new(cfg: &Config) -> PiController {
-        PiController {
-            kp: cfg.kp,
-            ki: cfg.kp / cfg.ti_s,
-            integral: 0.0,
-            d_min: cfg.d_min,
-            d_max: cfg.d_max,
-            setpoint: cfg.setpoint(),
-        }
+        Self::with(cfg.kp, cfg.ti_s, cfg.setpoint(), cfg.d_min, cfg.d_max)
+    }
+    // Fan-RPM backstop loop: control fan target-excess to fan_setpoint_rpm.
+    fn new_fan(cfg: &Config) -> PiController {
+        Self::with(cfg.fan_kp, cfg.fan_ti_s, cfg.fan_setpoint_rpm, cfg.d_min, cfg.d_max)
     }
 
     // dt in seconds. Returns duty in [d_min, d_max].
@@ -208,7 +229,8 @@ fn run_selftest() -> i32 {
     let cfg = Config {
         kp: 0.1, ti_s: 20.0, d_min: 0.15, d_max: 1.0,
         knee_c: 80.0, margin_c: 0.0, // setpoint = 80
-        cpu_threshold: 50.0, release_threshold: 8.0, debounce_ticks: 3, window_ms: 200, tick_ms: 1000,
+        fan_kp: 0.0006, fan_ti_s: 30.0, fan_setpoint_rpm: 400.0,
+        cpu_threshold: 30.0, release_threshold: 8.0, debounce_ticks: 3, window_ms: 200, tick_ms: 1000,
     };
     let mut failures = 0;
     macro_rules! check { ($name:expr, $cond:expr) => {
@@ -246,6 +268,17 @@ fn run_selftest() -> i32 {
         c.integral = 100.0; // ki*100 = 0.5, within [d_min, d_max]
         let d = c.update(80.0, 1.0);
         check!("steady duty from integral at setpoint", (d - (cfg.kp / cfg.ti_s) * 100.0).abs() < 1e-9);
+    }
+
+    // 5. Fan backstop loop: excess well above setpoint parks duty at floor; and
+    //    the min-selector picks the more restrictive of CPU vs fan duty.
+    {
+        let mut fan = PiController::new_fan(&cfg);
+        let mut d = 1.0;
+        for _ in 0..50 { d = fan.update(2000.0, 1.0); } // 2000 rpm excess >> 400 setpoint
+        check!("fan loop floors duty on big excess", (d - cfg.d_min).abs() < 1e-9);
+        let duty_cpu = 0.9_f64;
+        check!("min-selector picks more restrictive", duty_cpu.min(d) == d);
     }
 
     if failures == 0 { println!("PASS"); 0 } else { println!("{failures} FAILED"); 1 }
@@ -294,6 +327,7 @@ USAGE:
 
 TUNING (env vars, no recompile):
   QF_KNEE_C QF_MARGIN_C QF_KP QF_TI_S QF_CPU_THRESHOLD QF_RELEASE_THRESHOLD
+  QF_FAN_KP QF_FAN_TI QF_FAN_SETPOINT_RPM
   QF_DEBOUNCE_TICKS QF_WINDOW_MS QF_D_MIN QF_D_MAX QF_TICK_MS
 ";
 
@@ -311,7 +345,8 @@ fn run_loop(cfg: &Config) {
         signal_hook::flag::register(sig, term.clone()).expect("register signal");
     }
 
-    let mut pi = PiController::new(cfg);
+    let mut pi_cpu = PiController::new(cfg);
+    let mut pi_fan = PiController::new_fan(cfg);
     let mut debounce: HashMap<i32, i32> = HashMap::new();
     let mut ema: Option<f64> = None; // light temperature filter
     let alpha = 0.4;                  // EMA weight on new sample
@@ -333,7 +368,12 @@ fn run_loop(cfg: &Config) {
             ema = Some(match ema { Some(e) => alpha * raw + (1.0 - alpha) * e, None => raw });
         }
         let temp = ema.unwrap_or(cfg.setpoint()); // no reading yet -> neutral
-        let duty = pi.update(temp, dt);
+        // Min-selector override control: most-restrictive loop wins. CPU-temp loop
+        // (fast) handles CPU heat; fan-RPM backstop (slow) handles GPU/anything.
+        let fan_excess = read_fan_excess(&smc).unwrap_or(0.0); // unreadable -> no fan throttle
+        let duty_cpu = pi_cpu.update(temp, dt);
+        let duty_fan = pi_fan.update(fan_excess, dt);
+        let duty = duty_cpu.min(duty_fan);
 
         if pids.is_empty() {
             std::thread::sleep(std::time::Duration::from_millis(cfg.tick_ms));
@@ -344,7 +384,8 @@ fn run_loop(cfg: &Config) {
                 apply_duty(&pids, duty, cfg.window_ms);
             }
         }
-        eprintln!("temp {temp:5.1}C  duty {:>4.0}%  managed {}", duty * 100.0, pids.len());
+        eprintln!("temp {temp:5.1}C  fan+{fan_excess:4.0}rpm  duty {:>4.0}% (cpu {:>3.0} fan {:>3.0})  managed {}",
+                  duty * 100.0, duty_cpu * 100.0, duty_fan * 100.0, pids.len());
     }
     let g = managed.lock().unwrap();
     cont_all(&g);
