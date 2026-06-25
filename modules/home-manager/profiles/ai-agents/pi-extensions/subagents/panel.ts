@@ -30,6 +30,15 @@ interface PanelDeps {
 	cwd: string;
 	/** Hide assistant thinking blocks, aligned with the main UI's hideThinkingBlock setting. */
 	hideThinking: boolean;
+	/** Initial tool-output expansion, seeded from the main UI (ctx.ui.getToolsExpanded). */
+	toolsExpanded: boolean;
+	/** Push a toolsExpanded toggle back to the main UI so both stay in sync. */
+	setToolsExpanded: (expanded: boolean) => void;
+}
+
+// The factory's keybindings arg (pi's KeybindingsManager); we only need action matching.
+interface KeybindingsLike {
+	matches(data: string, keybinding: string): boolean;
 }
 
 interface TuiLike {
@@ -65,8 +74,10 @@ function renderComponentLines(make: () => { render(w: number): string[] }, width
 	}
 }
 
-export function createSubagentsPanel(deps: PanelDeps, tui: TuiLike, theme: ThemeLike, done: () => void) {
+export function createSubagentsPanel(deps: PanelDeps, tui: TuiLike, theme: ThemeLike, kb: KeybindingsLike, done: () => void) {
 	let selectedIndex = 0;
+	// Tool-output expansion, seeded from main (ctrl+o). Toggled in-panel and pushed back to main.
+	let toolsExpanded = deps.toolsExpanded;
 	let scrollOffset = 0;
 	let followBottom = true; // show the newest lines by default
 	let hasAbove = false;
@@ -101,7 +112,9 @@ export function createSubagentsPanel(deps: PanelDeps, tui: TuiLike, theme: Theme
 	const rebindView = () => {
 		unsubView?.();
 		unsubView = undefined;
-		streamingMessage = undefined;
+		// Seed from the agent's live in-progress message so "Thinking..." shows immediately on
+		// switch (a slow-thinking agent may not emit its next delta event for seconds).
+		streamingMessage = agents()[selectedIndex]?.view?.getStreamingMessage?.() as RawMessage | undefined;
 		const rec = agents()[selectedIndex];
 		if (rec?.view)
 			unsubView = rec.view.subscribe((e) => {
@@ -144,6 +157,7 @@ export function createSubagentsPanel(deps: PanelDeps, tui: TuiLike, theme: Theme
 				comp.setArgsComplete();
 				const res = findToolResult(msgs as { role?: string; toolCallId?: string }[], call.id);
 				if (res) comp.updateResult(res as never);
+				comp.setExpanded(toolsExpanded); // mirror the main UI's ctrl+o tool-output expansion
 				return comp;
 			},
 			width,
@@ -230,6 +244,13 @@ export function createSubagentsPanel(deps: PanelDeps, tui: TuiLike, theme: Theme
 			// Scroll-Down: PgDn / Ctrl+D / Shift+Down
 			if (matchesKey(data, Key.pageDown) || matchesKey(data, Key.ctrl("d")) || matchesKey(data, Key.shift("down"))) {
 				scrollOffset += SCROLL_STEP; // render re-sticks to the bottom when at the end
+				refresh();
+				return;
+			}
+			// ctrl+o: toggle tool-output expansion (matches the main UI; respects user rebinds).
+			if (kb.matches(data, "app.tools.expand")) {
+				toolsExpanded = !toolsExpanded;
+				deps.setToolsExpanded(toolsExpanded); // keep main in sync
 				refresh();
 				return;
 			}

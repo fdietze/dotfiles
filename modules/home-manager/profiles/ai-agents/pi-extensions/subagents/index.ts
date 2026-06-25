@@ -793,12 +793,22 @@ export default function subagents(pi: ExtensionAPI) {
 			panelOpen = true;
 			updateStatus(); // hide the redundant persistent roster
 			const hideThinking = await getHideThinking(); // align panel thinking with the main UI
+			// Seed tool-output expansion from the main UI so ctrl+o state is inherited (and synced back).
+			const toolsExpanded = ctx.ui.getToolsExpanded?.() ?? false;
 			try {
-				await ctx.ui.custom<void>((tui, theme, _kb, done) =>
+				await ctx.ui.custom<void>((tui, theme, kb, done) =>
 					createSubagentsPanel(
-						{ engine, cwd, hideThinking, route: (to, content) => void engine.route("main", to, content) },
+						{
+							engine,
+							cwd,
+							hideThinking,
+							toolsExpanded,
+							setToolsExpanded: (v) => ctx.ui.setToolsExpanded?.(v),
+							route: (to, content) => void engine.route("main", to, content),
+						},
 						tui,
 						theme,
+						kb,
 						done,
 					),
 				);

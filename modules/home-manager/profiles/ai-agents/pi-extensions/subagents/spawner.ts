@@ -85,11 +85,17 @@ export function createSpawner(deps: SpawnerDeps): Spawner {
 
 	// Subscribe to a background session's lifecycle to enforce the turn budget and
 	// track streaming state.
-	const subscribeBackground = (name: string, session: SessionLike): (() => void) => {
+	// streamingRef.msg holds the current turn's in-progress assistant message so the panel can
+	// seed it on switch (view.getStreamingMessage). The partial lives only here mid-turn.
+	const subscribeBackground = (name: string, session: SessionLike, streamingRef: { msg: unknown }): (() => void) => {
 		return session.subscribe((ev) => {
 			if (ev.type === "turn_start") {
 				const r = engine.recordTurnStart(name);
 				if (r.abort) void session.abort();
+			}
+			if (ev.type === "message_start" || ev.type === "message_update") {
+				const msg = ev.message as { role?: string } | undefined;
+				if (msg?.role === "assistant") streamingRef.msg = msg;
 			}
 			if (ev.type === "agent_start" || ev.type === "message_start") {
 				engine.setStreaming(name, true);
@@ -104,6 +110,7 @@ export function createSpawner(deps: SpawnerDeps): Spawner {
 			if (ev.type === "tool_execution_start")
 				engine.setActivity(name, "tool", (ev as { toolName?: string }).toolName);
 			if (ev.type === "agent_end") {
+				streamingRef.msg = undefined; // turn done → partial finalized into session.messages
 				engine.setStreaming(name, false);
 				// Surface the turn's terminal outcome at idle (error after retries / truncated).
 				engine.setStopReason(name, lastStopReason(session.messages));
@@ -135,15 +142,17 @@ export function createSpawner(deps: SpawnerDeps): Spawner {
 			},
 			isStreaming: () => session.isStreaming,
 		};
+		const streamingRef: { msg: unknown } = { msg: undefined };
 		const view: AgentView = {
 			getMessages: () => session.messages,
 			// Only the spawn prompt — not the full session.systemPrompt (infra preamble, AGENTS.md,
 			// skills, etc.).
 			getSystemPrompt: () => systemPrompt,
 			getContextUsage: () => session.getContextUsage(),
+			getStreamingMessage: () => streamingRef.msg,
 			subscribe: (l) => session.subscribe(l),
 		};
-		return { handle, view, dispose: subscribeBackground(name, session) };
+		return { handle, view, dispose: subscribeBackground(name, session, streamingRef) };
 	};
 
 	const restoreAgent = (spec: RestoreSpec): void => {

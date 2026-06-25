@@ -12,7 +12,7 @@ class FakeSession implements SessionLike {
 	getContextUsage() {
 		return { tokens: 0, contextWindow: 1000, percent: 0 };
 	}
-	private listeners: ((e: { type: string }) => void)[] = [];
+	private listeners: ((e: { type: string; message?: unknown }) => void)[] = [];
 	async sendUserMessage(text: string, options?: { deliverAs?: string }) {
 		this.delivered.push(text);
 		this.lastDeliverAs = options?.deliverAs;
@@ -20,12 +20,12 @@ class FakeSession implements SessionLike {
 	async abort() {
 		this.aborted++;
 	}
-	subscribe(l: (e: { type: string }) => void) {
+	subscribe(l: (e: { type: string; message?: unknown }) => void) {
 		this.listeners.push(l);
 		return () => {};
 	}
-	emit(type: string) {
-		for (const l of this.listeners) l({ type });
+	emit(type: string, message?: unknown) {
+		for (const l of this.listeners) l({ type, message });
 	}
 }
 
@@ -93,6 +93,33 @@ test("smoke: spawn -> deliver -> reply -> budget abort -> halt", async () => {
 	engine.halt();
 	const blocked = await engine.route("main", "echo", "again");
 	assert.equal(blocked.ok, false);
+});
+
+test("view.getStreamingMessage tracks the in-progress assistant message, cleared on agent_end", async () => {
+	// Regression: the panel seeds "Thinking..." on switch from this; without it a slow-thinking
+	// agent shows no label until its next delta event arrives (seconds later).
+	const engine = new Engine({ maxAgents: 8, maxSpawnDepth: 3, turnBudget: 5 });
+	withMain(engine, []);
+	const sessions = new Map<string, FakeSession>();
+	const spawner = createSpawner({
+		engine,
+		resolveModel: () => ({ provider: "t", id: "m", model: {} }),
+		createSession: async (spec) => {
+			const s = new FakeSession();
+			sessions.set(spec.name, s);
+			return { session: s };
+		},
+	});
+	await spawner.spawnAgent({ name: "echo", systemPrompt: "r" }, "main");
+	const view = engine.get("echo")?.view;
+	assert.equal(view?.getStreamingMessage?.(), undefined); // idle
+
+	const partial = { role: "assistant", content: [{ type: "thinking", thinking: "..." }] };
+	sessions.get("echo")?.emit("message_update", partial);
+	assert.equal(view?.getStreamingMessage?.(), partial); // mid-turn
+
+	sessions.get("echo")?.emit("agent_end");
+	assert.equal(view?.getStreamingMessage?.(), undefined); // finalized into session.messages
 });
 
 test("deliver is fire-and-forget: does not await the target's turn", async () => {

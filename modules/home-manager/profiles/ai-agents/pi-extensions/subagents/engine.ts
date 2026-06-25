@@ -18,6 +18,12 @@ export interface AgentView {
 	/** The system prompt the agent runs with (shown at the top of the transcript). */
 	getSystemPrompt?(): string;
 	getContextUsage(): { tokens: number | null; contextWindow: number; percent: number | null } | undefined;
+	/**
+	 * The in-progress assistant message of the current turn, or undefined when idle. Lives only
+	 * in the event stream (session.messages gets it at message_end), so the panel seeds it on
+	 * switch — otherwise a slow-thinking agent shows no "Thinking..." until its next delta event.
+	 */
+	getStreamingMessage?(): unknown;
 	// Listener receives the full session event; `message` carries streaming deltas
 	// (used by the panel for live streaming). Loosely typed to stay SDK-free.
 	subscribe(listener: (e: { type: string; message?: unknown; assistantMessageEvent?: unknown }) => void): () => void;
