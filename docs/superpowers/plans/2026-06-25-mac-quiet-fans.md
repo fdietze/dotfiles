@@ -462,7 +462,10 @@ Replace the `"--observe"` arm body with:
 
 - [ ] **Step 2: Smoke-test (brief)**
 
-Run: `timeout 6 home/bin/mac-quiet-fans --observe || true`
+Run (macOS has no `timeout`; background + kill):
+```bash
+home/bin/mac-quiet-fans --observe > /tmp/obs.log 2>&1 & P=$!; sleep 6; kill $P; tail -6 /tmp/obs.log
+```
 Expected: prints `watching...` and, while idle, `floor: NN C` lines. (Catching an actual crossing requires real load; that happens during acceptance, Task 8.)
 
 - [ ] **Step 3: Commit**
@@ -482,6 +485,11 @@ git commit -m "feat(mac-quiet-fans): --observe to learn the constant fan knee"
 
 Scan the user's hot processes via `ps`. Exclude self + own children (correctness).
 Debounce so brief spikes don't churn the set.
+
+**Implementation note (added during execution):** selection needs **hysteresis**
+— throttling lowers a process's measured %CPU, which would deselect it. ADD at
+`cpu_threshold` (50%), RELEASE only below `release_threshold` (8%, env
+`QF_RELEASE_THRESHOLD`, below the 15% duty floor). Without this, `managed` flaps.
 
 - [ ] **Step 1: Add selector**
 
@@ -734,10 +742,10 @@ Run:
 ```bash
 yes > /dev/null & HOG=$!
 # Force setpoint below current temp so the loop must throttle the hog.
-QF_KNEE_C=40 QF_MARGIN_C=0 QF_CPU_THRESHOLD=50 QF_TICK_MS=1000 \
-  timeout 8 home/bin/mac-quiet-fans
-kill $HOG 2>/dev/null
-ps -o stat=,%cpu= -p $HOG 2>/dev/null   # should be gone (we killed it)
+(QF_KNEE_C=40 QF_MARGIN_C=0 QF_CPU_THRESHOLD=50 QF_TICK_MS=1000 \
+  home/bin/mac-quiet-fans > /tmp/run.log 2>&1 & echo $! > /tmp/run.pid)
+sleep 8; kill $(cat /tmp/run.pid); sleep 1; kill $HOG 2>/dev/null
+tail -8 /tmp/run.log
 ```
 Expected: log lines show `duty` dropping toward `15%` (d_min) because temp is way above the forced 40°C setpoint; the `yes` process gets throttled (low avg CPU during the run). After `timeout`, the tool prints "all processes resumed" and exits cleanly.
 

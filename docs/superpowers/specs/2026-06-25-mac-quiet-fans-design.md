@@ -139,6 +139,14 @@ user == felix  AND  %CPU ≥ threshold (default 50%)  AND  pid ∉ {self + own c
 - **Debounce (stability, not policy):** require CPU above threshold for ~3 s
   before grabbing, and below for ~3 s before releasing, so brief spikes (quick
   git, page load) don't cause STOP/CONT churn or a flapping managed set.
+- **Selection hysteresis (Schmitt trigger) — added during implementation:**
+  throttling a process *lowers its measured %CPU*, which would drop it below the
+  add-threshold and deselect it, un-throttling it (actuator vs selector fight,
+  observed as `managed` flapping 2->0->2). Fix: asymmetric thresholds. ADD a new
+  process at `cpu_threshold` (default 50%); only RELEASE a managed process below
+  `release_threshold` (default 8%, env `QF_RELEASE_THRESHOLD`). 8% sits below the
+  duty floor (d_min*100 = 15%, so a floor-throttled process reads ~15% and stays
+  managed) and above idle (~0%, so a finished process is released).
 - **Children** that run hot appear as their own heavy procs → caught
   automatically; no process-group logic needed.
 
