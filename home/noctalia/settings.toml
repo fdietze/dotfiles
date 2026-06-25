@@ -117,6 +117,9 @@ show_label = false
 display = "graph"
 show_label = false
 
+[widget.volume]
+show_label = false
+
 [widget.workspaces]
 display = "name"
 empty_color = "on_primary"
