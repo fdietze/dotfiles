@@ -14,6 +14,13 @@
 // keeping fans quiet. Sensing via the `smc` crate raw read_key (its convenience
 // methods are Intel-only and fail on Apple Silicon). See
 // docs/superpowers/specs/2026-06-25-mac-quiet-fans-design.md
+//
+// Usage: run `mac-quiet-fans --observe` once (from a cooled machine, with your
+// real heavy job) to find the fan knee, set QF_KNEE_C (or the from_env default),
+// then run `mac-quiet-fans` alongside heavy jobs. Stop with Ctrl-C; all managed
+// processes are always resumed on exit.
+// Residual risk: SIGKILL (kill -9) of this tool cannot be caught — a managed
+// process could remain stopped; resume manually with `kill -CONT <pid>`.
 use std::collections::{HashMap, HashSet};
 use std::env;
 use four_char_code::FourCharCode;
@@ -126,7 +133,9 @@ impl Config {
         fn f(k: &str, d: f64) -> f64 { env::var(k).ok().and_then(|v| v.parse().ok()).unwrap_or(d) }
         fn u(k: &str, d: u64) -> u64 { env::var(k).ok().and_then(|v| v.parse().ok()).unwrap_or(d) }
         Config {
-            knee_c:         f("QF_KNEE_C", 85.0),
+            // PROVISIONAL default — calibrate per machine via `--observe` from a
+            // cooled baseline with the real workload, then set QF_KNEE_C.
+            knee_c:         f("QF_KNEE_C", 80.0),
             margin_c:       f("QF_MARGIN_C", 3.0),
             kp:             f("QF_KP", 0.05),
             ti_s:           f("QF_TI_S", 30.0),
