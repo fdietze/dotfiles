@@ -13,6 +13,7 @@
       "x-scheme-handler/http" = ["firefox.desktop"];
       "x-scheme-handler/https" = ["firefox.desktop"];
       "x-scheme-handler/about" = ["firefox.desktop"];
+      "text/plain" = ["neovide.desktop"];
       "image/jpeg" = ["feh.desktop"];
       "image/png" = ["feh.desktop"];
       "application/pdf" = ["org.pwmt.zathura-pdf-mupdf.desktop"];
