@@ -1,0 +1,81 @@
+{
+  "extends": [
+    "default"
+  ],
+  "meta": {
+    "name": "project",
+    "version": "0.1.0",
+    "description": "Generic per-project interactive shell jail, auto-entered via direnv. Dev toolchain caches + shell/prompt/direnv/git/nvim configs + AI agent dirs (so agents nest inside the jail; the agent profile's grants are voided by Landlock intersection unless the outer jail grants them too).",
+    "author": "felix"
+  },
+  "security": {
+    "signal_mode": "isolated",
+    "capability_elevation": false
+  },
+  "filesystem": {
+    "allow": [
+      "$WORKDIR",
+      "$HOME/.claude",
+      "$HOME/.claude/skills",
+      "$HOME/.pi",
+      "$HOME/.opencode",
+      "$HOME/.codex",
+      "$HOME/.config/opencode",
+      "$HOME/.agents/skills",
+      "$HOME/.cargo",
+      "$HOME/.cache",
+      "$HOME/.npm",
+      "$HOME/.local/state",
+      "$HOME/.local/share/direnv",
+      "$HOME/.local/share/devbox",
+      "$HOME/.local/share/nvf",
+      "$HOME/.local/share/opencode",
+      "$HOME/.local/share/opentui",
+      "$HOME/.local/share/zoxide",
+      "$HOME/.config/nono/profile-drafts",
+      "/tmp"
+    ],
+    "read": [
+      "$HOME/.config/nono/packages",
+      "$HOME/.config/nono/profiles",
+      "$HOME/.config/direnv",
+      "$HOME/.config/nvf",
+      "$HOME/.config/git",
+      "$HOME/.config/gh",
+      "/nix/store",
+      "/etc",
+      "/run/nixos"
+    ],
+    "allow_file": [
+      "$HOME/.zsh_history.local",
+      "$HOME/.zcompdump",
+      "$HOME/.claude.json",
+      "$HOME/.claude.json.lock",
+      "$HOME/.claude.lock",
+      "$XDG_RUNTIME_DIR/ssh-agent",
+      "/nix/var/nix/daemon-socket/socket"
+    ],
+    "read_file": [
+      "$HOME/.zshrc",
+      "$HOME/.zshenv",
+      "$HOME/.zprofile",
+      "$HOME/.config/starship.toml",
+      "$HOME/.gitconfig",
+      "$HOME/.ssh/known_hosts",
+      "$HOME/.ssh/config"
+    ],
+    "bypass_protection": [
+      "$HOME/.ssh/known_hosts",
+      "$HOME/.ssh/config",
+      "$HOME/.config/gh"
+    ]
+  },
+  "network": {
+    "block": false
+  },
+  "workdir": {
+    "access": "readwrite"
+  },
+  "allow_launch_services": false,
+  "interactive": true
+}
