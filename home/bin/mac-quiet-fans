@@ -44,8 +44,14 @@ fn ps_snapshot() -> Vec<Proc> {
 // Self (and own children) excluded so the governor never SIGSTOPs itself.
 fn scan_managed(cfg: &Config, self_pid: i32, debounce: &mut HashMap<i32, i32>) -> Vec<i32> {
     let snap = ps_snapshot();
+    let dt0 = cfg.debounce_ticks as i32;
+    // Hysteresis: a process already managed is kept while above release_threshold;
+    // a new one is only added above the (higher) cpu_threshold. Prevents our own
+    // throttling (which lowers measured %CPU) from deselecting the process.
+    let already: HashSet<i32> = debounce.iter().filter(|(_, &c)| c >= dt0).map(|(&p, _)| p).collect();
     let hot: HashSet<i32> = snap.iter()
-        .filter(|p| p.pid != self_pid && p.ppid != self_pid && p.cpu >= cfg.cpu_threshold)
+        .filter(|p| p.pid != self_pid && p.ppid != self_pid)
+        .filter(|p| if already.contains(&p.pid) { p.cpu >= cfg.release_threshold } else { p.cpu >= cfg.cpu_threshold })
         .map(|p| p.pid).collect();
     let alive: HashSet<i32> = snap.iter().map(|p| p.pid).collect();
     let dt = cfg.debounce_ticks as i32;
@@ -106,7 +112,8 @@ struct Config {
     margin_c: f64,       // setpoint = knee_c - margin_c
     kp: f64,             // PI proportional gain (duty per degree)
     ti_s: f64,           // PI integral time (seconds) ~ thermal tau
-    cpu_threshold: f64,  // %CPU to consider a process "hot"
+    cpu_threshold: f64,  // %CPU to ADD a process to the managed set
+    release_threshold: f64, // %CPU below which a managed process is RELEASED (hysteresis)
     debounce_ticks: u32, // consecutive scans above/below threshold before add/drop
     window_ms: u64,      // PWM window
     d_min: f64,          // duty floor (always make some progress)
@@ -124,6 +131,9 @@ impl Config {
             kp:             f("QF_KP", 0.05),
             ti_s:           f("QF_TI_S", 30.0),
             cpu_threshold:  f("QF_CPU_THRESHOLD", 50.0),
+            // Must be below d_min*100 so a process throttled to the floor stays
+            // managed; above idle (~0) so a finished process is released.
+            release_threshold: f("QF_RELEASE_THRESHOLD", 8.0),
             debounce_ticks: u("QF_DEBOUNCE_TICKS", 3) as u32,
             window_ms:      u("QF_WINDOW_MS", 200),
             d_min:          f("QF_D_MIN", 0.15),
@@ -180,7 +190,7 @@ fn run_selftest() -> i32 {
     let cfg = Config {
         kp: 0.1, ti_s: 20.0, d_min: 0.15, d_max: 1.0,
         knee_c: 80.0, margin_c: 0.0, // setpoint = 80
-        cpu_threshold: 50.0, debounce_ticks: 3, window_ms: 200, tick_ms: 1000,
+        cpu_threshold: 50.0, release_threshold: 8.0, debounce_ticks: 3, window_ms: 200, tick_ms: 1000,
     };
     let mut failures = 0;
     macro_rules! check { ($name:expr, $cond:expr) => {
@@ -265,9 +275,63 @@ USAGE:
   mac-quiet-fans --help
 
 TUNING (env vars, no recompile):
-  QF_KNEE_C QF_MARGIN_C QF_KP QF_TI_S QF_CPU_THRESHOLD
+  QF_KNEE_C QF_MARGIN_C QF_KP QF_TI_S QF_CPU_THRESHOLD QF_RELEASE_THRESHOLD
   QF_DEBOUNCE_TICKS QF_WINDOW_MS QF_D_MIN QF_D_MAX QF_TICK_MS
 ";
+
+fn run_loop(cfg: &Config) {
+    let smc = smc::SMC::new().expect("open SMC");
+    let self_pid = std::process::id() as i32;
+
+    // Shared managed set so the Guard / shutdown can resume it.
+    let managed = Arc::new(Mutex::new(Vec::<i32>::new()));
+    let _guard = Guard { managed: managed.clone() };
+
+    // Clean shutdown on SIGINT/SIGTERM/SIGHUP: resume everything, then exit.
+    let term = Arc::new(AtomicBool::new(false));
+    for sig in [signal_hook::consts::SIGINT, signal_hook::consts::SIGTERM, signal_hook::consts::SIGHUP] {
+        signal_hook::flag::register(sig, term.clone()).expect("register signal");
+    }
+
+    let mut pi = PiController::new(cfg);
+    let mut debounce: HashMap<i32, i32> = HashMap::new();
+    let mut ema: Option<f64> = None; // light temperature filter
+    let alpha = 0.4;                  // EMA weight on new sample
+    let dt = cfg.tick_ms as f64 / 1000.0;
+
+    println!("mac-quiet-fans: setpoint {:.1} C (knee {:.1} - margin {:.1}), threshold {:.0}% CPU",
+             cfg.setpoint(), cfg.knee_c, cfg.margin_c, cfg.cpu_threshold);
+
+    while !term.load(Ordering::Relaxed) {
+        let pids = scan_managed(cfg, self_pid, &mut debounce);
+        // Resume any process that just left the set (never leave it paused).
+        {
+            let mut g = managed.lock().unwrap();
+            for old in g.iter() { if !pids.contains(old) { send(*old, libc::SIGCONT); } }
+            *g = pids.clone();
+        }
+
+        if let Some(raw) = read_temp(&smc) {
+            ema = Some(match ema { Some(e) => alpha * raw + (1.0 - alpha) * e, None => raw });
+        }
+        let temp = ema.unwrap_or(cfg.setpoint()); // no reading yet -> neutral
+        let duty = pi.update(temp, dt);
+
+        if pids.is_empty() {
+            std::thread::sleep(std::time::Duration::from_millis(cfg.tick_ms));
+        } else {
+            let windows = (cfg.tick_ms / cfg.window_ms).max(1);
+            for _ in 0..windows {
+                if term.load(Ordering::Relaxed) { break; }
+                apply_duty(&pids, duty, cfg.window_ms);
+            }
+        }
+        eprintln!("temp {temp:5.1}C  duty {:>4.0}%  managed {}", duty * 100.0, pids.len());
+    }
+    let g = managed.lock().unwrap();
+    cont_all(&g);
+    println!("\nmac-quiet-fans: stopped, all processes resumed.");
+}
 
 fn main() {
     let arg = env::args().nth(1).unwrap_or_default();
@@ -316,7 +380,7 @@ fn main() {
                     .args(["-o", "pid=,%cpu=,comm=", "-p", &pid.to_string()]).status();
             }
         }
-        "" => { println!("run: not implemented yet; setpoint={:.1}", cfg.setpoint()); }
+        "" => run_loop(&cfg),
         other => { eprintln!("unknown arg: {other}\n{HELP}"); std::process::exit(2); }
     }
 }
