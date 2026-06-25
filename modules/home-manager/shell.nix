@@ -51,6 +51,18 @@ in {
         hostname.disabled = true;
         env_var.STARSHIP_HOST.format = "[@$env_value]($style) ";
         env_var.STARSHIP_HOST.style = "bold green";
+        # nono jail markers, on the top line via $all (next to $env_var):
+        # SANDBOX = lock + active nono profile; PRIVATE_TMP = snowflake (bwrap
+        # private /tmp). Each shows only when its var is set by the auto-enter
+        # hook (above) or enter-sandbox.
+        env_var.SANDBOX.variable = "SANDBOX";
+        env_var.SANDBOX.symbol = ""; # nf lock: kernel-enforced jail
+        env_var.SANDBOX.style = "bold yellow";
+        env_var.SANDBOX.format = "[$symbol $env_value]($style) ";
+        env_var.PRIVATE_TMP.variable = "PRIVATE_TMP";
+        env_var.PRIVATE_TMP.symbol = ""; # nf snowflake: ephemeral private /tmp
+        env_var.PRIVATE_TMP.style = "bold cyan";
+        env_var.PRIVATE_TMP.format = "[$symbol]($style) ";
         git_status.stashed = ""; # disable stash indicator
         python.disabled = true;
         rust.disabled = true;
@@ -161,23 +173,32 @@ in {
           print -Pn "\e]0;$term - zsh %~\a"
       }
 
+      # Enter a nono jail running an interactive zsh, via the enter-sandbox
+      # script (profiles/ai-agents) -- the single source of truth shared with
+      # the agent wrappers: bwrap private /tmp + `nono wrap`, exporting
+      # SANDBOX/PRIVATE_TMP. $1 = profile, $2 = workdir. enter-sandbox ships
+      # with ai-agents (the only nono provider), so the command -v guard makes
+      # this a no-op on hosts without it (e.g. proot/nix-on-droid).
+      function _sandbox_enter {
+          command -v enter-sandbox >/dev/null || return
+          exec enter-sandbox "$1" "$2" zsh
+      }
+
+      # manually enter the per-project jail rooted at $PWD (same jail direnv
+      # auto-enters below). Leave with `exit`.
+      function sandbox {
+          [[ -n $SANDBOX ]] && { echo "already in a sandbox"; return 1; }
+          _sandbox_enter project "$PWD"
+      }
+
       # auto-enter per-project nono sandbox: when direnv activates a project,
-      # re-exec the interactive shell inside a nono jail rooted at the project.
-      # Leave the jail with `exit`. Registered as a precmd hook; direnv's own
-      # precmd hook sets $DIRENV_DIR, so on the cd that loads direnv this may
-      # fire one prompt late, then self-corrects.
-      #   NOSANDBOX=1  escape hatch (no jail)
-      #   SANDBOX=1    set inside the jail, guards re-entry
-      # On hosts without nono (e.g. proot/nix-on-droid) the command -v guard
-      # makes this a no-op.
+      # re-exec the interactive shell inside the project jail. Registered as a
+      # precmd hook; direnv's own precmd hook sets $DIRENV_DIR, so on the cd that
+      # loads direnv this may fire one prompt late, then self-corrects.
       function _sandbox_autoenter {
-          [[ -o interactive ]] || return
-          [[ -n $NOSANDBOX ]] && return
           [[ -n $SANDBOX ]] && return
           [[ -n $DIRENV_DIR ]] || return
-          command -v nono >/dev/null || return
-          export SANDBOX=1
-          exec nono wrap --profile project --workdir "''${DIRENV_DIR#-}" -- zsh
+          _sandbox_enter project "''${DIRENV_DIR#-}"
       }
       autoload -Uz add-zsh-hook
       add-zsh-hook precmd _sandbox_autoenter

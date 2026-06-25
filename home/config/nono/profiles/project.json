@@ -5,7 +5,7 @@
   "meta": {
     "name": "project",
     "version": "0.1.0",
-    "description": "Generic per-project interactive shell jail, auto-entered via direnv. Dev toolchain caches + shell/prompt/direnv/git/nvim configs; no private creds (ssh-agent only).",
+    "description": "Generic per-project interactive shell jail, auto-entered via direnv. Dev toolchain caches + shell/prompt/direnv/git/nvim configs + AI agent dirs (so agents nest inside the jail; the agent profile's grants are voided by Landlock intersection unless the outer jail grants them too).",
     "author": "felix"
   },
   "security": {
@@ -15,6 +15,13 @@
   "filesystem": {
     "allow": [
       "$WORKDIR",
+      "$HOME/.claude",
+      "$HOME/.claude/skills",
+      "$HOME/.pi",
+      "$HOME/.opencode",
+      "$HOME/.codex",
+      "$HOME/.config/opencode",
+      "$HOME/.agents/skills",
       "$HOME/.cargo",
       "$HOME/.cache",
       "$HOME/.npm",
@@ -34,6 +41,7 @@
       "$HOME/.config/direnv",
       "$HOME/.config/nvf",
       "$HOME/.config/git",
+      "$HOME/.config/gh",
       "/nix/store",
       "/etc",
       "/run/nixos"
@@ -41,6 +49,9 @@
     "allow_file": [
       "$HOME/.zsh_history.local",
       "$HOME/.zcompdump",
+      "$HOME/.claude.json",
+      "$HOME/.claude.json.lock",
+      "$HOME/.claude.lock",
       "$XDG_RUNTIME_DIR/ssh-agent",
       "/nix/var/nix/daemon-socket/socket"
     ],
@@ -55,7 +66,8 @@
     ],
     "bypass_protection": [
       "$HOME/.ssh/known_hosts",
-      "$HOME/.ssh/config"
+      "$HOME/.ssh/config",
+      "$HOME/.config/gh"
     ]
   },
   "network": {

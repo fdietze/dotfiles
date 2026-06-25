@@ -18,16 +18,36 @@
   # Low CPU/IO priority so agent subprocesses don't starve interactive work.
   prio = "${pkgs.util-linux}/bin/ionice -c 3 ${pkgs.coreutils}/bin/nice -n 19";
 
-  # Give each sandboxed agent a private, empty /tmp via a bwrap mount namespace
-  # (--dev-bind / / passes the host root through unchanged, --tmpfs /tmp shadows
-  # only /tmp). Host /tmp is then absent inside the agent, which closes the
-  # sandbox escape via host tmux sockets at /tmp/tmux-<uid>/ (connecting there
-  # would run commands in the un-sandboxed host tmux server). /tmp stays usable
-  # for tools. bwrap MUST wrap OUTSIDE nono: nono's seccomp blocks the
-  # unshare/uid-map bwrap needs; nono keeps enforcing Landlock inside.
-  privateTmp = "${pkgs.bubblewrap}/bin/bwrap --dev-bind / / --tmpfs /tmp --";
+  # Single source of truth for entering a nono jail: enter-sandbox <profile>
+  # <workdir> <cmd...>.
+  #
+  # Always `nono wrap` (stacks Landlock and execs, no supervisor): it nests
+  # cleanly when launched inside the per-project jail (shell.nix auto-enter),
+  # where `nono run` cannot -- run writes its session/audit under the protected
+  # ~/.nono, which the outer jail does not grant. Dropping run also drops its
+  # rollback/audit; git is the undo path here.
+  #
+  # bwrap gives a private, empty /tmp (--dev-bind / / passes the host root
+  # through unchanged, --tmpfs /tmp shadows only /tmp), closing the escape via
+  # host tmux sockets at /tmp/tmux-<uid>/ (connecting there would run commands
+  # in the un-sandboxed host tmux server). bwrap MUST wrap OUTSIDE nono (nono's
+  # Landlock denies bwrap's procfs setup once jailed) and cannot run nested, so
+  # it is added only when no private /tmp is around yet; PRIVATE_TMP marks that
+  # one is, so an agent launched inside the project jail does not re-bwrap.
+  # SANDBOX holds the active nono profile (non-empty = in a jail; prompt shows it).
+  enterSandbox = pkgs.writeShellScriptBin "enter-sandbox" ''
+    profile="$1"; workdir="$2"; shift 2
+    export SANDBOX="$profile"
+    if [ -n "''${PRIVATE_TMP:-}" ]; then
+      exec ${pkgs.llm-agents.nono}/bin/nono wrap --profile "$profile" --workdir "$workdir" -- "$@"
+    fi
+    export PRIVATE_TMP=1
+    exec ${pkgs.bubblewrap}/bin/bwrap --dev-bind / / --tmpfs /tmp -- \
+      ${pkgs.llm-agents.nono}/bin/nono wrap --profile "$profile" --workdir "$workdir" -- "$@"
+  '';
 
-  # Wrap an agent: nono-sandboxed `<name>` + un-sandboxed `vanilla-<name>`.
+  # Wrap an agent: nono-sandboxed `<name>` (via enter-sandbox, profile `agent`,
+  # rooted at $PWD) + un-sandboxed `vanilla-<name>`.
   mkAgent = {
     name,
     bin,
@@ -35,8 +55,7 @@
     yolo ? "",
   }: [
     (pkgs.writeShellScriptBin name ''
-      ${env}exec ${prio} ${privateTmp} \
-        ${pkgs.llm-agents.nono}/bin/nono run --profile agent -- \
+      ${env}exec ${prio} ${enterSandbox}/bin/enter-sandbox agent "$PWD" \
         ${bin}${lib.optionalString (yolo != "") " ${yolo}"} "$@"
     '')
     (pkgs.writeShellScriptBin "vanilla-${name}" ''
@@ -47,5 +66,5 @@
 in {
   imports = [./skills.nix ./pi-extensions.nix ./instructions.nix ./paseo.nix];
 
-  home.packages = lib.concatMap mkAgent (import ./agents.nix {inherit pkgs;});
+  home.packages = [enterSandbox] ++ lib.concatMap mkAgent (import ./agents.nix {inherit pkgs;});
 }
