@@ -1,6 +1,7 @@
 [bar.default]
 center = []
 end = [
+    "sysmon",
     "tray",
     "clipboard",
     "network",
@@ -16,8 +17,8 @@ margin_edge = 0
 margin_ends = 0
 radius = 0
 shadow = false
-start = [ "workspaces" ]
-thickness = 30
+start = [ "workspaces", "active_window" ]
+thickness = 25
 
 [calendar]
 enabled = true
@@ -26,19 +27,18 @@ enabled = true
 enabled = false
 
 [idle]
-pre_action_fade_seconds = 10
+behavior_order = [ "idle-behavior", "idle-behavior-2" ]
+pre_action_fade_seconds = 15
 
-    [idle.behavior.lock]
-    enabled = true
-    timeout = 660
-
-    [idle.behavior.lock-and-suspend]
-    enabled = true
-    timeout = 86400
-
-    [idle.behavior.screen-off]
+    [idle.behavior.idle-behavior]
+    action = "screen_off"
     enabled = true
     timeout = 600
+
+    [idle.behavior.idle-behavior-2]
+    action = "lock"
+    enabled = true
+    timeout = 900
 
 [location]
 address = "Beau Bassin-Rose Hill"
@@ -77,25 +77,28 @@ enabled = true
 [shell]
 avatar_path = "/home/felix/.face"
 polkit_agent = true
+settings_show_advanced = true
 
 [theme]
 builtin = "Tokyo-Night"
 custom_palette = "Base16"
-mode = "light"
-source = "custom"
-wallpaper_scheme = "m3-content"
+mode = "dark"
+source = "wallpaper"
+wallpaper_scheme = "m3-rainbow"
 
 [wallpaper]
 directory = "/home/felix/downloads"
+transition = [ "honeycomb" ]
+transition_on_startup = true
 
     [wallpaper.default]
-    path = "/home/felix/downloads/felixdietze_trippy_Bear_with_big_eyes_hypnotizing_you_--ar_199__68a7a350-c34f-4523-9d89-53a4188f955d.png"
+    path = "~/.cache/frottage/current-wallpaper.jpg"
 
     [wallpaper.last]
-    path = "/home/felix/downloads/felixdietze_trippy_Bear_with_big_eyes_hypnotizing_you_--ar_199__68a7a350-c34f-4523-9d89-53a4188f955d.png"
+    path = "~/.cache/frottage/current-wallpaper.jpg"
 
     [wallpaper.monitors.eDP-1]
-    path = "/home/felix/downloads/felixdietze_trippy_Bear_with_big_eyes_hypnotizing_you_--ar_199__68a7a350-c34f-4523-9d89-53a4188f955d.png"
+    path = "~/.cache/frottage/current-wallpaper.jpg"
 
     [[wallpaper.favorite]]
     custom_palette = "Base16"
@@ -106,6 +109,13 @@ directory = "/home/felix/downloads"
 [widget.battery]
 display_mode = "graphic"
 hide_when_full = true
+
+[widget.network]
+show_label = false
+
+[widget.sysmon]
+display = "graph"
+show_label = false
 
 [widget.workspaces]
 display = "name"
