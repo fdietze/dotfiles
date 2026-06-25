@@ -223,6 +223,36 @@ fn run_selftest() -> i32 {
     if failures == 0 { println!("PASS"); 0 } else { println!("{failures} FAILED"); 1 }
 }
 
+// --- actuator + safety -------------------------------------------------------
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex};
+
+fn send(pid: i32, sig: i32) { unsafe { libc::kill(pid as libc::pid_t, sig); } }
+fn cont_all(pids: &[i32]) { for &p in pids { send(p, libc::SIGCONT); } }
+
+// Holds the set we may have paused. Dropped -> resume everything. The single most
+// important safety net (a stuck-paused process = lost work).
+struct Guard { managed: Arc<Mutex<Vec<i32>>> }
+impl Drop for Guard {
+    fn drop(&mut self) {
+        if let Ok(p) = self.managed.lock() { cont_all(&p); }
+    }
+}
+
+// PWM one window: run for duty*window, pause the rest. window << die tau so the
+// die sees smooth average power. d_min>0 guarantees a run phase (progress).
+fn apply_duty(managed: &[i32], duty: f64, window_ms: u64) {
+    let on = (duty.clamp(0.0, 1.0) * window_ms as f64) as u64;
+    let off = window_ms.saturating_sub(on);
+    cont_all(managed); // run phase
+    if on > 0 { std::thread::sleep(std::time::Duration::from_millis(on)); }
+    if off > 0 {
+        for &p in managed { send(p, libc::SIGSTOP); }
+        std::thread::sleep(std::time::Duration::from_millis(off));
+        cont_all(managed); // never end a window paused
+    }
+}
+
 const HELP: &str = "\
 mac-quiet-fans — keep the fans quiet by throttling your hot processes.
 
