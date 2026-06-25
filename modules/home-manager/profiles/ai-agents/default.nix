@@ -36,7 +36,7 @@
   }: [
     (pkgs.writeShellScriptBin name ''
       ${env}exec ${prio} ${privateTmp} \
-        ${pkgs.llm-agents.nono}/bin/nono run --profile agent -- \
+        ${pkgs.llm-agents.nono}/bin/nono wrap --profile agent -- \
         ${bin}${lib.optionalString (yolo != "") " ${yolo}"} "$@"
     '')
     (pkgs.writeShellScriptBin "vanilla-${name}" ''
