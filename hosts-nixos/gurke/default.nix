@@ -419,6 +419,27 @@ in {
   services.ollama.enable = false; # local ai models
   services.qdrant.enable = false; # vector search engine, used for kilo code indexing
 
+  # Self-hosted SearXNG metasearch for the pi web-search extension's privacy
+  # path (queries never leave via a third-party API). The extension's
+  # backend auto-detect uses PI_SEARX_URL, set host-locally in gurke/home.nix.
+  # Bound to loopback only -> no firewall port needed, not reachable off-host.
+  # secret_key only signs CSRF/the rate-limiter on a 127.0.0.1 service, so it
+  # is not a real secret and a store-literal is fine here. Runs as a standalone
+  # server (no uwsgi/nginx), ~100MB idle RAM; engine parsers update on
+  # `nix flake update`. JSON format is required by the extension's API client.
+  # https://nixos.org/manual/nixos/stable/#module-services-searx
+  services.searx = {
+    enable = true;
+    settings = {
+      server = {
+        bind_address = "127.0.0.1";
+        port = 8888;
+        secret_key = "searx-localhost-only-not-a-real-secret";
+      };
+      search.formats = ["html" "json"];
+    };
+  };
+
   # Remove PAM configuration for i3lock
   # security.pam.services.i3lock = { ... };
 
