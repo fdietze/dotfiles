@@ -117,10 +117,11 @@ test("formatFeedLines renders one line per event newest-aware", () => {
 	assert.match(lines[3], /error.*coder.*boom/);
 });
 
-test("normalizeTargets: single, list, dedupe, trim, drop empty", () => {
-	assert.deepEqual(normalizeTargets("echo"), ["echo"]);
+test("normalizeTargets: dedupe, trim, drop empty", () => {
+	assert.deepEqual(normalizeTargets(["echo"]), ["echo"]);
 	assert.deepEqual(normalizeTargets(["echo", "planner"]), ["echo", "planner"]);
 	assert.deepEqual(normalizeTargets(["a", "a", " b ", ""]), ["a", "b"]);
+	assert.deepEqual(normalizeTargets(["main", "critic", "main"]), ["main", "critic"]);
 });
 
 test("formatMulticastResult: delivered + failed split", () => {

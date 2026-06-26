@@ -78,12 +78,11 @@ export function formatFeedLines(events: AgentEvent[]): string[] {
 	});
 }
 
-/** Normalizes the `to` field (name or list) into a deduplicated list of names. */
-export function normalizeTargets(to: string | string[]): string[] {
-	const arr = Array.isArray(to) ? to : [to];
+/** Normalizes the target list: trims, drops empties, dedupes. */
+export function normalizeTargets(to: string[]): string[] {
 	const seen = new Set<string>();
 	const out: string[] = [];
-	for (const raw of arr) {
+	for (const raw of to) {
 		const name = raw.trim();
 		if (name && !seen.has(name)) {
 			seen.add(name);

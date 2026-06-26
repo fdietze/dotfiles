@@ -106,9 +106,9 @@ function agentSystemPrompt(name: string, systemPrompt: string, spawnedBy: string
 		`You were spawned by "${spawnedBy}".`,
 		"You can talk to other agents with these tools:",
 		"- spawn_agent({name, systemPrompt, overrideModel?, message?}): create a new agent (message = optional first task).",
-		"- send_message({to, content}): to is an agent name OR a list of names; fire-and-forget (e.g. 'main').",
+		"- send_message({to, content}): to is an array of agent names (multicast); fire-and-forget (e.g. [\"main\"]).",
 		"- list_agents(): see who exists.",
-		"- kill_agent({name}): terminate an agent or a list of agents (you cannot kill 'main').",
+		"- kill_agent({name}): terminate agents by name array (you cannot kill 'main').",
 		"- set_status({status}): set your short status line (shown to others in list_agents); empty string clears.",
 		"Messages you receive are prefixed with [message from <sender>].",
 		"",
@@ -390,12 +390,14 @@ export default function subagents(pi: ExtensionAPI) {
 			label: "Send Message",
 			renderCall: (args, theme, context) => renderToolArgs("send_message", args as Record<string, unknown>, theme as RenderTheme, context?.expanded ?? false),
 			description:
-				"Fire-and-forget message to one agent or a list of agents (e.g. 'main'). Returns immediately. After sending, " +
+				"Fire-and-forget message to a list of agents (e.g. [\"main\"]). Returns immediately. After sending, " +
 				"END YOUR TURN — you are automatically re-woken if a reply arrives. Do NOT poll or wait in a loop; inspect only " +
 				"if you suspect a problem.",
 			parameters: Type.Object({
-				to: Type.Union([Type.String(), Type.Array(Type.String())], {
-					description: "Target agent name, or a list of names for multicast",
+				// Array-only, not a Union: weak models drop `to` entirely when the schema is
+				// anyOf(string, array). A flat array removes the choice and is type-honest.
+				to: Type.Array(Type.String(), {
+					description: "List of target agent names (multicast). Even for a single target, pass an array, e.g. [\"main\"].",
 				}),
 				content: Type.String({ description: "Message content" }),
 			}),
@@ -425,10 +427,10 @@ export default function subagents(pi: ExtensionAPI) {
 			name: "kill_agent",
 			label: "Kill Agent",
 			renderCall: (args, theme, context) => renderToolArgs("kill_agent", args as Record<string, unknown>, theme as RenderTheme, context?.expanded ?? false),
-			description: "Terminate one agent or a list of agents. 'main' cannot be killed.",
+			description: "Terminate agents by name array. 'main' cannot be killed.",
 			parameters: Type.Object({
-				name: Type.Union([Type.String(), Type.Array(Type.String())], {
-					description: "Agent name, or a list of names to terminate",
+				name: Type.Array(Type.String(), {
+					description: "List of agent names to terminate",
 				}),
 			}),
 			execute: async (_id, args) => {
