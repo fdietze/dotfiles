@@ -44,6 +44,15 @@ interface KeybindingsLike {
 interface TuiLike {
 	requestRender(): void;
 }
+
+// No-op tui handed to the throwaway transcript components. ToolExecutionComponent calls
+// this.ui.requestRender() from setArgsComplete()/updateResult() — i.e. DURING our render() —
+// which, with the live tui, schedules another render immediately and spins at 60fps (100% CPU)
+// for as long as the panel shows an agent with any tool call. The transcript is a fresh
+// snapshot rebuilt every render from live data and refreshed via view.subscribe, so these
+// components never need to drive rendering themselves; swallowing their requestRender breaks
+// the loop without losing any updates.
+const NOOP_TUI = { requestRender() {} };
 interface ThemeLike {
 	fg(color: string, s: string): string;
 	bg(color: string, s: string): string;
@@ -151,7 +160,7 @@ export function createSubagentsPanel(deps: PanelDeps, tui: TuiLike, theme: Theme
 					// With undefined it instead falls back to formatToolExecution() which ALSO dumps the
 					// full pretty-printed args JSON — redundant noise; the result preview is enough.
 					{} as never,
-					tui as never,
+					NOOP_TUI as never,
 					deps.cwd,
 				);
 				comp.setArgsComplete();
