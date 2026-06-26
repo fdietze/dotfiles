@@ -36,6 +36,9 @@ All else being equal, simpler is better. A small improvement that adds ugly comp
 - if you look into a path/file and it contains something else than what you expected, flag it.
 - always add comments to document why things are the way they are. The comments should only refer to the current code, not to past code.
 
+# Writing Code / Config
+- always add comments to document why things are the way they are. The comments should only refer to the current code, not to past code.
+
 # Software tools
 - don't install any software globally on my system. Use project-local flake.nix/devbox.json or ad-hoc nix-shell instead.
 
