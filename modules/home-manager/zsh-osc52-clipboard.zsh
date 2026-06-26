@@ -70,7 +70,8 @@ osc52-paste() {
 # non-interactive unit test where `zle -N` would error.
 if zle -l >/dev/null 2>&1; then
   for _w in vi-yank vi-yank-whole-line vi-delete vi-delete-char \
-            vi-backward-delete-char vi-change; do
+            vi-backward-delete-char vi-change vi-change-eol \
+            vi-change-whole-line vi-kill-eol; do
     eval "_osc52_$_w() { zle .$_w; osc52-copy \"\$CUTBUFFER\" }"
     zle -N "$_w" "_osc52_$_w"
   done
