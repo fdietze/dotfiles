@@ -26,25 +26,29 @@ use std::env;
 use four_char_code::FourCharCode;
 
 // One process line we care about.
-struct Proc { pid: i32, ppid: i32, cpu: f64 }
+struct Proc { pid: i32, ppid: i32, cpu: f64, comm: String }
 
-// Current user's processes with pid, ppid, %cpu (own uid only -> signalable).
+// Current user's processes with pid, ppid, %cpu, comm (own uid only -> signalable).
 fn ps_snapshot() -> Vec<Proc> {
     let me = unsafe { libc::getuid() };
     let mut v = Vec::new();
-    if let Ok(out) = std::process::Command::new("ps").args(["-Ao", "pid=,ppid=,uid=,%cpu="]).output() {
+    // comm is last so it may contain spaces; capture the remainder as comm.
+    if let Ok(out) = std::process::Command::new("ps").args(["-Ao", "pid=,ppid=,uid=,%cpu=,comm="]).output() {
         for line in String::from_utf8_lossy(&out.stdout).lines() {
             let f: Vec<&str> = line.split_whitespace().collect();
-            if f.len() != 4 { continue; }
+            if f.len() < 5 { continue; }
             if let (Ok(pid), Ok(ppid), Ok(uid), Ok(cpu)) =
                 (f[0].parse::<i32>(), f[1].parse::<i32>(), f[2].parse::<u32>(), f[3].parse::<f64>())
             {
-                if uid == me { v.push(Proc { pid, ppid, cpu }); }
+                if uid == me { v.push(Proc { pid, ppid, cpu, comm: f[4..].join(" ") }); }
             }
         }
     }
     v
 }
+
+// Executable basename of a comm path, for matching the exclude list.
+fn basename(comm: &str) -> &str { comm.rsplit('/').next().unwrap_or(comm) }
 
 // Update debounce counters; return currently-managed pid set.
 // `debounce` maps pid -> consecutive ticks hot (capped); negative = ticks cooled.
@@ -56,8 +60,11 @@ fn scan_managed(cfg: &Config, self_pid: i32, debounce: &mut HashMap<i32, i32>) -
     // a new one is only added above the (higher) cpu_threshold. Prevents our own
     // throttling (which lowers measured %CPU) from deselecting the process.
     let already: HashSet<i32> = debounce.iter().filter(|(_, &c)| c >= dt0).map(|(&p, _)| p).collect();
+    // Never manage: the governor itself/its children, or excluded commands (e.g.
+    // `pi` — throttling the agent harness would choke our own work).
+    let excluded = |p: &Proc| cfg.exclude_comms.iter().any(|e| e == basename(&p.comm));
     let hot: HashSet<i32> = snap.iter()
-        .filter(|p| p.pid != self_pid && p.ppid != self_pid)
+        .filter(|p| p.pid != self_pid && p.ppid != self_pid && !excluded(p))
         .filter(|p| if already.contains(&p.pid) { p.cpu >= cfg.release_threshold } else { p.cpu >= cfg.cpu_threshold })
         .map(|p| p.pid).collect();
     let alive: HashSet<i32> = snap.iter().map(|p| p.pid).collect();
@@ -140,6 +147,7 @@ struct Config {
     fan_setpoint_rpm: f64, // allowed fan target-excess over min before throttling
     cpu_threshold: f64,  // %CPU to ADD a process to the managed set
     release_threshold: f64, // %CPU below which a managed process is RELEASED (hysteresis)
+    exclude_comms: Vec<String>, // executable basenames never throttled (e.g. pi)
     debounce_ticks: u32, // consecutive scans above/below threshold before add/drop
     window_ms: u64,      // PWM window
     d_min: f64,          // duty floor (always make some progress)
@@ -172,6 +180,10 @@ impl Config {
             // Must be below d_min*100 so a process throttled to the floor stays
             // managed; above idle (~0) so a finished process is released.
             release_threshold: f("QF_RELEASE_THRESHOLD", 8.0),
+            // Never throttle these (matched by executable basename). Default `pi`
+            // = the agent harness; throttling it would choke our own work.
+            exclude_comms: env::var("QF_EXCLUDE_COMMS").unwrap_or_else(|_| "pi".into())
+                .split(',').map(|s| s.trim().to_string()).filter(|s| !s.is_empty()).collect(),
             debounce_ticks: u("QF_DEBOUNCE_TICKS", 3) as u32,
             window_ms:      u("QF_WINDOW_MS", 200),
             d_min:          f("QF_D_MIN", 0.15),
@@ -230,7 +242,8 @@ fn run_selftest() -> i32 {
         kp: 0.1, ti_s: 20.0, d_min: 0.15, d_max: 1.0,
         knee_c: 80.0, margin_c: 0.0, // setpoint = 80
         fan_kp: 0.0006, fan_ti_s: 30.0, fan_setpoint_rpm: 400.0,
-        cpu_threshold: 30.0, release_threshold: 8.0, debounce_ticks: 3, window_ms: 200, tick_ms: 1000,
+        cpu_threshold: 30.0, release_threshold: 8.0, exclude_comms: vec!["pi".into()],
+        debounce_ticks: 3, window_ms: 200, tick_ms: 1000,
     };
     let mut failures = 0;
     macro_rules! check { ($name:expr, $cond:expr) => {
@@ -326,7 +339,7 @@ USAGE:
   mac-quiet-fans --help
 
 TUNING (env vars, no recompile):
-  QF_KNEE_C QF_MARGIN_C QF_KP QF_TI_S QF_CPU_THRESHOLD QF_RELEASE_THRESHOLD
+  QF_KNEE_C QF_MARGIN_C QF_KP QF_TI_S QF_CPU_THRESHOLD QF_RELEASE_THRESHOLD QF_EXCLUDE_COMMS
   QF_FAN_KP QF_FAN_TI QF_FAN_SETPOINT_RPM
   QF_DEBOUNCE_TICKS QF_WINDOW_MS QF_D_MIN QF_D_MAX QF_TICK_MS
 ";
