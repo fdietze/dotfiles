@@ -5,7 +5,10 @@
  * directly; no edit/nav mode. Space toggles a checkbox on an option row; typing
  * any text on an option row forwards to the note and jumps focus there, so the
  * user can start writing without navigating down first. Enter submits the whole
- * set from anywhere; Esc cancels. All text wraps to terminal width (wrapTextWithAnsi).
+ * set from anywhere; Esc cancels. An Enter with nothing checked and an empty
+ * note accepts the focused option (radio-like) when an option row is focused, or
+ * warns instead of submitting when the note row is focused. All text wraps to
+ * terminal width (wrapTextWithAnsi).
  * An option may carry a short `tag` rendered as an accent-background pill before
  * its label (e.g. "recommended") so the agent can flag a preferred choice.
  * Pure result/cursor logic lives in ./core.ts (unit-tested).
@@ -101,6 +104,9 @@ export default function question(pi: ExtensionAPI) {
 					// determines behavior — no separate edit/nav mode (KISS): a single-line
 					// note has no in-editor up/down, so arrows navigate rows globally.
 					let cursor = 0;
+					// Set when an empty Enter is blocked on the note row; renders a one-line
+					// warning and is cleared by the next non-Enter keystroke.
+					let warnEmpty = false;
 					let cachedLines: string[] | undefined;
 
 					const editorTheme: EditorTheme = {
@@ -126,11 +132,27 @@ export default function question(pi: ExtensionAPI) {
 					}
 
 					function handleInput(data: string) {
-						// Enter submits the whole set from anywhere.
+						// Enter submits. Empty-submit guard (radio-like accept): with nothing
+						// checked and an empty note, Enter on an option row accepts that focused
+						// option (checks it, then submits) so Enter accepts the recommended/first
+						// option; on the note row there is nothing to accept, so warn instead.
 						if (matchesKey(data, Key.enter)) {
-							submit();
+							const anyChecked = checked.some(Boolean);
+							const noteEmpty = editor.getText().trim() === "";
+							if (anyChecked || !noteEmpty) {
+								submit();
+								return;
+							}
+							if (!isNoteRow(cursor, params.options.length)) {
+								checked[cursor] = true;
+								submit();
+								return;
+							}
+							warnEmpty = true;
+							refresh();
 							return;
 						}
+						warnEmpty = false; // any other key dismisses the empty-submit warning
 						// Esc cancels from anywhere.
 						if (matchesKey(data, Key.escape)) {
 							done(null);
@@ -236,6 +258,14 @@ export default function question(pi: ExtensionAPI) {
 						}
 
 						lines.push("");
+						if (warnEmpty) {
+							lines.push(
+								truncateToWidth(
+									theme.fg("warning", " Nothing selected — pick an option (Space), type a note, or Esc to cancel"),
+									width,
+								),
+							);
+						}
 						const hint = " ↑↓ move • Space toggle • type → note • Enter submit • Esc cancel";
 						lines.push(truncateToWidth(theme.fg("dim", hint), width));
 						lines.push(truncateToWidth(theme.fg("accent", "─".repeat(width)), width));
