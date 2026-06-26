@@ -1,10 +1,12 @@
 /**
  * Question Tool — always multi-select checkboxes + combinable custom note.
- * Full custom UI. Note field is focused on open. ↑/↓ navigate all rows
- * (options + note) and move into/out of the note field directly; no edit/nav
- * mode. Space toggles a checkbox on an option row, or types into the note when
- * the note row is focused. Enter submits the whole set from anywhere; Esc
- * cancels. All text wraps to terminal width (wrapTextWithAnsi).
+ * Full custom UI. First option is focused on open (note row sits last). ↑/↓
+ * navigate all rows (options + note) and move into/out of the note field
+ * directly; no edit/nav mode. Space toggles a checkbox on an option row, or
+ * types into the note when the note row is focused. Enter submits the whole set
+ * from anywhere; Esc cancels. All text wraps to terminal width (wrapTextWithAnsi).
+ * An option may carry a short `tag` rendered as an accent-background pill before
+ * its label (e.g. "recommended") so the agent can flag a preferred choice.
  * Pure result/cursor logic lives in ./core.ts (unit-tested).
  */
 
@@ -38,6 +40,27 @@ interface QuestionDetails {
 const OptionSchema = Type.Object({
 	label: Type.String({ description: "Display label for the option" }),
 	description: Type.Optional(Type.String({ description: "Optional description shown below label" })),
+	tag: Type.Optional(
+		Type.String({
+			description:
+				'Short one-word badge shown before the label, e.g. "recommended". Use to flag a preferred option; list tagged options first.',
+		}),
+	),
+	tagColor: Type.Optional(
+		Type.Union(
+			[
+				Type.Literal("accent"),
+				Type.Literal("success"),
+				Type.Literal("warning"),
+				Type.Literal("error"),
+				Type.Literal("muted"),
+			],
+			{
+				description:
+					'Semantic color of the `tag` pill (default "accent"): success = safe/green, warning = caution/yellow, error = danger/red, muted = low-priority/grey.',
+			},
+		),
+	),
 });
 
 const QuestionParams = Type.Object({
@@ -50,7 +73,7 @@ export default function question(pi: ExtensionAPI) {
 		name: "question",
 		label: "Question",
 		description:
-			"Ask the user a question. They pick any number of the given options (checkboxes) and/or write a custom note. Use when you need user input to proceed.",
+			"Ask the user a question whenever you need their input — yes/no, single choice, multiple choice, or open-ended. Prefer this over asking in plain text. Each option is a checkbox (the user may pick any number) plus an optional free-form note. When you have a recommendation, tag the recommended option(s) and list them first.",
 		parameters: QuestionParams,
 
 		async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
@@ -72,11 +95,11 @@ export default function question(pi: ExtensionAPI) {
 			const result = await ctx.ui.custom<{ selected: string[]; note: string | null; content: string } | null>(
 				(tui, theme, _kb, done) => {
 					const checked: boolean[] = params.options.map(() => false);
-					// Note row sits after all option rows; cursor starts there so the
-					// note field is focused on open. Cursor position alone determines
-					// behavior — no separate edit/nav mode (KISS): a single-line note
-					// has no in-editor up/down, so arrows navigate rows globally.
-					let cursor = params.options.length;
+					// Cursor starts on the first option so it is focused on open; the note
+					// row sits last (index params.options.length). Cursor position alone
+					// determines behavior — no separate edit/nav mode (KISS): a single-line
+					// note has no in-editor up/down, so arrows navigate rows globally.
+					let cursor = 0;
 					let cachedLines: string[] | undefined;
 
 					const editorTheme: EditorTheme = {
@@ -147,9 +170,12 @@ export default function question(pi: ExtensionAPI) {
 						// Prefix is shown at the start of every wrapped line; its VISIBLE
 						// width (ANSI stripped) is subtracted from the wrap budget so styled
 						// gutters/pointers don't push text past the terminal edge.
-						const addWrapped = (raw: string, prefix: string, style: (t: string) => string) => {
-							for (const w of wrapTextWithAnsi(raw, Math.max(1, width - visibleWidth(prefix)))) {
-								lines.push(truncateToWidth(prefix + style(w), width));
+						// style receives the wrapped-line index so callers can treat the first
+						// line specially (e.g. an option's tag badge only sits on line 0).
+						const addWrapped = (raw: string, prefix: string, style: (t: string, lineIdx: number) => string) => {
+							const wrapped = wrapTextWithAnsi(raw, Math.max(1, width - visibleWidth(prefix)));
+							for (let li = 0; li < wrapped.length; li++) {
+								lines.push(truncateToWidth(prefix + style(wrapped[li], li), width));
 							}
 						};
 
@@ -165,7 +191,25 @@ export default function question(pi: ExtensionAPI) {
 							const prefix = onRow ? theme.fg("accent", "> ") : "  ";
 							const labelStyle = (t: string) =>
 								onRow || checked[i] ? theme.fg("accent", t) : theme.fg("text", t);
-							addWrapped(`${box} ${i + 1}. ${opt.label}`, prefix, labelStyle);
+							// Tag rendered as an accent-background pill (reverse video on accent fg)
+							// before the label, first wrapped line only. The pill's pad spaces are
+							// part of the RAW text so wrap-width math matches the visible width; the
+							// pill piece is self-coloured+reset, so per-line SGR reset stays correct.
+							const pill = opt.tag ? ` ${opt.tag} ` : "";
+							const pillColor = opt.tagColor ?? "accent";
+							const tagRaw = pill ? `${pill} ` : "";
+							addWrapped(`${box} ${i + 1}. ${tagRaw}${opt.label}`, prefix, (t, li) => {
+								if (li === 0 && pill) {
+									const at = t.indexOf(pill);
+									if (at >= 0)
+										return (
+											labelStyle(t.slice(0, at)) +
+											theme.inverse(theme.fg(pillColor, pill)) +
+											labelStyle(t.slice(at + pill.length))
+										);
+								}
+								return labelStyle(t);
+							});
 							if (opt.description) {
 								// 9 cols = 2 gutter + len("[x] N. "), so description aligns under label.
 								addWrapped(opt.description, "         ", (t) => theme.fg("muted", t));
