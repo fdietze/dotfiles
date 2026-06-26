@@ -1,7 +1,10 @@
 [bar.default]
 center = []
 end = [
-    "sysmon",
+    "cpu",
+    "temp",
+    "ram",
+    "disk",
     "tray",
     "clipboard",
     "network",
@@ -110,12 +113,32 @@ transition_on_startup = true
 display_mode = "graphic"
 hide_when_full = true
 
+[widget.cpu]
+display = "graph"
+show_label = false
+
+[widget.cpu1]
+type = "sysmon"
+
+[widget.disk]
+stat = "disk_pct"
+type = "sysmon"
+
+[widget.lock_keys_2]
+type = "lock_keys"
+
 [widget.network]
+show_label = false
+
+[widget.ram]
 show_label = false
 
 [widget.sysmon]
 display = "graph"
 show_label = false
+
+[widget.temp]
+display = "text"
 
 [widget.volume]
 show_label = false
