@@ -28,9 +28,14 @@ import {
 import { Type } from "typebox";
 import { clampCursor, formatResult, isNoteRow } from "./core.ts";
 
+// Semantic pill colors the agent may pick (mirrors the tagColor schema union).
+type TagColor = "accent" | "success" | "warning" | "error" | "muted";
+
 interface OptionWithDesc {
 	label: string;
 	description?: string;
+	tag?: string;
+	tagColor?: TagColor;
 }
 
 interface QuestionDetails {
@@ -309,19 +314,17 @@ export default function question(pi: ExtensionAPI) {
 			};
 		},
 
+		// Header (always shown, both collapsed and expanded): the question itself.
 		renderCall(args, theme, _context) {
-			let text = theme.fg("toolTitle", theme.bold("question ")) + theme.fg("muted", args.question);
-			const opts = Array.isArray(args.options) ? args.options : [];
-			if (opts.length) {
-				const numbered = opts.map((o: OptionWithDesc, i: number) => `${i + 1}. ${o.label}`);
-				text += `\n${theme.fg("dim", `  Options: ${numbered.join(", ")} (+ custom note)`)}`;
-			} else {
-				text += `\n${theme.fg("dim", "  (custom note only)")}`;
-			}
+			const text = theme.fg("toolTitle", theme.bold("question ")) + theme.fg("muted", args.question);
 			return new Text(text, 0, 0);
 		},
 
-		renderResult(result, _options, theme, _context) {
+		// Body under the question header. Expanded: every option as a UI-like row
+		// (checkbox reflects the pick) with its description + tag pill, then the
+		// bottom summary. Collapsed: just the bottom summary (selected answers + note),
+		// no option rows. The question is rendered by renderCall in both variants.
+		renderResult(result, options, theme, context) {
 			const details = result.details as QuestionDetails | undefined;
 			if (!details) {
 				const text = result.content[0];
@@ -330,17 +333,38 @@ export default function question(pi: ExtensionAPI) {
 			if (details.cancelled) {
 				return new Text(theme.fg("warning", "Cancelled"), 0, 0);
 			}
-			const parts: string[] = [];
+
+			const opts: OptionWithDesc[] = Array.isArray(context.args?.options) ? context.args.options : [];
+			const selectedSet = new Set(details.selected);
+			const lines: string[] = [];
+
+			if (options.expanded && opts.length) {
+				for (let i = 0; i < opts.length; i++) {
+					const o = opts[i];
+					const isSel = selectedSet.has(o.label);
+					const rowStyle = (t: string) => (isSel ? theme.fg("accent", t) : theme.fg("muted", t));
+					// Pill matches the live UI: reverse-video on the semantic color.
+					const pill = o.tag ? `${theme.inverse(theme.fg(o.tagColor ?? "accent", ` ${o.tag} `))} ` : "";
+					lines.push(rowStyle(`${isSel ? "[x]" : "[ ]"} ${i + 1}. `) + pill + rowStyle(o.label));
+					// 7-space indent aligns the description under the label ("[x] N. ").
+					if (o.description) lines.push(theme.fg("dim", `       ${o.description}`));
+				}
+				lines.push("");
+			}
+
+			// Bottom summary (both variants): selected answers, then the note.
 			if (details.selected.length) {
 				const numbered = details.selected.map((label) => {
 					const idx = details.options.indexOf(label) + 1;
 					return idx > 0 ? `${idx}. ${label}` : label;
 				});
-				parts.push(numbered.join(", "));
+				lines.push(theme.fg("success", "✓ ") + theme.fg("accent", numbered.join(", ")));
+			} else {
+				lines.push(theme.fg("muted", "(no option selected)"));
 			}
-			if (details.note) parts.push(`note: ${details.note}`);
-			const body = parts.length ? parts.join(" | ") : "(empty answer)";
-			return new Text(theme.fg("success", "✓ ") + theme.fg("accent", body), 0, 0);
+			if (details.note) lines.push(theme.fg("muted", "note: ") + theme.fg("text", details.note));
+
+			return new Text(lines.join("\n"), 0, 0);
 		},
 	});
 }
