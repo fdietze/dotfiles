@@ -2,9 +2,10 @@
  * Question Tool — always multi-select checkboxes + combinable custom note.
  * Full custom UI. First option is focused on open (note row sits last). ↑/↓
  * navigate all rows (options + note) and move into/out of the note field
- * directly; no edit/nav mode. Space toggles a checkbox on an option row, or
- * types into the note when the note row is focused. Enter submits the whole set
- * from anywhere; Esc cancels. All text wraps to terminal width (wrapTextWithAnsi).
+ * directly; no edit/nav mode. Space toggles a checkbox on an option row; typing
+ * any text on an option row forwards to the note and jumps focus there, so the
+ * user can start writing without navigating down first. Enter submits the whole
+ * set from anywhere; Esc cancels. All text wraps to terminal width (wrapTextWithAnsi).
  * An option may carry a short `tag` rendered as an accent-background pill before
  * its label (e.g. "recommended") so the agent can flag a preferred choice.
  * Pure result/cursor logic lives in ./core.ts (unit-tested).
@@ -155,11 +156,21 @@ export default function question(pi: ExtensionAPI) {
 							refresh();
 							return;
 						}
-						// Option row: Space toggles its checkbox.
+						// Option row: Space toggles its checkbox. Any other key is forwarded to
+						// the note editor; focus jumps to the note row only if that keystroke
+						// actually changed the note text, so typing lands in the note without
+						// navigating there first while a stray ←/→/Tab won't steal focus.
 						if (matchesKey(data, Key.space)) {
 							checked[cursor] = !checked[cursor];
 							refresh();
+							return;
 						}
+						const before = editor.getText();
+						editor.handleInput(data);
+						if (editor.getText() !== before) {
+							cursor = params.options.length; // note row
+						}
+						refresh();
 					}
 
 					function render(width: number): string[] {
@@ -225,7 +236,7 @@ export default function question(pi: ExtensionAPI) {
 						}
 
 						lines.push("");
-						const hint = " ↑↓ move • Space toggle • Enter submit • Esc cancel";
+						const hint = " ↑↓ move • Space toggle • type → note • Enter submit • Esc cancel";
 						lines.push(truncateToWidth(theme.fg("dim", hint), width));
 						lines.push(truncateToWidth(theme.fg("accent", "─".repeat(width)), width));
 
