@@ -9,6 +9,8 @@
     # Base Neovim arrives via shell-core (modules/home-manager/nvf.nix); this
     # host opts into the full LSP/language toolchain on top.
     ../../modules/home-manager/nvf-lsp.nix
+    # Paseo Linux Desktop App (Electron GUI)
+    ../../modules/home-manager/profiles/ai-agents/paseo-desktop.nix
   ];
 
   # Point the pi web-search extension at gurke's local SearXNG
