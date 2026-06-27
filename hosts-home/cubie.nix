@@ -109,6 +109,8 @@ in {
         # Fast-`--version` pi shim so the 2 s availability probe doesn't time out
         # on this slow SBC (see piForPaseo above).
         "PI_COMMAND=${piForPaseo}/bin/pi"
+        # DNS Rebinding Protection: allow connecting via tailscale hostname
+        "PASEO_HOSTNAMES=cubie,cubie.local"
       ];
     };
   };
