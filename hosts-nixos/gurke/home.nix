@@ -11,7 +11,13 @@
     ../../modules/home-manager/nvf-lsp.nix
     # Paseo Linux Desktop App (Electron GUI)
     ../../modules/home-manager/profiles/ai-agents/paseo-desktop.nix
+    # Shared Paseo systemd user service module (defines services.paseo-daemon)
+    ../../modules/home-manager/profiles/ai-agents/paseo-service.nix
   ];
+
+  # Enable the shared Paseo user daemon, but do NOT auto-start on boot/login
+  # (defaults to autoStart = false; strictly on-demand via systemctl start paseo).
+  services.paseo-daemon.enable = true;
 
   # Point the pi web-search extension at gurke's local SearXNG
   # (services.searx, 127.0.0.1:8888 in default.nix). Host-scoped on purpose:
