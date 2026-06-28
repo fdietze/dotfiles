@@ -35,11 +35,15 @@
     yolo ? "",
   }: [
     (pkgs.writeShellScriptBin name ''
+      export GIT_EDITOR=true
+      export GIT_SEQUENCE_EDITOR=true
       ${env}exec ${prio} ${privateTmp} \
         ${pkgs.llm-agents.nono}/bin/nono wrap --profile agent -- \
         ${bin}${lib.optionalString (yolo != "") " ${yolo}"} "$@"
     '')
     (pkgs.writeShellScriptBin "vanilla-${name}" ''
+      export GIT_EDITOR=true
+      export GIT_SEQUENCE_EDITOR=true
       ${env}exec ${prio} \
         ${bin} "$@"
     '')
