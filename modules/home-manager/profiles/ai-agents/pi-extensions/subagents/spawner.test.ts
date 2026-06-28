@@ -89,10 +89,11 @@ test("smoke: spawn -> deliver -> reply -> budget abort -> halt", async () => {
 	echo?.emit("turn_start");
 	assert.ok((echo?.aborted ?? 0) >= 1);
 
-	// halt blocks routing
+	// halt buffers routing
 	engine.halt();
 	const blocked = await engine.route("main", "echo", "again");
-	assert.equal(blocked.ok, false);
+	assert.equal(blocked.ok, true);
+	assert.equal((blocked as { status: string }).status, "buffered (halted)");
 });
 
 test("view.getStreamingMessage tracks the in-progress assistant message, cleared on agent_end", async () => {

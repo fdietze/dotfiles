@@ -394,3 +394,83 @@ test("re-spawning a killed name clears its incoming + outgoing edges and overwri
 	assert.equal(m.w, undefined); // outgoing edges cleared
 	assert.equal(e.getSpawnTree().w, "main"); // parent overwritten (was 'a')
 });
+
+test("resume flushes buffered inbox in order", async () => {
+	const e = new Engine(caps);
+	const delivered: string[] = [];
+	const handle: AgentHandle = {
+		deliver: async (t) => {
+			delivered.push(t);
+		},
+		abort: async () => {},
+		isStreaming: () => false,
+	};
+	e.addAgent({
+		name: "coder",
+		model: "openai/gpt-4o",
+		handle,
+		spawnedBy: "main",
+		depth: 1,
+		createdAt: Date.now(),
+		turns: 0,
+		lastActivity: Date.now(),
+		streaming: false,
+	});
+
+	e.halt();
+	await e.route("main", "coder", "ping 1");
+	await e.route("main", "coder", "ping 2");
+
+	assert.deepEqual(delivered, []); // Buffered
+
+	e.resume();
+
+	assert.deepEqual(delivered, ["[message from main]: ping 1", "[message from main]: ping 2"]);
+	assert.equal(e.get("coder")?.frozenInbox, undefined);
+});
+
+test("deadlock: budget-reaching turn's route buffers, idle recipient receives on resume", async () => {
+	const e = new Engine({ ...caps, turnBudget: 1 });
+	const delivered: string[] = [];
+	
+	e.addAgent({
+		name: "explore",
+		model: "openai/gpt-4o",
+		handle: { deliver: async () => {}, abort: async () => {}, isStreaming: () => false },
+		spawnedBy: "main",
+		depth: 1,
+		createdAt: Date.now(),
+		turns: 0,
+		lastActivity: Date.now(),
+		streaming: false,
+	});
+	
+	e.addAgent({
+		name: "exploit",
+		model: "openai/gpt-4o",
+		handle: { deliver: async (t) => { delivered.push(t); }, abort: async () => {}, isStreaming: () => false },
+		spawnedBy: "main",
+		depth: 1,
+		createdAt: Date.now(),
+		turns: 0,
+		lastActivity: Date.now(),
+		streaming: false,
+	});
+
+	// explore starts its turn - reaches budget limit (1/1)
+	const startResult = e.recordTurnStart("explore");
+	assert.equal(startResult.abort, false); // allowed to complete
+	assert.equal(e.isFrozen(), true); // Swarm is now frozen
+
+	// explore sends message to exploit during its budget-reaching turn
+	const routeResult = await e.route("explore", "exploit", "do the work");
+	assert.equal(routeResult.ok, true);
+	assert.equal((routeResult as { status: string }).status, "buffered (halted)");
+	assert.deepEqual(delivered, []); // exploit didn't receive it yet
+
+	// User resumes the swarm
+	e.resume();
+
+	// exploit gets the message flushed
+	assert.deepEqual(delivered, ["[message from explore]: do the work"]);
+});

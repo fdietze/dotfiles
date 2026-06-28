@@ -282,6 +282,18 @@ export class Engine {
 		this.frozenReason = undefined;
 		this.turnsUsed = 0;
 		for (const rec of this.agents.values()) rec.halted = false;
+
+		// Flush frozen inboxes
+		for (const rec of this.agents.values()) {
+			const inbox = rec.frozenInbox;
+			if (inbox && inbox.length > 0) {
+				rec.frozenInbox = undefined;
+				for (const t of inbox) {
+					void rec.handle.deliver(t);
+				}
+			}
+		}
+
 		this.emit({ type: "resume", ts: Date.now() });
 	}
 
