@@ -290,14 +290,23 @@ export class Engine {
 		to: string,
 		content: string,
 	): Promise<{ ok: true; status: string } | { ok: false; reason: string }> {
-		if (this.frozen) {
-			const reason = "agents halted (use /unhalt)";
-			this.emit({ type: "blocked", reason, ts: Date.now() });
-			return { ok: false, reason };
-		}
 		const target = this.agents.get(to);
 		if (!target) return { ok: false, reason: `unknown agent '${to}'` };
 		const text = `[message from ${from}]: ${content}`;
+		if (this.frozen) {
+			(target.frozenInbox ??= []).push(text);
+			target.lastActivity = Date.now();
+			// Count the message edge for the relationship graph.
+			let targets = this.messageEdges.get(from);
+			if (!targets) {
+				targets = new Map<string, number>();
+				this.messageEdges.set(from, targets);
+			}
+			targets.set(to, (targets.get(to) ?? 0) + 1);
+			const preview = content.length > 60 ? `${content.slice(0, 60)}...` : content;
+			this.emit({ type: "route", from, to, preview, ts: Date.now() });
+			return { ok: true, status: "buffered (halted)" };
+		}
 		const wasStreaming = target.handle.isStreaming();
 		await target.handle.deliver(text);
 		target.lastActivity = Date.now();

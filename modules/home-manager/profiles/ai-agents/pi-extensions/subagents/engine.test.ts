@@ -116,14 +116,36 @@ test("route fails for unknown agent", async () => {
 	assert.match((r as { reason: string }).reason, /unknown agent/i);
 });
 
-test("route is blocked while frozen", async () => {
+test("route buffers while frozen", async () => {
 	const e = new Engine(caps);
-	e.addAgent({ ...mainRecord(), name: "coder", depth: 1 });
+	let delivered = "";
+	const handle: AgentHandle = {
+		deliver: async (t) => {
+			delivered = t;
+		},
+		abort: async () => {},
+		isStreaming: () => false,
+	};
+	e.addAgent({
+		name: "coder",
+		model: "openai/gpt-4o",
+		handle,
+		spawnedBy: "main",
+		depth: 1,
+		createdAt: Date.now(),
+		turns: 0,
+		lastActivity: Date.now(),
+		streaming: false,
+	});
+
 	e.halt();
 	const r = await e.route("main", "coder", "hi");
-	assert.equal(r.ok, false);
-	assert.match((r as { reason: string }).reason, /halt/i);
-	assert.equal(e.events.at(-1)?.type, "blocked");
+
+	assert.equal(r.ok, true);
+	assert.equal((r as { status: string }).status, "buffered (halted)");
+	assert.equal(delivered, ""); // Should not deliver
+	assert.deepEqual(e.get("coder")?.frozenInbox, ["[message from main]: hi"]);
+	assert.equal(e.events.at(-1)?.type, "route"); // Verify edge count and route event still fired
 });
 
 test("recordTurnStart counts turns and aborts when budget exhausted", () => {
