@@ -78,6 +78,8 @@ export interface AgentRecord {
 	buffer?: string[];
 	/** Cleanup function (e.g. detach event subscription) — called on kill. */
 	dispose?: () => void;
+	/** Messages buffered while the swarm is frozen (manual /halt or turn-budget). Flushed on resume. */
+	frozenInbox?: string[];
 }
 
 export interface Caps {

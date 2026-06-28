@@ -60,7 +60,8 @@ const BUDGET_ESCALATION = (total: number) =>
 // v6: Engine gains setCustomStatus + AgentRecord.customStatus (agent-settable status line).
 // v7: Engine gains setStopReason + AgentRecord.stopReason; setStreaming(true) clears it.
 // v8: setCustomStatus(name, status, etaTs?) + AgentRecord.etaTs (absolute-time ETA).
-const ENGINE_KEY = "__subagentsEngine_v8";
+// v9: added frozenInbox buffer to AgentRecord.
+const ENGINE_KEY = "__subagentsEngine_v9";
 
 function getEngine(): Engine {
 	const g = globalThis as Record<string, unknown>;
