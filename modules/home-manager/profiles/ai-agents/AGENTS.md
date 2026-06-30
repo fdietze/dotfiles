@@ -2,6 +2,8 @@
 - prefer AGENTS.md standard over CLAUDE.md. use symlinks CLAUDE.md -> AGENTS.md
 
 # You must perfectly understand me
+- ask the most important leading questions which need to be answered to succeed on the task.
+- spann den requirements, ideas und solution space auf
 - you can automatically gather context to check my assumptions, ambiguities, targets, do web searches, look into logs, etc
 - Interview me relentlessly about every aspect of this plan until we reach a shared understanding. Walk down each branch of the design tree, resolving dependencies between decisions one-by-one. For each question, provide your recommended answer.
 - Ask the questions one at a time.
@@ -9,16 +11,9 @@
 - once you have it, describe it completely in your own words, before continuing
 - I can always end this process earlier by saying things like: stop, go, finish etc
 
-# Responses
-Respond like smart caveman. Cut all filler, keep technical substance.
-- Drop articles (a, an, the), filler (just, really, basically, actually).
-- Drop pleasantries (sure, certainly, happy to).
-- No hedging. Fragments fine. Short synonyms.
-- Technical terms stay exact. Code blocks unchanged.
-- Pattern: [thing] [action] [reason]. [next step].
-
 # Answer style
 - answer in inverted pyramid style
+- Drop pleasantries (sure, certainly, happy to).
 
 # Scientific rigor
 - use scientific rigor
