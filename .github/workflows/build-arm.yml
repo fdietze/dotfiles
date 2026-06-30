@@ -1,0 +1,48 @@
+# Builds the full aarch64-linux closures of the two slow arm hosts and pushes
+# every newly-built path to the fdietze cachix cache, so cubie (1 GB SBC) and
+# korken (nix-on-droid) download-only on switch instead of building on-device.
+# Building the whole closure subsumes the old per-package paseo-aarch64 build.
+#
+# Runs natively on ubuntu-24.04-arm (no QEMU). korken's closure references the
+# x86-pinned proot store path; the arm runner cannot build x86, so it
+# SUBSTITUTES proot from cachix (pushed by build-x86.yml's proot job).
+name: build-arm
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: build-arm
+  cancel-in-progress: true
+
+jobs:
+  cubie:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@main
+      # No skipPush: the post-build-hook auto-pushes every newly-built path.
+      - uses: cachix/cachix-action@v15
+        with:
+          name: fdietze
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+      - name: Build cubie home-manager closure (native aarch64)
+        run: nix build -L .#homeConfigurations.cubie.activationPackage -o result-cubie
+
+  korken:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: cachix/cachix-action@v15
+        with:
+          name: fdietze
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+      # --impure: nix-on-droid evaluates builtins.storePath (rejected in pure
+      # mode). proot is substituted from cachix, not built here (x86-pinned).
+      - name: Build korken nix-on-droid closure (native aarch64)
+        run: nix build -L --impure .#nixOnDroidConfigurations.korken.activationPackage -o result-korken
