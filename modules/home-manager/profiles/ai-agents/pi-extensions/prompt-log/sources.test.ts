@@ -1,0 +1,48 @@
+import { test } from "node:test";
+import assert from "node:assert";
+import { parsePiSession, parseClaudeHistory, parseCodexHistory } from "./sources.ts";
+
+test("parsePiSession extracts user prompts with cwd + session id from header", () => {
+  const content = [
+    JSON.stringify({ type: "session", id: "sess-1", cwd: "/home/p", timestamp: "2026-06-24T19:09:36.556Z" }),
+    JSON.stringify({ type: "model_change", id: "m" }),
+    JSON.stringify({ type: "message", timestamp: "2026-06-24T19:12:16.235Z", message: { role: "user", content: [{ type: "text", text: "brainstorm this" }] } }),
+    JSON.stringify({ type: "message", timestamp: "2026-06-24T19:13:00.000Z", message: { role: "assistant", content: [{ type: "text", text: "ok" }] } }),
+    "",
+  ].join("\n");
+  const rows = parsePiSession(content);
+  assert.equal(rows.length, 1);
+  assert.deepEqual(
+    { text: rows[0].text, cwd: rows[0].cwd, session_id: rows[0].session_id, source_tool: rows[0].source_tool },
+    { text: "brainstorm this", cwd: "/home/p", session_id: "sess-1", source_tool: "pi" },
+  );
+  assert.equal(rows[0].ts_ms, Date.parse("2026-06-24T19:12:16.235Z"));
+});
+
+test("parsePiSession skips malformed lines and empty user text", () => {
+  const content = [
+    "not json",
+    JSON.stringify({ type: "message", timestamp: "2026-06-24T00:00:00.000Z", message: { role: "user", content: [] } }),
+  ].join("\n");
+  assert.equal(parsePiSession(content).length, 0);
+});
+
+test("parseClaudeHistory maps display/timestamp/project/sessionId", () => {
+  const content = JSON.stringify({ display: "enable colorTheme", timestamp: 1778854334387, project: "/home/felix/projects/dotfiles", sessionId: "c-1" });
+  const rows = parseClaudeHistory(content);
+  assert.equal(rows.length, 1);
+  assert.deepEqual(
+    { text: rows[0].text, ts_ms: rows[0].ts_ms, cwd: rows[0].cwd, session_id: rows[0].session_id, source_tool: rows[0].source_tool },
+    { text: "enable colorTheme", ts_ms: 1778854334387, cwd: "/home/felix/projects/dotfiles", session_id: "c-1", source_tool: "claude" },
+  );
+});
+
+test("parseCodexHistory maps text/ts(sec->ms)/session_id, cwd null", () => {
+  const content = JSON.stringify({ session_id: "x-1", ts: 1775120367, text: "continue" });
+  const rows = parseCodexHistory(content);
+  assert.equal(rows.length, 1);
+  assert.deepEqual(
+    { text: rows[0].text, ts_ms: rows[0].ts_ms, cwd: rows[0].cwd, session_id: rows[0].session_id, source_tool: rows[0].source_tool },
+    { text: "continue", ts_ms: 1775120367000, cwd: null, session_id: "x-1", source_tool: "codex" },
+  );
+});
