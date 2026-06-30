@@ -138,6 +138,7 @@
         inherit system;
         specialArgs = {
           flake-inputs = inputs;
+          hostType = "nixos";
           inherit hostLocal;
           uiFonts = uiFontsFor system;
         };
@@ -177,6 +178,8 @@
         };
         extraSpecialArgs = {
           flake-inputs = inputs;
+          hostType = "home";
+          hostLabel = "felix@${system}";
           nvf = nvf;
           theme = defaultTheme;
           uiFonts = uiFontsFor system;
@@ -208,6 +211,7 @@
         };
         extraSpecialArgs = {
           flake-inputs = inputs;
+          hostType = "home";
           nvf = nvf;
           theme = defaultTheme;
           uiFonts = uiFontsFor system;
@@ -233,6 +237,7 @@
           # home-manager.extraSpecialArgs): shell-core needs nvf, packages-cli/
           # yazi need theme, ai-agents/skills needs flake-inputs.
           flake-inputs = inputs;
+          hostType = "droid";
           nvf = nvf;
           theme = defaultTheme;
           # Stable prompt label: proot reports the OS hostname as "localhost".
