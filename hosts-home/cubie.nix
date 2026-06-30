@@ -3,7 +3,7 @@
 # a dedicated "felix" user (isolated from the board's primary "radxa" desktop
 # user). Standalone Home Manager; repo cloned under ~/projects/dotfiles,
 # activated with
-#   home-manager switch -b backup --flake ~/projects/dotfiles#cubie
+#   switch        # (or: home-manager switch -b backup --flake <dotfilesDir>#cubie)
 # User/home come from shell-core's defaults (felix, /home/felix).
 # Agents unsandboxed (vanilla.nix) for now — nono/Landlock fit on this kernel
 # still to be verified.

@@ -4,7 +4,7 @@
 # root-Account). Multi-user Nix (offizieller Installer), flakes system-weit in
 # /etc/nix/nix.conf aktiviert, nix-daemon-Sourcing in /etc/zshrc ergänzt.
 # Aktiviert mit
-#   home-manager switch -b backup --flake ~/projects/dotfiles#Le-Big-Mac
+#   switch        # (or: home-manager switch -b backup --flake <dotfilesDir>#Le-Big-Mac)
 #
 # Agents UNSANDBOXED (vanilla.nix): nono/Landlock existiert auf macOS nicht.
 # Eine macOS-Sandbox (sandbox-exec/seatbelt) ist Folge-Arbeit; bis dahin laufen
