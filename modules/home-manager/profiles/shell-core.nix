@@ -23,7 +23,7 @@ in {
     ../nvf.nix
     ../dotfiles.nix
     ../dotfiles-dir.nix
-    # Universal host commands (nixos `switch` = relocated nrs; pull/upgrade soon).
+    # Universal host commands: switch / pull / upgrade (backend per hostType).
     ../host-commands.nix
     ../dev-links.nix
     ../git.nix

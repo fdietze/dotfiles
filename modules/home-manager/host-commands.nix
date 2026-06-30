@@ -1,7 +1,9 @@
-# Universal host commands. Currently provides the nixos `switch` (relocated
-# nrs); generic pull/upgrade and the home/droid backends arrive in a later
-# task. hostType selects which backend is installed; hostLabel and
-# dotfilesDir are consumed by those later backends.
+# Universal host commands installed on every host: `switch` (apply current
+# checkout), `pull` (git pull --rebase --autostash, then switch), and `upgrade`
+# (nix flake update, switch, then commit flake.lock only on success). hostType
+# selects the switch backend (nixos = relocated nrs; home = home-manager switch;
+# droid = nix-on-droid switch); hostLabel/dotfilesDir feed the home/droid
+# backends and the pull/upgrade wrappers.
 {
   lib,
   pkgs,
@@ -188,8 +190,10 @@ ${specCaseArms}
 
     # Reattach to watch the rebuild, then exit with the rc that nrsInner
     # recorded — so callers (and pull/upgrade) see the real rebuild result.
+    # Fail closed (echo 1) if the rc file is missing (only on abnormal teardown,
+    # e.g. `tmux kill-session`) so `upgrade` never commits on an unconfirmed build.
     "''${TMUX[@]}" attach -t "$SESSION"
-    exit "$(${pkgs.coreutils}/bin/cat "''${XDG_RUNTIME_DIR:-/tmp}/nrs.rc" 2>/dev/null || echo 0)"
+    exit "$(${pkgs.coreutils}/bin/cat "''${XDG_RUNTIME_DIR:-/tmp}/nrs.rc" 2>/dev/null || echo 1)"
   '';
 
   # switch: apply the current checkout. Only this varies by host category.
