@@ -46,3 +46,20 @@ test("parseCodexHistory maps text/ts(sec->ms)/session_id, cwd null", () => {
     { text: "continue", ts_ms: 1775120367000, cwd: null, session_id: "x-1", source_tool: "codex" },
   );
 });
+
+import { ingest } from "./import.ts";
+import { openDb, searchPrompts } from "./db.ts";
+
+test("ingest inserts parsed rows with hostname and dedups on re-run", () => {
+  const db = openDb(":memory:");
+  const rows = parseCodexHistory(
+    [JSON.stringify({ session_id: "x", ts: 1, text: "alpha" }), JSON.stringify({ session_id: "x", ts: 2, text: "beta" })].join("\n"),
+  );
+  const first = ingest(db, rows);
+  assert.deepEqual(first, { read: 2, inserted: 2 });
+  const second = ingest(db, rows); // idempotent
+  assert.deepEqual(second, { read: 2, inserted: 0 });
+  const all = searchPrompts(db, {});
+  assert.equal(all.length, 2);
+  assert.ok(all[0].hostname && all[0].hostname.length > 0);
+});
