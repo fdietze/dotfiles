@@ -191,6 +191,51 @@ ${specCaseArms}
     "''${TMUX[@]}" attach -t "$SESSION"
     exit "$(${pkgs.coreutils}/bin/cat "''${XDG_RUNTIME_DIR:-/tmp}/nrs.rc" 2>/dev/null || echo 0)"
   '';
+
+  # switch: apply the current checkout. Only this varies by host category.
+  switchScript =
+    if hostType == "nixos"
+    then nixosSwitch
+    else if hostType == "home"
+    then
+      pkgs.writeShellScriptBin "switch" ''
+        set -euo pipefail
+        exec home-manager switch -b backup --flake ${dotfilesDir}#${hostLabel} "$@"
+      ''
+    else if hostType == "droid"
+    then
+      pkgs.writeShellScriptBin "switch" ''
+        set -euo pipefail
+        exec nix-on-droid switch --flake ${dotfilesDir}#${hostLabel} "$@"
+      ''
+    else throw "host-commands: unknown hostType '${hostType}'";
+
+  # pull: sync my latest committed config, then apply. Category-agnostic.
+  # --rebase --autostash so a dirty working tree (mid-iteration) doesn't abort.
+  pullScript = pkgs.writeShellScriptBin "pull" ''
+    set -euo pipefail
+    git -C ${dotfilesDir} pull --rebase --autostash
+    exec ${switchScript}/bin/switch "$@"
+  '';
+
+  # upgrade: bump upstream inputs, then apply, then commit the lock — but only
+  # after a successful switch (set -e gates it), proving the bump builds.
+  # nice -n 18: the full rebuild is long; niceness is inherited through
+  # sudo / systemd-run --scope down to the actual build. flake.lock is shared
+  # by all hosts, so one host upgrades and the rest `pull` the committed lock.
+  # Push stays manual.
+  upgradeScript = pkgs.writeShellScriptBin "upgrade" ''
+    set -euo pipefail
+    cd ${dotfilesDir}
+    nix flake update
+    nice -n 18 ${switchScript}/bin/switch
+    git -C ${dotfilesDir} diff --quiet flake.lock \
+      || git -C ${dotfilesDir} commit flake.lock -m "flake.lock: update inputs"
+  '';
 in {
-  home.packages = lib.optional (hostType == "nixos") nixosSwitch;
+  home.packages = [
+    switchScript
+    pullScript
+    upgradeScript
+  ];
 }
