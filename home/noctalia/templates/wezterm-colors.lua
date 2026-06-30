@@ -34,17 +34,17 @@ return {
     },
     -- pi-terminal-theme "terminal-tinted" custom palette slots 16..23 (full
     -- slot->token rationale in kitty-colors.conf). Status backgrounds 17/18/19/21
-    -- are MD3 *_container tokens used RAW (no darken/desaturate — wallpaper-derived
-    -- schemes already make very dark containers and any darken collapses them to
-    -- black); 22 uses on_surface so the title stays readable on every container in
-    -- both modes. All tokens are derived per active light/dark mode, vs the xterm cube.
+    -- are MD3 *_container tokens with `desaturate 35`: base16's pastel accents make
+    -- vivid containers, so desaturate tames them; darken is avoided because it blacks
+    -- out wallpaper schemes' already-dark containers. 22 uses on_surface so the title
+    -- stays readable on every container in both modes. Derived per light/dark mode.
     indexed = {
       [16] = '{{colors.surface_container_high.default.hex}}',
-      [17] = '{{colors.error_container.default.hex}}',
-      [18] = '{{colors.primary_container.default.hex}}',
-      [19] = '{{colors.tertiary_container.default.hex}}',
+      [17] = '{{colors.error_container.default.hex | desaturate 35}}',
+      [18] = '{{colors.primary_container.default.hex | desaturate 35}}',
+      [19] = '{{colors.tertiary_container.default.hex | desaturate 35}}',
       [20] = '{{colors.surface_container.default.hex}}',
-      [21] = '{{colors.secondary_container.default.hex}}',
+      [21] = '{{colors.secondary_container.default.hex | desaturate 35}}',
       [22] = '{{colors.on_surface.default.hex}}',
       [23] = '{{colors.on_surface_variant.default.hex}}',
     },
