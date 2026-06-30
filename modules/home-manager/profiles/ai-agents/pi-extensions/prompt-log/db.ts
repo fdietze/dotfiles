@@ -83,3 +83,59 @@ export function logPrompt(db: DatabaseSync, p: NewPrompt): boolean {
     );
   return r.changes === 1;
 }
+
+// Build an FTS5 MATCH string from free text: quote each whitespace token so
+// arbitrary user input cannot trigger FTS syntax errors; tokens are implicit-AND.
+function ftsQuery(query: string): string {
+  return query
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((t) => '"' + t.replace(/"/g, '""') + '"')
+    .join(" ");
+}
+
+// Translate filters into a WHERE fragment (prefixed with " AND ") + params.
+function whereFromFilters(f: SearchFilters): { sql: string; params: (string | number)[] } {
+  const clauses: string[] = [];
+  const params: (string | number)[] = [];
+  if (f.starred) clauses.push("p.starred = 1");
+  if (f.host) { clauses.push("p.hostname = ?"); params.push(f.host); }
+  if (f.tool) { clauses.push("p.source_tool = ?"); params.push(f.tool); }
+  if (f.project) { clauses.push("p.cwd LIKE ?"); params.push("%" + f.project + "%"); }
+  if (f.since !== undefined) { clauses.push("p.ts_ms >= ?"); params.push(f.since); }
+  return { sql: clauses.length ? " AND " + clauses.join(" AND ") : "", params };
+}
+
+// Search prompts. With a query: FTS5 MATCH ranked by relevance. Without: most
+// recent first. Filters are applied as SQL WHERE clauses in both paths.
+export function searchPrompts(
+  db: DatabaseSync,
+  opts: { query?: string; filters?: SearchFilters; limit?: number } = {},
+): PromptRow[] {
+  const where = whereFromFilters(opts.filters ?? {});
+  const limit = opts.limit ?? 50;
+  const q = (opts.query ?? "").trim();
+  if (q) {
+    return db
+      .prepare(
+        `SELECT p.* FROM prompts_fts f
+           JOIN prompts p ON p.id = f.rowid
+          WHERE prompts_fts MATCH ?${where.sql}
+          ORDER BY rank
+          LIMIT ?`,
+      )
+      .all(ftsQuery(q), ...where.params, limit) as unknown as PromptRow[];
+  }
+  return db
+    .prepare(`SELECT p.* FROM prompts p WHERE 1=1${where.sql} ORDER BY p.ts_ms DESC LIMIT ?`)
+    .all(...where.params, limit) as unknown as PromptRow[];
+}
+
+// Mutable metadata only. There is deliberately no function that updates `text`.
+export function setStar(db: DatabaseSync, id: number, starred: boolean): void {
+  db.prepare("UPDATE prompts SET starred = ? WHERE id = ?").run(starred ? 1 : 0, id);
+}
+
+export function setTags(db: DatabaseSync, id: number, tags: string): void {
+  db.prepare("UPDATE prompts SET tags = ? WHERE id = ?").run(tags, id);
+}
