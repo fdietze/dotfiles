@@ -10,7 +10,7 @@
   lib,
   ...
 }: let
-  repoDir = "${config.home.homeDirectory}/projects/dotfiles";
+  repoDir = config.my.dotfilesDir;
 in {
   options.my.devLinks = lib.mkOption {
     type = lib.types.listOf lib.types.str;

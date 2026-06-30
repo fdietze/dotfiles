@@ -5,7 +5,7 @@
   mkDevSource,
   ...
 }: let
-  repoDir = "${config.home.homeDirectory}/projects/dotfiles";
+  repoDir = config.my.dotfilesDir;
   # nix-Pfad zur Repo-Wurzel (dieses Modul liegt unter modules/home-manager/),
   # um Datei/Verzeichnis-Typ von devLinks-Einträgen rein zu bestimmen.
   repoRoot = ../..;

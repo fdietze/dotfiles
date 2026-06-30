@@ -6,7 +6,7 @@
   uiFonts,
   ...
 }: let
-  repoDir = "${config.home.homeDirectory}/projects/dotfiles";
+  repoDir = config.my.dotfilesDir;
   base16NoctaliaScheme = import ../../themes/noctalia-scheme.nix {inherit pkgs;};
   # Empty placeholder for noctalia's runtime-rendered include files. The real
   # palette is written by noctalia on its first render (spawn-at-startup); this

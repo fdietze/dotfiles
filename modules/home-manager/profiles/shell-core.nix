@@ -13,7 +13,7 @@
   pkgs,
   ...
 }: let
-  repoDir = "${config.home.homeDirectory}/projects/dotfiles";
+  repoDir = config.my.dotfilesDir;
 in {
   imports = [
     ../shell.nix
@@ -22,6 +22,7 @@ in {
     # The heavy ~1.5 GiB LSP/language layer is opt-in per host via nvf-lsp.nix.
     ../nvf.nix
     ../dotfiles.nix
+    ../dotfiles-dir.nix
     ../dev-links.nix
     ../git.nix
     ../yazi.nix
@@ -75,7 +76,7 @@ in {
 
     # incubator
     s = "${pkgs.ddgr}/bin/ddgr";
-    vf = ''$EDITOR "$HOME"/projects/dotfiles/flake.nix'';
+    vf = ''$EDITOR ${repoDir}/flake.nix'';
     vt = ''$EDITOR "$HOME"/MEGAsync/notes/todo.md'';
     lg = "lazygit";
     nrb = "sudo nixos-rebuild boot";
@@ -120,10 +121,10 @@ in {
     t2 = "${pkgs.eza}/bin/eza --tree --color=always -L 2";
     t3 = "${pkgs.eza}/bin/eza --tree --color=always -L 3";
     tg = "tree-git";
-    vv = ''$EDITOR "$HOME"/projects/dotfiles/modules/home-manager/nvf.nix'';
-    vn = ''$EDITOR "$HOME"/projects/dotfiles/hosts-nixos/gurke/default.nix'';
-    vh = ''$EDITOR "$HOME"/projects/dotfiles/hosts-nixos/gurke/home.nix'';
-    vp = ''$EDITOR "$HOME"/projects/dotfiles/modules/home-manager/packages.nix'';
+    vv = ''$EDITOR ${repoDir}/modules/home-manager/nvf.nix'';
+    vn = ''$EDITOR ${repoDir}/hosts-nixos/gurke/default.nix'';
+    vh = ''$EDITOR ${repoDir}/hosts-nixos/gurke/home.nix'';
+    vp = ''$EDITOR ${repoDir}/modules/home-manager/packages.nix'';
     vb = ''$EDITOR "$HOME"/.config/polybar/config.ini'';
     nrs = "nrs";
     ns = "nix-shell --run zsh";

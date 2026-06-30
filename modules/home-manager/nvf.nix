@@ -1,4 +1,5 @@
 {
+  config,
   lib,
   pkgs,
   nvf,
@@ -337,13 +338,13 @@ in {
           {
             mode = "n";
             key = "<leader>vh";
-            action = "<cmd>edit ~/projects/dotfiles/hosts-nixos/gurke/home.nix<cr>";
+            action = "<cmd>edit ${config.my.dotfilesDir}/hosts-nixos/gurke/home.nix<cr>";
             desc = "edit home.nix";
           }
           {
             mode = "n";
             key = "<leader>vn";
-            action = "<cmd>edit ~/projects/dotfiles/hosts-nixos/gurke/default.nix<cr>";
+            action = "<cmd>edit ${config.my.dotfilesDir}/hosts-nixos/gurke/default.nix<cr>";
             desc = "edit configuration.nix";
           }
           {
