@@ -23,6 +23,8 @@ in {
     ../nvf.nix
     ../dotfiles.nix
     ../dotfiles-dir.nix
+    # Universal host commands (nixos `switch` = relocated nrs; pull/upgrade soon).
+    ../host-commands.nix
     ../dev-links.nix
     ../git.nix
     ../yazi.nix
@@ -126,7 +128,6 @@ in {
     vh = ''$EDITOR ${repoDir}/hosts-nixos/gurke/home.nix'';
     vp = ''$EDITOR ${repoDir}/modules/home-manager/packages.nix'';
     vb = ''$EDITOR "$HOME"/.config/polybar/config.ini'';
-    nrs = "nrs";
     ns = "nix-shell --run zsh";
     ni = "nix profile install nixpkgs#";
     md = "mkdir -p";

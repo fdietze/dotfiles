@@ -7,6 +7,7 @@
   nvf,
   theme,
   hostLabel,
+  hostType,
   pkgs,
   ...
 }: let
@@ -185,7 +186,7 @@ in {
     useUserPackages = true;
     # korken's HM profiles (shell-core, ai-agents, ...) expect the same args the
     # standalone HM config passes; nix-on-droid doesn't forward them by default.
-    extraSpecialArgs = {inherit flake-inputs nvf theme hostLabel;};
+    extraSpecialArgs = {inherit flake-inputs nvf theme hostLabel hostType;};
     config = {lib, ...}: {
       imports = [
         ../modules/home-manager/profiles/shell-core.nix

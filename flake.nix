@@ -138,7 +138,6 @@
         inherit system;
         specialArgs = {
           flake-inputs = inputs;
-          hostType = "nixos";
           inherit hostLocal;
           uiFonts = uiFontsFor system;
         };
@@ -154,6 +153,10 @@
             nixpkgs.overlays = [llm-agents.overlays.default];
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
+            # hostType reaches HM modules only via extraSpecialArgs (nixosSystem
+            # specialArgs do not propagate); set centrally so every nixos host
+            # gets it. types.attrs shallow-merges with each host's own block.
+            home-manager.extraSpecialArgs = {hostType = "nixos";};
             home-manager.sharedModules = [
               nix-index-database.homeModules.nix-index
               noctalia.homeModules.default
