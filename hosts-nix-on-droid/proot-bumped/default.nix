@@ -14,6 +14,13 @@
 # cache (it can't build it: nix-on-droid's cross machinery fails under the
 # on-device proot filesystem).
 #
+# CI ordering: build-arm.yml (korken) substitutes this x86-built proot from the
+# fdietze cachix cache; build-x86.yml builds and pushes it. Both fire in
+# parallel on master push, so when you bump the rev below, push that change
+# ALONE first (build-x86 caches it), then push closure-affecting changes — or
+# re-run build-arm after build-x86 finishes. Unchanged revs are already cached,
+# so normal pushes never race.
+#
 # system is pinned to x86_64-linux because the Android NDK ships x86_64 host
 # binaries: the build must run on x86 (CI: ubuntu-latest) and cross-compile the
 # aarch64-android proot. korken (aarch64) therefore can't build this derivation
