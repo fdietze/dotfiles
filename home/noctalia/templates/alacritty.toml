@@ -28,6 +28,36 @@ magenta = '{{colors.terminal_normal_magenta.default.hex}}'
 cyan    = '{{colors.terminal_normal_cyan.default.hex}}'
 white   = '{{colors.terminal_normal_white.default.hex}}'
 
+# pi-terminal-theme "terminal-tinted" custom palette slots 16..23 (full slot->token
+# rationale in kitty-colors.conf). Status backgrounds 17/18/19/21 are the MD3
+# *_container tokens darkened+desaturated into readable tints; 22 uses on_surface so
+# the tool title stays readable on every tint in both modes. All tokens are derived
+# per active light/dark mode, replacing the harsh xterm 256-color cube fallback.
+[[colors.indexed_colors]]
+index = 16
+color = '{{colors.surface_container_high.default.hex}}'
+[[colors.indexed_colors]]
+index = 17
+color = '{{colors.error_container.default.hex | darken 20 | desaturate 25}}'
+[[colors.indexed_colors]]
+index = 18
+color = '{{colors.primary_container.default.hex | darken 20 | desaturate 25}}'
+[[colors.indexed_colors]]
+index = 19
+color = '{{colors.tertiary_container.default.hex | darken 20 | desaturate 25}}'
+[[colors.indexed_colors]]
+index = 20
+color = '{{colors.surface_container.default.hex}}'
+[[colors.indexed_colors]]
+index = 21
+color = '{{colors.secondary_container.default.hex | darken 20 | desaturate 25}}'
+[[colors.indexed_colors]]
+index = 22
+color = '{{colors.on_surface.default.hex}}'
+[[colors.indexed_colors]]
+index = 23
+color = '{{colors.on_surface_variant.default.hex}}'
+
 [colors.bright]
 black   = '{{colors.terminal_bright_black.default.hex}}'
 red     = '{{colors.terminal_bright_red.default.hex}}'

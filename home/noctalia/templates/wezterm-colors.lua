@@ -32,5 +32,20 @@ return {
       '{{colors.terminal_bright_cyan.default.hex}}',
       '{{colors.terminal_bright_white.default.hex}}',
     },
+    -- pi-terminal-theme "terminal-tinted" custom palette slots 16..23 (full
+    -- slot->token rationale in kitty-colors.conf). Status backgrounds 17/18/19/21
+    -- are MD3 *_container tokens darkened+desaturated into readable tints; 22 uses
+    -- on_surface so the tool title stays readable on every tint in both modes. All
+    -- tokens are derived per active light/dark mode, replacing the xterm cube.
+    indexed = {
+      [16] = '{{colors.surface_container_high.default.hex}}',
+      [17] = '{{colors.error_container.default.hex | darken 20 | desaturate 25}}',
+      [18] = '{{colors.primary_container.default.hex | darken 20 | desaturate 25}}',
+      [19] = '{{colors.tertiary_container.default.hex | darken 20 | desaturate 25}}',
+      [20] = '{{colors.surface_container.default.hex}}',
+      [21] = '{{colors.secondary_container.default.hex | darken 20 | desaturate 25}}',
+      [22] = '{{colors.on_surface.default.hex}}',
+      [23] = '{{colors.on_surface_variant.default.hex}}',
+    },
   }
 }
