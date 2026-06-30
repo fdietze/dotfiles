@@ -1,0 +1,46 @@
+# Builds the x86_64-linux artifacts and pushes new paths to the fdietze cachix
+# cache. gurke's full NixOS toplevel (subsumes the paseo desktop app, imported
+# by gurke's home.nix) and the bumped proot.
+#
+# proot-bumped is pinned to system=x86_64-linux (Android NDK cross toolchain
+# ships x86 host binaries) and cross-compiles the aarch64-android proot, so it
+# must build here on x86, not in build-arm.yml. korken substitutes its output.
+name: build-x86
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: build-x86
+  cancel-in-progress: true
+
+jobs:
+  gurke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: cachix/cachix-action@v15
+        with:
+          name: fdietze
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+      - name: Build gurke NixOS toplevel
+        run: nix build -L .#nixosConfigurations.gurke.config.system.build.toplevel -o result-gurke
+
+  proot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: cachix/cachix-action@v15
+        with:
+          name: fdietze
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+      # --impure: ci/proot-bump.nix resolves flake inputs via builtins.getFlake
+      # ($GITHUB_WORKSPACE). Same store path korken's prootStatic references.
+      - name: Build bumped proot (x86 NDK cross -> aarch64-android)
+        run: nix build -L --impure -f ci/proot-bump.nix -o result-proot
