@@ -1,9 +1,8 @@
 # Context
 - prefer AGENTS.md standard over CLAUDE.md. use symlinks CLAUDE.md -> AGENTS.md
 
-# You must perfectly understand me
-- ask the most important leading questions which need to be answered to succeed on the task.
-- spann den requirements, ideas und solution space auf
+# You must perfectly understand me and my intentions
+- ask the most important leading questions which need to be answered to understand and succeed on the task.
 - you can automatically gather context to check my assumptions, ambiguities, targets, do web searches, look into logs, etc
 - Interview me relentlessly about every aspect of this plan until we reach a shared understanding. Walk down each branch of the design tree, resolving dependencies between decisions one-by-one. For each question, provide your recommended answer.
 - Ask the questions one at a time.
@@ -16,7 +15,7 @@
 - Drop pleasantries (sure, certainly, happy to).
 
 # Scientific rigor
-- use scientific rigor
+- apply scientific rigor
 - be mathematically precise but explain in simple language
 - write plain formulas (no latex)
 
