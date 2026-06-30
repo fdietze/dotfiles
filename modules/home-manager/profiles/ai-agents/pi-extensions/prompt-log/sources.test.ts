@@ -63,3 +63,28 @@ test("ingest inserts parsed rows with hostname and dedups on re-run", () => {
   assert.equal(all.length, 2);
   assert.ok(all[0].hostname && all[0].hostname.length > 0);
 });
+
+import { parseArgs, fmtRow } from "./index.ts";
+
+test("parseArgs splits flags from free-text query", () => {
+  const { query, filters } = parseArgs("--starred --tool pi --project dotfiles stylix theme");
+  assert.equal(query, "stylix theme");
+  assert.equal(filters.starred, true);
+  assert.equal(filters.tool, "pi");
+  assert.equal(filters.project, "dotfiles");
+});
+
+test("parseArgs --since parses a date to ms; bad date ignored", () => {
+  assert.equal(parseArgs("--since 2026-06-01 x").filters.since, Date.parse("2026-06-01"));
+  assert.equal(parseArgs("--since notadate x").filters.since, undefined);
+});
+
+test("fmtRow shows star, tool, date prefix and unique id", () => {
+  const row = { id: 7, ts_ms: Date.parse("2026-06-24T10:00:00Z"), hostname: "h", cwd: "/p", session_id: "s", source_tool: "pi", source: "interactive", text: "firefox\n  stylix   color", starred: 1, tags: null } as any;
+  const s = fmtRow(row);
+  assert.match(s, /★/);
+  assert.match(s, /\[pi\]/);
+  assert.match(s, /2026-06-24/);
+  assert.match(s, /#7/);
+  assert.ok(!s.includes("\n"));
+});
