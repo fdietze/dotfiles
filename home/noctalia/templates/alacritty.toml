@@ -29,29 +29,29 @@ cyan    = '{{colors.terminal_normal_cyan.default.hex}}'
 white   = '{{colors.terminal_normal_white.default.hex}}'
 
 # pi-terminal-theme "terminal-tinted" custom palette slots 16..23 (full slot->token
-# rationale in kitty-colors.conf). Status backgrounds 17/18/19/21 are the MD3
-# *_container tokens with `desaturate 50`: base16's pastel accents make vivid
-# containers, so desaturate tames them; darken is avoided because it blacks out
-# wallpaper schemes' already-dark containers. 22 uses on_surface so the title stays
-# readable on every container in both modes. Derived per active light/dark mode.
+# rationale in kitty-colors.conf). Status backgrounds 17/18/19/21 are
+# surface_container_high stamped with a fixed semantic hue (set_saturation 30 |
+# set_hue H): the MD3 *_container tokens vary too much in lightness across schemes
+# (vivid for base16, near-black for wallpaper schemes), so they're replaced by a dim
+# mode-correct surface + fixed hue. 22 uses on_surface so the title stays readable.
 [[colors.indexed_colors]]
 index = 16
 color = '{{colors.surface_container_high.default.hex}}'
 [[colors.indexed_colors]]
 index = 17
-color = '{{colors.error_container.default.hex | desaturate 50}}'
+color = '{{colors.surface_container_high.default.hex | set_saturation 30 | set_hue 2}}'
 [[colors.indexed_colors]]
 index = 18
-color = '{{colors.primary_container.default.hex | desaturate 50}}'
+color = '{{colors.surface_container_high.default.hex | set_saturation 30 | set_hue 135}}'
 [[colors.indexed_colors]]
 index = 19
-color = '{{colors.tertiary_container.default.hex | desaturate 50}}'
+color = '{{colors.surface_container_high.default.hex | set_saturation 30 | set_hue 222}}'
 [[colors.indexed_colors]]
 index = 20
 color = '{{colors.surface_container.default.hex}}'
 [[colors.indexed_colors]]
 index = 21
-color = '{{colors.secondary_container.default.hex | desaturate 50}}'
+color = '{{colors.surface_container_high.default.hex | set_saturation 30 | set_hue 300}}'
 [[colors.indexed_colors]]
 index = 22
 color = '{{colors.on_surface.default.hex}}'

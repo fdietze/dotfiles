@@ -1,0 +1,19 @@
+{
+  "lastChangelogVersion": "0.80.2",
+  "defaultProvider": "anthropic",
+  "defaultModel": "claude-opus-4-8",
+  "defaultThinkingLevel": "high",
+  "packages": [
+    "npm:pi-claude-auth",
+    "npm:pi-terminal-theme"
+  ],
+  "theme": "terminal-tinted",
+  "hideThinkingBlock": true,
+  "steeringMode": "all",
+  "followUpMode": "all",
+  "defaultProjectTrust": "always",
+  "compaction": {
+    "enabled": false
+  },
+  "collapseChangelog": true
+}
