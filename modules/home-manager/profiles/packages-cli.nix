@@ -26,6 +26,9 @@
       duf
       pv
       bat
+      # Ship less from Nix so `PAGER` and shell aliases hit the same pager on
+      # every host instead of falling back to the base OS package.
+      less
       lazygit
       tig
       git-fire
