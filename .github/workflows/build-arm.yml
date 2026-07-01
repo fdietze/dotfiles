@@ -3,9 +3,14 @@
 # korken (nix-on-droid) download-only on switch instead of building on-device.
 # Building the whole closure subsumes the old per-package paseo-aarch64 build.
 #
+# Both hosts build SEQUENTIALLY in one job (one runner, one /nix/store): cubie
+# and korken share most aarch64 paths, so the second build reuses the first's
+# just-built store instead of rebuilding them on a separate parallel runner.
+#
 # Runs natively on ubuntu-24.04-arm (no QEMU). korken's closure references the
 # x86-pinned proot store path; the arm runner cannot build x86, so it
-# SUBSTITUTES proot from cachix (pushed by build-x86.yml's proot job).
+# SUBSTITUTES proot from cachix (pushed early by build-x86.yml's proot step).
+# cubie is built first (long) so proot has landed in cache before korken needs it.
 name: build-arm
 
 on:
@@ -18,9 +23,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  cubie:
+  arm:
     runs-on: ubuntu-24.04-arm
-    timeout-minutes: 60
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@main
@@ -31,18 +36,8 @@ jobs:
           authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
       - name: Build cubie home-manager closure (native aarch64)
         run: nix build -L .#homeConfigurations.cubie.activationPackage -o result-cubie
-
-  korken:
-    runs-on: ubuntu-24.04-arm
-    timeout-minutes: 60
-    steps:
-      - uses: actions/checkout@v4
-      - uses: DeterminateSystems/nix-installer-action@main
-      - uses: cachix/cachix-action@v15
-        with:
-          name: fdietze
-          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
       # --impure: nix-on-droid evaluates builtins.storePath (rejected in pure
       # mode). proot is substituted from cachix, not built here (x86-pinned).
+      # Reuses cubie's shared aarch64 store paths from the step above.
       - name: Build korken nix-on-droid closure (native aarch64)
         run: nix build -L --impure .#nixOnDroidConfigurations.korken.activationPackage -o result-korken
