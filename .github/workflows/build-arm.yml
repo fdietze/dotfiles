@@ -29,15 +29,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@main
-      # No skipPush: the post-build-hook auto-pushes every newly-built path.
+      # skipPush + explicit `cachix push` below: the automatic post-build-hook
+      # does not reliably upload under the DeterminateSystems Nix daemon, so we
+      # push the built closures explicitly (cachix skips paths already cached).
       - uses: cachix/cachix-action@v15
         with:
           name: fdietze
           authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+          skipPush: true
       - name: Build cubie home-manager closure (native aarch64)
         run: nix build -L .#homeConfigurations.cubie.activationPackage -o result-cubie
+      - name: Push cubie closure to cachix
+        run: cachix push fdietze "$(readlink -f result-cubie)"
       # --impure: nix-on-droid evaluates builtins.storePath (rejected in pure
       # mode). proot is substituted from cachix, not built here (x86-pinned).
       # Reuses cubie's shared aarch64 store paths from the step above.
       - name: Build korken nix-on-droid closure (native aarch64)
         run: nix build -L --impure .#nixOnDroidConfigurations.korken.activationPackage -o result-korken
+      - name: Push korken closure to cachix
+        run: cachix push fdietze "$(readlink -f result-korken)"

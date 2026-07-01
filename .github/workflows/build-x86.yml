@@ -28,14 +28,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@main
+      # skipPush + explicit `cachix push` below: the automatic post-build-hook
+      # does not reliably upload under the DeterminateSystems Nix daemon, so we
+      # push the built closures explicitly (cachix skips paths already cached).
       - uses: cachix/cachix-action@v15
         with:
           name: fdietze
           authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+          skipPush: true
       # --impure: ci/proot-bump.nix resolves flake inputs via builtins.getFlake
       # ($GITHUB_WORKSPACE). Same store path korken's prootStatic references.
-      # Built first so it lands in cachix before korken's parallel arm job needs it.
+      # Built+pushed first so it lands in cachix before korken's parallel arm job.
       - name: Build bumped proot (x86 NDK cross -> aarch64-android)
         run: nix build -L --impure -f ci/proot-bump.nix -o result-proot
+      - name: Push proot to cachix
+        run: cachix push fdietze "$(readlink -f result-proot)"
       - name: Build gurke NixOS toplevel
         run: nix build -L .#nixosConfigurations.gurke.config.system.build.toplevel -o result-gurke
+      - name: Push gurke closure to cachix
+        run: cachix push fdietze "$(readlink -f result-gurke)"
