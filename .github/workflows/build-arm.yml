@@ -7,10 +7,18 @@
 # and korken share most aarch64 paths, so the second build reuses the first's
 # just-built store instead of rebuilding them on a separate parallel runner.
 #
-# Runs natively on ubuntu-24.04-arm (no QEMU). korken's closure references the
-# x86-pinned proot store path; the arm runner cannot build x86, so it
-# SUBSTITUTES proot from cachix (pushed early by build-x86.yml's proot step).
-# cubie is built first (long) so proot has landed in cache before korken needs it.
+# Runs natively on ubuntu-24.04-arm (no QEMU).
+#
+# For korken we build its HOME-MANAGER closure, not the full nix-on-droid
+# activationPackage. The full generation references nix-on-droid's default
+# `environment.files.prootStatic` — a readOnly builtins.storePath
+# (7qd99…proot-termux-static-…-2024-05-04) that ships inside the Android app and
+# exists in NO public cache, so a CI runner cannot realize it. On-device that
+# path is already present (app-bundled) and the bumped proot (scf3d1a1, pushed
+# by build-x86.yml) substitutes from cachix, so the cheap system-generation
+# wrapper builds fine on `switch`. The heavy aarch64 packages korken actually
+# builds (nvf/neovim, pi/claude agents) all live in the home closure — exactly
+# what we pre-warm here.
 name: build-arm
 
 on:
@@ -42,9 +50,8 @@ jobs:
       - name: Push cubie closure to cachix
         run: cachix push fdietze "$(readlink -f result-cubie)"
       # --impure: nix-on-droid evaluates builtins.storePath (rejected in pure
-      # mode). proot is substituted from cachix, not built here (x86-pinned).
-      # Reuses cubie's shared aarch64 store paths from the step above.
-      - name: Build korken nix-on-droid closure (native aarch64)
-        run: nix build -L --impure .#nixOnDroidConfigurations.korken.activationPackage -o result-korken
+      # mode). Reuses cubie's shared aarch64 store paths from the step above.
+      - name: Build korken home-manager closure (native aarch64)
+        run: nix build -L --impure .#nixOnDroidConfigurations.korken.config.home-manager.config.home.activationPackage -o result-korken
       - name: Push korken closure to cachix
         run: cachix push fdietze "$(readlink -f result-korken)"

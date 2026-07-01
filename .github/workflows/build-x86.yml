@@ -2,14 +2,13 @@
 # cache. gurke's full NixOS toplevel (subsumes the paseo desktop app, imported
 # by gurke's home.nix) and the bumped proot.
 #
-# Both build SEQUENTIALLY in one job (one runner, one /nix/store). proot is
-# built FIRST because korken's parallel arm job (build-arm.yml) must substitute
-# proot from cachix; building+pushing it before the long gurke closure gets it
-# into the cache early, avoiding the proot/korken race.
+# Both build SEQUENTIALLY in one job (one runner, one /nix/store).
 #
 # proot-bumped is pinned to system=x86_64-linux (Android NDK cross toolchain
 # ships x86 host binaries) and cross-compiles the aarch64-android proot, so it
-# must build here on x86, not in build-arm.yml. korken substitutes its output.
+# must build here on x86. korken's ON-DEVICE switch substitutes this output from
+# cachix (its home closure, pre-warmed by build-arm.yml, does not reference it,
+# so there is no CI-time race — we just keep it in the cache for the device).
 name: build-x86
 
 on:
@@ -38,7 +37,6 @@ jobs:
           skipPush: true
       # --impure: ci/proot-bump.nix resolves flake inputs via builtins.getFlake
       # ($GITHUB_WORKSPACE). Same store path korken's prootStatic references.
-      # Built+pushed first so it lands in cachix before korken's parallel arm job.
       - name: Build bumped proot (x86 NDK cross -> aarch64-android)
         run: nix build -L --impure -f ci/proot-bump.nix -o result-proot
       - name: Push proot to cachix
