@@ -53,8 +53,9 @@ in {
 
     PAGER = "less --RAW-CONTROL-CHARS"; # less with colors
 
-    # colorize less
-    LESS = "--use-color --RAW-CONTROL-CHARS --incsearch --ignore-case --redraw-on-quit --mouse --wheel-lines=3";
+    # less 551 here supports only this subset; the newer long options in the
+    # old dotfiles made `git log` fail before less even started paging.
+    LESS = "-R -i -S --mouse --wheel-lines=3";
 
     # QT_QPA_PLATFORMTHEME = "gtk2"; # let qt apps use gtk 2 themes
     # QT_AUTO_SCREEN_SCALE_FACTOR = 1; # honor screen DPI
