@@ -6,7 +6,7 @@
 # is the planned follow-up; until then mobile agents run unconfined.
 #
 # Same agent list (./agents.nix) and shared extras (skills, pi-extensions,
-# instructions) as the sandboxed ./default.nix — only the wrapping differs.
+# pi-settings, instructions) as the sandboxed ./default.nix — only the wrapping differs.
 {
   config,
   lib,
@@ -29,7 +29,7 @@
     '';
   allAgents = import ./agents.nix {inherit pkgs;};
 in {
-  imports = [./skills.nix ./pi-extensions.nix ./instructions.nix];
+  imports = [./skills.nix ./pi-extensions.nix ./pi-settings.nix ./instructions.nix];
 
   # Which agents (by name from agents.nix) to install. Default: all. A host can
   # narrow this to avoid pulling heavy builds it doesn't need (e.g. the cubie
