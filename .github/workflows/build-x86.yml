@@ -33,13 +33,15 @@ jobs:
     timeout-minutes: 150
     steps:
       # gurke's full toplevel closure (desktop + vscode + electron/noctalia) does
-      # not fit on a stock ubuntu-latest runner (~14 GB disk / 7 GB RAM): the
-      # runner lost communication mid-realization. Reclaim the ~30 GB of
-      # preinstalled Android SDK / .NET / GHC / Haskell we never use first.
-      - name: Free disk space
-        uses: jlumbroso/free-disk-space@main
-        with:
-          tool-cache: true
+      # not fit on the runner's root disk (~21 GB free): the runner lost
+      # communication mid-realization. The ephemeral resource disk at /mnt is
+      # much larger (~65 GB free), so bind-mount the whole /nix tree onto it
+      # before installing Nix. This holds both the store and the daemon build dir
+      # (/nix/var), and is instant vs. deleting ~30 GB of preinstalled tooling.
+      - name: Put /nix on the large /mnt disk
+        run: |
+          sudo mkdir -p /mnt/nix /nix
+          sudo mount --bind /mnt/nix /nix
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@main
       # skipPush + explicit `cachix push` below: the automatic post-build-hook
