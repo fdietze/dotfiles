@@ -28,8 +28,18 @@ concurrency:
 jobs:
   x86:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    # gurke's toplevel is a large first-time build; generous headroom (the runner
+    # died from disk exhaustion, not timeout, but keep slack once disk is freed).
+    timeout-minutes: 150
     steps:
+      # gurke's full toplevel closure (desktop + vscode + electron/noctalia) does
+      # not fit on a stock ubuntu-latest runner (~14 GB disk / 7 GB RAM): the
+      # runner lost communication mid-realization. Reclaim the ~30 GB of
+      # preinstalled Android SDK / .NET / GHC / Haskell we never use first.
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@main
       # skipPush + explicit `cachix push` below: the automatic post-build-hook
