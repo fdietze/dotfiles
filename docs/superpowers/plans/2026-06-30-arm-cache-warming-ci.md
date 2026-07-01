@@ -8,6 +8,17 @@
 
 **Tech Stack:** GitHub Actions, Nix flakes, DeterminateSystems/nix-installer-action, cachix/cachix-action@v15.
 
+> **Amendments (discovered during execution, 2026-07-01):** Two deviations from
+> the task bodies below, reflected in the committed workflows and the spec:
+> 1. **korken target** is its **home-manager closure**
+>    (`.#nixOnDroidConfigurations.korken.config.home-manager.config.home.activationPackage`),
+>    not the full activationPackage — the full generation references nix-on-droid's
+>    readOnly app-shipped `prootStatic` storePath (`7qd99…`), absent from all
+>    caches, unrealizable in CI.
+> 2. **Push is explicit** (`skipPush: true` + `cachix push`), not the auto
+>    post-build-hook — the hook did not upload under the DeterminateSystems daemon.
+> Also: same-arch hosts build **sequentially in one job**, not one job per host.
+
 ## Global Constraints
 
 - Cache name: `fdietze` (host `fdietze.cachix.org`); auth via `${{ secrets.CACHIX_AUTH_TOKEN }}` (already configured, used by current workflows).
@@ -16,10 +27,12 @@
 - Triggers for both files: `push: { branches: [master] }` with NO paths filter, plus `workflow_dispatch`.
 - `concurrency: { group: <workflow-name>, cancel-in-progress: true }` per workflow.
 - `timeout-minutes: 60` per job.
-- Do NOT set `skipPush` on cachix-action (auto post-build-hook pushes new paths).
+- Set `skipPush: true` on cachix-action and push each built closure explicitly
+  with `cachix push fdietze "$(readlink -f result-*)"` (the auto post-build-hook
+  does not upload reliably under the DeterminateSystems Nix daemon).
 - Verbatim attr paths (verified by `nix eval` on 2026-06-30):
   - `.#homeConfigurations.cubie.activationPackage`
-  - `.#nixOnDroidConfigurations.korken.activationPackage`
+  - `.#nixOnDroidConfigurations.korken.config.home-manager.config.home.activationPackage` (home closure; the full activationPackage is unrealizable in CI — see Amendments)
   - `.#nixosConfigurations.gurke.config.system.build.toplevel`
   - `ci/proot-bump.nix` (built with `nix build --impure -f ci/proot-bump.nix`)
 

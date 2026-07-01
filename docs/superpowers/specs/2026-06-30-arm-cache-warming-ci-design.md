@@ -34,18 +34,32 @@ full closure subsumes the per-package builds that live inside it:
 
 ### `.github/workflows/build-arm.yml` — `runs-on: ubuntu-24.04-arm`
 
-- job `cubie`: `nix build .#homeConfigurations.cubie.activationPackage`
-- job `korken`: `nix build --impure .#nixOnDroidConfigurations.korken.activationPackage`
+Both hosts build **sequentially in one job** (`arm`) so korken reuses cubie's
+just-built shared aarch64 store paths instead of a second parallel runner
+rebuilding them.
+
+- cubie: `nix build .#homeConfigurations.cubie.activationPackage`
+- korken: `nix build --impure .#nixOnDroidConfigurations.korken.config.home-manager.config.home.activationPackage`
+  - We build korken's **home-manager closure**, NOT the full nix-on-droid
+    activationPackage. The full generation references nix-on-droid's default
+    `environment.files.prootStatic` — a `readOnly` `builtins.storePath`
+    (`7qd99…proot-termux-static-…-2024-05-04`) shipped inside the Android app and
+    present in NO public cache (cache.nixos.org / numtide / fdietze all 404), so
+    a CI runner cannot realize it. `readOnly = true` also blocks overriding it to
+    prootBumped. On-device that path is app-present, and prootBumped substitutes
+    from cachix, so the trivial system-generation wrapper builds fine on switch.
+    korken's heavy aarch64 packages (nvf/neovim, pi/claude agents) live in the
+    home closure — exactly what we pre-warm.
   - `--impure` is required: nix-on-droid evaluates `builtins.storePath` (rejected
-    in pure mode). Confirmed by `nix eval` on 2026-06-30.
-  - korken's closure only *references* the x86-pinned proot store path; the arm
-    runner cannot build an x86 derivation, so it **substitutes** proot from
-    `fdietze.cachix.org`.
+    in pure mode).
 
 ### `.github/workflows/build-x86.yml` — `runs-on: ubuntu-latest`
 
-- job `gurke`: `nix build .#nixosConfigurations.gurke.config.system.build.toplevel`
-- job `proot`: `nix build --impure -f ci/proot-bump.nix`
+Both build **sequentially in one job** (`x86`).
+
+- proot: `nix build --impure -f ci/proot-bump.nix` (builds+pushes the bumped
+  proot `scf3d1a1…`; korken's on-device switch substitutes it)
+- gurke: `nix build .#nixosConfigurations.gurke.config.system.build.toplevel`
   - proot-bumped is pinned to `system = "x86_64-linux"` because the Android NDK
     cross toolchain ships x86 host binaries; it cross-compiles the aarch64-android
     proot. This is why it stays a separate x86 job and cannot fold into the arm
@@ -57,11 +71,13 @@ full closure subsumes the per-package builds that live inside it:
   edit or `flake.lock` bump can change a closure), plus `workflow_dispatch`.
 - `concurrency: { group: <workflow>, cancel-in-progress: true }` per workflow.
 - Each job: `actions/checkout@v4`, `DeterminateSystems/nix-installer-action@main`,
-  `cachix/cachix-action@v15` with `name: fdietze` and
-  `authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}`, **without `skipPush`**. The
-  action installs a post-build-hook that pushes each path as it is built;
-  substituted/downloaded paths are not re-pushed, so only the genuinely-new
-  deltas go up — exactly "build what's not cached, push it".
+  `cachix/cachix-action@v15` with `name: fdietze`,
+  `authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}`, and **`skipPush: true`** plus an
+  explicit `cachix push fdietze "$(readlink -f result-*)"` step per built
+  closure. The automatic post-build-hook (no `skipPush`) was tried first but did
+  NOT reliably upload under the DeterminateSystems Nix daemon (proot built `✓`
+  yet stayed 404 in cachix), so we push explicitly like the original workflows;
+  `cachix push` skips paths already present, so only new deltas upload.
 - `timeout-minutes: 60` per job (matches existing workflows).
 
 ### Cleanup (DRY)
@@ -75,17 +91,15 @@ Delete, since the closures now cover them:
 
 Keep `ci/proot-bump.nix` (still the x86 proot entry point).
 
-## Gotcha: proot must be cached before korken
+## No CI-time proot race
 
-korken substitutes the x86-pinned proot; the arm and x86 workflows fire in
-parallel on the same push. If the proot rev is bumped in a push, the korken arm
-job may try to substitute proot before the x86 job has pushed it → korken fails.
-
-Mitigation (accepted, KISS): the proot rev (`hosts-nix-on-droid/proot-bumped/
-default.nix`) changes rarely. Normal pushes don't touch it, so it is already
-cached and there is no race. On a rev bump, push the proot change alone first
-(x86 caches it), then push closure-affecting changes — or simply re-run the arm
-workflow after x86 finishes.
+An earlier design built korken's *full* activationPackage, which references the
+bumped proot, creating an ordering race with the x86 proot build. Building only
+korken's home closure removed it: the home closure references neither the bumped
+proot nor the app proot. build-x86 still builds+pushes the bumped proot purely
+for korken's ON-DEVICE switch (where the system generation installs it). Since
+normal pushes don't change the proot rev, it stays cached; on a rev bump, push
+the proot change first so the device can substitute it.
 
 ## Prerequisites / risks to validate
 
@@ -93,9 +107,11 @@ workflow after x86 finishes.
    (+ its public key) in its Determinate Nix `/etc/nix/nix.conf`, configured
    out-of-band. korken already has it (`hosts-nix-on-droid/korken.nix`). Verify
    on-device or the pushed paths won't be used.
-2. **korken on a plain runner**: first arm run validates that the nix-on-droid
-   `activationPackage` builds fully on a stock aarch64 runner, with no
-   on-device-only dependency besides the substituted proot.
+2. **korken system-layer builds on-device**: the home closure is pre-warmed, but
+   the small nix-on-droid system generation (openssh + activation scripts +
+   generation wrapper) still builds on-device on switch. It is trivial (no heavy
+   compiles) and references only app-present (7qd99) / cached (bumped proot)
+   paths, so it does not OOM — confirm on the first real switch.
 3. **Runner time budget**: cold cubie/gurke closures must finish within the
    60-minute job timeout; most paths come from upstream caches
    (cache.nixos.org, cache.numtide.com, noctalia.cachix.org).
