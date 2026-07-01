@@ -42,6 +42,20 @@ jobs:
         run: |
           sudo mkdir -p /mnt/nix /nix
           sudo mount --bind /mnt/nix /nix
+      # gurke's toplevel builds codex (Rust) and noctalia (Qt) from source, whose
+      # peak memory exceeds the runner's 7 GB RAM (OOM → "lost communication").
+      # A large swapfile on the roomy /mnt disk lets those spikes spill to disk
+      # instead of being OOM-killed (slower, but completes). Replaces the runner's
+      # small default swap.
+      - name: Add 16G swap on the resource disk
+        run: |
+          sudo swapoff -a || true
+          sudo rm -f /mnt/swapfile
+          sudo fallocate -l 16G /mnt/swapfile
+          sudo chmod 600 /mnt/swapfile
+          sudo mkswap /mnt/swapfile
+          sudo swapon /mnt/swapfile
+          free -h
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@main
       # skipPush + explicit `cachix push` below: the automatic post-build-hook
@@ -58,7 +72,10 @@ jobs:
         run: nix build -L --impure -f ci/proot-bump.nix -o result-proot
       - name: Push proot to cachix
         run: cachix push fdietze "$(readlink -f result-proot)"
+      # --max-jobs 1: build one derivation at a time so the heavy codex (Rust)
+      # and noctalia (Qt) compiles never run concurrently, capping peak RAM (with
+      # the swapfile above as the safety net). Slower but fits the 7 GB runner.
       - name: Build gurke NixOS toplevel
-        run: nix build -L .#nixosConfigurations.gurke.config.system.build.toplevel -o result-gurke
+        run: nix build -L --max-jobs 1 .#nixosConfigurations.gurke.config.system.build.toplevel -o result-gurke
       - name: Push gurke closure to cachix
         run: cachix push fdietze "$(readlink -f result-gurke)"
