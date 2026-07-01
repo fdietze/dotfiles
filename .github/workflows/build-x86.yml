@@ -16,9 +16,14 @@ on:
     branches: [master]
   workflow_dispatch:
 
+# cancel-in-progress: false so a long in-flight gurke toplevel build is NOT
+# pre-empted by a newer push. GitHub keeps the running build alive and holds the
+# newest push as the single pending run (older pending runs are superseded), so
+# the cache still converges to the latest commit without wasting a 30-40 min
+# build. build-arm cancels instead (it finishes in ~2 min).
 concurrency:
   group: build-x86
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   x86:
