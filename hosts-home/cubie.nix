@@ -46,7 +46,7 @@ in {
 
   # pi + claude on this 1 GB SBC. Skip codex (slow aarch64 Rust source build,
   # no binary cache) and opencode. claude-code is a light npm fetch.
-  aiAgents.names = ["pi" "claude"];
+  aiAgents.names = ["pi" "claude" "codex"];
 
   # Enable the shared Paseo user daemon, set to start automatically on boot.
   services.paseo-daemon = {
