@@ -4,3 +4,7 @@ target/
 # noctalia v5: only home/noctalia/settings.toml (GUI state) and templates/ are
 # tracked. Runtime artifacts (generated colors, clipboard/plugin caches) live
 # under ~/.config/noctalia and ~/.local/state/noctalia, never in the repo.
+
+# quine: standalone project in a nested git repo (dotfiles/quine/.git); will move
+# to ~/projects/quine once it runs. Never track it here.
+/quine/
