@@ -65,7 +65,14 @@ jobs:
           sudo swapon /mnt/swapfile
           free -h
       - uses: actions/checkout@v4
+      # Same extra substituters the hosts use (gurke: hosts-nixos/gurke/default.nix)
+      # so CI substitutes noctalia (noctalia.cachix.org) and the llm-agents
+      # (codex etc., cache.numtide.com) instead of compiling them from source.
       - uses: DeterminateSystems/nix-installer-action@main
+        with:
+          extra-conf: |
+            extra-substituters = https://noctalia.cachix.org https://cache.numtide.com
+            extra-trusted-public-keys = noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4= niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g=
       # skipPush + explicit `cachix push` below: the automatic post-build-hook
       # does not reliably upload under the DeterminateSystems Nix daemon, so we
       # push the built closures explicitly (cachix skips paths already cached).
