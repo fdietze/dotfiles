@@ -32,12 +32,18 @@ jobs:
     # died from disk exhaustion, not timeout, but keep slack once disk is freed).
     timeout-minutes: 150
     steps:
-      # gurke's full toplevel closure (desktop + vscode + electron/noctalia) does
-      # not fit on the runner's root disk (~21 GB free): the runner lost
-      # communication mid-realization. The ephemeral resource disk at /mnt is
-      # much larger (~65 GB free), so bind-mount the whole /nix tree onto it
-      # before installing Nix. This holds both the store and the daemon build dir
-      # (/nix/var), and is instant vs. deleting ~30 GB of preinstalled tooling.
+      # gurke's toplevel is heavy on THREE runner resources; each step below
+      # clears one wall we hit in turn:
+      #  - RAM (7 GB): codex(Rust)+noctalia(Qt) compiles OOMed -> swap step below.
+      #  - store disk: closure too big for root / -> bind-mount /nix onto /mnt.
+      #  - build scratch: nix unpacks sources in /tmp on root /, which filled
+      #    (vscode+electron+megasync+codex trees) -> reclaim ~30 GB of preinstalled
+      #    Android/.NET/GHC tooling on / to give /tmp headroom. (Store lives on
+      #    /mnt, so we keep /tmp on the freed root disk to avoid crowding /mnt.)
+      - name: Free ~30 GB on the root disk (build scratch headroom)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
       - name: Put /nix on the large /mnt disk
         run: |
           sudo mkdir -p /mnt/nix /nix
