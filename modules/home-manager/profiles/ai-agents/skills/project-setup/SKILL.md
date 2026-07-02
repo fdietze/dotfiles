@@ -27,7 +27,6 @@ description: Read this whenever working with projects of any kind. creating proj
     - interfaces of this software to the outside world. UI? Open ports? CLI?
     - it must include that the setup in AGENTS.md and the README.md MUST always be kept up to date.
 - use a justfile for the clean set of commands covering the setup (often pointing to nix commands) (install just in the nix flake development shell)
-- add a github action that runs the build and all tests in nix, so they benefit from nix caching
 
 ## Development
 - Provide a straightforward and simple development environment with file watching and hot reloading
@@ -61,9 +60,9 @@ description: Read this whenever working with projects of any kind. creating proj
 # Specific Technologies
 - for python use uv
 - for npm dependencies use pnpm
-- for machine learning use pytorch
+- for machine learning use pytorch or rust/burn
 - for rust, use a modern flake based system to set up rust and pin the rust version and build targets. Use latest stable rust, or even nightly if appropriate.
-- for websites if using a CDN, always use security hashes, but in general prefer managed dependencies over CDN
+- for websites if using CDN dependencies, always use security hashes, but in general prefer managed dependencies and a bundler over CDN
 
 
 # Architecture Principles to follow
